@@ -1,0 +1,8 @@
+/internal/
+/vendor/
+/build/
+**/.godot/
+*.uid
+__pycache__/
+.env
+.env.*

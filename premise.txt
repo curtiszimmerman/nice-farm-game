@@ -1,0 +1,116 @@
+
+
+OVERALL GOAL:
+a pixel art game (1-4 players, cooperative if multiplayer) game that can run comfortably on a GeForce 940MX which in its essence 
+is the amalgamation of Stardew Valley, Graveyard Keeper, with elements of World of Warcraft. 
+meaning, it should be a farming-sim style game (WITHOUT TOO MUCH TEDIUM as these games can 
+sometimes lean into) that is comfortable to play (meaning, without a constant din of tension 
+and anxiety in gameplay elements, although tension is obviously important in the context of 
+combat and some social interactions). the premise of the game is that the hero (or heroes) 
+have crash landed their spacecraft on a planet where magic is real, but the technology level 
+is about the same as the 1920s america (there are automobiles, telephones, radios, airplanes, airships) 
+BUT this is ***NOT*** a steampunk themed game (DO NOT use ANY steampunk themes). it is a 
+town-within-agrarian-surroundings sort of society. the ship the heroes crashed in is 
+damaged but remains hidden due to the cloaking device being powered by the ambient energy of 
+the planet's gravity well, but it is otherwise unable to leave. near to the crashsite is a 
+town full of interesting NPC characters of various races (human, elven, dwarven, halfling), 
+with quests to fulfill. the town is on the frontier of a kingdom that is under the threat of 
+attack from the evil opposing kingdom comprised of orcs, goblins, trolls, and darkelves. an 
+important moral lesson of the game is that kingdoms can be at war, but the individual people 
+of the kingdoms are complex individual human beings that aren't always aligned with the whims 
+of their governing states.
+
+THE MOST IMPORTANT THING ABOUT THE STORY:
+just like in real life, despite the tension between the kingdoms, life has to go on. there are 
+stories of border skirmishes among the armies, but merchants from either side still travel 
+freely between the kingdoms, pilgrims still visit faraway shrines across the border, and people 
+still travel back across the border to visit home for the festivals. people still have to work 
+to earn a living. the main storyline does center around the escalating tensions between the 
+two kingdoms, but that is always just something in the background, except during 
+main-storyline-focused game events, as described below. players are free to farm, collect 
+resources, go on quests for townspeople, learn the magic that exists on this planet and create 
+powerful artifacts, become a traveling merchant, or even join up with the border patrols for 
+some extra cash and combat experience. 
+
+THE MAIN STORYLINE:
+the player(s) crash on the planet some distance away from the town, and are able to cloak their 
+ship to hide their presence from the locals. the Prime Directive dictates that until rescue 
+arrives, the crew should try to hide from any local intelligent aliens as much as possible. but 
+the player(s) were under attack from an enemy ship, and in order to save their own lives, they
+had to hide their ship and leave it behind and seek assistance from the local alien population. 
+the game uses the "universal translator" trope. tropes are fine in this game. we're just trying 
+to have fun and be comfortable. so, the hero(es) set off to the nearest town and finds an 
+abandoned farm that they take up residence in. they are discovered by a neighbor, and there is 
+a slightly tense interaction where the neighbor isn't sure about the intenetions of the heroes, 
+but he agrees that the party can stay at the farm until the next day, when he will bring the 
+mayor of the town to meet them. the party makes up a story about being from very far away and 
+looking for a new place to settle. everything goes fine, bc the mayor is always looking for 
+new people to help out the local economy, but one of the sidekicks of the mayor mentions 
+something about the party being spies, which then triggers the whole storyline for the players 
+about the tense situation with the next kingdom over. anyway, there are 52 townspeople and 
+farmers and various NPCs the players can meet. they are all varied in their positions in 
+town, employment, social standing, everything like that. there are some archetypes, but mostly 
+just think of a peaceful town with mostly peaceful townsfolk and farmers. the players get set 
+up and begin farming, can explore, etc. the seasons are like they are here on earth, but magic 
+is definitely real: farmers hire the local magician to cast spells on their fields just as they 
+hire the local pilot to spray their fields with insecticides. the world is fairly sparsely 
+populated, so there isn't a huge crush of people coming and going. generally everyone knows 
+everyone else in town. there's a town drunk, there's a town bum, there's a town magician, there 
+is a town pilot, there is a radio station in the town. there's also a military base with 4-5 
+soldiers in garrison. after the first year goes by in the town, suddenly there is some news on 
+the radio that a new star has appeared in the sky, and it's growing ever so slightly brighter 
+every day. this "star" is the enemy ship that has tracked the players to the planet, and it's 
+coming to kill the party. the party can't use their technology to scan the ship or they will 
+be discovered, so there is some side quest about getting together with the town's Radio Club 
+(think computer club before there were computesr) to try and set up some radar to scan the 
+"star". anyway, the authorities of both kingdoms believe it's a bad omen of things to come, 
+and tensions start to escalate further because of it. one of the key elements of the story arc 
+is that the chief engineer of the crashed starship is an NPC that is actually a member of the 
+party, because they have chosen to stay behind to keep the ship's cloak running. but when the 
+enemy ship enters the story, the players will be given a lot of quests to go back and forth 
+to the crashed ship to deliver e.g. sulfur or copper or zinc or iron or whatever, in order to 
+supply the chief engineer with the things he needs to try and fix the ship to call for rescue.
+
+we will get to the end of the story eventually, but i think this is enough for you to get 
+started.
+
+some important gameplay considerations:
+
+COMBAT:
+
+combat is realtime, and similar to how combat is played in World of Warcraft, or diablo, with 
+individual inventories and fast-use slots for things like potions or spells or handguns or 
+swords or whatever. the players gain experience and levels and whatnot. any questions, ask me.
+
+FARMING:
+
+more or less just like stardew valley or graveyard keeper or something: simplistic, fun, easy 
+farming system with a lot of things to do with the harvest, like cooking recipes and selling 
+it on the market and using it in quests and things. any questions, ask me.
+
+MINING:
+
+semi-dangerous mines with enemies, but there is a difference between mining areas and enemy 
+areas, meaning: some places to mine ore have no enemies, and some places to mine are overrun.
+any questions, ask me.
+
+FISHING:
+
+every game has a fishing system, and this one is no different. lots of seasonal and different 
+kinds of fish with different difficulties, and different kinds of "ingredients" they provide 
+for things like spellcasting and food. any questions, ask me.
+
+MAGIC:
+
+it's a system of magic more like diablo or WoW, which is way more involved than the magic 
+systems you see in stardew valley or graveyard keeper. it's fairly typical magic system, with 
+spells costing mana, etc. there are scrolls and spellbooks and things. any questions, ask me.
+
+IMPORTANT NOTES:
+
+any questions, ask me. you are going to be driving most of the way here, but any big design 
+decisions, just ask me. for small stuff, or things that seem very natural (magic users have 
+a penalty to casting spells if they are wearing heavy metal armore, this kind of thing), 
+then you can just go ahead with the most natural decision, and then tell me in the regular 
+summaries before commits. you will commit of your own accord and NEVER EVER push the commits 
+to remote repositories without my EXPLICIT say-so.
