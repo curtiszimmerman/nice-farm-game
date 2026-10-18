@@ -288,7 +288,7 @@ func update() -> void:
 	var p = s.player_position
 	region.text = "Briar Glen town" if p.x>1120 else "The south meadow" if p.y>985 else "The hidden clearing" if p.x<470 and p.y<470 else "The old south farm"
 	if game.world.Grid.rect(game.world.SQUARE.position,game.world.SQUARE.size).has_point(p): region.text="Briar Glen town square"
-	elif p.x>1536 and p.y<600: region.text="Wizard's tower · sea cliffs"
+	elif p.x>1150 and p.x<1536 and p.y<410: region.text="Wizard's tower · northern mountains"
 	place.text = "A quiet signal" if region.text=="The hidden clearing" else "Briar Glen"
 	objective.text = "Find Moss at the farm gate. We need somewhere to stay." if not s.invited else "The mayor is waiting at your farmhouse. Head home when you're ready." if not s.met_mayor and s.total()>=2160 else "Meet the mayor at your farmhouse tomorrow at noon. Until then, settle in." if not s.met_mayor else "A home, a little soil, a place in the world. Take your time."
 	next_task.text = "○ Tend your first moon turnip" if s.harvested==0 else "○ Chief Vale needs 3 copper" if not s.delivered else "✓ Crew link restored"

@@ -140,7 +140,7 @@ Expand only after the small version feels good to play. The 52 NPCs, broader wor
 
 ## Next decisions with Z
 
-The current native slice includes a grid-aligned town square, fountain, provisions shop, clustered homes, and a wizard tower beside the sea cliffs. Villagers use daily walking and sleeping routines on the shared clock. Tavi works 08:00–20:00 with a short lunch break and morning/evening walks. The wizard wakes at noon and sleeps before sunrise. Other town residents follow ordinary daytime routines. The farmhouse appointment takes priority over daily routines. Interiors and seasonal schedule variations remain future work.
+The current native slice includes a grid-aligned town square, fountain, provisions shop, assigned homes, and a wizard tower among mountain cliffs north of town. Environment art connects buildings to worn yards and stone foundations, and the copper cave to mineral ground and a coastal ridge. Villagers use daily walking and sleeping routines on the shared clock. Tavi works 08:00–20:00 with a short lunch break and morning/evening walks. The wizard wakes at noon and sleeps before sunrise. Other town residents follow ordinary daytime routines. The farmhouse appointment takes priority over daily routines. Interiors and seasonal schedule variations remain future work.
 
 1. Review the native Godot slice and agree on the next playable increment.
 2. Camera perspective, movement, input devices, and combat controls.

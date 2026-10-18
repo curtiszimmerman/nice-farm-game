@@ -54,9 +54,9 @@ func run() -> void:
 	await capture("town")
 	game.state.minute=0.0
 	await capture("evening")
-	game.state.minute=1380.0
-	game.state.player_position=Vector2(1692,250)
-	await capture("wizard-coast")
+	game.state.minute=840.0
+	game.state.player_position=Vector2(1450,250)
+	await capture("wizard-mountains")
 	game.state.minute=720.0
 	game.state.player_position=Vector2(725,460)
 	await capture("behind-house")

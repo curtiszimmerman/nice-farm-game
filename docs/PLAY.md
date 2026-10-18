@@ -4,7 +4,7 @@ Somewhere, the Sun Still Rises is a small native Godot game. It runs directly on
 
 ## Playing
 
-Town now has a paved square with a fountain, nearby homes, and the provisions shop. Villagers walk between their daily stops. Tavi opens 08:00–20:00, takes lunch 12:30–13:00, and walks around before and after work. Iona wakes at noon and sleeps around 05:00 in the coastal tower northeast of town. Most neighbors wake 06:00–07:00 and sleep 22:00–23:00. Sleeping villagers disappear inside their homes; interiors are not yet playable. The map menu includes the new landmarks.
+Town has a cobbled square with a fountain, nearby homes, and the provisions shop. Villagers walk between their daily stops. Tavi opens 08:00–20:00, takes lunch 12:30–13:00, and walks around before and after work. Iona wakes at noon and sleeps around 05:00 in the tower among the northern mountain cliffs. Most neighbors wake 06:00–07:00 and sleep 22:00–23:00. Moss owns the southern cottage; Alder lives north of the square, Tavi southeast, and Finch southwest. Sleeping villagers disappear inside their homes; interiors are not yet playable. The map menu includes the new landmarks.
 
 The project-local launcher is `scripts/play.sh`. It starts the pinned Godot executable under `vendor/godot/`. F11 toggles fullscreen. The game opens at its title screen.
 

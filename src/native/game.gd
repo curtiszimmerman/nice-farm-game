@@ -312,7 +312,7 @@ func journal() -> void:
 	panel("Captain's field notes","FIRST LANDING","%s A roof for the night · speak with Moss.\n\n%s Tomorrow, at noon · Spring 02, farmhouse.\nThe mayor will return if we miss him.\n\n%s Something of our own · harvest a moon turnip.\nTavi buys produce at the market.\n\n%s A quiet channel home · bring Chief Vale 3 copper.\nThe exposed seam is southeast of town." % ["✓" if state.invited else "○","✓" if state.met_mayor else "○","✓" if state.harvested>0 else "○","✓" if state.delivered else "○"])
 
 func map_notes() -> void:
-	panel("Around Briar Glen","MOSS'S HAND-DRAWN DIRECTIONS","↖ Hidden ship & Chief Vale\n↑ Radio Club & Finch\n← Your farm & Moss\n→ Town square, homes & Tavi's cart\n↗ Iona's tower on the sea cliffs\n↙ Pond & fishing jetty\n↘ Safe copper outcrop\n\nTavi keeps the cart 08:00–20:00, with lunch at 12:30. Iona wakes at noon and sleeps around 05:00.\nFollow the sandy lanes; neighbors have places to be.")
+	panel("Around Briar Glen","MOSS'S HAND-DRAWN DIRECTIONS","↖ Hidden ship & Chief Vale\n↑ Radio Club & Finch\n← Your farm & Moss\n→ Town square, homes & Tavi's cart\n↑ Iona's tower in the northern mountains\n↙ Pond & fishing jetty\n↘ Safe copper outcrop\n\nTavi keeps the cart 08:00–20:00, with lunch at 12:30. Iona wakes at noon and sleeps around 05:00.\nFollow the sandy lanes; neighbors have places to be.")
 
 func settings() -> void:
 	if not started: return

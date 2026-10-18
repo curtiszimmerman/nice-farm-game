@@ -7,6 +7,7 @@ const SIZE = Grid.WORLD_SIZE
 const FARM_CELL = Vector2i(17,24)
 const OUTCROP_CELLS = Rect2i(46,28,7,4)
 const COPPER_CELLS = Rect2i(46,32,7,1)
+const MINE_RIDGE = Rect2i(50,26,3,2)
 const SHIP_CELL = Vector2i(10,8)
 const JETTY_CELLS = Rect2i(11,34,3,1)
 const CART_CELLS = Rect2i(45,20,3,1)
@@ -24,11 +25,11 @@ const BUILDINGS = [
 	{"cell":Vector2i(32,9),"tiles":Vector2i(5,4),"roof":"5b8990","kind":"radio"},
 	{"cell":Vector2i(45,15),"tiles":Vector2i(5,4),"roof":"ad7956","kind":"store"},
 	{"cell":Vector2i(32,17),"tiles":Vector2i(5,4),"roof":"818a60","kind":"hall"},
-	{"cell":Vector2i(39,14),"tiles":Vector2i(5,3),"roof":"8c6856","kind":"cottage"},
-	{"cell":Vector2i(45,23),"tiles":Vector2i(5,3),"roof":"a87858","kind":"cottage"},
-	{"cell":Vector2i(38,26),"tiles":Vector2i(5,3),"roof":"65858b","kind":"cottage"},
-	{"cell":Vector2i(49,5),"tiles":Vector2i(3,6),"roof":"68658f","kind":"tower"},
-	{"cell":Vector2i(28,33),"tiles":Vector2i(5,3),"roof":"8c6856","kind":"cottage"}
+	{"cell":Vector2i(39,14),"tiles":Vector2i(5,3),"roof":"8c6856","kind":"cottage","resident":"mayor"},
+	{"cell":Vector2i(45,23),"tiles":Vector2i(5,3),"roof":"a87858","kind":"cottage","resident":"tavi"},
+	{"cell":Vector2i(38,26),"tiles":Vector2i(5,3),"roof":"65858b","kind":"cottage","resident":"finch"},
+	{"cell":Vector2i(40,5),"tiles":Vector2i(3,6),"roof":"68658f","kind":"tower","resident":"iona"},
+	{"cell":Vector2i(28,33),"tiles":Vector2i(5,3),"roof":"8c6856","kind":"cottage","resident":"moss"}
 ]
 const SITES = [
 	{"id":"bed","cell":Vector2i(22,20),"label":"Rest at the farmhouse"},
@@ -46,7 +47,8 @@ const ROAD_ROUTES = [
 	[Vector2i(34,13),Vector2i(34,15),Vector2i(37,15)],
 	[Vector2i(47,19),Vector2i(47,21)],
 	[Vector2i(41,17),Vector2i(41,19)],
-	[Vector2i(44,19),Vector2i(47,19),Vector2i(51,19),Vector2i(51,11),Vector2i(50,11)],
+	[Vector2i(44,19),Vector2i(47,19)],
+	[Vector2i(44,19),Vector2i(44,11),Vector2i(41,11)],
 	[Vector2i(47,26),Vector2i(44,26),Vector2i(44,24)],
 	[Vector2i(40,29),Vector2i(37,29)],
 	[Vector2i(41,24),Vector2i(37,24)]
@@ -60,6 +62,7 @@ var sites: Array = []
 var road_segments: Array = []
 var road_cells: Dictionary = {}
 var water_cells: Dictionary = {}
+var mountain_cells: Dictionary = {}
 var solid_cells: Dictionary = {}
 var reserved_cells: Dictionary = {}
 var fence_cells: Array[Vector2i] = []
@@ -162,12 +165,20 @@ func _build_layout() -> void:
 		sites.append(p)
 		reserved_cells[p.cell]=true
 	_claim(OUTCROP_CELLS,"rock")
+	_claim(MINE_RIDGE,"rock")
 	_claim(CART_CELLS,"cart")
 	for cell in LAMP_CELLS: _claim(Rect2i(cell,Vector2i.ONE),"lamp")
 	_claim(Rect2i(Vector2i(30,20),Vector2i.ONE),"sign")
 	_claim(Rect2i(Vector2i(37,16),Vector2i.ONE),"radio")
 	_claim(Rect2i(41,21,2,2),"fountain")
 	_claim(Rect2i(53,3,1,24),"cliff")
+	for y in range(2,11):
+		for x in range(36,49):
+			var cell=Vector2i(x,y)
+			if y>4 and x in range(39,46): continue
+			if y>7 and x in [36,37,47,48]: continue
+			mountain_cells[cell]=true
+			_claim(Rect2i(cell,Vector2i.ONE),"mountain")
 	for y in range(SQUARE.position.y,SQUARE.end.y):
 		for x in range(SQUARE.position.x,SQUARE.end.x): reserved_cells[Vector2i(x,y)]=true
 	for routine in Schedule.ROUTINES.values():
@@ -345,6 +356,7 @@ func _build_terrain() -> void:
 	random.seed = 73
 	var colors = [Color("7a9258"),Color("6f884f"),Color("83975d"),Color("81965a")]
 	for i in range(45000): image.fill_rect(Rect2i(random.randi_range(0,1915),random.randi_range(0,1437),random.randi_range(2,5),2),colors[i%4])
+	_paint_grounding(image,random)
 	_paint_roads(image,random)
 	_paint_water(image)
 	var decorated_cells={}
@@ -357,6 +369,32 @@ func _build_terrain() -> void:
 		if i%3 == 0: image.fill_rect(Rect2i(p.x-1,p.y-2,4,3),Color("ddd79b") if i%2 else Color("c1acc2"))
 	terrain = ImageTexture.create_from_image(image)
 	queue_redraw()
+
+func _paint_grounding(image: Image,random: RandomNumberGenerator) -> void:
+	# Rock dust, worn yards and grass share a broken edge rather than a hard outline.
+	for y in range(96,1376,3):
+		for x in range(96,1792,3):
+			var p=Vector2(x,y)
+			var mine=(p-Vector2(1584,985))/Vector2(187,124)
+			var highland=(p-Vector2(1344,240))/Vector2(285,220)
+			var mineral=maxf(1.0-mine.length(),1.0-highland.length())
+			if mineral+random.randf_range(-0.2,0.2)>0.04:
+				var stone=Color("96977f").lerp(Color("777f73"),clampf(mineral,0,1))
+				var broken_edge=sin(x*0.037+y*0.019)*0.07+cos(y*0.061-x*0.013)*0.04
+				var coverage=clampf((mineral+broken_edge)*2.4,0,1)
+				image.fill_rect(Rect2i(x,y,3,3),image.get_pixel(x,y).lerp(stone.lightened(random.randf_range(-0.025,0.025)),coverage))
+	for b in buildings:
+		var yard=Rect2(b.x-23,b.y+b.h-10,b.w+46,51)
+		for i in range(int(b.w)*6):
+			var p=Vector2(random.randf_range(yard.position.x,yard.end.x),random.randf_range(yard.position.y,yard.end.y))
+			if random.randf()>0.65 and absf(p.x-(b.x+b.w/2))>25: continue
+			image.fill_rect(Rect2i(p,Vector2i(3,2)),Color("9c956f").lightened(random.randf_range(-0.08,0.08)))
+		# Individual stepping stones lead out from the door into the worn yard.
+		for i in range(3):
+			var x=int(b.x+b.w/2)-12+(i%2)*3
+			var y=int(b.y+b.h)+9+i*10
+			image.fill_rect(Rect2i(x,y,22,7),Color("9a9d87"))
+			image.fill_rect(Rect2i(x+2,y,17,2),Color("b4b59b"))
 
 func _paint_water(image: Image) -> void:
 	for cell in water_cells:
@@ -422,11 +460,26 @@ func _draw() -> void:
 	# The square and coast share the same tile boundaries as collision and routes.
 	if not terrain: return
 	draw_texture(terrain,Vector2.ZERO)
+	for cell in mountain_cells:
+		if cell.y<=4: continue
+		var p=Grid.origin(cell)
+		var edge=not mountain_cells.has(cell+Vector2i.DOWN)
+		rock_surface(self,p,32,32,cell.x*17+cell.y*31,edge)
+		if not mountain_cells.has(cell+Vector2i.LEFT):
+			for i in range(4): r(self,p.x,p.y+i*8,3+(cell.y+i)%5,4,"748c53")
+		if not mountain_cells.has(cell+Vector2i.RIGHT):
+			for i in range(4): r(self,p.x+27+(cell.y+i)%3,p.y+i*8,5,4,"748c53")
+	paint_rock_mass(self,Vector2(1152,160),416,190,29)
 	for y in range(SQUARE.position.y,SQUARE.end.y):
 		for x in range(SQUARE.position.x,SQUARE.end.x):
 			var p=Grid.origin(Vector2i(x,y))
 			r(self,p.x,p.y,32,32,"a6a58b")
 			r(self,p.x+1,p.y+1,30,30,"babb9f" if (x+y)%2==0 else "b4b69b")
+			for i in range(6):
+				var xx=(i%2)*15+2
+				var yy=int(i/2)*10+2
+				r(self,p.x+xx,p.y+yy,13,8,"afb198" if (i+x+y)%3 else "c0bfa4")
+				r(self,p.x+xx+1,p.y+yy,10,1,"cbcab0")
 	var fountain=Grid.origin(Vector2i(41,21))
 	oval(self,fountain.x+32,fountain.y+34,32,25,"747f7d")
 	oval(self,fountain.x+32,fountain.y+29,27,19,"709fa9")
@@ -437,6 +490,7 @@ func _draw() -> void:
 		r(self,edge.x,edge.y,32,32,"7d897d")
 		r(self,edge.x+21,edge.y,11,32,"566e73")
 		r(self,edge.x+32,edge.y+8,9,2,"a6c9c2")
+	paint_rock_mass(self,Grid.origin(Vector2i(50,29)),96,96,117)
 	draw_set_transform(Grid.origin(JETTY_CELLS.position))
 	r(self,0,0,96,32,"655d46")
 	for i in range(12): r(self,1+i*8,0,6,32,"b09b6c")
@@ -454,11 +508,19 @@ func _draw() -> void:
 	draw_rect(field.grow(3),Color("596341"))
 	draw_rect(field,Color("7b6446"))
 	draw_set_transform(Grid.origin(OUTCROP_CELLS.position)+Vector2(112,128))
-	oval(self,0,-19,118,32,"687f63")
-	poly(self,[Vector2(-112,-19),Vector2(-96,-90),Vector2(-64,-112),Vector2(-32,-90),Vector2(-16,-128),Vector2(32,-112),Vector2(80,-58),Vector2(112,0)],"7c8b7d")
-	poly(self,[Vector2(-96,-90),Vector2(-64,-112),Vector2(-32,-90),Vector2(-64,-30)],"a8af94")
-	poly(self,[Vector2(-16,-128),Vector2(32,-112),Vector2(64,-64),Vector2(4,-88)],"9da58e")
+	paint_rock_mass(self,Vector2(-112,0),224,128,71)
 	oval(self,0,-34,27,32,"344e47")
+	poly(self,[Vector2(-24,-7),Vector2(-24,-39),Vector2(-17,-57),Vector2(8,-62),Vector2(23,-49),Vector2(26,-7)],"293d39")
+	poly(self,[Vector2(-17,-8),Vector2(-17,-35),Vector2(-8,-50),Vector2(11,-47),Vector2(19,-32),Vector2(19,-8)],"1e302e")
+	for i in range(7):
+		var a=PI+i*PI/6.0
+		var p=Vector2(cos(a)*31,-29+sin(a)*34)
+		poly(self,[p+Vector2(-7,-4),p+Vector2(5,-7),p+Vector2(9,5),p+Vector2(-6,9)],"9ba28a" if i%2 else "7f8b7b")
+		r(self,p.x-4,p.y-4,8,2,"b0b498")
+	for i in range(20):
+		var x=-105+(i*37)%212
+		var y=-6+(i*11)%18
+		poly(self,[Vector2(x,y),Vector2(x+5,y-4),Vector2(x+10,y+1),Vector2(x+7,y+4)],"7c8876" if i%3 else "a2a488")
 	for i in range(7):
 		r(self,-100+i*32,-12+sin(i*3.0)*5,8,5,"9b7b5e")
 		r(self,-98+i*32,-12+sin(i*3.0)*5,3,3,"c7a36d")
@@ -501,6 +563,45 @@ func _fence(x: float,y: float,w: int) -> void:
 		r(self,x+i,y,5,27,"b8a77a")
 		r(self,x+i-1,y-3,7,5,"d0be8b")
 
+func rock_surface(c: CanvasItem,p: Vector2,w: int,h: int,seed_value: int,edge: bool) -> void:
+	r(c,p.x,p.y,w,h,"7d8879")
+	for i in range(12):
+		var x=posmod(seed_value+i*19,w-5)
+		var y=posmod(seed_value*3+i*11,h-3)
+		r(c,p.x+x,p.y+y,4+posmod(i*3,9),2,"929b84" if i%3 else "64776b")
+	if edge:
+		r(c,p.x,p.y+h-8,w,8,"536b61")
+		for i in range(3):
+			var x=posmod(seed_value+i*13,w-8)
+			r(c,p.x+x,p.y+h-11,7,2,"acb093")
+	if seed_value%3==0:
+		c.draw_polyline(PackedVector2Array([p+Vector2(8,2),p+Vector2(14,13),p+Vector2(10,24)]),Color("52685e"),1)
+
+func paint_rock_mass(c: CanvasItem,base: Vector2,w: int,h: int,seed_value: int) -> void:
+	var random=RandomNumberGenerator.new()
+	random.seed=seed_value
+	# A continuous stepped silhouette reads as a hillside instead of separate boulders.
+	for x in range(0,w,4):
+		var arch=pow(maxf(0.0,sin(PI*(x+2)/float(w))),0.35)
+		var height=int((h-12)*arch+sin(x*0.081)*5+sin(x*0.19)*3)
+		height=maxi(6,height)
+		r(c,base.x+x,base.y-height,4,height,"7c897a")
+		r(c,base.x+x,base.y-height,4,6,"a4ac91")
+		for y in range(12,height-6,19):
+			var offset=int(sin(x*0.05+y)*3)
+			if sin(x*0.13+y)>-0.3:
+				r(c,base.x+x,base.y-y+offset,4,2,"606f65")
+				r(c,base.x+x,base.y-y+offset-3,4,2,"929e85")
+	for i in range(int(w*0.75)):
+		var x=random.randf_range(8,w-8)
+		var height=(h-20)*pow(sin(PI*x/w),0.35)
+		var y=random.randf_range(5,maxf(6,height))
+		r(c,base.x+x,base.y-y,random.randi_range(2,9),random.randi_range(1,3),"a0a68d" if i%3 else "6a7b6c")
+	for i in range(int(w/9)):
+		var x=i*9+random.randf_range(-3,3)
+		r(c,base.x+x,base.y-4,7,4,"6d835e")
+		r(c,base.x+x+2,base.y-8,3,5,"899b70")
+
 func paint_tree(c: CanvasItem, data: Dictionary) -> void:
 	var s = data.size
 	oval(c,7,6,28*s,10*s,"263d3450")
@@ -509,6 +610,15 @@ func paint_tree(c: CanvasItem, data: Dictionary) -> void:
 	var colors = ["496c51","638653","849755"] if data.warm else ["365e4b","4c7a50","6c9257"]
 	for p in [[-29,-60,56,30,0],[-22,-78,44,30,0],[-13,-91,28,27,0],[-25,-67,41,25,1],[-17,-84,29,26,1],[-19,-72,19,12,2],[-10,-86,13,10,2],[5,-56,20,15,1],[-33,-51,18,15,0]]:
 		r(c,p[0]*s,p[1]*s,p[2]*s,p[3]*s,colors[p[4]])
+	var leaves=RandomNumberGenerator.new()
+	leaves.seed=int(data.pos.x*17+data.pos.y*31)
+	for i in range(65):
+		var x=leaves.randi_range(-27,24)
+		var y=leaves.randi_range(-78,-43)
+		if absf(x)>20 and y<-69: continue
+		r(c,x*s,y*s,(3+i%4)*s,2*s,colors[2] if i%3 else colors[0])
+	for x in [-13,-7,8]:
+		poly(c,[Vector2(0,-8)*s,Vector2(x,5)*s,Vector2(x+sign(x)*4,3)*s],"6d6547")
 	r(c,-18*s,-64*s,5*s,3*s,"91a05d")
 	r(c,8*s,-46*s,5*s,3*s,"779453")
 
@@ -518,11 +628,22 @@ func paint_building(c: CanvasItem, b: Dictionary) -> void:
 	var y = -h
 	if b.kind=="tower":
 		r(c,8,y,w-16,h,"9295a2")
-		for yy in range(int(y)+8,0,16): r(c,9,yy,w-18,2,"737b8b")
+		for yy in range(int(y)+8,0,12):
+			r(c,9,yy,w-18,2,"737b8b")
+			for xx in range(12,w-16,17):
+				r(c,xx+(int(yy/12.0)%2)*6,yy-9,1,9,"727f83")
+				r(c,xx+2,yy-8,9,1,"a6adab")
 		poly(c,[Vector2(-8,y),Vector2(w/2,y-76),Vector2(w+8,y)],"68658f")
+		for i in range(1,8):
+			var yy=y-i*9
+			var inset=i*6
+			r(c,-6+inset,yy,w+12-inset*2,2,"89829e")
+		r(c,8,-15,w-16,15,"697c70")
+		for i in range(15): r(c,12+(i*17)%int(w-24),-3-(i*7)%27,3,3,"869776")
 		for yy in [-150,-96]:
 			r(c,w/2-8,yy,16,26,"e1c786")
 		r(c,w/2-13,-42,26,42,"526c75")
+		c.draw_string(ThemeDB.fallback_font,Vector2(25,-48),"IONA",HORIZONTAL_ALIGNMENT_LEFT,-1,8,Color("dfd3ab"))
 		return
 	oval(c,w*0.6,5,w*0.65,19,"233f3338")
 	r(c,0,y,w,h,"d0c298")
@@ -533,11 +654,23 @@ func paint_building(c: CanvasItem, b: Dictionary) -> void:
 	r(c,w-6,y,6,h,"8e947a")
 	r(c,-5,-9,w+10,13,"9a9478")
 	r(c,9,-7,w-18,3,"b3ab8c")
+	for i in range(int(w/14)):
+		var xx=i*14+3
+		r(c,xx,-8,11,4,"797f69")
+		r(c,xx,-8,9,1,"cac4a0")
+	# Small plaster chips and weather streaks break up the broad flat wall planes.
+	for i in range(int(w)):
+		var xx=9+(i*29)%int(w-18)
+		var yy=y+14+(i*17)%int(h-30)
+		r(c,xx,yy,2+i%3,1,"b1ab86" if i%3 else "d5c8a1")
 	var door = w*0.5-13
 	r(c,door-3,-54,32,48,"7b795d")
 	r(c,door,-51,26,45,"5d7869")
 	r(c,door+4,-46,18,17,"829f91")
 	r(c,door+21,-28,3,3,"d4b87c")
+	if b.has("resident"):
+		r(c,door-5,-69,37,11,"77765c")
+		c.draw_string(ThemeDB.fallback_font,Vector2(door-2,-61),"ALDER" if b.resident=="mayor" else b.resident.to_upper(),HORIZONTAL_ALIGNMENT_LEFT,-1,7,Color("e2d2a5"))
 	r(c,door-9,4,44,6,"b7af8b")
 	for x in [22,w-49]:
 		r(c,x-3,-65,31,36,"eee0b0")
@@ -556,6 +689,24 @@ func paint_building(c: CanvasItem, b: Dictionary) -> void:
 		var inset = (y+14-yy)*0.4
 		r(c,-12+inset,yy,w+24-inset*2,2,"543f4144")
 		for x in range(int(inset),int(w-inset),17): r(c,x+(int(yy/10.0)%2)*8,yy-7,1,7,"e3c09a33")
+		for x in range(int(inset)+3,int(w-inset)-5,13):
+			r(c,x,yy-5,7,1,"d6b69555")
+			r(c,x+3,yy-2,6,1,"433f4544")
+	for i in range(9):
+		var xx=8+i*11
+		r(c,xx,y+12,5,2,"7d896344")
+	if b.get("resident","") in ["moss","tavi","finch","mayor"]:
+		var resident=b.resident
+		for i in range(5):
+			r(c,3+i*5,-14-i%3*3,3,9,"718855")
+			r(c,3+i*5,-16-i%3*3,3,3,"c6b68b" if resident=="moss" else "ad8d91")
+		if resident=="tavi":
+			for i in range(3):
+				r(c,w-26+i*7,-20+i*4,14,15,"8e7754")
+				r(c,w-25+i*7,-18+i*4,12,2,"c0a778")
+		elif resident=="finch":
+			r(c,w-22,-30,2,30,"6c8079")
+			r(c,w-34,-28,25,2,"b3b49a")
 	r(c,w-42,roof_y-17,18,29,"8a7f6a")
 	r(c,w-45,roof_y-20,24,6,"b6ab8d")
 	if b.kind == "radio":
