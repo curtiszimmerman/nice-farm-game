@@ -52,6 +52,10 @@ Z requested unmistakably blue nights, forward-facing garden targeting, scenery t
 
 Trees and buildings fade when their visual bounds overlap an avatar drawn behind them; opacity restores when the avatar moves clear. Collision remains unchanged. Roads use a merged capsule mask with rounded joins, irregular worn shoulders, scattered texture, and subtle wheel tracks. The same segment geometry keeps trees clear of roads. Main routes skirt town hall and connect the farmhouse lane, market, pond, and mine approach. Native checks cover directional actions, occlusion, night color, road continuity, and rounded shoulders; screenshots cover the corresponding rendered scenes.
 
+## Copper interaction regression
+
+The copper interaction point was at (1585,1090), below the visible veins around y=1000–1030. Approaching the rock face placed the avatar outside its 55-unit interaction radius. Copper now uses the exposed front seam's rectangular bounds, so the center and both sides work from reachable ground. A regression test walks into the rock collision with real movement input, collects three copper through the game loop, checks energy costs, and rejects gathering far down the road. The older integration test now approaches the visible seam rather than the former invisible hotspot.
+
 ## Next discussion
 
 Play and critique the slice before expanding it. Decide the next milestone, combat controls and feel, art direction, calendar/lunar rules, and the first actual networked cooperative interaction. Do not mistake placeholder content for approved final story or mechanics.

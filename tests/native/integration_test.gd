@@ -39,7 +39,7 @@ func run() -> void:
 	game.interact()
 	game.ui.modal_box.get_child(3).pressed.emit()
 	check(game.state.turnips==0 and game.state.money==32,"merchant dialogue actually sells inventory")
-	game.state.player_position=Vector2(1585,1090)
+	game.state.player_position=Vector2(1585,1025)
 	game.interact()
 	game._update_activity(1.2)
 	check(game.state.copper==1 and game.activity=="","mining completes through the game controller")

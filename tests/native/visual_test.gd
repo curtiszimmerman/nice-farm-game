@@ -7,6 +7,7 @@ func _initialize() -> void:
 	call_deferred("run")
 
 func capture(label: String) -> void:
+	game.nearest=game.world.find_nearest()
 	game.world.refresh()
 	game.camera.position=game.state.player_position+Vector2(20,-5)
 	game.ui.update()
@@ -61,6 +62,8 @@ func run() -> void:
 	game.world.facing="right"
 	game.world.find_nearest()
 	await capture("forward-target")
+	game.state.player_position=Vector2(1585,1030)
+	await capture("outcrop")
 	game.sound_settings()
 	await capture("sound-settings")
 	assert(game.sound.music.playing,"Native music should play")

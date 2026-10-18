@@ -19,7 +19,7 @@ const BUILDINGS = [
 const SITES = [
 	{"id": "bed", "x": 724, "y": 660, "label": "Rest at the farmhouse"},
 	{"id": "pond", "x": 420, "y": 1110, "label": "Fish from the jetty"},
-	{"id": "ore", "x": 1585, "y": 1090, "label": "Gather copper"},
+	{"id": "ore", "x": 1585, "y": 1020, "bounds": Rect2(1480,1000,185,35), "label": "Gather copper"},
 	{"id": "sign", "x": 1070, "y": 635, "label": "Read the signpost"},
 	{"id": "radio", "x": 1210, "y": 545, "label": "Listen to the radio"}
 ]
@@ -176,7 +176,10 @@ func find_nearest() -> Dictionary:
 			best.label = "Talk to " + p.name
 			distance = d
 	for p in SITES:
-		var d = state.player_position.distance_to(Vector2(p.x,p.y))
+		var interaction_point=Vector2(p.x,p.y)
+		if p.has("bounds"):
+			interaction_point=state.player_position.clamp(p.bounds.position,p.bounds.end)
+		var d = state.player_position.distance_to(interaction_point)
 		if d<distance:
 			best = p.duplicate()
 			best.type = "site"
