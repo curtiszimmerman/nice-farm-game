@@ -23,13 +23,15 @@ The bottom action buttons also work with the mouse. Music, environmental ambienc
 ## A good first visit
 
 1. Walk east to Moss, the farmer at your gate, and press E. Agree to meet the mayor tomorrow at noon.
-2. Tend the garden southwest of the house. E tills, plants, waters, and harvests. Q grows a watered crop immediately, using regenerating attunement.
+2. Tend the garden southwest of the house. Face the adjacent square you want to work; the highlight, E actions, and Q spell all target that square. E tills, plants, waters, and harvests. Q grows a watered crop immediately, using regenerating attunement.
 3. Follow the lane east into town. Meet Tavi at the market cart and sell your turnips. Iona and Finch have things to say, too.
 4. Follow the south lane west to fish from the pond jetty. E casts; E again reels in while the meter is between 35 and 70. Misses cost no bait.
 5. Find the quiet copper seam southeast of town. Bring three copper to Chief Vale in the hidden clearing northwest of your farm.
 6. At the farmhouse door, choose rest until the appointment. The world advances continuously to Spring 02 at 11:45. Stay near the farmhouse for the mayor's noon visit. If you're late, the meeting remains available.
 
 The clock runs through midnight and conversations by default. One real second is three game minutes; a full ordinary day is eight real minutes. Rest speeds up the continuous clock. Crops mature three game hours after watering. There is no hard day transition or mandatory bedtime.
+
+Night shifts the world into a blue moonlit palette while interface colors stay readable. Houses and trees fade when their drawn shape covers the avatar, then return to opaque when you step clear. Village dirt roads have connected junctions, worn shoulders, and wheel tracks.
 
 Three menu-time modes are in settings. Calendar-only pause allows active simulation such as attunement recovery while crops and appointments wait. Full pause stops simulation; decorative rendering continues. The local interacting player remains in their menu. Multiplayer is not implemented yet.
 

@@ -10,7 +10,9 @@ func capture(label: String) -> void:
 	game.world.refresh()
 	game.camera.position=game.state.player_position+Vector2(20,-5)
 	game.ui.update()
-	for i in range(3): await process_frame
+	for i in range(10):
+		game.world.refresh()
+		await process_frame
 	await RenderingServer.frame_post_draw
 	var path=ProjectSettings.globalize_path("res://../../internal/verification/native-"+label+".png").simplify_path()
 	var image=root.get_texture().get_image()
@@ -48,8 +50,17 @@ func run() -> void:
 	game.close_window()
 	game.state.player_position=Vector2(1415,690)
 	await capture("town")
-	game.state.minute=1210.0
+	game.state.minute=0.0
 	await capture("evening")
+	game.state.minute=720.0
+	game.state.player_position=Vector2(725,460)
+	await capture("behind-house")
+	game.state.player_position=game.world.trees[0].pos-Vector2(0,45)
+	await capture("behind-tree")
+	game.state.player_position=game.world.plot_position(6)
+	game.world.facing="right"
+	game.world.find_nearest()
+	await capture("forward-target")
 	game.sound_settings()
 	await capture("sound-settings")
 	assert(game.sound.music.playing,"Native music should play")

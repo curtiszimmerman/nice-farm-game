@@ -23,10 +23,34 @@ const SITES = [
 	{"id": "sign", "x": 1070, "y": 635, "label": "Read the signpost"},
 	{"id": "radio", "x": 1210, "y": 545, "label": "Listen to the radio"}
 ]
-const PATHS = [Rect2(810,675,730,55),Rect2(1110,470,55,580),Rect2(680,635,65,400),Rect2(365,990,785,46),Rect2(1130,1010,500,45),Rect2(1280,465,45,250),Rect2(1435,595,70,100)]
+const ROAD_SEGMENTS = [
+	[Vector2(711,702),Vector2(835,702),24.0],
+	[Vector2(835,702),Vector2(1020,694),26.0],
+	[Vector2(1020,694),Vector2(1140,702),26.0],
+	[Vector2(1140,702),Vector2(1210,620),26.0],
+	[Vector2(1210,620),Vector2(1420,620),26.0],
+	[Vector2(1420,620),Vector2(1450,700),26.0],
+	[Vector2(1450,700),Vector2(1530,700),26.0],
+	[Vector2(1138,480),Vector2(1128,670),25.0],
+	[Vector2(1128,670),Vector2(1142,850),25.0],
+	[Vector2(1142,850),Vector2(1125,1030),24.0],
+	[Vector2(715,645),Vector2(711,785),24.0],
+	[Vector2(711,785),Vector2(710,1013),24.0],
+	[Vector2(405,1013),Vector2(710,1013),21.0],
+	[Vector2(405,1013),Vector2(435,1084),15.0],
+	[Vector2(710,1013),Vector2(930,1018),22.0],
+	[Vector2(930,1018),Vector2(1130,1033),22.0],
+	[Vector2(1130,1033),Vector2(1590,1045),22.0],
+	[Vector2(1590,1045),Vector2(1590,1090),16.0],
+	[Vector2(1302,490),Vector2(1300,620),19.0],
+	[Vector2(1537,614),Vector2(1495,700),20.0],
+	[Vector2(1325,785),Vector2(1140,810),20.0]
+]
 
 var trees: Array = []
 var terrain: ImageTexture
+var road_mask: Image
+var night_tint: CanvasModulate
 var state: RefCounted
 var crops: Node2D
 var mayor: Node2D
@@ -51,6 +75,8 @@ class Prop extends Node2D:
 
 func _ready() -> void:
 	y_sort_enabled = true
+	night_tint=CanvasModulate.new()
+	add_child(night_tint)
 	_build_terrain()
 	var random = RandomNumberGenerator.new()
 	random.seed = 41
@@ -80,12 +106,36 @@ func _prop(kind: String, pos: Vector2, data: Dictionary) -> Prop:
 	return p
 
 func refresh() -> void:
+	var daylight=smoothstep(330.0,420.0,state.minute)*(1.0-smoothstep(1110.0,1200.0,state.minute))
+	night_tint.color=Color(0.32,0.42,0.92).lerp(Color.WHITE,daylight)
 	crops.queue_redraw()
 	player.position = state.player_position.round()
 	player.queue_redraw()
 	mayor.visible = state.invited and not state.met_mayor and state.total() >= 2160.0
 	for child in get_children():
-		if child is Prop and child.kind == "effects": child.queue_redraw()
+		if child is Prop:
+			if child.kind == "effects": child.queue_redraw()
+			elif child.kind in ["tree","building"]:
+				var hidden=prop_hides_player(child)
+				child.modulate.a=move_toward(child.modulate.a,0.22 if hidden else 1.0,0.14)
+
+func prop_hides_player(prop: Prop) -> bool:
+	if state.player_position.y>=prop.position.y: return false
+	var bounds: Rect2
+	if prop.kind=="tree":
+		var scale_factor=prop.data.size
+		bounds=Rect2(prop.position+Vector2(-34,-92)*scale_factor,Vector2(68,94)*scale_factor)
+	elif prop.kind=="building":
+		bounds=Rect2(prop.position+Vector2(-14,-prop.data.h-80),Vector2(prop.data.w+28,prop.data.h+90))
+	else: return false
+	return bounds.intersects(Rect2(state.player_position-Vector2(12,44),Vector2(24,46)))
+
+func target_plot() -> int:
+	var direction={"up":Vector2.UP,"down":Vector2.DOWN,"left":Vector2.LEFT,"right":Vector2.RIGHT}[facing]
+	var point=state.player_position+direction*34.0-FARM+Vector2(17,17)
+	var col=floori(point.x/34.0)
+	var row=floori(point.y/34.0)
+	return row*5+col if col>=0 and col<5 and row>=0 and row<4 else -1
 
 func plot_position(i: int) -> Vector2:
 	return FARM + Vector2(i%5 * 34, int(i/5.0)*34)
@@ -110,9 +160,10 @@ func blocked(p: Vector2) -> bool:
 func find_nearest() -> Dictionary:
 	var best: Dictionary = {}
 	var distance = 55.0
-	for i in range(20):
+	var i=target_plot()
+	if i>=0:
 		var d = state.player_position.distance_to(plot_position(i))
-		if d<minf(distance,36.0):
+		if d<distance:
 			var p = state.plots[i]
 			var label = "Harvest moon turnip" if state.ripe(i) else "Till the soil" if not p.tilled else "Plant moon turnip" if p.planted<0 else "Water moon turnip" if not p.watered else "Growing · Q casts Wildgrowth"
 			best = {"type":"plot","index":i,"label":label}
@@ -137,8 +188,8 @@ func _clearing(p: Vector2) -> bool:
 	if Rect2(495,420,445,590).has_point(p) or Rect2(1145,330,525,500).has_point(p) or Rect2(245,190,215,210).has_point(p) or Rect2(1440,900,300,330).has_point(p): return true
 	for b in BUILDINGS:
 		if Rect2(b.x,b.y,b.w,b.h).grow(65).has_point(p): return true
-	for path in PATHS:
-		if path.grow(35).has_point(p): return true
+	for segment in ROAD_SEGMENTS:
+		if p.distance_to(Geometry2D.get_closest_point_to_segment(p,segment[0],segment[1]))<segment[2]+35.0: return true
 	return in_water(p)
 
 func _build_terrain() -> void:
@@ -148,11 +199,7 @@ func _build_terrain() -> void:
 	random.seed = 73
 	var colors = [Color("7a9258"),Color("6f884f"),Color("83975d"),Color("81965a")]
 	for i in range(45000): image.fill_rect(Rect2i(random.randi_range(0,1915),random.randi_range(0,1437),random.randi_range(2,5),2),colors[i%4])
-	for path in PATHS:
-		image.fill_rect(Rect2i(path.grow(5)),Color("87925b"))
-		image.fill_rect(Rect2i(path),Color("bdad78"))
-		for i in range(int(path.size.x*path.size.y/130.0)):
-			image.fill_rect(Rect2i(int(path.position.x+random.randf()*path.size.x),int(path.position.y+random.randf()*path.size.y),3,2),Color("cdbb86") if i%2 else Color("ac9c6d"))
+	_paint_roads(image,random)
 	for y in range(1440):
 		var edge = int(84+sin(y/145.0)*27)
 		image.fill_rect(Rect2i(0,y,edge+14,1),Color("96a776"))
@@ -171,6 +218,33 @@ func _build_terrain() -> void:
 		if i%3 == 0: image.fill_rect(Rect2i(p.x-1,p.y-2,4,3),Color("ddd79b") if i%2 else Color("c1acc2"))
 	terrain = ImageTexture.create_from_image(image)
 	queue_redraw()
+
+func _paint_roads(image: Image,random: RandomNumberGenerator) -> void:
+	road_mask=Image.create(1920,1440,false,Image.FORMAT_L8)
+	road_mask.fill(Color.BLACK)
+	var tracks=Image.create(1920,1440,false,Image.FORMAT_L8)
+	tracks.fill(Color.BLACK)
+	# Merge the whole network before shading its shoulders, so junctions have no seams.
+	for segment in ROAD_SEGMENTS:
+		var bounds=Rect2(segment[0],Vector2.ZERO).expand(segment[1]).grow(segment[2]+9.0)
+		for y in range(int(bounds.position.y/2.0)*2,int(bounds.end.y)+2,2):
+			for x in range(int(bounds.position.x/2.0)*2,int(bounds.end.x)+2,2):
+				var p=Vector2(x+1,y+1)
+				var distance=p.distance_to(Geometry2D.get_closest_point_to_segment(p,segment[0],segment[1]))
+				var roughness=sin(x*0.071)*1.5+sin(y*0.113)*1.3
+				var coverage=1.0-smoothstep(segment[2]-3.0+roughness,segment[2]+5.0+roughness,distance)
+				if coverage>road_mask.get_pixel(x,y).r:
+					road_mask.fill_rect(Rect2i(x,y,2,2),Color(coverage,coverage,coverage))
+				var rut=maxf(0.0,1.0-absf(distance-segment[2]*0.43)/2.0)*0.08
+				if rut>tracks.get_pixel(x,y).r: tracks.fill_rect(Rect2i(x,y,2,2),Color(rut,rut,rut))
+	for y in range(450,1120,2):
+		for x in range(370,1635,2):
+			var coverage=road_mask.get_pixel(x,y).r
+			if coverage<=0.0: continue
+			var dirt=Color("b8a47a").lightened(random.randf_range(-0.035,0.035))
+			dirt=dirt.darkened(tracks.get_pixel(x,y).r)
+			if random.randf()<0.035: dirt=dirt.lightened(0.12)
+			image.fill_rect(Rect2i(x,y,2,2),image.get_pixel(x,y).lerp(dirt,coverage))
 
 func r(c: CanvasItem, x: float,y: float,w: float,h: float,color: String) -> void:
 	c.draw_rect(Rect2(roundf(x),roundf(y),w,h),Color(color))

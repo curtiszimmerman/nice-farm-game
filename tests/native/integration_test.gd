@@ -29,7 +29,7 @@ func run() -> void:
 	check(game.window_open and game.ui.modal_box.get_child(1).text=="Moss","proximity opens neighbor conversation")
 	game.ui.modal_box.get_child(3).pressed.emit()
 	check(game.state.invited and not game.window_open,"dialogue choice records appointment")
-	game.state.player_position=game.world.plot_position(0)
+	game.state.player_position=game.world.plot_position(0)+Vector2.UP*34.0
 	for i in range(3): game.interact()
 	check(game.state.plots[0].watered and game.state.seeds==7,"contextual input tills plants and waters")
 	game.cast_growth()

@@ -46,6 +46,12 @@ Z found the original music disturbing and requested playful music with separate 
 
 Z requested three-times movement and menu time jumps during development. Debug builds multiply walking and running by three, with small collision steps to prevent tunneling. Escape → Development tools advances actual simulation by 1, 12, or 24 hours, or one provisional 28-day season. Jumps update calendar labels, seasonal audio, crops, and saved time, while canceling active rest/gathering. Release exports hide these tools and use original movement speeds. The 28-day season length is a development placeholder, not a finalized calendar decision.
 
+## World readability
+
+Z requested unmistakably blue nights, forward-facing garden targeting, scenery transparency behind occluders, and connected roads. World-only CanvasModulate lighting now blends through dawn/dusk into blue moonlight. The interface keeps its own colors. A garden target is the adjacent cell in the avatar's facing direction; highlighting, tending, and Wildgrowth share this selection, with no fallback to the occupied cell.
+
+Trees and buildings fade when their visual bounds overlap an avatar drawn behind them; opacity restores when the avatar moves clear. Collision remains unchanged. Roads use a merged capsule mask with rounded joins, irregular worn shoulders, scattered texture, and subtle wheel tracks. The same segment geometry keeps trees clear of roads. Main routes skirt town hall and connect the farmhouse lane, market, pond, and mine approach. Native checks cover directional actions, occlusion, night color, road continuity, and rounded shoulders; screenshots cover the corresponding rendered scenes.
+
 ## Next discussion
 
 Play and critique the slice before expanding it. Decide the next milestone, combat controls and feel, art direction, calendar/lunar rules, and the first actual networked cooperative interaction. Do not mistake placeholder content for approved final story or mechanics.

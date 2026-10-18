@@ -19,7 +19,6 @@ var attunement: Label
 var purse: Label
 var energy_bar: ProgressBar
 var mana_bar: ProgressBar
-var shade: ColorRect
 var modal: Control
 var modal_box: VBoxContainer
 var title_screen: Control
@@ -41,11 +40,6 @@ func _ready() -> void:
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(root)
-	shade = ColorRect.new()
-	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	shade.color = Color(0.04,0.07,0.17,0.0)
-	root.add_child(shade)
 	_label("FIRST LANDING / NATIVE PLAYABLE STUDY",Vector2(32,23),11,GOLD)
 	place = _label("Briar Glen",Vector2(30,42),32,CREAM,true)
 	region = _label("The old south farm",Vector2(33,88),13,MUTED)
@@ -299,11 +293,6 @@ func update() -> void:
 	hint.text = "" if game.window_open else "RESTING · E to get up" if game.resting>0 else "E · "+game.nearest.get("label","") if not game.nearest.is_empty() else ""
 	if game.activity=="mining": hint.text = "Gathering copper…"
 	if game.activity=="fishing": hint.text = "E · reel in when the marker crosses the gold band"
-	var night = 0.0
-	if s.minute<330: night=0.43
-	elif s.minute<420: night=0.43*(420-s.minute)/90.0
-	elif s.minute>1110: night=minf(0.46,(s.minute-1110)/180.0*0.46)
-	shade.color = Color(0.04,0.07,0.17,night)
 	action_meter.visible = game.activity=="fishing"
 	action_label.text = ""
 	if game.activity=="fishing":
