@@ -14,6 +14,7 @@ The world uses 32-pixel tiles across a 120 × 90 tile map (3840 × 2880 pixels).
 - Fences, lamps, the sign, radio, merchant cart, mine, ship clearing, and fishing jetty are anchored to cells or whole-tile footprints.
 - River and pond cells supply terrain collision. The jetty reserves walkable cells over water. Shoreline detail softens the visible tile corners.
 - Decorative flower and grass clumps use cell centers. Fine ground texture, sprite detail, particles, and flying insects remain visual detail within or above the layout.
+- Doors link the outdoor map to separate furnished 28 × 24 interior maps with their own solid cells, furniture footprints, entrances and exits. Moss's decorative fields occupy their own reserved cells and never share player crop indices.
 
 Collision reads the populated cell map. Static solid footprints reject overlapping placement; trees reserve their cells after checking the same map. Farm gates and the jetty reserve traversal space. Native checks verify alignment, population exclusions, footprints, route connectivity, interaction reachability, copper collection, and smooth movement.
 

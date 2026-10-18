@@ -8,6 +8,7 @@ const FARM_CELL = Vector2i(9,46)
 const OUTCROP_CELLS = Rect2i(90,69,9,5)
 const COPPER_CELLS = Rect2i(90,74,9,1)
 const MINE_RIDGE = Rect2i(97,65,3,4)
+const MOSS_FIELDS = Rect2i(25,60,6,4)
 const SHIP_CELL = Vector2i(6,6)
 const POND_CELL = Vector2i(17,67)
 const JETTY_CELLS = Rect2i(20,65,3,1)
@@ -19,7 +20,8 @@ const PEOPLE = [
 	{"id":"iona","name":"Iona","role":"FIELD MAGICIAN","cell":Vector2i(61,15),"coat":"8885ad","hair":"e3d7bd","skin":"ae856c"},
 	{"id":"finch","name":"Finch","role":"RADIO CLUB SECRETARY","cell":Vector2i(54,38),"coat":"6d96a0","hair":"765842","skin":"d3ab88"},
 	{"id":"vale","name":"Chief Vale","role":"CHIEF ENGINEER","cell":Vector2i(6,8),"coat":"8b9baf","hair":"b5a68e","skin":"a97959"},
-	{"id":"mayor","name":"Mayor Alder","role":"MAYOR","cell":Vector2i(61,42),"coat":"657b70","hair":"c2c4b0","skin":"d0a181"}
+	{"id":"mayor","name":"Mayor Alder","role":"MAYOR","cell":Vector2i(61,42),"coat":"657b70","hair":"c2c4b0","skin":"d0a181"},
+	{"id":"veteran","name":"The veteran","role":"RETIRED ARMY","cell":Vector2i(43,82),"coat":"777a60","hair":"b9b6a3","skin":"b08f77"}
 ]
 const BUILDINGS = [
 	{"cell":Vector2i(10,37),"tiles":Vector2i(7,5),"roof":"a65e50","kind":"home"},
@@ -30,7 +32,8 @@ const BUILDINGS = [
 	{"cell":Vector2i(65,48),"tiles":Vector2i(5,3),"roof":"a87858","kind":"cottage","resident":"tavi"},
 	{"cell":Vector2i(58,51),"tiles":Vector2i(5,3),"roof":"65858b","kind":"cottage","resident":"finch"},
 	{"cell":Vector2i(60,12),"tiles":Vector2i(3,3),"roof":"68658f","kind":"tower","resident":"iona","visual_height":192},
-	{"cell":Vector2i(24,55),"tiles":Vector2i(5,3),"roof":"8c6856","kind":"cottage","resident":"moss"}
+	{"cell":Vector2i(24,55),"tiles":Vector2i(5,3),"roof":"8c6856","kind":"cottage","resident":"moss"},
+	{"cell":Vector2i(40,76),"tiles":Vector2i(5,4),"roof":"70685a","kind":"cabin","resident":"veteran"}
 ]
 const SITES = [
 	{"id":"bed","cell":Vector2i(13,42),"label":"Rest at the farmhouse"},
@@ -152,6 +155,7 @@ func _build_layout() -> void:
 		reserved_cells[p.cell]=true
 	for item in BUILDINGS:
 		var b=item.duplicate(true)
+		b.id=b.get("resident",b.kind)
 		var bounds=Grid.rect(b.cell,b.tiles)
 		b.x=bounds.position.x
 		b.y=bounds.position.y
@@ -159,6 +163,10 @@ func _build_layout() -> void:
 		b.h=bounds.size.y
 		buildings.append(b)
 		_claim(Rect2i(b.cell,b.tiles),"building")
+		var door_cell=b.cell+Vector2i(int(b.tiles.x/2),b.tiles.y)
+		var door_pos=Grid.center(door_cell)
+		sites.append({"id":"door_"+b.id,"cell":door_cell,"x":door_pos.x,"y":door_pos.y,"door":b.id,"label":"Enter "+b.id.capitalize()})
+		reserved_cells[door_cell]=true
 	for item in SITES:
 		var p=item.duplicate(true)
 		var pos=Grid.center(p.cell)
@@ -186,6 +194,8 @@ func _build_layout() -> void:
 		for x in range(SQUARE.position.x,SQUARE.end.x): reserved_cells[Vector2i(x,y)]=true
 	for routine in Schedule.ROUTINES.values():
 		for stop in routine: reserved_cells[Vector2i(stop[1],stop[2])]=true
+	for y in range(MOSS_FIELDS.position.y-1,MOSS_FIELDS.end.y+1):
+		for x in range(MOSS_FIELDS.position.x-1,MOSS_FIELDS.end.x+1): reserved_cells[Vector2i(x,y)]=true
 	for y in [FARM_CELL.y-2,FARM_CELL.y+5]:
 		for x in range(FARM_CELL.x-1,FARM_CELL.x+11):
 			if x not in [14,15,16]: fence_cells.append(Vector2i(x,y))
@@ -226,8 +236,10 @@ func _route(start: Vector2i,goal: Vector2i) -> Array:
 func update_villagers(dt: float,snap: bool=false) -> void:
 	for id in villagers:
 		var stop=Schedule.stop(id,state.minute)
+		if id=="moss" and not state.invited: stop={"cell":Vector2i(20,43),"sleeping":false,"room":""}
 		if id in ["moss","mayor"] and state.invited and not state.met_mayor and state.total()>=2010:
 			stop={"cell":Grid.SPAWN_CELL+Vector2i(3,0) if id=="moss" else Grid.SPAWN_CELL+Vector2i(1,0),"sleeping":false}
+			stop.room="home" if state.location=="home" and state.total()>=2160 else ""
 		var actor: Node2D=villagers[id]
 		var previous=actor.position
 		var target=Grid.center(stop.cell)
@@ -249,7 +261,10 @@ func update_villagers(dt: float,snap: bool=false) -> void:
 				remaining-=distance
 				if actor.position.distance_to(path[0])<0.01: path.pop_front()
 				else: break
-		actor.visible=not stop.sleeping or actor.position.distance_to(target)>1
+		var arrived=actor.position.distance_to(target)<1
+		actor.data.room=stop.get("room","") if arrived else ""
+		actor.data.sleeping=stop.sleeping and arrived
+		actor.visible=not arrived or (not stop.sleeping and actor.data.room=="")
 		var motion=actor.position-previous
 		actor.data.walking=motion.length()>0.01 and not snap
 		if motion.length()>0.01:
@@ -338,7 +353,7 @@ func find_nearest() -> Dictionary:
 		if p.has("bounds"):
 			interaction_point=state.player_position.clamp(p.bounds.position,p.bounds.end)
 		var d = state.player_position.distance_to(interaction_point)
-		if d<distance:
+		if d<distance or (p.has("door") and d<=distance):
 			best = p.duplicate()
 			best.type = "site"
 			distance = d
@@ -498,6 +513,14 @@ func _draw() -> void:
 	var field=Grid.rect(FARM_CELL,Vector2i(5,4))
 	draw_rect(field.grow(3),Color("596341"))
 	draw_rect(field,Color("7b6446"))
+	for y in range(MOSS_FIELDS.position.y,MOSS_FIELDS.end.y):
+		for x in range(MOSS_FIELDS.position.x,MOSS_FIELDS.end.x):
+			var p=Grid.center(Vector2i(x,y))
+			r(self,p.x-15,p.y-15,30,30,"796247")
+			for i in range(3):
+				r(self,p.x-12+i*9,p.y-11,2,22,"5e513d")
+				r(self,p.x-8+i*8,p.y-5,4,11,"66874e")
+				r(self,p.x-10+i*8,p.y-6,8,4,"93a864")
 	var rock_width=OUTCROP_CELLS.size.x*Grid.TILE_SIZE
 	var rock_height=OUTCROP_CELLS.size.y*Grid.TILE_SIZE
 	draw_set_transform(Grid.origin(OUTCROP_CELLS.position)+Vector2(rock_width/2,rock_height))
@@ -671,6 +694,13 @@ func paint_building(c: CanvasItem, b: Dictionary) -> void:
 	oval(c,w*0.6,5,w*0.65,19,"233f3338")
 	r(c,0,y,w,h,"d0c298")
 	r(c,5,y+8,w-10,h-8,"c0b58f")
+	if b.kind=="cabin":
+		r(c,0,y,w,h,"877357")
+		for yy in range(int(y)+4,0,12):
+			r(c,-4,yy,w+8,9,"a08760")
+			r(c,1,yy+1,w-2,2,"b49a6d")
+			oval(c,0,yy+5,5,5,"c0a377")
+			oval(c,w,yy+5,5,5,"c0a377")
 	for yy in range(y+12,0,12): r(c,6,yy,w-12,1,"a89f7d")
 	r(c,0,y,w,5,"e0d0a6")
 	r(c,0,y,6,h,"e0d0a6")
@@ -778,6 +808,10 @@ func paint_person(c: CanvasItem, p: Dictionary, step: float, direction: String) 
 		r(c,-7,-27,14,3,"d8bc7c")
 		r(c,4,-23,3,3,"dfc98f")
 		r(c,-7,-18,14,3,"4e665e")
+		if state.equipped=="rusty_sword":
+			r(c,12,-26,3,28,"aab1a5")
+			r(c,8,-8,12,3,"b39a66")
+			r(c,12,-5,3,8,"796448")
 
 func paint_crops(c: CanvasItem) -> void:
 	for i in range(20):
@@ -793,7 +827,10 @@ func paint_crops(c: CanvasItem) -> void:
 		for j in range(4): r(c,x-11+j*7,y-10,2,20,"534e3d" if p.watered else "77583f")
 		if p.planted < 0.0: continue
 		if state.ripe(i):
-			oval(c,x,y+2,8,6,"eee0b9")
+			oval(c,x,y+2,8,6,"e5c777" if p.crop=="star_bulbs" else "eee0b9")
+			if p.crop=="star_bulbs":
+				r(c,x-2,y-10,4,24,"f1dfa2")
+				r(c,x-11,y-1,22,4,"f1dfa2")
 			r(c,x-3,y+5,5,4,"c99c99")
 			r(c,x-1,y-12,3,13,"527a46")
 			poly(c,[pos+Vector2(0,-5),pos+Vector2(-10,-13),pos+Vector2(-10,-6),pos],"94aa60")

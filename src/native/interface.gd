@@ -3,6 +3,8 @@ extends CanvasLayer
 const CREAM = Color("f1e7c9")
 const GOLD = Color("dfba72")
 const MUTED = Color("b6c3ad")
+const Items = preload("res://items.gd")
+var inventory_slots: Array=[]
 var game: Node2D
 var root: Control
 var place: Label
@@ -19,6 +21,8 @@ var attunement: Label
 var purse: Label
 var energy_bar: ProgressBar
 var mana_bar: ProgressBar
+var health_bar: ProgressBar
+var health_label: Label
 var modal: Control
 var modal_box: VBoxContainer
 var title_screen: Control
@@ -61,10 +65,12 @@ func _ready() -> void:
 	objective.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	next_task = _label("",Vector2(14,150),11,GOLD,false,log_panel)
 	var tray = _panel(Vector2(285,602),Vector2(710,88),Color("172b2bf5"))
-	vitality = _label("VITALITY  100",Vector2(19,12),10,MUTED,false,tray)
-	energy_bar = _bar(Vector2(19,31),Vector2(132,4),Color("a5bb78"),tray)
-	attunement = _label("ATTUNEMENT  60",Vector2(19,43),10,MUTED,false,tray)
-	mana_bar = _bar(Vector2(19,64),Vector2(132,4),Color("90b9d2"),tray)
+	health_label = _label("HP  100",Vector2(19,7),10,MUTED,false,tray)
+	health_bar = _bar(Vector2(19,23),Vector2(132,4),Color("c38e80"),tray)
+	vitality = _label("ENERGY  100",Vector2(19,30),10,MUTED,false,tray)
+	energy_bar = _bar(Vector2(19,46),Vector2(132,4),Color("a5bb78"),tray)
+	attunement = _label("MANA  60",Vector2(19,53),10,MUTED,false,tray)
+	mana_bar = _bar(Vector2(19,69),Vector2(132,4),Color("90b9d2"),tray)
 	var hotkeys = [["E","Tend / talk"],["Q","Wildgrowth"],["I","Satchel"],["J","Field notes"]]
 	for i in range(4):
 		var b = Button.new()
@@ -275,14 +281,59 @@ func add_volume_slider(title: String,value: float,on_changed: Callable) -> void:
 	modal_box.add_child(row)
 	modal_box.move_child(row,modal_box.get_child_count()-4)
 
+func open_inventory() -> void:
+	open_modal("Your satchel","SUPPLIES & EQUIPMENT","Hover over an item for details. Select an item to use it.",[["Close satchel",func(): pass]],true)
+	modal_box.get_child(2).text="Planting: %s · Equipped: %s\nHover for details; select an item to use it." % [Items.CATALOG[game.state.selected_seed].name,"Rusty sword" if game.state.equipped!="" else "None"]
+	modal.get_child(1).position.y=55
+	inventory_slots.clear()
+	var grid=GridContainer.new()
+	grid.columns=6
+	grid.add_theme_constant_override("h_separation",9)
+	grid.add_theme_constant_override("v_separation",9)
+	modal_box.add_child(grid)
+	modal_box.move_child(grid,3)
+	var stacks=game.inventory_stacks()
+	for i in range(18):
+		var slot=Button.new()
+		slot.custom_minimum_size=Vector2(84,84)
+		_button_style(slot)
+		grid.add_child(slot)
+		inventory_slots.append(slot)
+		if i>=stacks.size():
+			slot.disabled=true
+			continue
+		var stack=stacks[i]
+		var item=Items.CATALOG[stack.id]
+		slot.set_meta("item_id",stack.id)
+		slot.tooltip_text="%s\n%s\n%s" % [item.name,item.description,item.action]
+		if Items.FOOD.has(stack.id):
+			var food=Items.FOOD[stack.id]
+			slot.tooltip_text+="\n+%d HP · +%d energy · +%d mana" % [food.health,food.energy,food.mana]
+		var picture=TextureRect.new()
+		picture.texture=Items.icon(stack.id)
+		picture.texture_filter=CanvasItem.TEXTURE_FILTER_NEAREST
+		picture.position=Vector2(18,8)
+		picture.size=Vector2(48,48)
+		picture.mouse_filter=Control.MOUSE_FILTER_IGNORE
+		slot.add_child(picture)
+		var count=Label.new()
+		count.text=str(stack.count)
+		count.position=Vector2(56,58)
+		count.add_theme_color_override("font_color",CREAM)
+		count.mouse_filter=Control.MOUSE_FILTER_IGNORE
+		slot.add_child(count)
+		slot.pressed.connect(func(): game.use_inventory_item(stack.id))
+
 func update() -> void:
 	var s = game.state
 	clock.text = "%02d:%02d" % [int(s.minute/60.0),int(s.minute)%60]
 	date.text = "%s %02d" % [s.season_name().to_upper(),s.season_day()]
 	calendar_details.text = "Waxing moons · year %d" % s.calendar_year()
 	purse.text = str(s.money)
-	vitality.text = "VITALITY  %d" % ceili(s.energy)
-	attunement.text = "ATTUNEMENT  %d" % int(s.mana)
+	health_label.text="HP  %d" % ceili(s.health)
+	health_bar.value=s.health
+	vitality.text = "ENERGY  %d" % ceili(s.energy)
+	attunement.text = "MANA  %d" % int(s.mana)
 	energy_bar.value = s.energy
 	mana_bar.value = s.mana/60.0*100.0
 	var p = s.player_position
@@ -290,6 +341,7 @@ func update() -> void:
 	if game.world.Grid.rect(game.world.SQUARE.position,game.world.SQUARE.size).has_point(p): region.text="Briar Glen town square"
 	elif p.x>1500 and p.x<2500 and p.y<650: region.text="Wizard's tower · northern mountains"
 	elif game.world.Grid.rect(game.world.OUTCROP_CELLS.position,game.world.OUTCROP_CELLS.size).grow(200).has_point(p): region.text="Copper foothills"
+	if game.world!=game.outdoors: region.text=game.world.room_name()
 	place.text = "A quiet signal" if region.text=="The hidden clearing" else "Briar Glen"
 	objective.text = "Find Moss at the farm gate. We need somewhere to stay." if not s.invited else "The mayor is waiting at your farmhouse. Head home when you're ready." if not s.met_mayor and s.total()>=2160 else "Meet the mayor at your farmhouse tomorrow at noon. Until then, settle in." if not s.met_mayor else "A home, a little soil, a place in the world. Take your time."
 	next_task.text = "○ Tend your first moon turnip" if s.harvested==0 else "○ Chief Vale needs 3 copper" if not s.delivered else "✓ Crew link restored"

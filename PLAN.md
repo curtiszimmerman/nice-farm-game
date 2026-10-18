@@ -140,7 +140,11 @@ Expand only after the small version feels good to play. The 52 NPCs, broader wor
 
 ## Next decisions with Z
 
-The current native slice occupies 120 × 90 tiles, four times the original area. It includes a grid-aligned town square, fountain, provisions shop, assigned homes, and a round wizard tower with a square ground footprint among continuous mountain cliffs far north of town. The farmhouse is west, the ship northwest, and copper caves southeast, separated from homes by walkable space. The eastern ocean is removed. The radio sits on a table outside the club; the full dock supports fishing. Villagers use daily walking and sleeping routines on the shared clock. Tavi works 08:00–20:00 with a short lunch break and morning/evening walks. The wizard wakes at noon and sleeps before sunrise. Other town residents follow ordinary daytime routines. The farmhouse appointment takes priority over daily routines. Interiors and seasonal schedule variations remain future work.
+The current native slice occupies 120 × 90 tiles, four times the original area. It includes a grid-aligned town square, fountain, provisions shop, assigned furnished interiors, and a round wizard tower among mountain cliffs far north of town. The farmhouse is west, the ship northwest, and copper caves southeast, clear of homes. The eastern ocean is removed. Fishing works along the full dock. The camera uses 2.25× zoom after Z's request to reduce the doubled setting by 25%.
+
+The satchel has pictured slots, quantities, native hover descriptions and click actions. Turnips and silverfin restore modest health and energy; star bulbs restore mana and can be grown from purchased seeds. A separate health resource and equippable rusty sword are implemented; combat remains future work. An unnamed army veteran lives in a roadless southern log cabin, introduces his experience of the other kingdom and offers the first sword. His name and deeper history need Z's direction.
+
+Villagers walk between outdoor and indoor daily destinations. Tavi spends most working hours at the market, Finch works in the Radio Club, and Moss tends decorative crops that players cannot farm. Sleeping residents are present in their bedrooms. The farmhouse appointment takes priority over routines. Seasonal schedule variations remain future work. Existing-save upgrade approval is pending under CLAUDE.md's explicit compatibility rule.
 
 1. Review the native Godot slice and agree on the next playable increment.
 2. Camera perspective, movement, input devices, and combat controls.

@@ -4,7 +4,11 @@ Somewhere, the Sun Still Rises is a small native Godot game. It runs directly on
 
 ## Playing
 
-Town has a cobbled square with a fountain, nearby homes, and the provisions shop. Villagers walk between their daily stops. Tavi opens 08:00–20:00, takes lunch 12:30–13:00, and walks around before and after work. Iona wakes at noon and sleeps around 05:00 in the tower among the northern mountain cliffs. Most neighbors wake 06:00–07:00 and sleep 22:00–23:00. Moss owns the southern cottage; Alder lives north of the square, Tavi southeast, and Finch southwest. Sleeping villagers disappear inside their homes; interiors are not yet playable. The map menu includes the new landmarks.
+Town has a cobbled square with a fountain, nearby homes, and the provisions shop. Tavi works at his market cart from 08:00–20:00 with lunch and walks. Finch spends his workday inside the Radio Club, moving between equipment and shelves. Moss tends his decorative southern fields; those crops cannot be harvested by the player. The wizard wakes at noon and sleeps before sunrise. Sleeping residents can be seen in their own bedrooms. The mayor's appointment still takes priority.
+
+Press E beside a door to enter its separate furnished interior; press E at the front exit to return outside. Homes have living areas, bedrooms, kitchens, bathrooms, bookshelves, radios, rugs, plants and pictures. The veteran lives in an unmarked log cabin in the southern woods, without a road to his door. Talk to him about his army service and the other kingdom, and accept your first rusty sword.
+
+Press I for the slot-based satchel. Hover for details; click food to eat one, a seed packet to choose what to plant, or the sword to equip it. Tavi sells star-bulb seeds. Turnips restore 8 HP and 12 energy; silverfin restores 5 HP and 8 energy; star bulbs restore 15 mana. Food is kept if all relevant resources are full. HP and energy cap at 100, mana at 60. These are provisional balance values. The camera uses 2.25× zoom after reducing the doubled setting by 25%.
 
 The project-local launcher is `scripts/play.sh`. It starts the pinned Godot executable under `vendor/godot/`. F11 toggles fullscreen. The game opens at its title screen.
 
@@ -12,7 +16,7 @@ The project-local launcher is `scripts/play.sh`. It starts the pinned Godot exec
 | --- | --- |
 | WASD / arrows | Walk |
 | Shift | Run |
-| E | Talk, tend soil, gather, fish, or rest |
+| E | Enter/leave buildings, talk, tend soil, gather, fish, or rest |
 | Q | Wildgrowth on a nearby watered crop |
 | I | Satchel |
 | J | Crew notes and objectives |

@@ -7,6 +7,7 @@ func _initialize() -> void:
 	call_deferred("run")
 
 func capture(label: String) -> void:
+	game.ui.message.text=""
 	game.world.update_villagers(0.0,true)
 	game.nearest=game.world.find_nearest()
 	game.world.refresh()
@@ -74,6 +75,35 @@ func run() -> void:
 	await capture("dock")
 	game.state.player_position=game.world.Grid.center(game.world.SHIP_CELL)+Vector2(64,64)
 	await capture("ship")
+	game.state.turnips=4
+	game.state.star_bulbs=2
+	game.state.star_seeds=3
+	game.state.fish=2
+	game.state.copper=3
+	game.state.accept_sword()
+	game.inventory()
+	await capture("inventory")
+	game.close_window()
+	game.enter_building("home")
+	game.state.player_position=game.world.Grid.center(Vector2i(12,19))
+	await capture("interior-living")
+	game.state.player_position=game.world.Grid.center(Vector2i(7,8))
+	await capture("interior-bedroom")
+	game.state.player_position=game.world.Grid.center(Vector2i(21,8))
+	await capture("interior-kitchen-bath")
+	game.leave_building()
+	game.state.invited=true
+	game.state.met_mayor=true
+	game.state.minute=600
+	game.outdoors.update_villagers(0.0,true)
+	game.enter_building("radio")
+	game.state.player_position=game.world.Grid.center(Vector2i(22,16))
+	await capture("interior-radio-club")
+	game.leave_building()
+	game.state.player_position=game.world.Grid.center(game.world.MOSS_FIELDS.position+Vector2i(3,2))
+	await capture("moss-fields")
+	game.state.player_position=game.world.Grid.center(Vector2i(42,81))
+	await capture("veteran-cabin")
 	game.sound_settings()
 	await capture("sound-settings")
 	assert(game.sound.music.playing,"Native music should play")

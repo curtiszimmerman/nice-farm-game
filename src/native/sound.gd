@@ -39,6 +39,7 @@ func _player(track: String) -> AudioStreamPlayer:
 	return player
 
 func mix_for(minute: float,environment: String,season: String,cave_weight = 0.0) -> Dictionary:
+	if environment=="indoors": return {"birds":0.0,"crickets":0.0,"drips":0.0}
 	if environment in ["cave","mine"]: return {"birds":0.0,"crickets":0.0,"drips":1.0}
 	var day=smoothstep(330.0,420.0,minute)*(1.0-smoothstep(1110.0,1200.0,minute))
 	var bird_season={"spring":1.0,"summer":0.85,"autumn":0.5,"winter":0.18}.get(season,1.0)
