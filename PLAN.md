@@ -14,6 +14,7 @@ Development proceeds through small playable increments. Z decides major technica
 
 - Target Debian and comfortable performance on a GeForce 940MX.
 - Use pixel art. The setting is explicitly not steampunk; do not introduce steampunk themes.
+- Populate the world on a shared invisible tile grid, including the farm, buildings, trees, resources, and roads. Movement remains smooth between cells, in the style of Stardew Valley. The native slice uses 32-pixel tiles and whole-tile collision footprints.
 - Build and run natively on the Debian host. Z explicitly rejected a browser game.
 - The first playable slice uses Godot 4.5.1 with its OpenGL Compatibility renderer. The engine executable is project-local under `vendor/`; all runtime writes remain inside this project.
 - Windows/Proton is not the current delivery approach. Later distribution choices remain open.

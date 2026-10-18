@@ -4,6 +4,7 @@ const State = preload("res://state.gd")
 const World = preload("res://world.gd")
 const Interface = preload("res://interface.gd")
 const Sound = preload("res://sound.gd")
+const Grid = preload("res://grid.gd")
 
 var state = State.new()
 var world: Node2D
@@ -31,14 +32,14 @@ func _ready() -> void:
 	world = World.new()
 	world.state = state
 	add_child(world)
-	if world.blocked(state.player_position): state.player_position=Vector2(650,735)
+	if world.blocked(state.player_position): state.player_position=Grid.center(Grid.SPAWN_CELL)
 	camera = Camera2D.new()
 	camera.zoom = Vector2(1.5,1.5)
 	camera.position = state.player_position
 	camera.limit_left = 0
 	camera.limit_top = 0
-	camera.limit_right = 1920
-	camera.limit_bottom = 1440
+	camera.limit_right = int(Grid.WORLD_SIZE.x)
+	camera.limit_bottom = int(Grid.WORLD_SIZE.y)
 	add_child(camera)
 	sound = Sound.new()
 	sound.testing = testing
@@ -82,7 +83,7 @@ func _process(dt: float) -> void:
 		world.particles = world.particles.filter(func(p): return p.life>0.0)
 	else: world.moving=false
 	nearest = world.find_nearest()
-	if state.invited and not state.met_mayor and state.total()>=2160.0 and not window_open and activity.is_empty() and state.player_position.distance_to(Vector2(724,690))<110:
+	if state.invited and not state.met_mayor and state.total()>=2160.0 and not window_open and activity.is_empty() and state.player_position.distance_to(world.site_position("bed"))<110:
 		mayor()
 	save_elapsed += dt
 	if save_elapsed>12.0:
@@ -224,7 +225,7 @@ func _update_activity(dt: float) -> void:
 	if activity=="mining" and activity_time>=1.1:
 		state.mine()
 		activity=""
-		burst(Vector2(1585,1040),"d4ae7b",18)
+		burst(world.site_position("ore")-Vector2(0,Grid.TILE_SIZE*0.5),"d4ae7b",18)
 		toast("+1 copper ore. A quiet seam, no monsters.")
 		save_visit()
 	elif activity=="fishing" and activity_time>18.0:

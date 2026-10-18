@@ -1,52 +1,55 @@
 extends Node2D
 
-const SIZE = Vector2(1920, 1440)
-const FARM = Vector2(580, 790)
+const Grid = preload("res://grid.gd")
+const SIZE = Grid.WORLD_SIZE
+const FARM_CELL = Vector2i(17,24)
+const OUTCROP_CELLS = Rect2i(46,28,7,4)
+const COPPER_CELLS = Rect2i(46,32,7,1)
+const SHIP_CELL = Vector2i(10,8)
+const JETTY_CELLS = Rect2i(11,34,3,1)
+const CART_CELLS = Rect2i(44,23,3,1)
+const LAMP_CELLS = [Vector2i(36,20),Vector2i(45,25),Vector2i(27,20)]
 const PEOPLE = [
-	{"id": "moss", "name": "Moss", "role": "YOUR NEIGHBOR", "x": 890, "y": 708, "coat": "a7834d", "hair": "d6cb9c", "skin": "d4a776", "hat": true},
-	{"id": "tavi", "name": "Tavi", "role": "TRAVELING MERCHANT", "x": 1430, "y": 692, "coat": "aa7262", "hair": "bd996b", "skin": "c0a070", "cat": true},
-	{"id": "iona", "name": "Iona", "role": "FIELD MAGICIAN", "x": 1040, "y": 855, "coat": "8885ad", "hair": "e3d7bd", "skin": "ae856c"},
-	{"id": "finch", "name": "Finch", "role": "RADIO CLUB SECRETARY", "x": 1320, "y": 530, "coat": "6d96a0", "hair": "765842", "skin": "d3ab88"},
-	{"id": "vale", "name": "Chief Vale", "role": "CHIEF ENGINEER", "x": 343, "y": 344, "coat": "8b9baf", "hair": "b5a68e", "skin": "a97959"}
+	{"id":"moss","name":"Moss","role":"YOUR NEIGHBOR","cell":Vector2i(27,21),"coat":"a7834d","hair":"d6cb9c","skin":"d4a776","hat":true},
+	{"id":"tavi","name":"Tavi","role":"TRAVELING MERCHANT","cell":Vector2i(44,21),"coat":"aa7262","hair":"bd996b","skin":"c0a070","cat":true},
+	{"id":"iona","name":"Iona","role":"FIELD MAGICIAN","cell":Vector2i(32,26),"coat":"8885ad","hair":"e3d7bd","skin":"ae856c"},
+	{"id":"finch","name":"Finch","role":"RADIO CLUB SECRETARY","cell":Vector2i(41,16),"coat":"6d96a0","hair":"765842","skin":"d3ab88"},
+	{"id":"vale","name":"Chief Vale","role":"CHIEF ENGINEER","cell":Vector2i(10,10),"coat":"8b9baf","hair":"b5a68e","skin":"a97959"}
 ]
 const BUILDINGS = [
-	{"x": 628, "y": 480, "w": 194, "h": 150, "roof": "a65e50", "kind": "home"},
-	{"x": 1205, "y": 354, "w": 150, "h": 125, "roof": "5b8990", "kind": "radio"},
-	{"x": 1455, "y": 470, "w": 165, "h": 130, "roof": "ad7956", "kind": "store"},
-	{"x": 1250, "y": 650, "w": 150, "h": 115, "roof": "818a60", "kind": "hall"},
-	{"x": 890, "y": 1050, "w": 120, "h": 100, "roof": "8c6856", "kind": "cottage"}
+	{"cell":Vector2i(19,15),"tiles":Vector2i(7,5),"roof":"a65e50","kind":"home"},
+	{"cell":Vector2i(38,11),"tiles":Vector2i(5,4),"roof":"5b8990","kind":"radio"},
+	{"cell":Vector2i(45,15),"tiles":Vector2i(5,4),"roof":"ad7956","kind":"store"},
+	{"cell":Vector2i(39,20),"tiles":Vector2i(5,4),"roof":"818a60","kind":"hall"},
+	{"cell":Vector2i(28,33),"tiles":Vector2i(5,3),"roof":"8c6856","kind":"cottage"}
 ]
 const SITES = [
-	{"id": "bed", "x": 724, "y": 660, "label": "Rest at the farmhouse"},
-	{"id": "pond", "x": 420, "y": 1110, "label": "Fish from the jetty"},
-	{"id": "ore", "x": 1585, "y": 1020, "bounds": Rect2(1480,1000,185,35), "label": "Gather copper"},
-	{"id": "sign", "x": 1070, "y": 635, "label": "Read the signpost"},
-	{"id": "radio", "x": 1210, "y": 545, "label": "Listen to the radio"}
+	{"id":"bed","cell":Vector2i(22,20),"label":"Rest at the farmhouse"},
+	{"id":"pond","cell":Vector2i(13,34),"label":"Fish from the jetty"},
+	{"id":"ore","cell":Vector2i(49,32),"label":"Gather copper"},
+	{"id":"sign","cell":Vector2i(33,19),"label":"Read the signpost"},
+	{"id":"radio","cell":Vector2i(37,16),"label":"Listen to the radio"}
 ]
-const ROAD_SEGMENTS = [
-	[Vector2(711,702),Vector2(835,702),24.0],
-	[Vector2(835,702),Vector2(1020,694),26.0],
-	[Vector2(1020,694),Vector2(1140,702),26.0],
-	[Vector2(1140,702),Vector2(1210,620),26.0],
-	[Vector2(1210,620),Vector2(1420,620),26.0],
-	[Vector2(1420,620),Vector2(1450,700),26.0],
-	[Vector2(1450,700),Vector2(1530,700),26.0],
-	[Vector2(1138,480),Vector2(1128,670),25.0],
-	[Vector2(1128,670),Vector2(1142,850),25.0],
-	[Vector2(1142,850),Vector2(1125,1030),24.0],
-	[Vector2(715,645),Vector2(711,785),24.0],
-	[Vector2(711,785),Vector2(710,1013),24.0],
-	[Vector2(405,1013),Vector2(710,1013),21.0],
-	[Vector2(405,1013),Vector2(435,1084),15.0],
-	[Vector2(710,1013),Vector2(930,1018),22.0],
-	[Vector2(930,1018),Vector2(1130,1033),22.0],
-	[Vector2(1130,1033),Vector2(1590,1045),22.0],
-	[Vector2(1590,1045),Vector2(1590,1090),16.0],
-	[Vector2(1302,490),Vector2(1300,620),19.0],
-	[Vector2(1537,614),Vector2(1495,700),20.0],
-	[Vector2(1325,785),Vector2(1140,810),20.0]
+const ROAD_ROUTES = [
+	[Vector2i(22,20),Vector2i(23,20),Vector2i(23,31)],
+	[Vector2i(23,21),Vector2i(35,21),Vector2i(35,19),Vector2i(44,19),Vector2i(44,21),Vector2i(47,21)],
+	[Vector2i(35,15),Vector2i(35,32)],
+	[Vector2i(13,31),Vector2i(35,31),Vector2i(35,32),Vector2i(49,32),Vector2i(49,34)],
+	[Vector2i(13,31),Vector2i(13,34)],
+	[Vector2i(40,15),Vector2i(40,19)],
+	[Vector2i(47,19),Vector2i(47,21)],
+	[Vector2i(41,24),Vector2i(35,24)]
 ]
 
+var people: Array = []
+var buildings: Array = []
+var sites: Array = []
+var road_segments: Array = []
+var road_cells: Dictionary = {}
+var water_cells: Dictionary = {}
+var solid_cells: Dictionary = {}
+var reserved_cells: Dictionary = {}
+var fence_cells: Array[Vector2i] = []
 var trees: Array = []
 var terrain: ImageTexture
 var road_mask: Image
@@ -77,24 +80,96 @@ func _ready() -> void:
 	y_sort_enabled = true
 	night_tint=CanvasModulate.new()
 	add_child(night_tint)
+	_build_layout()
 	_build_terrain()
 	var random = RandomNumberGenerator.new()
 	random.seed = 41
 	for i in range(450):
-		var p = Vector2(random.randf_range(110,1860),random.randf_range(130,1360)).round()
-		if _clearing(p) or trees.any(func(t): return t.pos.distance_to(p)<43): continue
-		var tree = {"pos": p, "size": random.randf_range(0.8,1.3), "warm": random.randf()>0.72}
+		var cell=Vector2i(random.randi_range(4,56),random.randi_range(5,41))
+		var p=Grid.center(cell)
+		if solid_cells.has(cell) or reserved_cells.has(cell) or _clearing(p): continue
+		if trees.any(func(t): return absi(t.cell.x-cell.x)<=1 and absi(t.cell.y-cell.y)<=1): continue
+		var tree = {"cell":cell,"pos":p,"size":random.randf_range(0.8,1.3),"warm":random.randf()>0.72}
+		solid_cells[cell]="tree"
 		trees.append(tree)
 		_prop("tree",p,tree)
-	for b in BUILDINGS: _prop("building",Vector2(b.x,b.y+b.h),b)
-	for p in PEOPLE: _prop("person",Vector2(p.x,p.y),p)
+	for b in buildings: _prop("building",Vector2(b.x,b.y+b.h),b)
+	for p in people: _prop("person",Vector2(p.x,p.y),p)
 	crops = _prop("crops",Vector2.ZERO,{})
 	crops.z_index = 0
 	player = _prop("player",state.player_position,{"coat":"6f9793","hair":"5c5045","skin":"d0a981","id":"player"})
-	mayor = _prop("person",Vector2(770,696),{"coat":"657b70","hair":"c2c4b0","skin":"d0a181"})
+	mayor = _prop("person",Grid.center(Vector2i(24,21)),{"coat":"657b70","hair":"c2c4b0","skin":"d0a181"})
 	mayor.visible = false
 	var effects = _prop("effects",Vector2.ZERO,{})
 	effects.z_index = 5
+
+func _claim(footprint: Rect2i,kind: String) -> void:
+	for y in range(footprint.position.y,footprint.end.y):
+		for x in range(footprint.position.x,footprint.end.x):
+			var cell=Vector2i(x,y)
+			assert(not solid_cells.has(cell),"Overlapping map footprints at %s" % cell)
+			solid_cells[cell]=kind
+
+func _build_layout() -> void:
+	for y in range(Grid.MAP_SIZE.y):
+		for x in range(Grid.MAP_SIZE.x):
+			var cell=Vector2i(x,y)
+			var p=Grid.center(cell)
+			var pond=(p-Grid.center(Vector2i(8,36)))/Vector2(160,160)
+			if p.x<96.0+sin(p.y/145.0)*22.0 or pond.length_squared()<1.0:
+				water_cells[cell]=true
+				solid_cells[cell]="water"
+	for y in range(JETTY_CELLS.position.y,JETTY_CELLS.end.y):
+		for x in range(JETTY_CELLS.position.x,JETTY_CELLS.end.x):
+			var cell=Vector2i(x,y)
+			solid_cells.erase(cell)
+			reserved_cells[cell]=true
+	for item in PEOPLE:
+		var p=item.duplicate(true)
+		var pos=Grid.center(p.cell)
+		p.x=pos.x
+		p.y=pos.y
+		people.append(p)
+		reserved_cells[p.cell]=true
+	for item in BUILDINGS:
+		var b=item.duplicate(true)
+		var bounds=Grid.rect(b.cell,b.tiles)
+		b.x=bounds.position.x
+		b.y=bounds.position.y
+		b.w=bounds.size.x
+		b.h=bounds.size.y
+		buildings.append(b)
+		_claim(Rect2i(b.cell,b.tiles),"building")
+	for item in SITES:
+		var p=item.duplicate(true)
+		var pos=Grid.center(p.cell)
+		p.x=pos.x
+		p.y=pos.y
+		if p.id=="ore": p.bounds=Grid.rect(COPPER_CELLS.position,COPPER_CELLS.size)
+		sites.append(p)
+		reserved_cells[p.cell]=true
+	_claim(OUTCROP_CELLS,"rock")
+	_claim(CART_CELLS,"cart")
+	for cell in LAMP_CELLS: _claim(Rect2i(cell,Vector2i.ONE),"lamp")
+	_claim(Rect2i(Vector2i(33,19),Vector2i.ONE),"sign")
+	_claim(Rect2i(Vector2i(37,16),Vector2i.ONE),"radio")
+	for y in [22,29]:
+		for x in range(16,28):
+			if x not in [22,23,24]: fence_cells.append(Vector2i(x,y))
+	for y in range(23,29): fence_cells.append(Vector2i(16,y))
+	for cell in fence_cells: _claim(Rect2i(cell,Vector2i.ONE),"fence")
+	for route in ROAD_ROUTES:
+		for i in range(route.size()-1):
+			var a=route[i]
+			var b=route[i+1]
+			road_segments.append([Grid.center(a),Grid.center(b),Grid.TILE_SIZE*0.5])
+			for y in range(mini(a.y,b.y),maxi(a.y,b.y)+1):
+				for x in range(mini(a.x,b.x),maxi(a.x,b.x)+1): road_cells[Vector2i(x,y)]=true
+
+func site_position(id: String) -> Vector2:
+	for site in sites:
+		if site.id==id: return Grid.center(site.cell)
+	return Vector2.ZERO
 
 func _prop(kind: String, pos: Vector2, data: Dictionary) -> Prop:
 	var p = Prop.new()
@@ -132,30 +207,27 @@ func prop_hides_player(prop: Prop) -> bool:
 
 func target_plot() -> int:
 	var direction={"up":Vector2.UP,"down":Vector2.DOWN,"left":Vector2.LEFT,"right":Vector2.RIGHT}[facing]
-	var point=state.player_position+direction*34.0-FARM+Vector2(17,17)
-	var col=floori(point.x/34.0)
-	var row=floori(point.y/34.0)
+	var point=Grid.world_to_cell(state.player_position)+Vector2i(direction)-FARM_CELL
+	var col=point.x
+	var row=point.y
 	return row*5+col if col>=0 and col<5 and row>=0 and row<4 else -1
 
 func plot_position(i: int) -> Vector2:
-	return FARM + Vector2(i%5 * 34, int(i/5.0)*34)
+	return Grid.center(FARM_CELL+Vector2i(i%5,int(i/5.0)))
 
 func audio_context(player_position: Vector2) -> Dictionary:
 	# A future interior supplies cave/mine instead of an outdoor environment.
-	var distance=player_position.distance_to(Vector2(1585,1010))
+	var distance=player_position.distance_to(Grid.center(Vector2i(49,31)))
 	var cave_weight=clampf(1.0-(distance-30.0)/120.0,0.0,1.0)
 	return {"environment":"town" if player_position.x>1120 else "farm","season":state.season_name(),"cave_weight":cave_weight}
 
 func in_water(p: Vector2) -> bool:
-	return pow((p.x-280.0)/175.0,2)+pow((p.y-1170.0)/160.0,2)<1.0 or p.x<84+sin(p.y/145.0)*27
+	var cell=Grid.world_to_cell(p)
+	return water_cells.has(cell) and not JETTY_CELLS.has_point(cell)
 
 func blocked(p: Vector2) -> bool:
-	if p.x<110 or p.x>1855 or p.y<120 or p.y>1385 or in_water(p): return true
-	for b in BUILDINGS:
-		if Rect2(b.x-5,b.y+20,b.w+10,b.h-10).has_point(p): return true
-	for t in trees:
-		if absf(p.x-t.pos.x)<11 and absf(p.y-t.pos.y)<12: return true
-	return Rect2(1465,920,225,100).has_point(p)
+	var cell=Grid.world_to_cell(p)
+	return not Grid.PLAYABLE_CELLS.has_point(cell) or solid_cells.has(cell)
 
 func find_nearest() -> Dictionary:
 	var best: Dictionary = {}
@@ -168,14 +240,14 @@ func find_nearest() -> Dictionary:
 			var label = "Harvest moon turnip" if state.ripe(i) else "Till the soil" if not p.tilled else "Plant moon turnip" if p.planted<0 else "Water moon turnip" if not p.watered else "Growing · Q casts Wildgrowth"
 			best = {"type":"plot","index":i,"label":label}
 			distance = d
-	for p in PEOPLE:
+	for p in people:
 		var d = state.player_position.distance_to(Vector2(p.x,p.y))
 		if d<distance:
 			best = p.duplicate()
 			best.type = "person"
 			best.label = "Talk to " + p.name
 			distance = d
-	for p in SITES:
+	for p in sites:
 		var interaction_point=Vector2(p.x,p.y)
 		if p.has("bounds"):
 			interaction_point=state.player_position.clamp(p.bounds.position,p.bounds.end)
@@ -189,46 +261,61 @@ func find_nearest() -> Dictionary:
 
 func _clearing(p: Vector2) -> bool:
 	if Rect2(495,420,445,590).has_point(p) or Rect2(1145,330,525,500).has_point(p) or Rect2(245,190,215,210).has_point(p) or Rect2(1440,900,300,330).has_point(p): return true
-	for b in BUILDINGS:
+	for b in buildings:
 		if Rect2(b.x,b.y,b.w,b.h).grow(65).has_point(p): return true
-	for segment in ROAD_SEGMENTS:
+	for segment in road_segments:
 		if p.distance_to(Geometry2D.get_closest_point_to_segment(p,segment[0],segment[1]))<segment[2]+35.0: return true
 	return in_water(p)
 
 func _build_terrain() -> void:
-	var image = Image.create(1920,1440,false,Image.FORMAT_RGB8)
+	var image = Image.create(int(SIZE.x),int(SIZE.y),false,Image.FORMAT_RGB8)
 	image.fill(Color("748c53"))
 	var random = RandomNumberGenerator.new()
 	random.seed = 73
 	var colors = [Color("7a9258"),Color("6f884f"),Color("83975d"),Color("81965a")]
 	for i in range(45000): image.fill_rect(Rect2i(random.randi_range(0,1915),random.randi_range(0,1437),random.randi_range(2,5),2),colors[i%4])
 	_paint_roads(image,random)
-	for y in range(1440):
-		var edge = int(84+sin(y/145.0)*27)
-		image.fill_rect(Rect2i(0,y,edge+14,1),Color("96a776"))
-		image.fill_rect(Rect2i(0,y,edge+6,1),Color("6c998c"))
-		image.fill_rect(Rect2i(0,y,edge,1),Color("487e84"))
-	for y in range(998,1341):
-		var d = (y-1170.0)/169.0
-		if absf(d)>1.0: continue
-		var radius = int(sqrt(1.0-d*d)*184)
-		image.fill_rect(Rect2i(280-radius,y,radius*2,1),Color("9da675"))
-		if radius>12: image.fill_rect(Rect2i(290-radius,y,radius*2-20,1),Color("51868a"))
+	_paint_water(image)
+	var decorated_cells={}
 	for i in range(2100):
-		var p = Vector2(random.randf_range(120,1840),random.randf_range(150,1370))
-		if _clearing(p): continue
+		var cell=Vector2i(random.randi_range(4,56),random.randi_range(5,41))
+		var p=Grid.center(cell)
+		if decorated_cells.has(cell) or solid_cells.has(cell) or _clearing(p): continue
+		decorated_cells[cell]=true
 		image.fill_rect(Rect2i(p.x,p.y,2,5),Color("597b48"))
 		if i%3 == 0: image.fill_rect(Rect2i(p.x-1,p.y-2,4,3),Color("ddd79b") if i%2 else Color("c1acc2"))
 	terrain = ImageTexture.create_from_image(image)
 	queue_redraw()
 
+func _paint_water(image: Image) -> void:
+	for cell in water_cells:
+		var origin=Vector2i(Grid.origin(cell))
+		image.fill_rect(Rect2i(origin,Vector2i.ONE*Grid.TILE_SIZE),Color("51868a"))
+		for direction in [Vector2i.UP,Vector2i.DOWN,Vector2i.LEFT,Vector2i.RIGHT]:
+			if water_cells.has(cell+direction): continue
+			var edge=Rect2i(origin,Vector2i.ONE*Grid.TILE_SIZE)
+			if direction.x!=0:
+				edge.size.x=4
+				if direction.x>0: edge.position.x+=Grid.TILE_SIZE-4
+			else:
+				edge.size.y=4
+				if direction.y>0: edge.position.y+=Grid.TILE_SIZE-4
+			image.fill_rect(edge,Color("91a274"))
+		for corner in [Vector2i(-1,-1),Vector2i(1,-1),Vector2i(-1,1),Vector2i(1,1)]:
+			if water_cells.has(cell+Vector2i(corner.x,0)) or water_cells.has(cell+Vector2i(0,corner.y)): continue
+			var start=origin+Vector2i(0 if corner.x<0 else 24,0 if corner.y<0 else 24)
+			for y in range(8):
+				for x in range(8):
+					var p=Vector2(x if corner.x<0 else 7-x,y if corner.y<0 else 7-y)
+					if p.distance_to(Vector2(8,8))>8.0: image.set_pixelv(start+Vector2i(x,y),Color("84965d"))
+
 func _paint_roads(image: Image,random: RandomNumberGenerator) -> void:
-	road_mask=Image.create(1920,1440,false,Image.FORMAT_L8)
+	road_mask=Image.create(int(SIZE.x),int(SIZE.y),false,Image.FORMAT_L8)
 	road_mask.fill(Color.BLACK)
-	var tracks=Image.create(1920,1440,false,Image.FORMAT_L8)
+	var tracks=Image.create(int(SIZE.x),int(SIZE.y),false,Image.FORMAT_L8)
 	tracks.fill(Color.BLACK)
 	# Merge the whole network before shading its shoulders, so junctions have no seams.
-	for segment in ROAD_SEGMENTS:
+	for segment in road_segments:
 		var bounds=Rect2(segment[0],Vector2.ZERO).expand(segment[1]).grow(segment[2]+9.0)
 		for y in range(int(bounds.position.y/2.0)*2,int(bounds.end.y)+2,2):
 			for x in range(int(bounds.position.x/2.0)*2,int(bounds.end.x)+2,2):
@@ -240,7 +327,7 @@ func _paint_roads(image: Image,random: RandomNumberGenerator) -> void:
 					road_mask.fill_rect(Rect2i(x,y,2,2),Color(coverage,coverage,coverage))
 				var rut=maxf(0.0,1.0-absf(distance-segment[2]*0.43)/2.0)*0.08
 				if rut>tracks.get_pixel(x,y).r: tracks.fill_rect(Rect2i(x,y,2,2),Color(rut,rut,rut))
-	for y in range(450,1120,2):
+	for y in range(450,1160,2):
 		for x in range(370,1635,2):
 			var coverage=road_mask.get_pixel(x,y).r
 			if coverage<=0.0: continue
@@ -263,56 +350,67 @@ func oval(c: CanvasItem, x: float,y: float,rx: float,ry: float,color: String) ->
 func _draw() -> void:
 	if not terrain: return
 	draw_texture(terrain,Vector2.ZERO)
-	r(self,372,1090,82,36,"655d46")
-	for i in range(9): r(self,374+i*9,1090,7,34,"b09b6c")
-	for x in [375,446]:
-		r(self,x,1080,5,49,"776a4e")
-		r(self,x,1078,5,3,"d0bb87")
-	_fence(520,735,142)
-	_fence(768,735,112)
-	_fence(520,968,360)
-	r(self,535,773,196,133,"596341")
-	r(self,538,776,190,127,"7b6446")
-	for y in range(750,970,38):
-		r(self,516,y,5,26,"aa9870")
-		r(self,514,y-3,9,6,"d0bc8d")
-	oval(self,1580,1005,124,43,"687f63")
-	poly(self,[Vector2(1460,1005),Vector2(1480,950),Vector2(1510,928),Vector2(1540,952),Vector2(1570,915),Vector2(1610,932),Vector2(1668,978),Vector2(1690,1020)],"7c8b7d")
-	poly(self,[Vector2(1480,950),Vector2(1510,928),Vector2(1540,952),Vector2(1520,990)],"a8af94")
-	poly(self,[Vector2(1570,915),Vector2(1610,932),Vector2(1638,968),Vector2(1590,953)],"9da58e")
-	oval(self,1585,986,27,32,"344e47")
-	for i in range(11):
-		r(self,1490+i*15,1010+sin(i*3.0)*12,8,5,"9b7b5e")
-		r(self,1492+i*15,1010+sin(i*3.0)*12,3,3,"c7a36d")
-	oval(self,343,280,87,43,"6d8958")
-	oval(self,343,280,71,30,"7b9060")
-	r(self,1390,732,84,24,"8e7651")
-	r(self,1387,729,90,6,"b6a073")
-	for x in [1404,1458]:
-		oval(self,x,758,9,9,"445249")
-		oval(self,x,758,4,4,"bcaa7a")
+	draw_set_transform(Grid.origin(JETTY_CELLS.position))
+	r(self,0,0,96,32,"655d46")
+	for i in range(12): r(self,1+i*8,0,6,32,"b09b6c")
+	for x in [2,89]:
+		r(self,x,-10,5,48,"776a4e")
+		r(self,x,-12,5,3,"d0bb87")
+	draw_set_transform(Vector2.ZERO)
+	for cell in fence_cells:
+		var p=Grid.origin(cell)
+		if cell.x==16 and cell.y not in [22,29]:
+			r(self,p.x+14,p.y,4,32,"a28d64")
+			r(self,p.x+12,p.y+2,8,27,"b8a77a")
+		else: _fence(p.x,p.y+2,Grid.TILE_SIZE)
+	var field=Grid.rect(FARM_CELL,Vector2i(5,4))
+	draw_rect(field.grow(3),Color("596341"))
+	draw_rect(field,Color("7b6446"))
+	draw_set_transform(Grid.origin(OUTCROP_CELLS.position)+Vector2(112,128))
+	oval(self,0,-19,118,32,"687f63")
+	poly(self,[Vector2(-112,-19),Vector2(-96,-90),Vector2(-64,-112),Vector2(-32,-90),Vector2(-16,-128),Vector2(32,-112),Vector2(80,-58),Vector2(112,0)],"7c8b7d")
+	poly(self,[Vector2(-96,-90),Vector2(-64,-112),Vector2(-32,-90),Vector2(-64,-30)],"a8af94")
+	poly(self,[Vector2(-16,-128),Vector2(32,-112),Vector2(64,-64),Vector2(4,-88)],"9da58e")
+	oval(self,0,-34,27,32,"344e47")
+	for i in range(7):
+		r(self,-100+i*32,-12+sin(i*3.0)*5,8,5,"9b7b5e")
+		r(self,-98+i*32,-12+sin(i*3.0)*5,3,3,"c7a36d")
+	draw_set_transform(Grid.center(SHIP_CELL))
+	oval(self,0,0,87,43,"6d8958")
+	oval(self,0,0,71,30,"7b9060")
+	draw_set_transform(Grid.origin(CART_CELLS.position))
+	r(self,3,0,84,24,"8e7651")
+	r(self,0,-3,90,6,"b6a073")
+	for x in [17,71]:
+		oval(self,x,26,9,9,"445249")
+		oval(self,x,26,4,4,"bcaa7a")
 	for i in range(4):
-		r(self,1398+i*18,717,15,12,"9b855c")
-		for k in range(3): oval(self,1401+i*18+k*4,716,3,3,"b3b56b" if i%2 else "c29162")
-	for p in [Vector2(1183,655),Vector2(1465,814),Vector2(865,658)]:
+		r(self,11+i*18,-15,15,12,"9b855c")
+		for k in range(3): oval(self,14+i*18+k*4,-16,3,3,"b3b56b" if i%2 else "c29162")
+	draw_set_transform(Vector2.ZERO)
+	for cell in LAMP_CELLS:
+		var p=Grid.center(cell)
 		r(self,p.x,p.y-74,4,74,"5b6957")
 		r(self,p.x-7,p.y-79,18,5,"536251")
 		r(self,p.x-5,p.y-74,14,17,"d2c690")
 		r(self,p.x-3,p.y-72,10,11,"f1dfac")
-	r(self,1066,587,6,55,"837350")
-	r(self,1041,592,62,15,"bbab7b")
-	r(self,1038,611,53,13,"a99769")
-	draw_string(ThemeDB.fallback_font,Vector2(1046,603),"TOWN >",HORIZONTAL_ALIGNMENT_LEFT,-1,8,Color("515d49"))
-	draw_string(ThemeDB.fallback_font,Vector2(1041,621),"< FARM",HORIZONTAL_ALIGNMENT_LEFT,-1,8,Color("515d49"))
-	r(self,1200,519,25,23,"816d4d")
-	r(self,1203,522,19,12,"4a6055")
-	r(self,1206,538,4,3,"d8c08a")
-	r(self,1215,538,4,3,"d8c08a")
+	draw_set_transform(site_position("sign"))
+	r(self,-3,-48,6,55,"837350")
+	r(self,-28,-43,62,15,"bbab7b")
+	r(self,-31,-24,53,13,"a99769")
+	draw_string(ThemeDB.fallback_font,Vector2(-23,-32),"TOWN >",HORIZONTAL_ALIGNMENT_LEFT,-1,8,Color("515d49"))
+	draw_string(ThemeDB.fallback_font,Vector2(-28,-14),"< FARM",HORIZONTAL_ALIGNMENT_LEFT,-1,8,Color("515d49"))
+	draw_set_transform(site_position("radio"))
+	r(self,-12,-23,25,23,"816d4d")
+	r(self,-9,-20,19,12,"4a6055")
+	r(self,-6,-4,4,3,"d8c08a")
+	r(self,3,-4,4,3,"d8c08a")
+	draw_set_transform(Vector2.ZERO)
 
 func _fence(x: float,y: float,w: int) -> void:
 	r(self,x,y+4,w,4,"a28d64")
 	r(self,x,y+16,w,4,"a28d64")
-	for i in range(0,w+1,28):
+	for i in range(0,w+1,Grid.TILE_SIZE):
 		r(self,x+i,y,5,27,"b8a77a")
 		r(self,x+i-1,y-3,7,5,"d0be8b")
 
@@ -439,7 +537,7 @@ func paint_crops(c: CanvasItem) -> void:
 			if p.watered: r(c,x+9,y+7,2,2,"8aa8a2")
 
 func paint_effects(c: CanvasItem) -> void:
-	for p in PEOPLE:
+	for p in people:
 		var pos = Vector2(p.x,p.y)
 		if state.player_position.distance_to(pos)<105:
 			r(c,pos.x-34,pos.y-66,68,15,"233e34cc")
@@ -448,7 +546,9 @@ func paint_effects(c: CanvasItem) -> void:
 		c.draw_rect(Rect2(plot_position(nearest.index)-Vector2(16,16),Vector2(32,30)),Color("eee0a5"),false,1.0)
 	var cloak_color = Color("c2e0d6")
 	cloak_color.a = 0.14+sin(elapsed*0.9)*0.045
+	c.draw_set_transform(Grid.center(SHIP_CELL)-Vector2(343,280))
 	c.draw_polyline(PackedVector2Array([Vector2(263,283),Vector2(313,258),Vector2(343,220),Vector2(373,258),Vector2(423,283),Vector2(370,303),Vector2(315,303),Vector2(263,283)]),cloak_color,1.0)
+	c.draw_set_transform(Vector2.ZERO)
 	for i in range(12):
 		var x = 190+i*18
 		var y = 1120+sin(elapsed*0.6+i*3)*72

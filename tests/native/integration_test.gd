@@ -29,7 +29,7 @@ func run() -> void:
 	check(game.window_open and game.ui.modal_box.get_child(1).text=="Moss","proximity opens neighbor conversation")
 	game.ui.modal_box.get_child(3).pressed.emit()
 	check(game.state.invited and not game.window_open,"dialogue choice records appointment")
-	game.state.player_position=game.world.plot_position(0)+Vector2.UP*34.0
+	game.state.player_position=game.world.plot_position(0)+Vector2.UP*game.world.Grid.TILE_SIZE
 	for i in range(3): game.interact()
 	check(game.state.plots[0].watered and game.state.seeds==7,"contextual input tills plants and waters")
 	game.cast_growth()
@@ -83,8 +83,7 @@ func run() -> void:
 
 func _destinations_reachable() -> bool:
 	var world=game.world
-	var step=10
-	var start=Vector2i(65,73)
+	var start=world.Grid.SPAWN_CELL
 	var visited={start:true}
 	var frontier: Array[Vector2i]=[start]
 	var head=0
@@ -94,16 +93,17 @@ func _destinations_reachable() -> bool:
 		for delta in [Vector2i.LEFT,Vector2i.RIGHT,Vector2i.UP,Vector2i.DOWN]:
 			var next=cell+delta
 			if visited.has(next): continue
-			if world.blocked(Vector2(next)*step): continue
+			if world.blocked(world.Grid.center(next)): continue
 			visited[next]=true
 			frontier.append(next)
 	var targets: Array=[]
-	for p in world.PEOPLE+world.SITES: targets.append(Vector2(p.x,p.y))
-	for i in range(20): targets.append(world.plot_position(i))
+	for p in world.people+world.sites: targets.append(Vector2(p.x,p.y))
+	for i in range(20):
+		if not visited.has(world.Grid.world_to_cell(world.plot_position(i))): return false
 	for target in targets:
 		var reachable=false
 		for cell in visited:
-			if (Vector2(cell)*step).distance_to(target)<30:
+			if world.Grid.center(cell).distance_to(target)<55:
 				reachable=true
 				break
 		if not reachable:

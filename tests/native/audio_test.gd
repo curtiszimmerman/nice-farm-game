@@ -75,7 +75,7 @@ func run() -> void:
 	root.add_child(game)
 	game.set_process(false)
 	await process_frame
-	game.state.player_position=game.world.plot_position(0)+Vector2.UP*34.0
+	game.state.player_position=game.world.plot_position(0)+Vector2.UP*game.world.Grid.TILE_SIZE
 	for i in range(3): game.interact()
 	game.cast_growth()
 	check(game.sound.spell.playing,"successful gameplay cast triggers spell audio")

@@ -2,7 +2,6 @@ extends SceneTree
 
 const Game = preload("res://game.gd")
 const World = preload("res://world.gd")
-const ROADS = World.ROAD_SEGMENTS
 var count = 0
 var failed = false
 
@@ -62,7 +61,7 @@ func run() -> void:
 	game.state.player_position=Vector2(900,700)
 	for i in range(10): world.refresh()
 	check(house.modulate.a==1.0,"unrelated houses stay opaque")
-	for segment in ROADS:
+	for segment in world.road_segments:
 		var continuous=true
 		for i in range(21):
 			var p=segment[0].lerp(segment[1],i/20.0)

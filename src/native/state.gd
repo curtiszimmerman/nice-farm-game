@@ -1,5 +1,7 @@
 extends RefCounted
 
+const Grid = preload("res://grid.gd")
+
 # Provisional calendar length for development time jumps, pending final design.
 const DEVELOPMENT_SEASON_DAYS = 28
 
@@ -26,7 +28,7 @@ var invited = false
 var met_mayor = false
 var delivered = false
 var pause_mode = "none"
-var player_position = Vector2(650, 735)
+var player_position = Grid.center(Grid.SPAWN_CELL)
 var plots: Array = []
 
 func _init() -> void:
@@ -131,7 +133,7 @@ func restore(data: Variant) -> bool:
 			return false
 	if data.minute < 0 or data.minute >= 1440 or data.mana < 0 or data.mana > 60 or data.energy < 0 or data.energy > 100:
 		return false
-	if data.x < 110 or data.x > 1855 or data.y < 120 or data.y > 1385:
+	if not Grid.contains(Grid.world_to_cell(Vector2(data.x,data.y))):
 		return false
 	for field in ["invited", "met_mayor", "delivered"]:
 		if not data.get(field) is bool:

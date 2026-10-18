@@ -38,7 +38,7 @@ func run() -> void:
 	game._move(0.02)
 	check(is_equal_approx(game.state.player_position.x,915.9),"development running is three times normal speed")
 	var trunk=game.world.trees[0].pos
-	game.state.player_position=trunk-Vector2(12,0)
+	game.state.player_position=trunk-Vector2(17,0)
 	game._move(0.05)
 	check(game.state.player_position.x<trunk.x and not game.world.blocked(game.state.player_position),"fast development movement cannot tunnel through thin tree trunks")
 	key(KEY_D,false)
