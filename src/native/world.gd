@@ -2,56 +2,59 @@ extends Node2D
 
 const Grid = preload("res://grid.gd")
 const Schedule = preload("res://villager_schedule.gd")
-const SQUARE = Rect2i(39,19,6,6)
+const SQUARE = Rect2i(59,44,6,6)
 const SIZE = Grid.WORLD_SIZE
-const FARM_CELL = Vector2i(17,24)
-const OUTCROP_CELLS = Rect2i(46,28,7,4)
-const COPPER_CELLS = Rect2i(46,32,7,1)
-const MINE_RIDGE = Rect2i(50,26,3,2)
-const SHIP_CELL = Vector2i(10,8)
-const JETTY_CELLS = Rect2i(11,34,3,1)
-const CART_CELLS = Rect2i(45,20,3,1)
-const LAMP_CELLS = [Vector2i(38,18),Vector2i(44,25),Vector2i(27,20)]
+const FARM_CELL = Vector2i(9,46)
+const OUTCROP_CELLS = Rect2i(90,69,9,5)
+const COPPER_CELLS = Rect2i(90,74,9,1)
+const MINE_RIDGE = Rect2i(97,65,3,4)
+const SHIP_CELL = Vector2i(6,6)
+const POND_CELL = Vector2i(17,67)
+const JETTY_CELLS = Rect2i(20,65,3,1)
+const CART_CELLS = Rect2i(65,45,3,1)
+const LAMP_CELLS = [Vector2i(58,43),Vector2i(64,50),Vector2i(20,42)]
 const PEOPLE = [
-	{"id":"moss","name":"Moss","role":"YOUR NEIGHBOR","cell":Vector2i(27,21),"coat":"a7834d","hair":"d6cb9c","skin":"d4a776","hat":true},
-	{"id":"tavi","name":"Tavi","role":"TRAVELING MERCHANT","cell":Vector2i(44,21),"coat":"aa7262","hair":"bd996b","skin":"c0a070","cat":true},
-	{"id":"iona","name":"Iona","role":"FIELD MAGICIAN","cell":Vector2i(32,26),"coat":"8885ad","hair":"e3d7bd","skin":"ae856c"},
-	{"id":"finch","name":"Finch","role":"RADIO CLUB SECRETARY","cell":Vector2i(34,13),"coat":"6d96a0","hair":"765842","skin":"d3ab88"},
-	{"id":"vale","name":"Chief Vale","role":"CHIEF ENGINEER","cell":Vector2i(10,10),"coat":"8b9baf","hair":"b5a68e","skin":"a97959"},
-	{"id":"mayor","name":"Mayor Alder","role":"MAYOR","cell":Vector2i(41,17),"coat":"657b70","hair":"c2c4b0","skin":"d0a181"}
+	{"id":"moss","name":"Moss","role":"YOUR NEIGHBOR","cell":Vector2i(20,43),"coat":"a7834d","hair":"d6cb9c","skin":"d4a776","hat":true},
+	{"id":"tavi","name":"Tavi","role":"TRAVELING MERCHANT","cell":Vector2i(64,46),"coat":"aa7262","hair":"bd996b","skin":"c0a070","cat":true},
+	{"id":"iona","name":"Iona","role":"FIELD MAGICIAN","cell":Vector2i(61,15),"coat":"8885ad","hair":"e3d7bd","skin":"ae856c"},
+	{"id":"finch","name":"Finch","role":"RADIO CLUB SECRETARY","cell":Vector2i(54,38),"coat":"6d96a0","hair":"765842","skin":"d3ab88"},
+	{"id":"vale","name":"Chief Vale","role":"CHIEF ENGINEER","cell":Vector2i(6,8),"coat":"8b9baf","hair":"b5a68e","skin":"a97959"},
+	{"id":"mayor","name":"Mayor Alder","role":"MAYOR","cell":Vector2i(61,42),"coat":"657b70","hair":"c2c4b0","skin":"d0a181"}
 ]
 const BUILDINGS = [
-	{"cell":Vector2i(19,15),"tiles":Vector2i(7,5),"roof":"a65e50","kind":"home"},
-	{"cell":Vector2i(32,9),"tiles":Vector2i(5,4),"roof":"5b8990","kind":"radio"},
-	{"cell":Vector2i(45,15),"tiles":Vector2i(5,4),"roof":"ad7956","kind":"store"},
-	{"cell":Vector2i(32,17),"tiles":Vector2i(5,4),"roof":"818a60","kind":"hall"},
-	{"cell":Vector2i(39,14),"tiles":Vector2i(5,3),"roof":"8c6856","kind":"cottage","resident":"mayor"},
-	{"cell":Vector2i(45,23),"tiles":Vector2i(5,3),"roof":"a87858","kind":"cottage","resident":"tavi"},
-	{"cell":Vector2i(38,26),"tiles":Vector2i(5,3),"roof":"65858b","kind":"cottage","resident":"finch"},
-	{"cell":Vector2i(40,5),"tiles":Vector2i(3,6),"roof":"68658f","kind":"tower","resident":"iona"},
-	{"cell":Vector2i(28,33),"tiles":Vector2i(5,3),"roof":"8c6856","kind":"cottage","resident":"moss"}
+	{"cell":Vector2i(10,37),"tiles":Vector2i(7,5),"roof":"a65e50","kind":"home"},
+	{"cell":Vector2i(52,34),"tiles":Vector2i(5,4),"roof":"5b8990","kind":"radio"},
+	{"cell":Vector2i(65,40),"tiles":Vector2i(5,4),"roof":"ad7956","kind":"store"},
+	{"cell":Vector2i(52,42),"tiles":Vector2i(5,4),"roof":"818a60","kind":"hall"},
+	{"cell":Vector2i(59,39),"tiles":Vector2i(5,3),"roof":"8c6856","kind":"cottage","resident":"mayor"},
+	{"cell":Vector2i(65,48),"tiles":Vector2i(5,3),"roof":"a87858","kind":"cottage","resident":"tavi"},
+	{"cell":Vector2i(58,51),"tiles":Vector2i(5,3),"roof":"65858b","kind":"cottage","resident":"finch"},
+	{"cell":Vector2i(60,12),"tiles":Vector2i(3,3),"roof":"68658f","kind":"tower","resident":"iona","visual_height":192},
+	{"cell":Vector2i(24,55),"tiles":Vector2i(5,3),"roof":"8c6856","kind":"cottage","resident":"moss"}
 ]
 const SITES = [
-	{"id":"bed","cell":Vector2i(22,20),"label":"Rest at the farmhouse"},
-	{"id":"pond","cell":Vector2i(13,34),"label":"Fish from the jetty"},
-	{"id":"ore","cell":Vector2i(49,32),"label":"Gather copper"},
-	{"id":"sign","cell":Vector2i(30,20),"label":"Read the signpost"},
-	{"id":"radio","cell":Vector2i(37,16),"label":"Listen to the radio"}
+	{"id":"bed","cell":Vector2i(13,42),"label":"Rest at the farmhouse"},
+	{"id":"pond","cell":Vector2i(21,65),"label":"Fish from the jetty"},
+	{"id":"ore","cell":Vector2i(94,74),"label":"Gather copper"},
+	{"id":"sign","cell":Vector2i(30,42),"label":"Read the signpost"},
+	{"id":"radio","cell":Vector2i(55,39),"label":"Listen to the radio"}
 ]
 const ROAD_ROUTES = [
-	[Vector2i(22,20),Vector2i(23,20),Vector2i(23,31)],
-	[Vector2i(23,21),Vector2i(37,21),Vector2i(39,21)],
-	[Vector2i(37,15),Vector2i(37,32)],
-	[Vector2i(13,31),Vector2i(35,31),Vector2i(35,32),Vector2i(49,32),Vector2i(49,34)],
-	[Vector2i(13,31),Vector2i(13,34)],
-	[Vector2i(34,13),Vector2i(34,15),Vector2i(37,15)],
-	[Vector2i(47,19),Vector2i(47,21)],
-	[Vector2i(41,17),Vector2i(41,19)],
-	[Vector2i(44,19),Vector2i(47,19)],
-	[Vector2i(44,19),Vector2i(44,11),Vector2i(41,11)],
-	[Vector2i(47,26),Vector2i(44,26),Vector2i(44,24)],
-	[Vector2i(40,29),Vector2i(37,29)],
-	[Vector2i(41,24),Vector2i(37,24)]
+	[Vector2i(13,42),Vector2i(14,42),Vector2i(14,53)],
+	[Vector2i(14,43),Vector2i(50,43),Vector2i(50,46),Vector2i(59,46)],
+	[Vector2i(57,40),Vector2i(57,57),Vector2i(87,57),Vector2i(87,74),Vector2i(94,74)],
+	[Vector2i(21,53),Vector2i(57,53)],
+	[Vector2i(21,53),Vector2i(21,65)],
+	[Vector2i(54,38),Vector2i(54,40),Vector2i(57,40)],
+	[Vector2i(67,44),Vector2i(67,46)],
+	[Vector2i(61,42),Vector2i(61,44)],
+	[Vector2i(64,44),Vector2i(67,44)],
+	[Vector2i(64,44),Vector2i(64,16),Vector2i(61,16),Vector2i(61,15)],
+	[Vector2i(67,51),Vector2i(64,51),Vector2i(64,49)],
+	[Vector2i(60,54),Vector2i(57,54)],
+	[Vector2i(61,49),Vector2i(57,49)],
+	[Vector2i(26,58),Vector2i(26,53)],
+	[Vector2i(14,53),Vector2i(21,53)]
 ]
 
 var people: Array = []
@@ -100,8 +103,8 @@ func _ready() -> void:
 	_build_terrain()
 	var random = RandomNumberGenerator.new()
 	random.seed = 41
-	for i in range(450):
-		var cell=Vector2i(random.randi_range(4,56),random.randi_range(5,41))
+	for i in range(1800):
+		var cell=Vector2i(random.randi_range(4,Grid.MAP_SIZE.x-4),random.randi_range(5,Grid.MAP_SIZE.y-4))
 		var p=Grid.center(cell)
 		if solid_cells.has(cell) or reserved_cells.has(cell) or _clearing(p): continue
 		if trees.any(func(t): return absi(t.cell.x-cell.x)<=1 and absi(t.cell.y-cell.y)<=1): continue
@@ -131,8 +134,8 @@ func _build_layout() -> void:
 		for x in range(Grid.MAP_SIZE.x):
 			var cell=Vector2i(x,y)
 			var p=Grid.center(cell)
-			var pond=(p-Grid.center(Vector2i(8,36)))/Vector2(160,160)
-			if x>=54 or p.x<96.0+sin(p.y/145.0)*22.0 or pond.length_squared()<1.0:
+			var pond=(p-Grid.center(POND_CELL))/Vector2(160,160)
+			if p.x<96.0+sin(p.y/145.0)*22.0 or pond.length_squared()<1.0:
 				water_cells[cell]=true
 				solid_cells[cell]="water"
 	for y in range(JETTY_CELLS.position.y,JETTY_CELLS.end.y):
@@ -162,31 +165,31 @@ func _build_layout() -> void:
 		p.x=pos.x
 		p.y=pos.y
 		if p.id=="ore": p.bounds=Grid.rect(COPPER_CELLS.position,COPPER_CELLS.size)
+		if p.id=="pond": p.bounds=Grid.rect(JETTY_CELLS.position,JETTY_CELLS.size)
 		sites.append(p)
 		reserved_cells[p.cell]=true
 	_claim(OUTCROP_CELLS,"rock")
 	_claim(MINE_RIDGE,"rock")
 	_claim(CART_CELLS,"cart")
 	for cell in LAMP_CELLS: _claim(Rect2i(cell,Vector2i.ONE),"lamp")
-	_claim(Rect2i(Vector2i(30,20),Vector2i.ONE),"sign")
-	_claim(Rect2i(Vector2i(37,16),Vector2i.ONE),"radio")
-	_claim(Rect2i(41,21,2,2),"fountain")
-	_claim(Rect2i(53,3,1,24),"cliff")
-	for y in range(2,11):
-		for x in range(36,49):
+	_claim(Rect2i(Grid.world_to_cell(site_position("sign")),Vector2i.ONE),"sign")
+	_claim(Rect2i(Grid.world_to_cell(site_position("radio")),Vector2i.ONE),"radio")
+	_claim(Rect2i(SQUARE.position+Vector2i(2,2),Vector2i(2,2)),"fountain")
+	for x in range(50,77):
+		var front=8+roundi(sin(x*0.23)*2.0+sin(x*0.57))
+		if x in range(58,66): front=mini(front,9)
+		for y in range(4,front+1):
 			var cell=Vector2i(x,y)
-			if y>4 and x in range(39,46): continue
-			if y>7 and x in [36,37,47,48]: continue
 			mountain_cells[cell]=true
 			_claim(Rect2i(cell,Vector2i.ONE),"mountain")
 	for y in range(SQUARE.position.y,SQUARE.end.y):
 		for x in range(SQUARE.position.x,SQUARE.end.x): reserved_cells[Vector2i(x,y)]=true
 	for routine in Schedule.ROUTINES.values():
 		for stop in routine: reserved_cells[Vector2i(stop[1],stop[2])]=true
-	for y in [22,29]:
-		for x in range(16,28):
-			if x not in [22,23,24]: fence_cells.append(Vector2i(x,y))
-	for y in range(23,29): fence_cells.append(Vector2i(16,y))
+	for y in [FARM_CELL.y-2,FARM_CELL.y+5]:
+		for x in range(FARM_CELL.x-1,FARM_CELL.x+11):
+			if x not in [14,15,16]: fence_cells.append(Vector2i(x,y))
+	for y in range(FARM_CELL.y-1,FARM_CELL.y+5): fence_cells.append(Vector2i(FARM_CELL.x-1,y))
 	for cell in fence_cells: _claim(Rect2i(cell,Vector2i.ONE),"fence")
 	for route in ROAD_ROUTES:
 		for i in range(route.size()-1):
@@ -223,8 +226,8 @@ func _route(start: Vector2i,goal: Vector2i) -> Array:
 func update_villagers(dt: float,snap: bool=false) -> void:
 	for id in villagers:
 		var stop=Schedule.stop(id,state.minute)
-		if id in ["moss","mayor"] and state.invited and not state.met_mayor and state.total()>=2115:
-			stop={"cell":Vector2i(27,21) if id=="moss" else Vector2i(24,21),"sleeping":false}
+		if id in ["moss","mayor"] and state.invited and not state.met_mayor and state.total()>=2010:
+			stop={"cell":Grid.SPAWN_CELL+Vector2i(3,0) if id=="moss" else Grid.SPAWN_CELL+Vector2i(1,0),"sleeping":false}
 		var actor: Node2D=villagers[id]
 		var previous=actor.position
 		var target=Grid.center(stop.cell)
@@ -282,7 +285,8 @@ func prop_hides_player(prop: Prop) -> bool:
 		var scale_factor=prop.data.size
 		bounds=Rect2(prop.position+Vector2(-34,-92)*scale_factor,Vector2(68,94)*scale_factor)
 	elif prop.kind=="building":
-		bounds=Rect2(prop.position+Vector2(-14,-prop.data.h-80),Vector2(prop.data.w+28,prop.data.h+90))
+		var height=prop.data.get("visual_height",prop.data.h)
+		bounds=Rect2(prop.position+Vector2(-14,-height-80),Vector2(prop.data.w+28,height+90))
 	else: return false
 	return bounds.intersects(Rect2(state.player_position-Vector2(12,44),Vector2(24,46)))
 
@@ -298,9 +302,9 @@ func plot_position(i: int) -> Vector2:
 
 func audio_context(player_position: Vector2) -> Dictionary:
 	# A future interior supplies cave/mine instead of an outdoor environment.
-	var distance=player_position.distance_to(Grid.center(Vector2i(49,31)))
+	var distance=player_position.distance_to(site_position("ore"))
 	var cave_weight=clampf(1.0-(distance-30.0)/120.0,0.0,1.0)
-	return {"environment":"town" if player_position.x>1120 else "farm","season":state.season_name(),"cave_weight":cave_weight}
+	return {"environment":"town" if player_position.x>Grid.origin(SQUARE.position).x-320 else "farm","season":state.season_name(),"cave_weight":cave_weight}
 
 func in_water(p: Vector2) -> bool:
 	var cell=Grid.world_to_cell(p)
@@ -342,7 +346,8 @@ func find_nearest() -> Dictionary:
 	return best
 
 func _clearing(p: Vector2) -> bool:
-	if Rect2(495,420,445,590).has_point(p) or Rect2(1145,330,525,500).has_point(p) or Rect2(245,190,215,210).has_point(p) or Rect2(1440,900,300,330).has_point(p): return true
+	if Grid.rect(JETTY_CELLS.position,JETTY_CELLS.size).grow(64).has_point(p): return true
+	if Grid.rect(FARM_CELL-Vector2i(2,5),Vector2i(15,14)).has_point(p) or Grid.rect(SQUARE.position-Vector2i(5,6),Vector2i(18,17)).has_point(p) or Rect2(Grid.center(SHIP_CELL)-Vector2(120,100),Vector2(240,230)).has_point(p) or Grid.rect(OUTCROP_CELLS.position,OUTCROP_CELLS.size).grow(100).has_point(p): return true
 	for b in buildings:
 		if Rect2(b.x,b.y,b.w,b.h).grow(65).has_point(p): return true
 	for segment in road_segments:
@@ -355,13 +360,13 @@ func _build_terrain() -> void:
 	var random = RandomNumberGenerator.new()
 	random.seed = 73
 	var colors = [Color("7a9258"),Color("6f884f"),Color("83975d"),Color("81965a")]
-	for i in range(45000): image.fill_rect(Rect2i(random.randi_range(0,1915),random.randi_range(0,1437),random.randi_range(2,5),2),colors[i%4])
+	for i in range(180000): image.fill_rect(Rect2i(random.randi_range(0,int(SIZE.x)-5),random.randi_range(0,int(SIZE.y)-3),random.randi_range(2,5),2),colors[i%4])
 	_paint_grounding(image,random)
 	_paint_roads(image,random)
 	_paint_water(image)
 	var decorated_cells={}
-	for i in range(2100):
-		var cell=Vector2i(random.randi_range(4,56),random.randi_range(5,41))
+	for i in range(8400):
+		var cell=Vector2i(random.randi_range(4,Grid.MAP_SIZE.x-4),random.randi_range(5,Grid.MAP_SIZE.y-4))
 		var p=Grid.center(cell)
 		if decorated_cells.has(cell) or solid_cells.has(cell) or _clearing(p): continue
 		decorated_cells[cell]=true
@@ -372,11 +377,11 @@ func _build_terrain() -> void:
 
 func _paint_grounding(image: Image,random: RandomNumberGenerator) -> void:
 	# Rock dust, worn yards and grass share a broken edge rather than a hard outline.
-	for y in range(96,1376,3):
-		for x in range(96,1792,3):
+	for y in range(96,int(SIZE.y)-64,3):
+		for x in range(96,int(SIZE.x)-64,3):
 			var p=Vector2(x,y)
-			var mine=(p-Vector2(1584,985))/Vector2(187,124)
-			var highland=(p-Vector2(1344,240))/Vector2(285,220)
+			var mine=(p-Grid.rect(OUTCROP_CELLS.position,OUTCROP_CELLS.size).get_center())/Vector2(225,155)
+			var highland=(p-Grid.center(Vector2i(63,9)))/Vector2(520,220)
 			var mineral=maxf(1.0-mine.length(),1.0-highland.length())
 			if mineral+random.randf_range(-0.2,0.2)>0.04:
 				var stone=Color("96977f").lerp(Color("777f73"),clampf(mineral,0,1))
@@ -457,19 +462,10 @@ func oval(c: CanvasItem, x: float,y: float,rx: float,ry: float,color: String) ->
 	c.draw_colored_polygon(points,Color(color))
 
 func _draw() -> void:
-	# The square and coast share the same tile boundaries as collision and routes.
+	# Raised terrain and paths share their boundaries with the solid-cell map.
 	if not terrain: return
 	draw_texture(terrain,Vector2.ZERO)
-	for cell in mountain_cells:
-		if cell.y<=4: continue
-		var p=Grid.origin(cell)
-		var edge=not mountain_cells.has(cell+Vector2i.DOWN)
-		rock_surface(self,p,32,32,cell.x*17+cell.y*31,edge)
-		if not mountain_cells.has(cell+Vector2i.LEFT):
-			for i in range(4): r(self,p.x,p.y+i*8,3+(cell.y+i)%5,4,"748c53")
-		if not mountain_cells.has(cell+Vector2i.RIGHT):
-			for i in range(4): r(self,p.x+27+(cell.y+i)%3,p.y+i*8,5,4,"748c53")
-	paint_rock_mass(self,Vector2(1152,160),416,190,29)
+	paint_cliffs(self)
 	for y in range(SQUARE.position.y,SQUARE.end.y):
 		for x in range(SQUARE.position.x,SQUARE.end.x):
 			var p=Grid.origin(Vector2i(x,y))
@@ -480,17 +476,12 @@ func _draw() -> void:
 				var yy=int(i/2)*10+2
 				r(self,p.x+xx,p.y+yy,13,8,"afb198" if (i+x+y)%3 else "c0bfa4")
 				r(self,p.x+xx+1,p.y+yy,10,1,"cbcab0")
-	var fountain=Grid.origin(Vector2i(41,21))
+	var fountain=Grid.origin(SQUARE.position+Vector2i(2,2))
 	oval(self,fountain.x+32,fountain.y+34,32,25,"747f7d")
 	oval(self,fountain.x+32,fountain.y+29,27,19,"709fa9")
 	r(self,fountain.x+27,fountain.y+2,10,30,"c9cbb1")
 	oval(self,fountain.x+32,fountain.y+4,16,7,"d7d4b9")
-	for y in range(3,27):
-		var edge=Grid.origin(Vector2i(53,y))
-		r(self,edge.x,edge.y,32,32,"7d897d")
-		r(self,edge.x+21,edge.y,11,32,"566e73")
-		r(self,edge.x+32,edge.y+8,9,2,"a6c9c2")
-	paint_rock_mass(self,Grid.origin(Vector2i(50,29)),96,96,117)
+	paint_rock_mass(self,Grid.origin(MINE_RIDGE.position+Vector2i(0,MINE_RIDGE.size.y+2)),MINE_RIDGE.size.x*Grid.TILE_SIZE,(MINE_RIDGE.size.y+2)*Grid.TILE_SIZE,117)
 	draw_set_transform(Grid.origin(JETTY_CELLS.position))
 	r(self,0,0,96,32,"655d46")
 	for i in range(12): r(self,1+i*8,0,6,32,"b09b6c")
@@ -500,15 +491,17 @@ func _draw() -> void:
 	draw_set_transform(Vector2.ZERO)
 	for cell in fence_cells:
 		var p=Grid.origin(cell)
-		if cell.x==16 and cell.y not in [22,29]:
+		if cell.x==FARM_CELL.x-1 and cell.y not in [FARM_CELL.y-2,FARM_CELL.y+5]:
 			r(self,p.x+14,p.y,4,32,"a28d64")
 			r(self,p.x+12,p.y+2,8,27,"b8a77a")
 		else: _fence(p.x,p.y+2,Grid.TILE_SIZE)
 	var field=Grid.rect(FARM_CELL,Vector2i(5,4))
 	draw_rect(field.grow(3),Color("596341"))
 	draw_rect(field,Color("7b6446"))
-	draw_set_transform(Grid.origin(OUTCROP_CELLS.position)+Vector2(112,128))
-	paint_rock_mass(self,Vector2(-112,0),224,128,71)
+	var rock_width=OUTCROP_CELLS.size.x*Grid.TILE_SIZE
+	var rock_height=OUTCROP_CELLS.size.y*Grid.TILE_SIZE
+	draw_set_transform(Grid.origin(OUTCROP_CELLS.position)+Vector2(rock_width/2,rock_height))
+	paint_rock_mass(self,Vector2(-rock_width/2,0),rock_width,rock_height,71)
 	oval(self,0,-34,27,32,"344e47")
 	poly(self,[Vector2(-24,-7),Vector2(-24,-39),Vector2(-17,-57),Vector2(8,-62),Vector2(23,-49),Vector2(26,-7)],"293d39")
 	poly(self,[Vector2(-17,-8),Vector2(-17,-35),Vector2(-8,-50),Vector2(11,-47),Vector2(19,-32),Vector2(19,-8)],"1e302e")
@@ -518,12 +511,12 @@ func _draw() -> void:
 		poly(self,[p+Vector2(-7,-4),p+Vector2(5,-7),p+Vector2(9,5),p+Vector2(-6,9)],"9ba28a" if i%2 else "7f8b7b")
 		r(self,p.x-4,p.y-4,8,2,"b0b498")
 	for i in range(20):
-		var x=-105+(i*37)%212
+		var x=-rock_width/2+7+(i*37)%(rock_width-12)
 		var y=-6+(i*11)%18
 		poly(self,[Vector2(x,y),Vector2(x+5,y-4),Vector2(x+10,y+1),Vector2(x+7,y+4)],"7c8876" if i%3 else "a2a488")
-	for i in range(7):
-		r(self,-100+i*32,-12+sin(i*3.0)*5,8,5,"9b7b5e")
-		r(self,-98+i*32,-12+sin(i*3.0)*5,3,3,"c7a36d")
+	for i in range(OUTCROP_CELLS.size.x):
+		r(self,-rock_width/2+12+i*32,-12+sin(i*3.0)*5,8,5,"9b7b5e")
+		r(self,-rock_width/2+14+i*32,-12+sin(i*3.0)*5,3,3,"c7a36d")
 	draw_set_transform(Grid.center(SHIP_CELL))
 	oval(self,0,0,87,43,"6d8958")
 	oval(self,0,0,71,30,"7b9060")
@@ -550,10 +543,13 @@ func _draw() -> void:
 	draw_string(ThemeDB.fallback_font,Vector2(-23,-32),"TOWN >",HORIZONTAL_ALIGNMENT_LEFT,-1,8,Color("515d49"))
 	draw_string(ThemeDB.fallback_font,Vector2(-28,-14),"< FARM",HORIZONTAL_ALIGNMENT_LEFT,-1,8,Color("515d49"))
 	draw_set_transform(site_position("radio"))
-	r(self,-12,-23,25,23,"816d4d")
-	r(self,-9,-20,19,12,"4a6055")
-	r(self,-6,-4,4,3,"d8c08a")
-	r(self,3,-4,4,3,"d8c08a")
+	r(self,-20,-12,42,7,"9b855e")
+	r(self,-17,-5,4,18,"746849")
+	r(self,15,-5,4,18,"746849")
+	r(self,-12,-35,25,23,"816d4d")
+	r(self,-9,-32,19,12,"4a6055")
+	r(self,-6,-16,4,3,"d8c08a")
+	r(self,3,-16,4,3,"d8c08a")
 	draw_set_transform(Vector2.ZERO)
 
 func _fence(x: float,y: float,w: int) -> void:
@@ -576,6 +572,29 @@ func rock_surface(c: CanvasItem,p: Vector2,w: int,h: int,seed_value: int,edge: b
 			r(c,p.x+x,p.y+h-11,7,2,"acb093")
 	if seed_value%3==0:
 		c.draw_polyline(PackedVector2Array([p+Vector2(8,2),p+Vector2(14,13),p+Vector2(10,24)]),Color("52685e"),1)
+
+func paint_cliffs(c: CanvasItem) -> void:
+	# Continuous strata follow one eroded ridge rather than repeating a wall tile.
+	var random=RandomNumberGenerator.new()
+	random.seed=93
+	for x in range(50,77):
+		var front=4
+		while mountain_cells.has(Vector2i(x,front)): front+=1
+		var bottom=front*Grid.TILE_SIZE
+		for dx in range(0,Grid.TILE_SIZE,4):
+			var px=x*Grid.TILE_SIZE+dx
+			var variation=int(sin(px*0.03)*3)
+			r(c,px,0,4,bottom,"7f8c7b")
+			r(c,px,bottom-12+variation,4,12-variation,"566e60")
+			for depth in [20,43,68,96,125,156,190]:
+				if depth>bottom: continue
+				var yy=bottom-depth+int(sin(px*0.024+depth)*4)
+				r(c,px,yy,4,3,"a0aa8f")
+				r(c,px,yy+4,4,2,"6a7d6c")
+		for i in range(30):
+			var px=x*32+random.randi_range(1,27)
+			var py=random.randi_range(maxi(0,bottom-180),bottom-16)
+			r(c,px,py,random.randi_range(3,11),2,"8f9c83" if i%3 else "6b7e6b")
 
 func paint_rock_mass(c: CanvasItem,base: Vector2,w: int,h: int,seed_value: int) -> void:
 	var random=RandomNumberGenerator.new()
@@ -624,10 +643,14 @@ func paint_tree(c: CanvasItem, data: Dictionary) -> void:
 
 func paint_building(c: CanvasItem, b: Dictionary) -> void:
 	var w = b.w
-	var h = b.h
+	var h = b.get("visual_height",b.h)
 	var y = -h
 	if b.kind=="tower":
 		r(c,8,y,w-16,h,"9295a2")
+		r(c,8,y,12,h,"a5acaf")
+		r(c,w-22,y,14,h,"707e8c")
+		oval(c,w/2,0,w/2-8,15,"707e8c")
+		oval(c,w/2,y,w/2-8,15,"a5acaf")
 		for yy in range(int(y)+8,0,12):
 			r(c,9,yy,w-18,2,"737b8b")
 			for xx in range(12,w-16,17):
@@ -797,9 +820,8 @@ func paint_effects(c: CanvasItem) -> void:
 	c.draw_polyline(PackedVector2Array([Vector2(263,283),Vector2(313,258),Vector2(343,220),Vector2(373,258),Vector2(423,283),Vector2(370,303),Vector2(315,303),Vector2(263,283)]),cloak_color,1.0)
 	c.draw_set_transform(Vector2.ZERO)
 	for i in range(12):
-		var x = 190+i*18
-		var y = 1120+sin(elapsed*0.6+i*3)*72
-		r(c,x,y,6+sin(elapsed+i)*4,1,"9fc6b477")
+		var glint=Grid.center(POND_CELL)+Vector2(-70+i*12,sin(elapsed*0.6+i*3)*72)
+		r(c,glint.x,glint.y,6+sin(elapsed+i)*4,1,"9fc6b477")
 	for i in range(14):
 		var pos = Vector2(500+(i*137)%1100+sin(elapsed*0.4+i)*30,670+(i*79)%570+cos(elapsed*0.6+i)*20)
 		r(c,pos.x,pos.y,4 if sin(elapsed*8+i)>0 else 2,2,"e1db85" if state.minute>1140 or state.minute<330 else "e8d9aa")

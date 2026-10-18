@@ -60,11 +60,11 @@ func run() -> void:
 		if world.road_cells.has(cell) or world.water_cells.has(cell): valid_population=false
 	check(valid_population,"population does not place trees on roads or water")
 	check(world.blocked(Grid.center(world.fence_cells[0])),"fences occupy solid grid cells")
-	check(not world.blocked(Grid.center(Vector2i(23,22))),"farm gate leaves a walkable grid opening")
-	check(world.in_water(Grid.center(Vector2i(8,36))) and world.blocked(Grid.center(Vector2i(8,36))),"pond water occupies solid terrain cells")
+	check(not world.blocked(Grid.center(world.FARM_CELL+Vector2i(5,-2))),"farm gate leaves a walkable grid opening")
+	check(world.in_water(Grid.center(world.POND_CELL)) and world.blocked(Grid.center(world.POND_CELL)),"pond water occupies solid terrain cells")
 	var jetty_clear=true
 	for x in range(world.JETTY_CELLS.position.x,world.JETTY_CELLS.end.x):
-		if world.blocked(Grid.center(Vector2i(x,34))): jetty_clear=false
+		if world.blocked(Grid.center(Vector2i(x,world.JETTY_CELLS.position.y))): jetty_clear=false
 	check(jetty_clear,"the jetty reserves walkable cells over pond water")
 	var edge_save=game.state.to_dict()
 	edge_save.x=100.0
@@ -74,7 +74,7 @@ func run() -> void:
 	game.state.player_position=world.plot_position(6)+Vector2(10,-8)
 	world.facing="right"
 	check(world.target_plot()==7,"smooth movement within a tile keeps targeting its adjacent cell")
-	var start=Vector2(900,700)
+	var start=Grid.center(Grid.SPAWN_CELL)
 	game.state.player_position=start
 	var event=InputEventKey.new()
 	event.physical_keycode=KEY_D

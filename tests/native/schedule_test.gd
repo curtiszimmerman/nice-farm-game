@@ -62,7 +62,7 @@ func run() -> void:
 	game.state.day=2
 	game.state.minute=720
 	w.update_villagers(0.0,true)
-	check(w.villagers.mayor.position==w.Grid.center(Vector2i(24,21)),"the mayor keeps the farmhouse appointment")
+	check(w.villagers.mayor.position==w.Grid.center(w.Grid.SPAWN_CELL+Vector2i(1,0)),"the mayor keeps the farmhouse appointment")
 	game.state.minute=0
 	w.update_villagers(0.0,true)
 	game.state.player_position=w.villagers.tavi.position

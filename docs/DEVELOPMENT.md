@@ -20,7 +20,9 @@ Town population follows `src/native/villager_schedule.gd`, using the shared cloc
 
 The square has a fountain, the shop/cart, and three nearby homes. Buildings explicitly name their resident, with door plaques identifying each home. Iona's tower now sits in the northern mountain hollow, with matching revised night routines and a path around the ridge. Moss owns the south cottage, Tavi the southeast house, Finch the southwest house, and Alder the north house. Vale remains at the crashed ship.
 
-Terrain art uses a shared rock palette, layered cliff faces, mineral soil around the mine and tower, worn yards, stepping stones, foundation masonry, weathered plaster, roof detail, roots and leaf clusters. The copper hillside connects to the coastal ridge. Rendering and solid footprints remain on the shared grid. No new external assets or tools. No season-specific schedules yet.
+The world is now 120 × 90 tiles, four times the original area. Town remains compact; the farmhouse sits west, the hidden ship northwest, the tower far north and the copper cave far southeast. The eastern ocean and cliff guardrails are removed. Northern cliffs form one continuous eroded ridge with coherent strata. Mine rock stays at least three tiles away from houses. Trees and ground decoration populate the expanded bounds with the same approximate density.
+
+The tower has a square 3 × 3 collision footprint and a separate 192-pixel drawing height, with cylinder shading. The radio sits on a table one tile beyond the radio-club foundation. The full dock rectangle supplies fishing interactions. Geometry tests cover these clearances and interactions; older integration tests now derive moved destinations from the world layout. The mayor starts the farmhouse journey at 09:30 to account for the longer route. No save migration or reset is performed. No new external assets or tools. No season-specific schedules yet.
 
 - `src/native/state.gd`: resource transactions, crops, clock, story prerequisites, save schema.
 - `src/native/world.gd`: deterministic original pixel scenery, collision, proximity selection, actors, effects.

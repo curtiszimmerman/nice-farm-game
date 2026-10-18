@@ -20,7 +20,7 @@ func run() -> void:
 	game.testing=true
 	root.add_child(game)
 	game.set_process(false)
-	game.state.player_position=Vector2(1585,1120)
+	game.state.player_position=game.world.site_position("ore")+Vector2(0,80)
 	var event=InputEventKey.new()
 	event.physical_keycode=KEY_W
 	event.keycode=KEY_W
@@ -38,11 +38,11 @@ func run() -> void:
 		game.interact()
 		game._process(1.2)
 	check(game.state.copper==3 and game.state.energy==85.0,"three interactions at the visible seam collect copper and charge energy")
-	game.state.player_position=Vector2(1495,1025)
+	game.state.player_position=game.world.Grid.center(game.world.COPPER_CELLS.position)
 	check(game.world.find_nearest().get("id")=="ore","the left exposed copper veins are also interactive")
-	game.state.player_position=Vector2(1640,1025)
+	game.state.player_position=game.world.Grid.center(game.world.COPPER_CELLS.end-Vector2i.ONE)
 	check(game.world.find_nearest().get("id")=="ore","the right exposed copper veins are also interactive")
-	game.state.player_position=Vector2(1585,1160)
+	game.state.player_position=game.world.site_position("ore")+Vector2(0,140)
 	check(game.world.find_nearest().get("id")!="ore","copper cannot be gathered far down the road")
 	await game.sound.shutdown()
 	game.queue_free()

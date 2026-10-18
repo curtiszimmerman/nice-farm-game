@@ -86,8 +86,8 @@ func run() -> void:
 	check(game.ui.modal_box.get_child(3).get_child(1) is HSlider,"sound menu exposes independent volume sliders")
 	game.ui.modal_box.get_child(3).get_child(1).value=80
 	check(is_equal_approx(game.sound.music_level,0.8) and is_equal_approx(game.sound.ambience_level,0.65),"native music slider changes music without changing ambience")
-	var farm_context=game.world.audio_context(Vector2(650,735))
-	var mine_context=game.world.audio_context(Vector2(1585,1050))
+	var farm_context=game.world.audio_context(game.world.plot_position(0))
+	var mine_context=game.world.audio_context(game.world.site_position("ore"))
 	check(farm_context.cave_weight==0 and mine_context.cave_weight>0.5,"world routes localized drips to the mine entrance")
 	game.close_window()
 	await game.sound.shutdown()

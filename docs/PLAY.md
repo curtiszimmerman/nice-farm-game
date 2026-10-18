@@ -35,7 +35,9 @@ The clock runs through midnight and conversations by default. One real second is
 
 Night shifts the world into a blue moonlit palette while interface colors stay readable. Houses and trees fade when their drawn shape covers the avatar, then return to opaque when you step clear. Village dirt roads have connected junctions, worn shoulders, and wheel tracks.
 
-The map is populated on a shared invisible 32-pixel tile grid, including buildings, trees, resources, roads, and farm plots. Walking stays smooth between tiles. Objects occupy whole-tile collision footprints; farm gates and the fishing jetty remain walkable. [World grid details](WORLD_GRID.md).
+The 120 × 90 tile map has four times its original area. The farmhouse lies west of town, the hidden ship northwest, the wizard's tower far north, and the copper cave far southeast. The eastern ocean has been removed. The radio is on a table directly outside the Radio Club. Fishing works along the full dock.
+
+The map is populated on a shared invisible 32-pixel tile grid, including buildings, trees, resources, roads, and farm plots. Walking stays smooth between tiles. Objects occupy whole-tile collision footprints; the round tower uses a square base independent of its drawing height. Farm gates and the fishing jetty remain walkable. [World grid details](WORLD_GRID.md).
 
 Three menu-time modes are in settings. Calendar-only pause allows active simulation such as attunement recovery while crops and appointments wait. Full pause stops simulation; decorative rendering continues. The local interacting player remains in their menu. Multiplayer is not implemented yet.
 

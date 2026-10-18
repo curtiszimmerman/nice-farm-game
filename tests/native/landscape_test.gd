@@ -16,7 +16,7 @@ func run() -> void:
 	var tower={}
 	for b in w.buildings:
 		if b.kind=="tower": tower=b
-	check(tower.cell.x<45 and tower.cell.y<12,"wizard tower stands north of the town square")
+	check(tower.cell.y<w.SQUARE.position.y-15,"wizard tower stands north of the town square")
 	var homes=true
 	for id in ["moss","tavi","iona","finch","mayor"]:
 		var assigned=[]
@@ -33,12 +33,12 @@ func run() -> void:
 	for cell in w.mountain_cells:
 		if not w.blocked(w.Grid.center(cell)): clear=false
 	check(clear,"mountain artwork occupies matching collision tiles")
-	check(not w._route(w.Grid.SPAWN_CELL,tower.cell+Vector2i(1,6)).is_empty(),"the northern tower has a reachable entrance")
+	check(not w._route(w.Grid.SPAWN_CELL,tower.cell+Vector2i(1,tower.tiles.y)).is_empty(),"the northern tower has a reachable entrance")
 	var image=w.terrain.get_image()
-	var mineral=image.get_pixelv(Vector2i(w.Grid.center(Vector2i(49,30))))
-	var grass=image.get_pixelv(Vector2i(w.Grid.center(Vector2i(31,28))))
+	var mineral=image.get_pixelv(Vector2i(w.Grid.rect(w.OUTCROP_CELLS.position,w.OUTCROP_CELLS.size).get_center()))
+	var grass=image.get_pixelv(Vector2i(w.Grid.center(w.FARM_CELL+Vector2i(4,1))))
 	check(mineral.g-mineral.r<grass.g-grass.r,"mine ground transitions from meadow green to mineral soil")
-	check(w.blocked(w.Grid.center(Vector2i(50,26))),"the copper hillside connects to the coastal ridge")
+	check(w.blocked(w.Grid.center(w.MINE_RIDGE.position)),"the copper hillside connects to a rocky ridge")
 	await game.sound.shutdown()
 	game.queue_free()
 	await process_frame
