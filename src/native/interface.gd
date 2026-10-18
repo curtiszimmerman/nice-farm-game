@@ -195,7 +195,7 @@ func show_title() -> void:
 	_button_style(start,true)
 	start.pressed.connect(func(): title_screen.queue_free(); title_screen=null; game.begin())
 	title_screen.add_child(start)
-	_label("NATIVE DEBIAN BUILD · A FIRST-LANDING STUDY\nProgress stays in this project · sound optional in settings",Vector2(103,565),11,MUTED,false,title_screen)
+	_label("NATIVE DEBIAN BUILD · A FIRST-LANDING STUDY\nProgress stays in this project · separate sound controls in settings",Vector2(103,565),11,MUTED,false,title_screen)
 	start.grab_focus()
 
 func close_modal() -> void:
@@ -253,6 +253,31 @@ func open_modal(title: String,eyebrow: String,body: String,choices: Array,wide =
 	footer.add_theme_font_size_override("font_size",10)
 	footer.add_theme_color_override("font_color",Color("94ad98"))
 	modal_box.add_child(footer)
+
+func add_volume_slider(title: String,value: float,on_changed: Callable) -> void:
+	var row=HBoxContainer.new()
+	row.add_theme_constant_override("separation",14)
+	var label=Label.new()
+	label.text=title
+	label.custom_minimum_size.x=130
+	label.add_theme_color_override("font_color",CREAM)
+	row.add_child(label)
+	var slider=HSlider.new()
+	slider.min_value=0
+	slider.max_value=100
+	slider.step=1
+	slider.value=roundf(value*100.0)
+	slider.custom_minimum_size=Vector2(280,32)
+	slider.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	row.add_child(slider)
+	var percent=Label.new()
+	percent.text="%d%%" % slider.value
+	percent.custom_minimum_size.x=50
+	percent.add_theme_color_override("font_color",GOLD)
+	row.add_child(percent)
+	slider.value_changed.connect(func(level): percent.text="%d%%" % level; on_changed.call(level/100.0))
+	modal_box.add_child(row)
+	modal_box.move_child(row,modal_box.get_child_count()-4)
 
 func update() -> void:
 	var s = game.state

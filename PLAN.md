@@ -19,6 +19,12 @@ Development proceeds through small playable increments. Z decides major technica
 - Windows/Proton is not the current delivery approach. Later distribution choices remain open.
 - Establish CPU, RAM, resolution, and performance criteria before making performance claims.
 
+## Audio
+
+Music should be playful and comfortable. Keep it separate from environmental ambience. Farm and town areas have daytime birds and quiet nighttime crickets; caves and mines have echoing water drops regardless of daylight. Ambience responds to location, time of day, and season. Each castable spell has its own sound.
+
+The native slice provides separate music, ambience, and spell-effect volumes, a Wildgrowth sound, spring outdoor wildlife, and localized mine-entrance drips. Other seasonal and full cave audio profiles are tested hooks for later world systems. See `docs/AUDIO.md`.
+
 ## Setting
 
 The crew of a spacecraft crash-lands near a small frontier town on a planet where magic is real. Local technology resembles 1920s America: automobiles, telephones, radios, airplanes, crop dusters, and airships coexist with practical magic.

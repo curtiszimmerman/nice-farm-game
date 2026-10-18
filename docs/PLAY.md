@@ -18,7 +18,7 @@ The project-local launcher is `scripts/play.sh`. It starts the pinned Godot exec
 | Escape | Close a window / settings |
 | F11 | Fullscreen / windowed |
 
-The bottom action buttons also work with the mouse. Optional generated ambience is available in settings.
+The bottom action buttons also work with the mouse. Music, environmental ambience, and spell effects have separate sliders under Settings → Sound. Audio starts when you enter the game. [Sound direction and current profiles](AUDIO.md).
 
 ## A good first visit
 
@@ -43,7 +43,7 @@ Progress autosaves every twelve seconds, at milestones, and on exit. Settings in
 
 A single-player atmosphere and interaction study. Names, dialogue, crop timing, art, and the working title are provisional.
 
-Included: exploration, farming, growth magic, inventory, trading, fishing, safe mining, a crew-link repair errand, day/night lighting, a scheduled introduction, menu-time settings, native saving, and optional generated ambience.
+Included: exploration, farming, growth magic, inventory, trading, fishing, safe mining, a crew-link repair errand, day/night lighting, a scheduled introduction, menu-time settings, native saving, playful music, environmental ambience, and Wildgrowth audio.
 
 Network play, combat, cooking, relationships, full seasons and lunar magic, the 52-person town, and the later attack-ship storyline remain future work. The calendar currently counts spring days rather than implementing seasonal progression. The copper errand is a small prototype objective, not a finalized main-story repair chain. The three pause modes are exercised locally; their multiplayer behavior is not yet proven.
 
@@ -59,6 +59,8 @@ Its archive was verified against the release's SHA-512 checksum file. Both remai
 bash scripts/check.sh
 bash scripts/play.sh --headless --script ../../tests/native/state_test.gd
 bash scripts/play.sh --headless --script ../../tests/native/integration_test.gd
+bash scripts/play.sh --headless --script ../../tests/native/save_test.gd
+bash scripts/play.sh --headless --script ../../tests/native/audio_test.gd
 bash scripts/play.sh --headless -- --smoke-test
 bash scripts/play.sh --script ../../tests/native/visual_test.gd
 ```
@@ -66,3 +68,5 @@ bash scripts/play.sh --script ../../tests/native/visual_test.gd
 The last command briefly uses the host display to capture native screenshots into `internal/verification/`, checks optional audio start/stop, and exits. It uses a fresh in-memory game without touching the real save. Headless checks cover simulation, actual interface choices, resource transactions, scheduled events, layout regressions, and reachability of every interaction destination.
 
 The native build has been rendered on the development host's Quadro P3200. Performance on the target GeForce 940MX is still unverified.
+
+The development helper `scripts/restart.py` sends the normal close request to existing game windows on the current X11 desktop, waits for them to save and close, and starts the updated native build. It preserves the gameplay save and writes its launch log inside `internal/runtime/`.

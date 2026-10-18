@@ -19,7 +19,9 @@ All further writable paths belong inside this project. The launcher configures X
 - `src/native/state.gd`: resource transactions, crops, clock, story prerequisites, save schema.
 - `src/native/world.gd`: deterministic original pixel scenery, collision, proximity selection, actors, effects.
 - `src/native/interface.gd`: native HUD, menus, dialogue choices, title screen, fishing gauge.
-- `src/native/game.gd`: input, continuous simulation, interactions, story scenes, persistence, optional generated audio.
+- `src/native/game.gd`: input, continuous simulation, interactions, story scenes, persistence, sound context and successful spell triggers.
+- `src/native/sound.gd`: independent music/ambience/effects playback, daylight/season/interior mix profiles, volume preferences, clean audio shutdown. See `AUDIO.md`.
+- `scripts/make_audio.py`: reproducible original WAV assets; synthesis runs during asset creation, not gameplay.
 - `scripts/play.sh`: native launch with project-local runtime paths.
 - `scripts/check.sh`: repeatable headless verification.
 - `tests/native/`: simulation, controller/interface integration, reachability, isolated file persistence, and real rendered visual checks.
@@ -35,6 +37,10 @@ Godot's initial ProgressBar sizing can retain the default theme's minimum height
 The terrain is drawn by the parent world node. Putting crops at a negative z-index hid them beneath it. Crops now share z-index zero and sort before world objects; the regression is covered in integration checks.
 
 Native visual tests wait briefly after stopping audio before destroying the scene, allowing audio playback resources to release cleanly. The latest verbose render run ended without leak warnings.
+
+Audio playback can be queued until the next frame. Shutdown lets pending playback start before stopping, then gives the audio thread time to release references. This also keeps fast headless tests from exiting with queued playback resources.
+
+Z found the original music disturbing and requested playful music with separate environment/time/season ambience and per-spell effects. The replacement uses major-key plucked notes; bird, cricket, and echoed water layers have independent loop lengths and smooth transitions. Spring is still the active map season. Other seasonal and cave profiles are ready and tested, without implementing new calendar or cave gameplay.
 
 ## Next discussion
 

@@ -47,10 +47,11 @@ func run() -> void:
 	await capture("town")
 	game.state.minute=1210.0
 	await capture("evening")
-	game.toggle_audio()
-	assert(game.ambience_player.playing,"Optional native audio should play")
-	game.toggle_audio()
-	await create_timer(0.2).timeout
+	game.sound_settings()
+	await capture("sound-settings")
+	assert(game.sound.music.playing,"Native music should play")
+	game.sound.play_spell("wildgrowth")
+	await game.sound.shutdown()
 	print("NATIVE VISUAL CHECKS PASSED; sound start/stop passed")
 	game.queue_free()
 	await process_frame

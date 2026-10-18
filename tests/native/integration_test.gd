@@ -72,6 +72,7 @@ func run() -> void:
 	check(game.window_open,"directions open in native interface")
 	game.close_window()
 	check(_destinations_reachable(),"all NPCs sites and garden patches are reachable from the farm")
+	await game.sound.shutdown()
 	game.queue_free()
 	await process_frame
 	print("%d native integration checks passed" % count)

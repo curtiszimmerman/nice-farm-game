@@ -49,6 +49,7 @@ func run() -> void:
 	check(game.saving_disabled,"invalid save disables automatic overwrite")
 	check(not game.save_visit() and FileAccess.get_file_as_string(game.save_path())=="{broken save","invalid save remains untouched when saving is attempted")
 	check(DirAccess.remove_absolute(game.save_path())==OK,"isolated test save is cleaned up")
+	await game.sound.shutdown()
 	game.queue_free()
 	await process_frame
 	print("%d native persistence checks passed" % count)

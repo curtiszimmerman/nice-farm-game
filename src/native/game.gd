@@ -3,6 +3,7 @@ extends Node2D
 const State = preload("res://state.gd")
 const World = preload("res://world.gd")
 const Interface = preload("res://interface.gd")
+const Sound = preload("res://sound.gd")
 
 var state = State.new()
 var world: Node2D
@@ -19,8 +20,7 @@ var message_until = 0.0
 var resting = 0.0
 var activity = ""
 var activity_time = 0.0
-var muted = true
-var ambience_player: AudioStreamPlayer
+var sound: Node
 var screenshot_requested = false
 
 func _ready() -> void:
@@ -40,6 +40,9 @@ func _ready() -> void:
 	camera.limit_right = 1920
 	camera.limit_bottom = 1440
 	add_child(camera)
+	sound = Sound.new()
+	sound.testing = testing
+	add_child(sound)
 	ui = Interface.new()
 	ui.game = self
 	add_child(ui)
@@ -51,6 +54,7 @@ func _ready() -> void:
 
 func begin() -> void:
 	started = true
+	sound.start()
 	toast("WASD to walk. Moss is waiting at the eastern farm gate.",6.0)
 	if saving_disabled: toast("An unreadable save was preserved. This visit will not overwrite it.",8.0)
 
@@ -85,6 +89,8 @@ func _process(dt: float) -> void:
 		save_elapsed = 0.0
 		save_visit()
 	if elapsed>message_until: ui.message.text=""
+	var context=world.audio_context(state.player_position)
+	sound.update_context(state.minute,context.environment,context.season,context.cave_weight,dt)
 	world.refresh()
 	camera.position = state.player_position.round()+Vector2(20,-5)
 	ui.update()
@@ -145,6 +151,7 @@ func burst(pos: Vector2,color = "a5d8c5",count = 20) -> void:
 
 func close_window() -> void:
 	window_open = false
+	sound.save_preferences()
 	ui.close_modal()
 
 func dialog(title: String,role: String,text: String,choices: Array = []) -> void:
@@ -200,6 +207,7 @@ func cast_growth() -> void:
 		toast("Stand near a planted, watered garden patch.")
 		return
 	if state.grow(nearest.index):
+		sound.play_spell("wildgrowth")
 		burst(world.plot_position(nearest.index),"a5d8c5",30)
 		toast("Wildgrowth. The roots remember summer.")
 		world.crops.queue_redraw()
@@ -303,11 +311,19 @@ func settings() -> void:
 		[("✓ " if selected=="none" else "")+"Time continues · default",func(): state.pause_mode="none"; settings()],
 		[("✓ " if selected=="clock" else "")+"Stop calendar · simulation continues",func(): state.pause_mode="clock"; settings()],
 		[("✓ " if selected=="all" else "")+"Pause entire world",func(): state.pause_mode="all"; settings()],
-		["Enable gentle ambience" if muted else "Mute ambience",func(): toggle_audio(); settings()],
+		["Sound · music, ambience, and spells",sound_settings],
 		["Save this visit",func(): if save_visit(): toast("Visit saved inside this project.")],
 		["Begin a new visit…",reset_confirmation],
 		["Return to the farm",func(): pass],
-		["Save and quit",func(): save_visit(); get_tree().quit()]])
+		["Save and quit",quit_game]])
+
+func sound_settings() -> void:
+	panel("The sound of a place","MUSIC · ENVIRONMENT · SPELLS","Playful strings and keys, birds by day, quiet crickets by night. Water echoes near the mine entrance. Each layer has its own volume.",[
+		["Preview Wildgrowth",func(): sound.play_spell("wildgrowth"); sound_settings()],
+		["Back to settings",settings]])
+	ui.add_volume_slider("Music",sound.music_level,func(value): sound.set_level("music",value))
+	ui.add_volume_slider("Ambience",sound.ambience_level,func(value): sound.set_level("ambience",value))
+	ui.add_volume_slider("Spell effects",sound.effects_level,func(value): sound.set_level("effects",value))
 
 func reset_confirmation() -> void:
 	panel("Begin again?","YOUR SAVED VISIT","This replaces this prototype's save inside the project. The story and farm will start fresh.",[
@@ -326,6 +342,7 @@ func save_path() -> String:
 
 func save_visit() -> bool:
 	if testing or saving_disabled: return false
+	sound.save_preferences()
 	var target = save_path()
 	var file = FileAccess.open(target+".tmp",FileAccess.WRITE)
 	if file==null:
@@ -346,35 +363,12 @@ func _load_visit() -> void:
 
 func _notification(what: int) -> void:
 	if what==NOTIFICATION_WM_CLOSE_REQUEST:
-		if started: save_visit()
-		get_tree().quit()
+		quit_game()
 
-func toggle_audio() -> void:
-	muted=not muted
-	if muted:
-		if ambience_player: ambience_player.stop()
-		return
-	if ambience_player==null:
-		ambience_player=AudioStreamPlayer.new()
-		var stream=AudioStreamWAV.new()
-		stream.format=AudioStreamWAV.FORMAT_16_BITS
-		stream.mix_rate=22050
-		var seconds=16
-		var samples=PackedByteArray()
-		samples.resize(seconds*22050*2)
-		var melody=[196.0,293.66,369.99,440.0,293.66,246.94,329.63,392.0]
-		for i in range(seconds*22050):
-			var t=i/22050.0
-			var beat=fmod(t,2.0)
-			var envelope=sin(PI*minf(1.0,beat/2.0))*0.055
-			var wave=sin(TAU*melody[int(t/2.0)]*t)*envelope+sin(TAU*98.0*t)*0.012*sin(PI*t/seconds)
-			samples.encode_s16(i*2,int(wave*32767))
-		stream.data=samples
-		stream.loop_mode=AudioStreamWAV.LOOP_FORWARD
-		stream.loop_end=seconds*22050
-		ambience_player.stream=stream
-		add_child(ambience_player)
-	ambience_player.play()
+func quit_game() -> void:
+	if started: save_visit()
+	await sound.shutdown()
+	get_tree().quit()
 
 func _smoke_screenshot() -> void:
 	for i in range(6): await get_tree().process_frame
@@ -384,4 +378,5 @@ func _smoke_screenshot() -> void:
 		var result=get_viewport().get_texture().get_image().save_png(path)
 		print("Native screenshot: ",path," result=",result)
 	print("NATIVE SMOKE PASSED: scene, world, interface and simulation loaded")
+	await sound.shutdown()
 	get_tree().quit()

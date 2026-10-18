@@ -90,6 +90,12 @@ func refresh() -> void:
 func plot_position(i: int) -> Vector2:
 	return FARM + Vector2(i%5 * 34, int(i/5.0)*34)
 
+func audio_context(player_position: Vector2) -> Dictionary:
+	# The current slice is outdoors in spring; a future interior supplies cave/mine.
+	var distance=player_position.distance_to(Vector2(1585,1010))
+	var cave_weight=clampf(1.0-(distance-30.0)/120.0,0.0,1.0)
+	return {"environment":"town" if player_position.x>1120 else "farm","season":"spring","cave_weight":cave_weight}
+
 func in_water(p: Vector2) -> bool:
 	return pow((p.x-280.0)/175.0,2)+pow((p.y-1170.0)/160.0,2)<1.0 or p.x<84+sin(p.y/145.0)*27
 
