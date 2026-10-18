@@ -7,6 +7,7 @@ func _initialize() -> void:
 	call_deferred("run")
 
 func capture(label: String) -> void:
+	game.world.update_villagers(0.0,true)
 	game.nearest=game.world.find_nearest()
 	game.world.refresh()
 	game.camera.position=game.state.player_position+Vector2(20,-5)
@@ -53,6 +54,9 @@ func run() -> void:
 	await capture("town")
 	game.state.minute=0.0
 	await capture("evening")
+	game.state.minute=1380.0
+	game.state.player_position=Vector2(1692,250)
+	await capture("wizard-coast")
 	game.state.minute=720.0
 	game.state.player_position=Vector2(725,460)
 	await capture("behind-house")

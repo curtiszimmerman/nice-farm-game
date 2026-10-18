@@ -74,6 +74,7 @@ func _process(dt: float) -> void:
 				save_visit()
 				toast("A little rest. A new angle on the same day.")
 		state.advance(minutes,window_open)
+		world.update_villagers(dt*maxf(1.0,minutes/maxf(dt*3.0,0.001)))
 		_move(dt)
 		_update_activity(dt)
 		for p in world.particles:
@@ -260,6 +261,9 @@ func rest_options() -> void:
 
 func talk(id: String) -> void:
 	match id:
+		"mayor":
+			if state.invited and not state.met_mayor and state.total()>=2160: mayor()
+			else: dialog("Mayor Alder","BRIAR GLEN","Good to see you out and about. Most days I'm at the town hall, with a break in the square at noon.")
 		"moss":
 			if not state.invited:
 				dialog("Moss","NEIGHBOR · SOUTH FARM","Well. You look like you've had a long walk. This place has been empty since last harvest. You can stay tonight. Tomorrow at noon, I'll bring the mayor round. Best have someone here to meet him.",[
@@ -308,7 +312,7 @@ func journal() -> void:
 	panel("Captain's field notes","FIRST LANDING","%s A roof for the night · speak with Moss.\n\n%s Tomorrow, at noon · Spring 02, farmhouse.\nThe mayor will return if we miss him.\n\n%s Something of our own · harvest a moon turnip.\nTavi buys produce at the market.\n\n%s A quiet channel home · bring Chief Vale 3 copper.\nThe exposed seam is southeast of town." % ["✓" if state.invited else "○","✓" if state.met_mayor else "○","✓" if state.harvested>0 else "○","✓" if state.delivered else "○"])
 
 func map_notes() -> void:
-	panel("Around Briar Glen","MOSS'S HAND-DRAWN DIRECTIONS","↖ Hidden ship & Chief Vale\n↑ Radio Club & Finch\n← Your farm & Moss\n→ Market & Tavi\n↙ Pond & fishing jetty\n↘ Safe copper outcrop\n\nIona is southeast of the farm. Follow the sandy lanes.\nWalk, wander, get your bearings.")
+	panel("Around Briar Glen","MOSS'S HAND-DRAWN DIRECTIONS","↖ Hidden ship & Chief Vale\n↑ Radio Club & Finch\n← Your farm & Moss\n→ Town square, homes & Tavi's cart\n↗ Iona's tower on the sea cliffs\n↙ Pond & fishing jetty\n↘ Safe copper outcrop\n\nTavi keeps the cart 08:00–20:00, with lunch at 12:30. Iona wakes at noon and sleeps around 05:00.\nFollow the sandy lanes; neighbors have places to be.")
 
 func settings() -> void:
 	if not started: return
@@ -340,6 +344,7 @@ func advance_development_time(minutes: float) -> void:
 	resting=0.0
 	activity=""
 	state.advance(minutes)
+	world.update_villagers(0.0,true)
 	world.refresh()
 	ui.update()
 	save_visit()

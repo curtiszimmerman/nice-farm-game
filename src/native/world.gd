@@ -1,47 +1,60 @@
 extends Node2D
 
 const Grid = preload("res://grid.gd")
+const Schedule = preload("res://villager_schedule.gd")
+const SQUARE = Rect2i(39,19,6,6)
 const SIZE = Grid.WORLD_SIZE
 const FARM_CELL = Vector2i(17,24)
 const OUTCROP_CELLS = Rect2i(46,28,7,4)
 const COPPER_CELLS = Rect2i(46,32,7,1)
 const SHIP_CELL = Vector2i(10,8)
 const JETTY_CELLS = Rect2i(11,34,3,1)
-const CART_CELLS = Rect2i(44,23,3,1)
-const LAMP_CELLS = [Vector2i(36,20),Vector2i(45,25),Vector2i(27,20)]
+const CART_CELLS = Rect2i(45,20,3,1)
+const LAMP_CELLS = [Vector2i(38,18),Vector2i(44,25),Vector2i(27,20)]
 const PEOPLE = [
 	{"id":"moss","name":"Moss","role":"YOUR NEIGHBOR","cell":Vector2i(27,21),"coat":"a7834d","hair":"d6cb9c","skin":"d4a776","hat":true},
 	{"id":"tavi","name":"Tavi","role":"TRAVELING MERCHANT","cell":Vector2i(44,21),"coat":"aa7262","hair":"bd996b","skin":"c0a070","cat":true},
 	{"id":"iona","name":"Iona","role":"FIELD MAGICIAN","cell":Vector2i(32,26),"coat":"8885ad","hair":"e3d7bd","skin":"ae856c"},
-	{"id":"finch","name":"Finch","role":"RADIO CLUB SECRETARY","cell":Vector2i(41,16),"coat":"6d96a0","hair":"765842","skin":"d3ab88"},
-	{"id":"vale","name":"Chief Vale","role":"CHIEF ENGINEER","cell":Vector2i(10,10),"coat":"8b9baf","hair":"b5a68e","skin":"a97959"}
+	{"id":"finch","name":"Finch","role":"RADIO CLUB SECRETARY","cell":Vector2i(34,13),"coat":"6d96a0","hair":"765842","skin":"d3ab88"},
+	{"id":"vale","name":"Chief Vale","role":"CHIEF ENGINEER","cell":Vector2i(10,10),"coat":"8b9baf","hair":"b5a68e","skin":"a97959"},
+	{"id":"mayor","name":"Mayor Alder","role":"MAYOR","cell":Vector2i(41,17),"coat":"657b70","hair":"c2c4b0","skin":"d0a181"}
 ]
 const BUILDINGS = [
 	{"cell":Vector2i(19,15),"tiles":Vector2i(7,5),"roof":"a65e50","kind":"home"},
-	{"cell":Vector2i(38,11),"tiles":Vector2i(5,4),"roof":"5b8990","kind":"radio"},
+	{"cell":Vector2i(32,9),"tiles":Vector2i(5,4),"roof":"5b8990","kind":"radio"},
 	{"cell":Vector2i(45,15),"tiles":Vector2i(5,4),"roof":"ad7956","kind":"store"},
-	{"cell":Vector2i(39,20),"tiles":Vector2i(5,4),"roof":"818a60","kind":"hall"},
+	{"cell":Vector2i(32,17),"tiles":Vector2i(5,4),"roof":"818a60","kind":"hall"},
+	{"cell":Vector2i(39,14),"tiles":Vector2i(5,3),"roof":"8c6856","kind":"cottage"},
+	{"cell":Vector2i(45,23),"tiles":Vector2i(5,3),"roof":"a87858","kind":"cottage"},
+	{"cell":Vector2i(38,26),"tiles":Vector2i(5,3),"roof":"65858b","kind":"cottage"},
+	{"cell":Vector2i(49,5),"tiles":Vector2i(3,6),"roof":"68658f","kind":"tower"},
 	{"cell":Vector2i(28,33),"tiles":Vector2i(5,3),"roof":"8c6856","kind":"cottage"}
 ]
 const SITES = [
 	{"id":"bed","cell":Vector2i(22,20),"label":"Rest at the farmhouse"},
 	{"id":"pond","cell":Vector2i(13,34),"label":"Fish from the jetty"},
 	{"id":"ore","cell":Vector2i(49,32),"label":"Gather copper"},
-	{"id":"sign","cell":Vector2i(33,19),"label":"Read the signpost"},
+	{"id":"sign","cell":Vector2i(30,20),"label":"Read the signpost"},
 	{"id":"radio","cell":Vector2i(37,16),"label":"Listen to the radio"}
 ]
 const ROAD_ROUTES = [
 	[Vector2i(22,20),Vector2i(23,20),Vector2i(23,31)],
-	[Vector2i(23,21),Vector2i(35,21),Vector2i(35,19),Vector2i(44,19),Vector2i(44,21),Vector2i(47,21)],
-	[Vector2i(35,15),Vector2i(35,32)],
+	[Vector2i(23,21),Vector2i(37,21),Vector2i(39,21)],
+	[Vector2i(37,15),Vector2i(37,32)],
 	[Vector2i(13,31),Vector2i(35,31),Vector2i(35,32),Vector2i(49,32),Vector2i(49,34)],
 	[Vector2i(13,31),Vector2i(13,34)],
-	[Vector2i(40,15),Vector2i(40,19)],
+	[Vector2i(34,13),Vector2i(34,15),Vector2i(37,15)],
 	[Vector2i(47,19),Vector2i(47,21)],
-	[Vector2i(41,24),Vector2i(35,24)]
+	[Vector2i(41,17),Vector2i(41,19)],
+	[Vector2i(44,19),Vector2i(47,19),Vector2i(51,19),Vector2i(51,11),Vector2i(50,11)],
+	[Vector2i(47,26),Vector2i(44,26),Vector2i(44,24)],
+	[Vector2i(40,29),Vector2i(37,29)],
+	[Vector2i(41,24),Vector2i(37,24)]
 ]
 
 var people: Array = []
+var villagers: Dictionary = {}
+var routes: Dictionary = {}
 var buildings: Array = []
 var sites: Array = []
 var road_segments: Array = []
@@ -71,7 +84,7 @@ class Prop extends Node2D:
 	func _draw() -> void:
 		if kind == "tree": owner_world.paint_tree(self, data)
 		elif kind == "building": owner_world.paint_building(self, data)
-		elif kind == "person": owner_world.paint_person(self, data, 0.0, "down")
+		elif kind == "person": owner_world.paint_person(self, data, sin(owner_world.elapsed*10.0) if data.get("walking",false) else 0.0, data.get("direction","down"))
 		elif kind == "player": owner_world.paint_person(self, data, sin(owner_world.elapsed * 14.0) if owner_world.moving else 0.0, owner_world.facing)
 		elif kind == "crops": owner_world.paint_crops(self)
 		elif kind == "effects": owner_world.paint_effects(self)
@@ -94,12 +107,12 @@ func _ready() -> void:
 		trees.append(tree)
 		_prop("tree",p,tree)
 	for b in buildings: _prop("building",Vector2(b.x,b.y+b.h),b)
-	for p in people: _prop("person",Vector2(p.x,p.y),p)
+	for p in people: villagers[p.id]=_prop("person",Vector2(p.x,p.y),p)
 	crops = _prop("crops",Vector2.ZERO,{})
 	crops.z_index = 0
 	player = _prop("player",state.player_position,{"coat":"6f9793","hair":"5c5045","skin":"d0a981","id":"player"})
-	mayor = _prop("person",Grid.center(Vector2i(24,21)),{"coat":"657b70","hair":"c2c4b0","skin":"d0a181"})
-	mayor.visible = false
+	mayor = villagers.mayor
+	update_villagers(0.0,true)
 	var effects = _prop("effects",Vector2.ZERO,{})
 	effects.z_index = 5
 
@@ -116,7 +129,7 @@ func _build_layout() -> void:
 			var cell=Vector2i(x,y)
 			var p=Grid.center(cell)
 			var pond=(p-Grid.center(Vector2i(8,36)))/Vector2(160,160)
-			if p.x<96.0+sin(p.y/145.0)*22.0 or pond.length_squared()<1.0:
+			if x>=54 or p.x<96.0+sin(p.y/145.0)*22.0 or pond.length_squared()<1.0:
 				water_cells[cell]=true
 				solid_cells[cell]="water"
 	for y in range(JETTY_CELLS.position.y,JETTY_CELLS.end.y):
@@ -151,8 +164,14 @@ func _build_layout() -> void:
 	_claim(OUTCROP_CELLS,"rock")
 	_claim(CART_CELLS,"cart")
 	for cell in LAMP_CELLS: _claim(Rect2i(cell,Vector2i.ONE),"lamp")
-	_claim(Rect2i(Vector2i(33,19),Vector2i.ONE),"sign")
+	_claim(Rect2i(Vector2i(30,20),Vector2i.ONE),"sign")
 	_claim(Rect2i(Vector2i(37,16),Vector2i.ONE),"radio")
+	_claim(Rect2i(41,21,2,2),"fountain")
+	_claim(Rect2i(53,3,1,24),"cliff")
+	for y in range(SQUARE.position.y,SQUARE.end.y):
+		for x in range(SQUARE.position.x,SQUARE.end.x): reserved_cells[Vector2i(x,y)]=true
+	for routine in Schedule.ROUTINES.values():
+		for stop in routine: reserved_cells[Vector2i(stop[1],stop[2])]=true
 	for y in [22,29]:
 		for x in range(16,28):
 			if x not in [22,23,24]: fence_cells.append(Vector2i(x,y))
@@ -171,6 +190,58 @@ func site_position(id: String) -> Vector2:
 		if site.id==id: return Grid.center(site.cell)
 	return Vector2.ZERO
 
+func _route(start: Vector2i,goal: Vector2i) -> Array:
+	var frontier: Array=[goal]
+	var parents={goal:goal}
+	var cursor=0
+	while cursor<frontier.size() and not parents.has(start):
+		var cell: Vector2i=frontier[cursor]
+		cursor+=1
+		for offset in [Vector2i.UP,Vector2i.RIGHT,Vector2i.DOWN,Vector2i.LEFT]:
+			var next: Vector2i=cell+offset
+			if parents.has(next) or blocked(Grid.center(next)): continue
+			parents[next]=cell
+			frontier.append(next)
+	var path: Array=[]
+	var current=start
+	while parents.has(current) and current!=goal:
+		current=parents[current]
+		path.append(Grid.center(current))
+	return path
+
+func update_villagers(dt: float,snap: bool=false) -> void:
+	for id in villagers:
+		var stop=Schedule.stop(id,state.minute)
+		if id in ["moss","mayor"] and state.invited and not state.met_mayor and state.total()>=2115:
+			stop={"cell":Vector2i(27,21) if id=="moss" else Vector2i(24,21),"sleeping":false}
+		var actor: Node2D=villagers[id]
+		var previous=actor.position
+		var target=Grid.center(stop.cell)
+		if snap:
+			actor.position=target
+			routes.erase(id)
+		elif not routes.has(id) or routes[id].target!=target:
+			# Finish the current tile before turning toward a new appointment.
+			var cell=Grid.world_to_cell(actor.position)
+			var path=_route(cell,stop.cell)
+			if actor.position.distance_to(Grid.center(cell))>0.1: path.push_front(Grid.center(cell))
+			routes[id]={"target":target,"path":path}
+		if routes.has(id):
+			var remaining=dt*56.0
+			var path: Array=routes[id].path
+			while remaining>0 and not path.is_empty():
+				var distance=actor.position.distance_to(path[0])
+				actor.position=actor.position.move_toward(path[0],remaining)
+				remaining-=distance
+				if actor.position.distance_to(path[0])<0.01: path.pop_front()
+				else: break
+		actor.visible=not stop.sleeping or actor.position.distance_to(target)>1
+		var motion=actor.position-previous
+		actor.data.walking=motion.length()>0.01 and not snap
+		if motion.length()>0.01:
+			actor.data.direction=("right" if motion.x>0 else "left") if absf(motion.x)>absf(motion.y) else ("down" if motion.y>0 else "up")
+		actor.queue_redraw()
+
 func _prop(kind: String, pos: Vector2, data: Dictionary) -> Prop:
 	var p = Prop.new()
 	p.owner_world = self
@@ -186,7 +257,6 @@ func refresh() -> void:
 	crops.queue_redraw()
 	player.position = state.player_position.round()
 	player.queue_redraw()
-	mayor.visible = state.invited and not state.met_mayor and state.total() >= 2160.0
 	for child in get_children():
 		if child is Prop:
 			if child.kind == "effects": child.queue_redraw()
@@ -241,7 +311,8 @@ func find_nearest() -> Dictionary:
 			best = {"type":"plot","index":i,"label":label}
 			distance = d
 	for p in people:
-		var d = state.player_position.distance_to(Vector2(p.x,p.y))
+		if not villagers[p.id].visible: continue
+		var d = state.player_position.distance_to(villagers[p.id].position)
 		if d<distance:
 			best = p.duplicate()
 			best.type = "person"
@@ -327,8 +398,8 @@ func _paint_roads(image: Image,random: RandomNumberGenerator) -> void:
 					road_mask.fill_rect(Rect2i(x,y,2,2),Color(coverage,coverage,coverage))
 				var rut=maxf(0.0,1.0-absf(distance-segment[2]*0.43)/2.0)*0.08
 				if rut>tracks.get_pixel(x,y).r: tracks.fill_rect(Rect2i(x,y,2,2),Color(rut,rut,rut))
-	for y in range(450,1160,2):
-		for x in range(370,1635,2):
+	for y in range(0,int(SIZE.y),2):
+		for x in range(0,int(SIZE.x),2):
 			var coverage=road_mask.get_pixel(x,y).r
 			if coverage<=0.0: continue
 			var dirt=Color("b8a47a").lightened(random.randf_range(-0.035,0.035))
@@ -348,8 +419,24 @@ func oval(c: CanvasItem, x: float,y: float,rx: float,ry: float,color: String) ->
 	c.draw_colored_polygon(points,Color(color))
 
 func _draw() -> void:
+	# The square and coast share the same tile boundaries as collision and routes.
 	if not terrain: return
 	draw_texture(terrain,Vector2.ZERO)
+	for y in range(SQUARE.position.y,SQUARE.end.y):
+		for x in range(SQUARE.position.x,SQUARE.end.x):
+			var p=Grid.origin(Vector2i(x,y))
+			r(self,p.x,p.y,32,32,"a6a58b")
+			r(self,p.x+1,p.y+1,30,30,"babb9f" if (x+y)%2==0 else "b4b69b")
+	var fountain=Grid.origin(Vector2i(41,21))
+	oval(self,fountain.x+32,fountain.y+34,32,25,"747f7d")
+	oval(self,fountain.x+32,fountain.y+29,27,19,"709fa9")
+	r(self,fountain.x+27,fountain.y+2,10,30,"c9cbb1")
+	oval(self,fountain.x+32,fountain.y+4,16,7,"d7d4b9")
+	for y in range(3,27):
+		var edge=Grid.origin(Vector2i(53,y))
+		r(self,edge.x,edge.y,32,32,"7d897d")
+		r(self,edge.x+21,edge.y,11,32,"566e73")
+		r(self,edge.x+32,edge.y+8,9,2,"a6c9c2")
 	draw_set_transform(Grid.origin(JETTY_CELLS.position))
 	r(self,0,0,96,32,"655d46")
 	for i in range(12): r(self,1+i*8,0,6,32,"b09b6c")
@@ -429,6 +516,14 @@ func paint_building(c: CanvasItem, b: Dictionary) -> void:
 	var w = b.w
 	var h = b.h
 	var y = -h
+	if b.kind=="tower":
+		r(c,8,y,w-16,h,"9295a2")
+		for yy in range(int(y)+8,0,16): r(c,9,yy,w-18,2,"737b8b")
+		poly(c,[Vector2(-8,y),Vector2(w/2,y-76),Vector2(w+8,y)],"68658f")
+		for yy in [-150,-96]:
+			r(c,w/2-8,yy,16,26,"e1c786")
+		r(c,w/2-13,-42,26,42,"526c75")
+		return
 	oval(c,w*0.6,5,w*0.65,19,"233f3338")
 	r(c,0,y,w,h,"d0c298")
 	r(c,5,y+8,w-10,h-8,"c0b58f")
@@ -538,7 +633,8 @@ func paint_crops(c: CanvasItem) -> void:
 
 func paint_effects(c: CanvasItem) -> void:
 	for p in people:
-		var pos = Vector2(p.x,p.y)
+		if not villagers[p.id].visible: continue
+		var pos = villagers[p.id].position
 		if state.player_position.distance_to(pos)<105:
 			r(c,pos.x-34,pos.y-66,68,15,"233e34cc")
 			c.draw_string(ThemeDB.fallback_font,pos+Vector2(-29,-55),p.name,HORIZONTAL_ALIGNMENT_LEFT,-1,9,Color("e4d9b5"))

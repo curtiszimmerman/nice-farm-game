@@ -16,6 +16,10 @@ All further writable paths belong inside this project. The launcher configures X
 
 ## Current implementation
 
+Town population follows `src/native/villager_schedule.gd`, using the shared clock. Villagers walk tile routes around solid scenery; full pauses stop them, clock-only pauses allow walking. Development time jumps and loading resolve their current scheduled location. Actor positions are derived, not added to save data. Sleep hides villagers at their assigned home door; house interiors are not implemented. Chief Vale stays with the ship. Moss and Alder override their routines for the recoverable farmhouse appointment. All schedule destinations have reachability coverage.
+
+The square has a fountain, the shop/cart, and three nearby homes. Iona's tower sits beside a solid sea cliff and ocean. The coast currently uses the existing outdoor audio profile. No season-specific schedules yet.
+
 - `src/native/state.gd`: resource transactions, crops, clock, story prerequisites, save schema.
 - `src/native/world.gd`: deterministic original pixel scenery, collision, proximity selection, actors, effects.
 - `src/native/interface.gd`: native HUD, menus, dialogue choices, title screen, fishing gauge.
