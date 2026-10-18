@@ -12,7 +12,7 @@ func run() -> void:
 	root.add_child(game)
 	game.set_process(false)
 	var outside=game.world
-	check(game.camera.zoom==Vector2(2.25,2.25),"camera zoom is reduced by 25 percent from the doubled setting")
+	check(game.camera.zoom.is_equal_approx(Vector2.ONE*1.9125),"camera zoom reflects the latest 15 percent reduction")
 	var home=outside.buildings[0]
 	game.state.player_position=outside.Grid.center(home.cell+Vector2i(home.tiles.x/2,home.tiles.y))
 	game.interact()

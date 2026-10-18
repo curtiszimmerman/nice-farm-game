@@ -1,7 +1,10 @@
 extends "res://world.gd"
 
-const ROOM_CELLS=Vector2i(28,24)
-const ROOM_SIZE=Vector2(896,768)
+const Layouts=preload("res://interior_layouts.gd")
+var ROOM_CELLS=Vector2i.ZERO
+var ROOM_SIZE=Vector2.ZERO
+var layout: Dictionary
+var floor_cells: Dictionary={}
 var building: Dictionary
 var outdoors: Node2D
 var furnishings: Array=[]
@@ -15,43 +18,29 @@ func _ready() -> void:
 	y_sort_enabled=true
 	night_tint=CanvasModulate.new()
 	add_child(night_tint)
+	layout=Layouts.for_building(building.id)
+	ROOM_CELLS=layout.size
+	ROOM_SIZE=Vector2(ROOM_CELLS)*Grid.TILE_SIZE
+	for area in layout.areas:
+		var bounds: Rect2i=area[1]
+		for y in range(bounds.position.y,bounds.end.y):
+			for x in range(bounds.position.x,bounds.end.x):
+				assert(not floor_cells.has(Vector2i(x,y)),"Rooms must not overlap")
+				floor_cells[Vector2i(x,y)]=area[0]
+	for door in layout.doors: floor_cells[door[2]]="doorway"
+	floor_cells[layout.exit]="entry"
 	for y in range(ROOM_CELLS.y):
 		for x in range(ROOM_CELLS.x):
-			if x<2 or x>=26 or y<3 or y>=23: solid_cells[Vector2i(x,y)]="wall"
-	for x in range(2,26):
-		if x not in [7,8,14,15,22,23]: solid_cells[Vector2i(x,11)]="wall"
-	for y in range(3,11):
-		if y not in [7,8]:
-			solid_cells[Vector2i(9,y)]="wall"
-			solid_cells[Vector2i(17,y)]="wall"
-	for x in range(18,26):
-		if x not in [21,22]: solid_cells[Vector2i(x,7)]="wall"
-	add_furniture("sofa",Rect2i(3,15,4,2))
-	add_furniture("rug",Rect2i(7,14,10,6),false)
-	add_furniture("table",Rect2i(10,16,3,2))
-	add_furniture("chair",Rect2i(9,16,1,1))
-	add_furniture("chair",Rect2i(13,17,1,1))
-	add_furniture("bed",Rect2i(3,4,3,4))
-	add_furniture("bed",Rect2i(11,4,3,4))
-	add_furniture("kitchen",Rect2i(18,4,7,2))
-	add_furniture("bath",Rect2i(23,8,2,2))
-	add_furniture("sink",Rect2i(18,8,2,1))
-	add_furniture("toilet",Rect2i(19,9,1,1))
-	add_furniture("bookshelf",Rect2i(3,12,4,1))
-	add_furniture("bookshelf",Rect2i(24,17,1,4))
-	add_furniture("art",Rect2i(4,11,2,1),false)
-	add_furniture("radio",Rect2i(19,14,5,2) if building.id=="radio" else Rect2i(19,14,2,1))
-	add_furniture("plant",Rect2i(23,21,1,1))
-	add_furniture("plant",Rect2i(3,21,1,1))
-	add_site("exit",Vector2i(14,22),"Leave "+room_name())
-	add_site("bed",Vector2i(6,7),"Rest in the bedroom")
-	add_site("radio",Vector2i(21,16) if building.id=="radio" else Vector2i(20,15),"Listen to the radio")
-	if building.kind=="store": add_site("shop",Vector2i(18,16),"Browse Tavi's provisions")
+			if not floor_cells.has(Vector2i(x,y)): solid_cells[Vector2i(x,y)]="wall"
+	for item in layout.furniture: add_furniture(item[0],item[1],item[0] not in ["rug","art"])
+	add_site("exit",layout.exit,"Leave "+room_name())
+	for site in layout.sites:
+		add_site(site[0],site[1],{"bed":"Rest in the bedroom","radio":"Listen to the radio","shop":"Browse Tavi's provisions"}[site[0]])
 	crops=Node2D.new()
 	add_child(crops)
 	player=_prop("player",state.player_position,{"coat":"6f9793","hair":"5c5045","skin":"d0a981","id":"player"})
 	for person in outdoors.people:
-		villagers[person.id]=_prop("person",Grid.center(Vector2i(21,17)),person.duplicate())
+		villagers[person.id]=_prop("person",entry_position(),person.duplicate())
 		villagers[person.id].visible=false
 	var effects=_prop("effects",Vector2.ZERO,{})
 	effects.z_index=5
@@ -67,14 +56,17 @@ func add_furniture(kind: String,bounds: Rect2i,solid: bool=true) -> void:
 	if kind=="rug": return
 	if solid:
 		for y in range(bounds.position.y,bounds.end.y):
-			for x in range(bounds.position.x,bounds.end.x): solid_cells[Vector2i(x,y)]="furniture"
+			for x in range(bounds.position.x,bounds.end.x):
+				assert(floor_cells.has(Vector2i(x,y)),"Furniture must stand inside a room: %s in %s" % [kind,building.id])
+				assert(not solid_cells.has(Vector2i(x,y)),"Furniture footprints must not overlap: %s in %s" % [kind,building.id])
+				solid_cells[Vector2i(x,y)]="furniture"
 	var prop=Furniture.new()
 	prop.room=self
 	prop.item=data
 	prop.position=Grid.origin(bounds.position+Vector2i(0,bounds.size.y))
 	add_child(prop)
 
-func entry_position() -> Vector2: return Grid.center(Vector2i(14,21))
+func entry_position() -> Vector2: return Grid.center(layout.entry)
 
 func room_name() -> String:
 	match building.id:
@@ -83,6 +75,7 @@ func room_name() -> String:
 		"store": return "Tavi's provisions"
 		"hall": return "Briar Glen town hall"
 		"iona": return "Iona's tower"
+		"veteran": return "Bram's cabin"
 		_: return building.id.capitalize()+"'s home"
 
 func blocked(p: Vector2) -> bool:
@@ -106,12 +99,14 @@ func update_villagers(dt: float,snap: bool=false) -> void:
 		actor.rotation=PI/2 if sleeping else 0.0
 		actor.z_index=2 if sleeping else 0
 		if sleeping:
-			actor.position=Grid.origin(Vector2i(3,4))+Vector2(20,27)
+			for item in furnishings:
+				if item.kind!="bed": continue
+				actor.rotation=PI/2 if item.bounds.size.x>1 else 0.0
+				actor.position=Grid.origin(item.bounds.position)+Vector2(10,24) if item.bounds.size.x>1 else Grid.origin(item.bounds.position)+Vector2(16,44)
+				break
 			actor.queue_redraw()
 			continue
-		var cell=Vector2i(21,16) if id=="finch" else Vector2i(8,18)
-		if id=="finch" and int(state.minute/25)%3==1: cell=Vector2i(7,13)
-		if id=="finch" and int(state.minute/25)%3==2: cell=Vector2i(22,18)
+		var cell: Vector2i=layout.work[int(state.minute/25)%layout.work.size()]
 		var target=Grid.center(cell)
 		if snap: actor.position=target
 		elif not routes.has(id) or routes[id].target!=target:
@@ -147,14 +142,13 @@ func refresh() -> void:
 		if child is Prop and child.kind=="effects": child.queue_redraw()
 
 func _draw() -> void:
-	r(self,0,0,ROOM_SIZE.x,ROOM_SIZE.y,"263732")
-	for y in range(3,23):
-		for x in range(2,26):
-			var p=Grid.origin(Vector2i(x,y))
-			r(self,p.x,p.y,32,32,"9e815b" if (x+y)%3 else "a98b62")
-			r(self,p.x+1,p.y+2,30,1,"b99b6d")
-			r(self,p.x+14,p.y+3,1,26,"876e50")
-			if x>=18 and y<11: r(self,p.x+1,p.y+1,30,30,"abb7a4" if (x+y)%2 else "c2c7ae")
+	r(self,-400,-250,ROOM_SIZE.x+800,ROOM_SIZE.y+500,"263732")
+	for cell in floor_cells:
+		var p=Grid.origin(cell)
+		r(self,p.x,p.y,32,32,"9e815b" if (cell.x+cell.y)%3 else "a98b62")
+		r(self,p.x+1,p.y+2,30,1,"b99b6d")
+		r(self,p.x+14,p.y+3,1,26,"876e50")
+		if floor_cells[cell] in ["bathroom","kitchen"]: r(self,p.x+1,p.y+1,30,30,"abb7a4" if (cell.x+cell.y)%2 else "c2c7ae")
 	for cell in solid_cells:
 		if solid_cells[cell]!="wall": continue
 		var p=Grid.origin(cell)
@@ -169,11 +163,13 @@ func _draw() -> void:
 	var door=site_position("exit")
 	r(self,door.x-23,door.y-13,46,25,"586d62")
 	r(self,door.x-20,door.y-10,40,18,"b69a65")
-	for x in [4,12,22]:
-		var p=Grid.origin(Vector2i(x,2))
-		r(self,p.x,p.y,55,35,"718e88")
-		r(self,p.x+26,p.y,3,35,"e3d4ab")
-		r(self,p.x,p.y+16,55,3,"e3d4ab")
+	for area in layout.areas:
+		if area[0] in ["bathroom","hall"]: continue
+		var bounds: Rect2i=area[1]
+		var p=Grid.origin(bounds.position)+Vector2(8,-25)
+		r(self,p.x,p.y,28,24,"718e88")
+		r(self,p.x+13,p.y,2,24,"e3d4ab")
+		r(self,p.x,p.y+11,28,2,"e3d4ab")
 
 func paint_furniture(c: CanvasItem,item: Dictionary) -> void:
 	var w=item.bounds.size.x*32
@@ -186,14 +182,14 @@ func paint_furniture(c: CanvasItem,item: Dictionary) -> void:
 		"sofa":
 			r(c,0,-h-18,w,h+14,"526f69")
 			r(c,7,-h-12,w-14,25,"7e9a86")
-			for x in range(8,w-10,36): r(c,x,-h+18,30,32,"90a58b")
+			for x in range(8,w-10,36): r(c,x,-h+18,30,maxi(8,h-20),"90a58b")
 			r(c,0,-h+10,10,h-10,"688a79")
 			r(c,w-10,-h+10,10,h-10,"688a79")
 			for x in [18,w-42]:
 				r(c,x,-h+3,22,21,"b3ad8b")
 				r(c,x+3,-h+6,16,2,"d0c49e")
 			for x in range(13,w-10,9): r(c,x,-14,3,2,"49675e")
-		"table","chair":
+		"table","chair","desk","counter":
 			r(c,4,-h,w-8,h-5,"8f7050")
 			r(c,6,-h+2,w-12,3,"bca070")
 			for x in [6,w-10]: r(c,x,-8,4,10,"635942")
@@ -205,27 +201,31 @@ func paint_furniture(c: CanvasItem,item: Dictionary) -> void:
 			if item.kind=="table":
 				oval(c,w/2,-h/2,6,4,"b09766")
 				r(c,w/2-2,-h/2-8,4,10,"64805c")
+			elif item.kind=="desk":
+				r(c,10,-h+5,22,14,"dfd7b7")
+				for yy in range(4,14,4): r(c,13,-h+5+yy,15,1,"8a9782")
+			elif item.kind=="counter":
+				r(c,w-29,-h-14,21,17,"627769")
+				r(c,w-26,-h-11,14,7,"d0be8a")
 		"bed":
 			r(c,0,-h,w,h,"796951")
 			r(c,5,-h+5,w-10,h-12,"d9d4b7")
-			r(c,9,-h+10,w-18,25,"eee2c4")
-			r(c,7,-h+44,w-14,h-55,"7d9390")
-			r(c,10,-h+48,w-20,5,"a2b7a7")
-			for yy in range(-h+55,-10,11): r(c,9,yy,w-18,2,"a0b0a1")
-			for x in [12,w/2+3]:
-				r(c,x,-h+12,w/2-19,18,"eee2c4")
-				r(c,x+2,-h+15,w/2-24,1,"c8c6ac")
+			r(c,8,-h+9,w-16,14,"eee2c4")
+			r(c,6,-h+25,w-12,h-31,"7d9390")
+			r(c,8,-h+28,w-16,4,"a2b7a7")
+			for yy in range(-h+36,-8,9): r(c,8,yy,w-16,2,"a0b0a1")
 		"kitchen":
 			r(c,0,-h,w,h,"939479")
 			r(c,0,-h-8,w,12,"ddd4b4")
 			for x in range(4,w-6,32): r(c,x,-h+9,25,h-15,"b6ad8d")
 			for x in range(4,w-6,32): r(c,x+17,-h+16,6,2,"6e705b")
 			r(c,4,-h+15,51,h-25,"586c62")
-			r(c,9,-h+20,41,h-37,"839389")
+			r(c,9,-h+20,41,maxi(5,h-37),"839389")
 			for x in [15,40]: oval(c,x,-h+2,9,6,"495c54")
 			oval(c,w-32,-h+4,19,9,"718a81")
 			r(c,w-32,-h-15,3,17,"a9b8a3")
 			for x in [85,98,113]:
+				if x+10>w: continue
 				r(c,x,-h-19,10,17,"9d8a67")
 				r(c,x+2,-h-21,6,3,"d3c197")
 		"bath","sink":
@@ -255,7 +255,20 @@ func paint_furniture(c: CanvasItem,item: Dictionary) -> void:
 				r(c,x,-h-8,5,5,"d2c596")
 				r(c,x,-h+9,5,1,"5e604e")
 			r(c,18,-h-46,2,16,"99aaa0")
-			r(c,18,-h-46,35,2,"b5c0ab")
+			r(c,18,-h-46,mini(35,w-22),2,"b5c0ab")
+		"stock","crates","seed_tray","tools":
+			r(c,0,-h,w,h,"857154")
+			for yy in range(-h+5,-2,14):
+				for x in range(4,w-4,13):
+					r(c,x,yy,9,10,"b7a075" if item.kind=="crates" else "9aa67b")
+					r(c,2,yy+10,w-4,2,"c0a477")
+			if item.kind=="tools":
+				for x in [10,24,38]:
+					r(c,x,-h-12,3,20,"a8aaa0")
+					r(c,x-3,-h-13,9,3,"657364")
+		"telescope":
+			poly(c,[Vector2(4,-3),Vector2(17,-30),Vector2(27,-3),Vector2(16,-22)],"8d8362")
+			poly(c,[Vector2(2,-31),Vector2(8,-42),Vector2(32,-28),Vector2(26,-18)],"8b9a9b")
 		"art":
 			r(c,0,-h-22,w,h+12,"8c7453")
 			r(c,5,-h-17,w-10,h+2,"93b0a0")

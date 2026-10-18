@@ -42,7 +42,7 @@ func _ready() -> void:
 	var saved_position=state.player_position
 	if saved_room=="" and world.blocked(state.player_position): state.player_position=Grid.center(Grid.SPAWN_CELL)
 	camera = Camera2D.new()
-	camera.zoom = Vector2(2.25,2.25)
+	camera.zoom = Vector2(1.9125,1.9125)
 	camera.position = state.player_position
 	camera.limit_left = 0
 	camera.limit_top = 0
@@ -137,7 +137,7 @@ func enter_building(id: String) -> void:
 	for b in outdoors.buildings:
 		if b.id==id: building=b; break
 	if building.is_empty(): return
-	return_position=Grid.center(building.cell+Vector2i(int(building.tiles.x/2),building.tiles.y))+Vector2(0,32)
+	return_position=outdoors.exit_position(building)
 	if not rooms.has(id):
 		var room=Interior.new()
 		room.state=state
@@ -156,8 +156,12 @@ func enter_building(id: String) -> void:
 	resting=0
 	world.update_villagers(0.0,true)
 	world.refresh()
-	camera.limit_right=int(world.ROOM_SIZE.x)
-	camera.limit_bottom=int(world.ROOM_SIZE.y)
+	var visible_size=get_viewport_rect().size/camera.zoom
+	var margin=(visible_size-world.ROOM_SIZE).max(Vector2.ZERO)*0.5
+	camera.limit_left=floori(-margin.x)
+	camera.limit_top=floori(-margin.y)
+	camera.limit_right=ceili(world.ROOM_SIZE.x+margin.x)
+	camera.limit_bottom=ceili(world.ROOM_SIZE.y+margin.y)
 	camera.position=state.player_position
 	toast("%s · E at the front door to leave" % world.room_name(),4)
 
@@ -170,6 +174,8 @@ func leave_building() -> void:
 	state.location=""
 	state.player_position=return_position
 	world.refresh()
+	camera.limit_left=0
+	camera.limit_top=0
 	camera.limit_right=int(Grid.WORLD_SIZE.x)
 	camera.limit_bottom=int(Grid.WORLD_SIZE.y)
 	camera.position=state.player_position
@@ -325,10 +331,10 @@ func rest_options() -> void:
 func talk(id: String) -> void:
 	match id:
 		"veteran":
-			dialog("The veteran","A CABIN IN THE SOUTH WOODS","I served in the army. If you're heading toward the other kingdom, come and talk to me before you go. And take this old blade. Rust comes off. Being unprepared is harder to fix.",[
+			dialog("Bram","A CABIN IN THE SOUTH WOODS","I served in the army. If you're heading toward the other kingdom, come and talk to me before you go. And take this old blade. Rust comes off. Being unprepared is harder to fix.",[
 				["Accept the rusty sword" if state.rusty_sword==0 else "Thank you for the sword",func():
 					if state.accept_sword(): save_visit(); toast("Rusty sword added to your satchel. Select it to equip.",6)],
-				["What should we know about the other kingdom?",func(): dialog("The veteran","RETIRED ARMY","Start by remembering that a kingdom's people and its government aren't the same thing. I learned that in uniform. Some of the people who helped me most lived on the other side of the border.")]])
+				["What should we know about the other kingdom?",func(): dialog("Bram","RETIRED ARMY","Start by remembering that a kingdom's people and its government aren't the same thing. I learned that in uniform. Some of the people who helped me most lived on the other side of the border.")]])
 		"mayor":
 			if state.invited and not state.met_mayor and state.total()>=2160: mayor()
 			else: dialog("Mayor Alder","BRIAR GLEN","Good to see you out and about. Most days I'm at the town hall, with a break in the square at noon.")

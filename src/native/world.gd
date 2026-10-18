@@ -9,6 +9,8 @@ const OUTCROP_CELLS = Rect2i(90,69,9,5)
 const COPPER_CELLS = Rect2i(90,74,9,1)
 const MINE_RIDGE = Rect2i(97,65,3,4)
 const MOSS_FIELDS = Rect2i(25,60,6,4)
+const VETERAN_GARDEN = Rect2i(46,79,3,3)
+const DECORATIVE_FIELDS = [MOSS_FIELDS,VETERAN_GARDEN]
 const SHIP_CELL = Vector2i(6,6)
 const POND_CELL = Vector2i(17,67)
 const JETTY_CELLS = Rect2i(20,65,3,1)
@@ -21,7 +23,7 @@ const PEOPLE = [
 	{"id":"finch","name":"Finch","role":"RADIO CLUB SECRETARY","cell":Vector2i(54,38),"coat":"6d96a0","hair":"765842","skin":"d3ab88"},
 	{"id":"vale","name":"Chief Vale","role":"CHIEF ENGINEER","cell":Vector2i(6,8),"coat":"8b9baf","hair":"b5a68e","skin":"a97959"},
 	{"id":"mayor","name":"Mayor Alder","role":"MAYOR","cell":Vector2i(61,42),"coat":"657b70","hair":"c2c4b0","skin":"d0a181"},
-	{"id":"veteran","name":"The veteran","role":"RETIRED ARMY","cell":Vector2i(43,82),"coat":"777a60","hair":"b9b6a3","skin":"b08f77"}
+	{"id":"veteran","name":"Bram","role":"RETIRED ARMY","cell":Vector2i(43,82),"coat":"777a60","hair":"b9b6a3","skin":"b08f77"}
 ]
 const BUILDINGS = [
 	{"cell":Vector2i(10,37),"tiles":Vector2i(7,5),"roof":"a65e50","kind":"home"},
@@ -194,8 +196,9 @@ func _build_layout() -> void:
 		for x in range(SQUARE.position.x,SQUARE.end.x): reserved_cells[Vector2i(x,y)]=true
 	for routine in Schedule.ROUTINES.values():
 		for stop in routine: reserved_cells[Vector2i(stop[1],stop[2])]=true
-	for y in range(MOSS_FIELDS.position.y-1,MOSS_FIELDS.end.y+1):
-		for x in range(MOSS_FIELDS.position.x-1,MOSS_FIELDS.end.x+1): reserved_cells[Vector2i(x,y)]=true
+	for field in DECORATIVE_FIELDS:
+		for y in range(field.position.y-1,field.end.y+1):
+			for x in range(field.position.x-1,field.end.x+1): reserved_cells[Vector2i(x,y)]=true
 	for y in [FARM_CELL.y-2,FARM_CELL.y+5]:
 		for x in range(FARM_CELL.x-1,FARM_CELL.x+11):
 			if x not in [14,15,16]: fence_cells.append(Vector2i(x,y))
@@ -213,6 +216,12 @@ func site_position(id: String) -> Vector2:
 	for site in sites:
 		if site.id==id: return Grid.center(site.cell)
 	return Vector2.ZERO
+
+func exit_position(building: Dictionary) -> Vector2:
+	var door=building.cell+Vector2i(int(building.tiles.x/2),building.tiles.y)
+	for cell in [door+Vector2i.DOWN,door,door+Vector2i.LEFT,door+Vector2i.RIGHT]:
+		if not blocked(Grid.center(cell)): return Grid.center(cell)
+	return Grid.center(Grid.SPAWN_CELL)
 
 func _route(start: Vector2i,goal: Vector2i) -> Array:
 	var frontier: Array=[goal]
@@ -513,14 +522,7 @@ func _draw() -> void:
 	var field=Grid.rect(FARM_CELL,Vector2i(5,4))
 	draw_rect(field.grow(3),Color("596341"))
 	draw_rect(field,Color("7b6446"))
-	for y in range(MOSS_FIELDS.position.y,MOSS_FIELDS.end.y):
-		for x in range(MOSS_FIELDS.position.x,MOSS_FIELDS.end.x):
-			var p=Grid.center(Vector2i(x,y))
-			r(self,p.x-15,p.y-15,30,30,"796247")
-			for i in range(3):
-				r(self,p.x-12+i*9,p.y-11,2,22,"5e513d")
-				r(self,p.x-8+i*8,p.y-5,4,11,"66874e")
-				r(self,p.x-10+i*8,p.y-6,8,4,"93a864")
+	for garden in DECORATIVE_FIELDS: paint_decorative_garden(garden)
 	var rock_width=OUTCROP_CELLS.size.x*Grid.TILE_SIZE
 	var rock_height=OUTCROP_CELLS.size.y*Grid.TILE_SIZE
 	draw_set_transform(Grid.origin(OUTCROP_CELLS.position)+Vector2(rock_width/2,rock_height))
@@ -581,6 +583,17 @@ func _fence(x: float,y: float,w: int) -> void:
 	for i in range(0,w+1,Grid.TILE_SIZE):
 		r(self,x+i,y,5,27,"b8a77a")
 		r(self,x+i-1,y-3,7,5,"d0be8b")
+
+func paint_decorative_garden(bounds: Rect2i) -> void:
+	for y in range(bounds.position.y,bounds.end.y):
+		for x in range(bounds.position.x,bounds.end.x):
+			var p=Grid.center(Vector2i(x,y))
+			r(self,p.x-15,p.y-15,30,30,"796247")
+			for i in range(3):
+				r(self,p.x-12+i*9,p.y-11,2,22,"5e513d")
+				r(self,p.x-8+i*8,p.y-5,4,11,"66874e")
+				r(self,p.x-10+i*8,p.y-6,8,4,"93a864")
+				if bounds==VETERAN_GARDEN and (x+y+i)%3==0: oval(self,p.x-7+i*8,p.y-8,3,3,"d5ba81")
 
 func rock_surface(c: CanvasItem,p: Vector2,w: int,h: int,seed_value: int,edge: bool) -> void:
 	r(c,p.x,p.y,w,h,"7d8879")
@@ -723,7 +736,8 @@ func paint_building(c: CanvasItem, b: Dictionary) -> void:
 	r(c,door+21,-28,3,3,"d4b87c")
 	if b.has("resident"):
 		r(c,door-5,-69,37,11,"77765c")
-		c.draw_string(ThemeDB.fallback_font,Vector2(door-2,-61),"ALDER" if b.resident=="mayor" else b.resident.to_upper(),HORIZONTAL_ALIGNMENT_LEFT,-1,7,Color("e2d2a5"))
+		var plaque="ALDER" if b.resident=="mayor" else "BRAM" if b.resident=="veteran" else b.resident.to_upper()
+		c.draw_string(ThemeDB.fallback_font,Vector2(door-2,-61),plaque,HORIZONTAL_ALIGNMENT_LEFT,-1,7,Color("e2d2a5"))
 	r(c,door-9,4,44,6,"b7af8b")
 	for x in [22,w-49]:
 		r(c,x-3,-65,31,36,"eee0b0")
