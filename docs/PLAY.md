@@ -33,6 +33,14 @@ The clock runs through midnight and conversations by default. One real second is
 
 Three menu-time modes are in settings. Calendar-only pause allows active simulation such as attunement recovery while crops and appointments wait. Full pause stops simulation; decorative rendering continues. The local interacting player remains in their menu. Multiplayer is not implemented yet.
 
+## Development shortcuts
+
+Development builds move three times faster: walking at 315 world units/second and running at 480. Release exports retain the original speeds.
+
+Open Escape → Development tools to advance by 1 hour, 12 hours, 24 hours, or 1 season. These controls work even with menu time paused, advance actual crops and appointments, and save the resulting state. They stop an active rest or gathering action. The tools are hidden in release builds.
+
+One season provisionally means 28 days. Season jumps preserve the time of day and day within the season. The calendar label and environmental audio follow spring, summer, autumn, and winter; final season length, seasonal art, and seasonal gameplay remain undecided.
+
 ## Saves and files
 
 All writes stay inside this project. Saves live at `internal/first-landing.json`; runtime logs, cache, configuration, and temporary files live in `internal/runtime/`. The launcher sets XDG paths and TMPDIR before starting the engine. Use the launcher to preserve that behavior.
@@ -45,7 +53,7 @@ A single-player atmosphere and interaction study. Names, dialogue, crop timing, 
 
 Included: exploration, farming, growth magic, inventory, trading, fishing, safe mining, a crew-link repair errand, day/night lighting, a scheduled introduction, menu-time settings, native saving, playful music, environmental ambience, and Wildgrowth audio.
 
-Network play, combat, cooking, relationships, full seasons and lunar magic, the 52-person town, and the later attack-ship storyline remain future work. The calendar currently counts spring days rather than implementing seasonal progression. The copper errand is a small prototype objective, not a finalized main-story repair chain. The three pause modes are exercised locally; their multiplayer behavior is not yet proven.
+Network play, combat, cooking, relationships, full seasonal gameplay and lunar magic, the 52-person town, and the later attack-ship storyline remain future work. The calendar uses a provisional 28-day season for development; terrain and crops do not yet change seasonally. The copper errand is a small prototype objective, not a finalized main-story repair chain. The three pause modes are exercised locally; their multiplayer behavior is not yet proven.
 
 ## Development and checks
 

@@ -105,10 +105,15 @@ func _move(dt: float) -> void:
 	world.moving = true
 	if absf(direction.x)>absf(direction.y): world.facing="right" if direction.x>0 else "left"
 	else: world.facing="down" if direction.y>0 else "up"
-	var distance = direction.normalized()*(160.0 if Input.is_physical_key_pressed(KEY_SHIFT) else 105.0)*minf(dt,0.05)
+	var development_multiplier = 3.0 if OS.is_debug_build() else 1.0
+	var distance = direction.normalized()*(160.0 if Input.is_physical_key_pressed(KEY_SHIFT) else 105.0)*development_multiplier*minf(dt,0.05)
 	# Resolve each axis independently so walking along a wall never feels sticky.
-	if not world.blocked(state.player_position+Vector2(distance.x,0)): state.player_position.x+=distance.x
-	if not world.blocked(state.player_position+Vector2(0,distance.y)): state.player_position.y+=distance.y
+	# Small steps preserve collision at development running speeds, even on slow frames.
+	var steps=maxi(1,ceili(distance.length()/6.0))
+	var step=distance/steps
+	for i in range(steps):
+		if not world.blocked(state.player_position+Vector2(step.x,0)): state.player_position.x+=step.x
+		if not world.blocked(state.player_position+Vector2(0,step.y)): state.player_position.y+=step.y
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	if not event is InputEventKey or not event.pressed or event.echo: return
@@ -307,7 +312,7 @@ func map_notes() -> void:
 func settings() -> void:
 	if not started: return
 	var selected = state.pause_mode
-	panel("Make yourself comfortable","FIELD SETTINGS","While a conversation or menu is open:",[
+	var choices = [
 		[("✓ " if selected=="none" else "")+"Time continues · default",func(): state.pause_mode="none"; settings()],
 		[("✓ " if selected=="clock" else "")+"Stop calendar · simulation continues",func(): state.pause_mode="clock"; settings()],
 		[("✓ " if selected=="all" else "")+"Pause entire world",func(): state.pause_mode="all"; settings()],
@@ -315,7 +320,29 @@ func settings() -> void:
 		["Save this visit",func(): if save_visit(): toast("Visit saved inside this project.")],
 		["Begin a new visit…",reset_confirmation],
 		["Return to the farm",func(): pass],
-		["Save and quit",quit_game]])
+		["Save and quit",quit_game]]
+	if OS.is_debug_build(): choices.insert(4,["Development tools · advance time",development_tools])
+	panel("Make yourself comfortable","FIELD SETTINGS","While a conversation or menu is open:",choices)
+	if OS.is_debug_build(): ui.modal.get_child(1).position.y=75
+
+func development_tools() -> void:
+	if not OS.is_debug_build(): return
+	panel("A little further along","DEVELOPMENT TOOLS","Advance the shared calendar and crop growth. A season currently means 28 days, pending calendar design.\n\nCurrent date: %s %02d, year %d · %02d:%02d" % [state.season_name().capitalize(),state.season_day(),state.calendar_year(),int(state.minute/60.0),int(state.minute)%60],[
+		["Advance 1 hour",func(): advance_development_time(60.0)],
+		["Advance 12 hours",func(): advance_development_time(720.0)],
+		["Advance 24 hours",func(): advance_development_time(1440.0)],
+		["Advance 1 season · 28 days",func(): advance_development_time(State.DEVELOPMENT_SEASON_DAYS*1440.0)],
+		["Back to settings",settings]])
+
+func advance_development_time(minutes: float) -> void:
+	if not OS.is_debug_build(): return
+	resting=0.0
+	activity=""
+	state.advance(minutes)
+	world.refresh()
+	ui.update()
+	save_visit()
+	development_tools()
 
 func sound_settings() -> void:
 	panel("The sound of a place","MUSIC · ENVIRONMENT · SPELLS","Playful strings and keys, birds by day, quiet crickets by night. Water echoes near the mine entrance. Each layer has its own volume.",[

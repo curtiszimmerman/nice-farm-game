@@ -1,5 +1,17 @@
 extends RefCounted
 
+# Provisional calendar length for development time jumps, pending final design.
+const DEVELOPMENT_SEASON_DAYS = 28
+
+func season_name() -> String:
+	return ["spring","summer","autumn","winter"][int((day-1)/float(DEVELOPMENT_SEASON_DAYS))%4]
+
+func season_day() -> int:
+	return (day-1)%DEVELOPMENT_SEASON_DAYS+1
+
+func calendar_year() -> int:
+	return int((day-1)/float(DEVELOPMENT_SEASON_DAYS*4))+1
+
 var day = 1
 var minute = 480.0
 var money = 24

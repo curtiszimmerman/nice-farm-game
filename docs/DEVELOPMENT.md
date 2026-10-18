@@ -40,7 +40,11 @@ Native visual tests wait briefly after stopping audio before destroying the scen
 
 Audio playback can be queued until the next frame. Shutdown lets pending playback start before stopping, then gives the audio thread time to release references. This also keeps fast headless tests from exiting with queued playback resources.
 
-Z found the original music disturbing and requested playful music with separate environment/time/season ambience and per-spell effects. The replacement uses major-key plucked notes; bird, cricket, and echoed water layers have independent loop lengths and smooth transitions. Spring is still the active map season. Other seasonal and cave profiles are ready and tested, without implementing new calendar or cave gameplay.
+Z found the original music disturbing and requested playful music with separate environment/time/season ambience and per-spell effects. The replacement uses major-key plucked notes; bird, cricket, and echoed water layers have independent loop lengths and smooth transitions. The provisional development calendar drives seasonal profiles. Cave profiles are tested, while cave interiors remain future gameplay.
+
+## Development shortcuts
+
+Z requested three-times movement and menu time jumps during development. Debug builds multiply walking and running by three, with small collision steps to prevent tunneling. Escape → Development tools advances actual simulation by 1, 12, or 24 hours, or one provisional 28-day season. Jumps update calendar labels, seasonal audio, crops, and saved time, while canceling active rest/gathering. Release exports hide these tools and use original movement speeds. The 28-day season length is a development placeholder, not a finalized calendar decision.
 
 ## Next discussion
 

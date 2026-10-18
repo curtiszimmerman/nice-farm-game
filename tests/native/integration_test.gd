@@ -60,7 +60,10 @@ func run() -> void:
 	check(game.state.met_mayor and game.window_open,"mayor arrives at farmhouse when continuous clock reaches noon")
 	game.close_window()
 	game.settings()
-	check(game.ui.modal_box.get_child_count()==12,"settings exposes time modes sound saving reset and quit")
+	var menu_labels=[]
+	for child in game.ui.modal_box.get_children():
+		if child is Button: menu_labels.append(child.text)
+	check("Development tools · advance time" in menu_labels and "Save and quit" in menu_labels,"settings exposes development tools and standard controls")
 	game.close_window()
 	game.inventory()
 	check(game.window_open,"satchel opens in native interface")

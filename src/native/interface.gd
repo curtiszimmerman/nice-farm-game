@@ -9,6 +9,7 @@ var place: Label
 var region: Label
 var clock: Label
 var date: Label
+var calendar_details: Label
 var objective: Label
 var next_task: Label
 var hint: Label
@@ -55,6 +56,7 @@ func _ready() -> void:
 	clock.size.x = 170
 	clock.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	var moons = _label("Waxing moons · year one",Vector2(1020,96),12,MUTED)
+	calendar_details = moons
 	moons.size.x = 225
 	moons.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	var log_panel = _panel(Vector2(30,151),Vector2(250,185),Color("182d2bba"))
@@ -282,7 +284,8 @@ func add_volume_slider(title: String,value: float,on_changed: Callable) -> void:
 func update() -> void:
 	var s = game.state
 	clock.text = "%02d:%02d" % [int(s.minute/60.0),int(s.minute)%60]
-	date.text = "SPRING %02d" % s.day
+	date.text = "%s %02d" % [s.season_name().to_upper(),s.season_day()]
+	calendar_details.text = "Waxing moons · year %d" % s.calendar_year()
 	purse.text = str(s.money)
 	vitality.text = "VITALITY  %d" % ceili(s.energy)
 	attunement.text = "ATTUNEMENT  %d" % int(s.mana)

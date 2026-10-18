@@ -43,6 +43,9 @@ func run() -> void:
 	game.settings()
 	await capture("settings")
 	game.close_window()
+	game.development_tools()
+	await capture("development-tools")
+	game.close_window()
 	game.state.player_position=Vector2(1415,690)
 	await capture("town")
 	game.state.minute=1210.0
