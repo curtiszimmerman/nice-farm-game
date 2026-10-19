@@ -40,6 +40,7 @@ const BUILDINGS = [
 	{"cell":Vector2i(70,53),"tiles":Vector2i(4,3),"roof":"6c7885","kind":"cottage","resident":"assistant"}
 ]
 const SITES = [
+	{"id":"ship_entry","cell":Vector2i(6,7),"door":"ship","label":"Enter cloaked ship"},
 	{"id":"bed","cell":Vector2i(13,42),"label":"Rest at the farmhouse"},
 	{"id":"chest","cell":Vector2i(17,42),"label":"Open farmhouse chest"},
 	{"id":"pond","cell":Vector2i(21,65),"label":"Fish from the jetty"},
@@ -255,6 +256,7 @@ func update_villagers(dt: float,snap: bool=false) -> void:
 			villagers[id].queue_redraw()
 			continue
 		var stop=Schedule.stop(id,state.minute)
+		if id=="vale": stop.room="ship"
 		if id=="moss" and not state.invited: stop={"cell":Vector2i(20,43),"sleeping":false,"room":""}
 		if id in ["moss","mayor","assistant"] and state.invited and not state.met_mayor and state.day>state.invitation_day and state.minute>=(570 if id=="moss" else 480) and state.minute<960:
 			var offset={"moss":Vector2i(3,0),"mayor":Vector2i(1,0),"assistant":Vector2i(2,1)}[id]

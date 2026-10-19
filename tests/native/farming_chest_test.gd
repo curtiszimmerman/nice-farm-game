@@ -21,25 +21,26 @@ func run() -> void:
 	check(not s.plots[0].watered and s.energy==energy_before,"watering requires its tool without wasting energy")
 	s.watering_can=1
 	s.tend(0)
-	s.advance(180)
+	s.advance(4320)
 	s.sickle=0
 	s.tend(0)
 	check(s.ripe(0) and s.harvested==0,"harvesting requires a carried sickle")
 	s=State.new()
 	for i in range(3): s.chest_transfer(i)
 	s.seeds=80
-	for cycle in range(4):
+	for cycle in range(2):
 		for i in range(20):
 			if cycle==0: s.tend(i)
 			s.tend(i)
 			s.tend(i)
-		s.advance(180)
+		s.advance(4320)
 		for i in range(20): s.tend(i)
-	check(s.energy==0 and s.harvested==80 and s.total()==1200,"twelve hours of hand farming uses exactly one energy bar")
+		if cycle==0: s.water=20
+	check(s.energy==0 and s.harvested==20 and s.total()==9120,"doubled farming costs exhaust energy during the second full-field harvest")
 	var before=s.plots.duplicate(true)
 	s.tend(1)
 	s.tend(1)
-	check(not s.plots[1].watered and s.energy==0,"exhaustion prevents work without spending unavailable energy")
+	check(s.plots==before and s.energy==0,"exhaustion prevents work without spending unavailable energy")
 	s.advance(240)
 	check(s.energy==0,"passing time never restores energy")
 	check(s.chest_transfer(0,"hoe") and s.hoe==0 and s.chest[0].id=="hoe","carried items can be deposited into a chosen chest slot")
@@ -55,6 +56,7 @@ func run() -> void:
 	game.interact()
 	check(game.window_open and game.ui.chest_slots.size()==18,"E opens the farmhouse chest's eighteen slots")
 	game.ui.chest_slots[0].pressed.emit()
+	game.ui.modal_box.get_child(4).pressed.emit()
 	check(game.state.hoe==1,"the real chest interface withdraws a tool")
 	game.close_window()
 	game.enter_building("moss")

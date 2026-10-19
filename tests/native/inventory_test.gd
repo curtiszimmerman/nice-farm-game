@@ -27,7 +27,7 @@ func run() -> void:
 	s.star_seeds=1
 	s.selected_seed="star_seeds"
 	s.tend(0); s.tend(0); s.tend(0)
-	s.advance(180)
+	s.advance(4320)
 	s.tend(0)
 	check(s.star_bulbs==1 and s.star_seeds==0,"star bulbs grow and harvest through the real farming system")
 	check(s.accept_sword() and not s.accept_sword() and s.rusty_sword==1,"veteran sword can be accepted only once")
@@ -47,6 +47,7 @@ func run() -> void:
 		if button.get_meta("item_id","")=="turnips": slot=button
 	check(slot!=null and slot.tooltip_text.contains("Moon turnip") and slot.get_child(0).texture!=null,"item slots show pictures and hover details")
 	slot.pressed.emit()
+	game.ui.modal_box.get_child(3).pressed.emit()
 	check(game.state.turnips==1 and game.state.health==58 and game.window_open,"clicking food consumes one and refreshes the satchel")
 	await game.sound.shutdown()
 	game.queue_free()

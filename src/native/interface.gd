@@ -6,6 +6,11 @@ const MUTED = Color("b6c3ad")
 const Items = preload("res://items.gd")
 var inventory_slots: Array=[]
 var chest_slots: Array=[]
+var quick_buttons: Array=[]
+var log_panel: Panel
+var log_toggle: Button
+var log_expanded=true
+var quantity_control: SpinBox
 var game: Node2D
 var root: Control
 var place: Label
@@ -58,40 +63,47 @@ func _ready() -> void:
 	calendar_details = moons
 	moons.size.x = 225
 	moons.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	var log_panel = _panel(Vector2(30,151),Vector2(250,185),Color("182d2bba"))
-	_label("CREW LOG",Vector2(14,12),10,GOLD,false,log_panel)
-	_label("A place to begin",Vector2(14,34),20,CREAM,true,log_panel)
-	objective = _label("",Vector2(14,70),14,MUTED,false,log_panel)
+	log_panel = _panel(Vector2(990,128),Vector2(250,210),Color("182d2bba"))
+	log_toggle=Button.new()
+	log_toggle.text="▾ CREW LOG"
+	log_toggle.position=Vector2(8,5)
+	log_toggle.size=Vector2(234,25)
+	_button_style(log_toggle)
+	log_toggle.pressed.connect(toggle_log)
+	log_panel.add_child(log_toggle)
+	_label("A place to begin",Vector2(14,54),20,CREAM,true,log_panel)
+	objective = _label("",Vector2(14,90),14,MUTED,false,log_panel)
 	objective.size = Vector2(220,80)
 	objective.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	next_task = _label("",Vector2(14,150),11,GOLD,false,log_panel)
-	var tray = _panel(Vector2(285,602),Vector2(710,88),Color("172b2bf5"))
+	next_task = _label("",Vector2(14,175),11,GOLD,false,log_panel)
+	var tray = _panel(Vector2(140,602),Vector2(1000,88),Color("172b2bf5"))
 	health_label = _label("HP  100",Vector2(19,7),10,MUTED,false,tray)
 	health_bar = _bar(Vector2(19,23),Vector2(132,4),Color("c38e80"),tray)
 	vitality = _label("ENERGY  100",Vector2(19,30),10,MUTED,false,tray)
 	energy_bar = _bar(Vector2(19,46),Vector2(132,4),Color("a5bb78"),tray)
 	attunement = _label("MANA  60",Vector2(19,53),10,MUTED,false,tray)
 	mana_bar = _bar(Vector2(19,69),Vector2(132,4),Color("90b9d2"),tray)
-	var hotkeys = [["E","Tend / talk"],["Q","Wildgrowth"],["I","Satchel"],["J","Field notes"]]
-	for i in range(4):
+	for i in range(8):
 		var b = Button.new()
-		b.position = Vector2(175+i*89,10)
-		b.size = Vector2(82,68)
-		b.text = hotkeys[i][0]+"\n"+hotkeys[i][1]
+		b.position = Vector2(165+i*66,10)
+		b.size = Vector2(61,68)
+		b.expand_icon=true
+		b.add_theme_constant_override("icon_max_width",28)
 		b.add_theme_font_size_override("font_size",12)
 		_button_style(b,i==0,true)
 		var index = i
-		b.pressed.connect(func(): game.hotkey(index))
+		b.pressed.connect(func(): game.select_quick_slot(index))
 		tray.add_child(b)
-	purse = _label("24",Vector2(556,18),24,GOLD,true,tray)
-	_label("crowns",Vector2(558,51),12,MUTED,false,tray)
-	var settings_button = Button.new()
-	settings_button.position = Vector2(644,24)
-	settings_button.size = Vector2(44,40)
-	settings_button.text = "≡"
-	_button_style(settings_button)
-	settings_button.pressed.connect(func(): game.settings())
-	tray.add_child(settings_button)
+		quick_buttons.append(b)
+	var actions=Button.new()
+	actions.position=Vector2(705,15)
+	actions.size=Vector2(104,58)
+	actions.text="Actions"
+	_button_style(actions)
+	actions.pressed.connect(func(): game.actions())
+	tray.add_child(actions)
+	purse = _label("24",Vector2(832,18),24,GOLD,true,tray)
+	_label("crowns",Vector2(834,51),12,MUTED,false,tray)
 	var controls = _label("WASD / ARROWS  walk    SHIFT  run    E  interact    Q  magic    M  map    ESC  settings    F11  fullscreen",Vector2(0,699),10,MUTED)
 	controls.size.x = 1280
 	controls.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -284,7 +296,7 @@ func add_volume_slider(title: String,value: float,on_changed: Callable) -> void:
 
 func open_inventory() -> void:
 	open_modal("Your satchel","SUPPLIES & EQUIPMENT","Hover over an item for details. Select an item to use it.",[["Close satchel",func(): pass]],true)
-	modal_box.get_child(2).text="Planting: %s · Equipped: %s\nHover for details; select an item to use it." % [Items.CATALOG[game.state.selected_seed].name,"Rusty sword" if game.state.equipped!="" else "None"]
+	modal_box.get_child(2).text="Right-click food to Eat or Drink. Click an item to assign it to a quick slot.\nSelected slot: %d · Water: %d/20" % [game.state.selected_slot+1,game.state.water]
 	modal.get_child(1).position.y=55
 	inventory_slots.clear()
 	var grid=GridContainer.new()
@@ -300,7 +312,12 @@ func open_inventory() -> void:
 		grid.add_child(slot)
 		inventory_slots.append(slot)
 		slot.disabled=stack.is_empty()
-		if not stack.is_empty(): slot.pressed.connect(func(): game.use_inventory_item(stack.id))
+		if not stack.is_empty():
+			slot.pressed.connect(func(): game.item_options(stack.id))
+			slot.gui_input.connect(func(event):
+				if event is InputEventMouseButton and event.button_index==MOUSE_BUTTON_RIGHT and event.pressed:
+					game.item_options(stack.id)
+					slot.accept_event())
 
 func item_slot(stack: Dictionary,pixels: int) -> Button:
 	var slot=Button.new()
@@ -329,7 +346,9 @@ func item_slot(stack: Dictionary,pixels: int) -> Button:
 	return slot
 
 func open_chest(selected: String) -> void:
-	open_modal("Farmhouse chest","TOOLS & SUPPLIES","Click a chest stack to take it. Select a carried stack, then a chest slot to move or swap it.",[["Close chest",func(): pass]],true)
+	var storage: Array=game.state.get(game.storage_name)
+	var title={"chest":"Farmhouse chest","cabinet":"Kitchen cabinet","ship_storage":"Crew supplies"}[game.storage_name]
+	open_modal(title,"TOOLS & SUPPLIES","Choose a stack, then choose the quantity. Select a carried stack and a storage slot to deposit or swap.",[["Close storage",func(): pass]],true)
 	modal.get_child(1).position=Vector2(160,100)
 	modal_box.get_child(2).custom_minimum_size.x=920
 	if selected!="": modal_box.get_child(2).text="Selected: %s. Choose a chest slot to move or swap this stack." % Items.CATALOG[selected].name
@@ -344,13 +363,13 @@ func open_chest(selected: String) -> void:
 		var column=VBoxContainer.new()
 		row.add_child(column)
 		var label=Label.new()
-		label.text="CARRIED" if side==0 else "CHEST · 18 SLOTS"
+		label.text="CARRIED · 18 SLOTS" if side==0 else "STORAGE · %d SLOTS" % storage.size()
 		column.add_child(label)
 		var grid=GridContainer.new()
 		grid.columns=6
 		column.add_child(grid)
-		for i in range(18):
-			var stack: Dictionary=(carried[i] if i<carried.size() else {}) if side==0 else game.state.chest[i]
+		for i in range(18 if side==0 else storage.size()):
+			var stack: Dictionary=(carried[i] if i<carried.size() else {}) if side==0 else storage[i]
 			var button=item_slot(stack,68)
 			grid.add_child(button)
 			if side==0:
@@ -362,8 +381,38 @@ func open_chest(selected: String) -> void:
 				var index=i
 				button.pressed.connect(func(): game.transfer_chest(index))
 
+func quantity_picker(maximum: int,confirm: Callable,cancel: Callable) -> void:
+	var amount=SpinBox.new()
+	amount.min_value=1
+	amount.max_value=maximum
+	amount.step=1
+	amount.value=1
+	quantity_control=amount
+	open_modal("How many?","TRANSFER QUANTITY","Available: %d. Different item stacks can be swapped only in full." % maximum,[
+		["Transfer selected quantity",func(): confirm.call(int(amount.value))],
+		["Transfer all · %d" % maximum,func(): confirm.call(maximum)],
+		["Cancel",cancel]],true)
+	modal_box.add_child(amount)
+	modal_box.move_child(amount,3)
+
+func toggle_log() -> void:
+	log_expanded=not log_expanded
+	for child in log_panel.get_children():
+		if child!=log_toggle: child.visible=log_expanded
+	log_panel.size.y=210 if log_expanded else 55
+	log_toggle.text=("▾" if log_expanded else "▸")+" CREW LOG"
+
 func update() -> void:
 	var s = game.state
+	for i in range(8):
+		var id: String=s.quick_slots[i]
+		var button: Button=quick_buttons[i]
+		button.text=str(i+1)
+		button.icon=Items.icon(id) if Items.CATALOG.has(id) else null
+		button.tooltip_text="Empty slot" if id=="" else "Wildgrowth · 15 mana" if id=="wildgrowth" else Items.CATALOG[id].name+" · "+str(s.get(id))
+		if id=="watering_can": button.text+="\n%d/20" % s.water
+		if id=="wildgrowth": button.text+="\n✦"
+		_button_style(button,i==s.selected_slot,true)
 	clock.text = "%02d:%02d" % [int(s.minute/60.0),int(s.minute)%60]
 	date.text = "%s %02d" % [s.season_name().to_upper(),s.season_day()]
 	calendar_details.text = "Waxing moons · year %d" % s.calendar_year()
@@ -383,6 +432,7 @@ func update() -> void:
 	place.text = "A quiet signal" if region.text=="The hidden clearing" else "Briar Glen"
 	objective.text = "Find Moss at the farm gate. We need somewhere to stay." if not s.invited else "The mayor is waiting at your farmhouse. Head home when you're ready." if not s.met_mayor and s.total()>=2160 else "Meet the mayor at your farmhouse tomorrow at noon. Until then, settle in." if not s.met_mayor else "A home, a little soil, a place in the world. Take your time."
 	next_task.text = "○ Tend your first moon turnip" if s.harvested==0 else "○ Chief Vale needs 3 copper" if not s.delivered else "✓ Crew link restored"
+	if s.crew_fed_day<s.day: next_task.text="○ Vale needs a cooked meal in the ship locker"
 	hint.text = "" if game.window_open else "RESTING · E to get up" if game.resting>0 else "E · "+game.nearest.get("label","") if not game.nearest.is_empty() else ""
 	if game.activity=="mining": hint.text = "Gathering copper…"
 	if game.activity=="fishing": hint.text = "E · reel in when the marker crosses the gold band"

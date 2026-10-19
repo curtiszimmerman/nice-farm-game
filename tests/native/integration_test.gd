@@ -31,9 +31,13 @@ func run() -> void:
 	game.ui.modal_box.get_child(3).pressed.emit()
 	check(game.state.invited and not game.window_open,"dialogue choice records appointment")
 	game.state.player_position=game.world.plot_position(0)+Vector2.UP*game.world.Grid.TILE_SIZE
-	for i in range(3): game.interact()
+	for slot in [0,3,1]:
+		game.select_quick_slot(slot)
+		game.interact()
 	check(game.state.plots[0].watered and game.state.seeds==7,"contextual input tills plants and waters")
+	game.select_quick_slot(5)
 	game.cast_growth()
+	game.select_quick_slot(2)
 	game.interact()
 	check(game.state.turnips==1 and game.state.harvested==1,"growth magic and harvest connect to inventory")
 	game.state.player_position=game.world.villagers.tavi.position+Vector2(0,12)
@@ -46,10 +50,13 @@ func run() -> void:
 	game._update_activity(1.2)
 	check(game.state.copper==1 and game.activity=="","mining completes through the game controller")
 	game.state.copper=3
+	game.enter_building("ship")
 	game.state.player_position=game.world.villagers.vale.position+Vector2(0,15)
 	game.interact()
 	game.ui.modal_box.get_child(3).pressed.emit()
 	check(game.state.delivered and game.state.copper==0,"crew repair consumes copper and completes objective")
+	game.leave_building()
+	game.select_quick_slot(0)
 	game.state.player_position=game.world.site_position("pond")
 	game.interact()
 	game.activity_time=1.2

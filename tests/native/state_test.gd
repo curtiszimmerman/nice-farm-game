@@ -21,8 +21,8 @@ func _initialize() -> void:
 	s.advance(500.0)
 	check(not s.ripe(0), "unwatered crops cannot ripen")
 	s.tend(0)
-	s.advance(180.0)
-	check(s.ripe(0), "watered crop grows after three game hours")
+	s.advance(4320.0)
+	check(s.ripe(0), "watered crop grows after three game days")
 	s.tend(0)
 	check(s.turnips == 1 and s.harvested == 1, "harvesting yields produce once")
 	s.tend(0)
@@ -32,8 +32,9 @@ func _initialize() -> void:
 	s.mana = 0.0
 	check(not s.grow(1), "magic cannot spend unavailable mana")
 	s.minute = 1439.0
+	var previous_day=s.day
 	s.advance(2.0)
-	check(s.day == 2 and is_equal_approx(s.minute, 1.0) and s.ripe(0), "midnight preserves crops and rolls the date")
+	check(s.day == previous_day+1 and is_equal_approx(s.minute, 1.0) and s.ripe(0), "midnight preserves crops and rolls the date")
 	s.pause_mode = "all"
 	s.mana = 10.0
 	s.advance(10.0, true)
@@ -59,7 +60,8 @@ func _initialize() -> void:
 	check(s.mine() and s.copper == 1 and s.energy == 95.0, "safe mining costs energy")
 	check(not s.meet_mayor(), "mayor cannot meet before invitation")
 	s.invited = true
-	s.day = 2
+	s.day = maxi(s.day,2)
+	s.crew_fed_day=1
 	s.minute = 719.0
 	check(not s.meet_mayor(), "appointment does not trigger before noon")
 	s.minute = 720.0

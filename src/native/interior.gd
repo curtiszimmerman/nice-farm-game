@@ -53,7 +53,7 @@ func _ready() -> void:
 	for item in layout.furniture: add_furniture(item[0],item[1],item[0] not in ["rug","art"])
 	add_site("exit",layout.exit,"Leave "+room_name())
 	for site in layout.sites:
-		add_site(site[0],site[1],{"bed":"Rest in the bedroom","radio":"Listen to the radio","shop":"Browse Tavi's provisions"}[site[0]])
+		add_site(site[0],site[1],{"bed":"Rest in the bedroom","radio":"Listen to the radio","shop":"Browse Tavi's provisions","cabinet":"Open kitchen cabinet","stove":"Cook at the stove","ship_storage":"Open crew supply locker","diagnostics":"Inspect damaged machinery"}[site[0]])
 	crops=Node2D.new()
 	add_child(crops)
 	player=_prop("player",state.player_position,{"coat":"6f9793","hair":"5c5045","skin":"d0a981","id":"player"})
@@ -93,6 +93,7 @@ func bed_position() -> Vector2:
 
 func room_name() -> String:
 	match building.id:
+		"ship": return "Cloaked ship · engineering & bunks"
 		"home": return "Your farmhouse"
 		"radio": return "Briar Glen Radio Club"
 		"store": return "Tavi's provisions"
@@ -109,7 +110,7 @@ func blocked(p: Vector2) -> bool:
 func target_plot() -> int: return -1
 func in_water(_p: Vector2) -> bool: return false
 func audio_context(_p: Vector2) -> Dictionary:
-	return {"environment":"indoors","season":state.season_name(),"cave_weight":0.0}
+	return {"environment":"ship" if building.id=="ship" else "indoors","season":state.season_name(),"cave_weight":0.0}
 
 func update_villagers(dt: float,snap: bool=false) -> void:
 	for id in villagers:
@@ -162,9 +163,10 @@ func refresh() -> void:
 	player.data.bed_height=bed_height()
 	player.z_index=2 if player.data.sleeping else 0
 	player.queue_redraw()
-	night_tint.color=Color("d5c4ae") if state.minute<360 or state.minute>1200 else Color.WHITE
+	night_tint.color=Color("b3c9d0") if building.id=="ship" else Color("d5c4ae") if state.minute<360 or state.minute>1200 else Color.WHITE
 	for child in get_children():
 		if child is Prop and child.kind=="effects": child.queue_redraw()
+		if building.id=="ship" and child is Furniture: child.queue_redraw()
 		if child is Furniture or child is Wall:
 			var width=32.0 if child is Wall else child.item.bounds.size.x*32.0
 			var height=40.0 if child is Wall else child.item.bounds.size.y*32.0+30
@@ -180,6 +182,12 @@ func _draw() -> void:
 	r(self,-400,-250,ROOM_SIZE.x+800,ROOM_SIZE.y+500,"263732")
 	for cell in floor_cells:
 		var p=Grid.origin(cell)
+		if building.id=="ship":
+			r(self,p.x,p.y,32,32,"35454f")
+			r(self,p.x+2,p.y+2,28,28,"52636b" if (cell.x+cell.y)%3 else "485a63")
+			r(self,p.x+5,p.y+4,2,2,"8ba0a1")
+			if cell.x==7: r(self,p.x+14,p.y+2,3,28,"a99f70")
+			continue
 		r(self,p.x,p.y,32,32,"9e815b" if (cell.x+cell.y)%3 else "a98b62")
 		r(self,p.x+1,p.y+2,30,1,"b99b6d")
 		r(self,p.x+14,p.y+3,1,26,"876e50")
@@ -192,6 +200,7 @@ func _draw() -> void:
 	var door=site_position("exit")
 	r(self,door.x-23,door.y-13,46,25,"586d62")
 	r(self,door.x-20,door.y-10,40,18,"b69a65")
+	if building.id=="ship": return
 	for area in layout.areas:
 		if area[0] in ["bathroom","hall"]: continue
 		var bounds: Rect2i=area[1]
@@ -334,8 +343,47 @@ func paint_furniture(c: CanvasItem,item: Dictionary) -> void:
 			r(c,20,-16,4,12,"7c624c")
 			oval(c,16,-18,11,4,"c3a077")
 			for x in [4,14,22]: oval(c,x,-24,8,15,"6e8c61")
+		"cabinet":
+			r(c,0,-h-8,w,h+8,"887351" if building.id!="ship" else "526b75")
+			r(c,0,-h-12,w,5,"c3a677" if building.id!="ship" else "91a4a9")
+			for x in range(4,w-4,32):
+				r(c,x,-h-4,26,h-1,"ab9168" if building.id!="ship" else "718b91")
+				r(c,x+18,-h+8,5,2,"e1cd93")
+		"reactor","machine","console":
+			r(c,1,-h-20,w-2,h+18,"263842")
+			r(c,3,-h-24,w-6,6,"9aadae")
+			r(c,5,-h-17,w-15,h+7,"586f78")
+			r(c,w-10,-h-18,8,h+14,"344751")
+			if item.kind=="reactor":
+				for y in range(-h-10,-8,14):
+					r(c,16,y,w-40,8,"335358")
+					r(c,19,y+1,w-46,4,"8fc9c0" if sin(elapsed*0.8)>0 else "658f98")
+				c.draw_string(ThemeDB.fallback_font,Vector2(6,-3),"PHASE CORE",HORIZONTAL_ALIGNMENT_LEFT,-1,7,Color("bfcbc0"))
+			elif item.kind=="console":
+				r(c,8,-h-13,w-24,23,"172b38")
+				var glitch=fmod(elapsed+item.bounds.position.x*1.7,11)<0.45
+				for y in range(18):
+					for x in range(0,w-28,3):
+						if glitch: r(c,10+x,-h-11+y,2,1,"a7bbbd" if posmod(x*7+y*13+int(elapsed*35),5)>2 else "344e5c")
+						elif y%5==0: r(c,10+x,-h-11+y,2,1,"79b5ad" if x%7 else "c0aa73")
+				for x in range(10,w-15,9): r(c,x,-10,4,2,"adbbac")
+			else:
+				for x in range(10,w-12,11):
+					r(c,x,-h-9,5,h-8,"354d57")
+					r(c,x,-h+1,3,4,"d4b37a" if sin(elapsed+float(x))>0.3 else "5a756c")
+				poly(c,[Vector2(6,-h+12),Vector2(w-15,-h+25),Vector2(12,-7)],"28383e")
 
 func paint_effects(c: CanvasItem) -> void:
+	if building.id=="ship":
+		for origin in [Vector2(135,90),Vector2(265,145),Vector2(385,210)]:
+			c.draw_polyline(PackedVector2Array([origin-Vector2(14,60),origin-Vector2(5,35),origin+Vector2(-11,-15),origin]),Color("172a35"),3)
+			c.draw_polyline(PackedVector2Array([origin-Vector2(9,60),origin-Vector2(2,34),origin+Vector2(-6,-13),origin+Vector2(4,1)]),Color("aa7b54"),1)
+			if fmod(elapsed+origin.x*0.03,3.7)<0.16:
+				for i in range(5):
+					var angle=i*1.25+elapsed*7
+					c.draw_line(origin,origin+Vector2(cos(angle),sin(angle))*9,Color("edcf83"),1)
+		c.draw_string(ThemeDB.fallback_font,Vector2(38,122),"GRAVITIC SHEAR BUS",HORIZONTAL_ALIGNMENT_LEFT,-1,8,Color("b5bdb1"))
+		c.draw_string(ThemeDB.fallback_font,Vector2(162,122),"INERTIAL LATTICE",HORIZONTAL_ALIGNMENT_LEFT,-1,8,Color("b5bdb1"))
 	for actor in villagers.values():
 		if actor.visible and actor.position.distance_to(state.player_position)<100:
 			c.draw_string(ThemeDB.fallback_font,actor.position+Vector2(-25,-55),"z z z" if actor.data.get("sleeping",false) else actor.data.name,HORIZONTAL_ALIGNMENT_LEFT,-1,9,Color("e4d9b5"))

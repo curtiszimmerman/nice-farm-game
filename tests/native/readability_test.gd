@@ -32,8 +32,12 @@ func run() -> void:
 	check(world.find_nearest().get("type")!="plot","facing out of the garden never falls back to the occupied square")
 	game.state.player_position=world.plot_position(6)
 	world.facing="right"
-	for i in range(3): game.interact()
+	for slot in [0,3,1]:
+		game.select_quick_slot(slot)
+		game.interact()
+	game.select_quick_slot(5)
 	game.cast_growth()
+	game.select_quick_slot(2)
 	game.interact()
 	check(game.state.harvested==1 and game.state.plots[6].tilled==false and game.state.plots[7].tilled,"tending and casting affect the highlighted forward square")
 	game.state.minute=720.0

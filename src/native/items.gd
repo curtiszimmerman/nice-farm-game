@@ -1,12 +1,18 @@
 extends RefCounted
 
-const FOOD={"turnips":{"health":8,"energy":12,"mana":0},"fish":{"health":5,"energy":8,"mana":0},"star_bulbs":{"health":0,"energy":0,"mana":15}}
+const FOOD={"turnips":{"health":8,"energy":12,"mana":0},"fish":{"health":5,"energy":8,"mana":0},"star_bulbs":{"health":0,"energy":0,"mana":15},"health_elixir":{"health":25,"energy":0,"mana":0},"fish_sticks":{"health":12,"energy":20,"mana":0},"fish_stew":{"health":20,"energy":30,"mana":15},"rations":{"health":0,"energy":15,"mana":0}}
 
 const CATALOG={
-	"hoe":{"name":"Hoe","description":"Carry it to till your own soil. Costs 1 energy per plot.","action":"Farming tool"},
-	"watering_can":{"name":"Watering can","description":"Carry it to water crops. Costs 0.5 energy per plot.","action":"Farming tool"},
-	"sickle":{"name":"Harvesting sickle","description":"Carry it to harvest ripe crops. Costs 0.5 energy per plot.","action":"Farming tool"},
-	"seeds":{"name":"Moon-turnip seeds","description":"Plant in your own tilled soil. Water, then allow three game hours.","action":"Select for planting"},
+	"pot":{"name":"Cooking pot","description":"Unlocks fish stew at your farmhouse stove.","action":"Cooking equipment"},
+	"pan":{"name":"Frying pan","description":"Unlocks fish sticks at your farmhouse stove.","action":"Cooking equipment"},
+	"fish_sticks":{"name":"Fish sticks","description":"Pan-fried silverfin. A cooked meal for you or Vale.","action":"Eat"},
+	"fish_stew":{"name":"Fish stew","description":"Fish, moon turnip and star bulb in a warm broth.","action":"Eat"},
+	"health_elixir":{"name":"Elixir of health","description":"Restores 25 health.","action":"Drink"},
+	"rations":{"name":"Starship ration","description":"Sealed crew food. Vale needs one ration or cooked meal daily.","action":"Eat"},
+	"hoe":{"name":"Hoe","description":"Select to till. Costs 2 energy per plot.","action":"Farming tool"},
+	"watering_can":{"name":"Watering can","description":"Holds 20 water. Refill at the pond. Costs 1 energy per plot.","action":"Farming tool"},
+	"sickle":{"name":"Harvesting sickle","description":"Select to harvest. Costs 1 energy per plot.","action":"Farming tool"},
+	"seeds":{"name":"Moon-turnip seeds","description":"Plant in your own tilled soil. Water, then allow three days.","action":"Select for planting"},
 	"star_seeds":{"name":"Star-bulb seeds","description":"A small luminous crop. Its bulb restores attunement.","action":"Select for planting"},
 	"turnips":{"name":"Moon turnip","description":"A crisp, sweet root. Restores a little health and energy.","action":"Eat one"},
 	"fish":{"name":"Pond silverfin","description":"A small freshwater fish. Restores a little health and energy.","action":"Eat one"},
@@ -24,6 +30,19 @@ static func icon(id: String) -> Texture2D:
 		for x in range(24):
 			var color=Color.TRANSPARENT
 			match id:
+				"pot","pan","fish_stew":
+					if pow((x-12)/8.0,2)+pow((y-14)/6.0,2)<1: color=Color("66808a") if y>13 else Color("b7c4be")
+					if id=="fish_stew" and pow((x-12)/6.0,2)+pow((y-12)/3.0,2)<1: color=Color("c09c65")
+					if id=="pan" and x in range(11,14) and y<12: color=Color("74614d")
+					if id=="pot" and y in range(11,15) and (x<5 or x>19): color=Color("8fa29e")
+				"fish_sticks":
+					if x in range(3,21) and (y in range(6,10) or y in range(13,17)): color=Color("d4ae64") if y%3 else Color("936a42")
+				"health_elixir":
+					if x in range(9,15) and y in range(3,11): color=Color("becfc9")
+					if Vector2(x-12,y-16).length()<7: color=Color("ba6674") if x>9 else Color("e8b2ac")
+				"rations":
+					if x in range(4,20) and y in range(5,21): color=Color("889a8b") if x<17 else Color("566b63")
+					if x in range(7,16) and y in range(10,16): color=Color("d2c591")
 				"hoe","sickle":
 					if x in range(10,13) and y in range(5,23): color=Color("a58a5a")
 					if id=="hoe" and x in range(4,20) and y in range(4,8): color=Color("9ea99f")

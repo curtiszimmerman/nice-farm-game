@@ -78,7 +78,10 @@ func run() -> void:
 	for i in range(3): game.state.chest_transfer(i)
 	await process_frame
 	game.state.player_position=game.world.plot_position(0)+Vector2.UP*game.world.Grid.TILE_SIZE
-	for i in range(3): game.interact()
+	for slot in [0,3,1]:
+		game.select_quick_slot(slot)
+		game.interact()
+	game.select_quick_slot(5)
 	game.cast_growth()
 	check(game.sound.spell.playing,"successful gameplay cast triggers spell audio")
 	game.sound.spell.stop()

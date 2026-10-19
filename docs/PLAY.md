@@ -8,7 +8,11 @@ Town has a cobbled square with a fountain, nearby homes, and the provisions shop
 
 Press E beside a door to enter its separate furnished interior; press E at the front exit to return outside. Each building has a distinct compact plan. Bathrooms are private rooms entered from halls. The shop has stock shelves and a storeroom, the club has a workshop and reception, and the tower has a small study. Homes have appropriately sized beds, seating, kitchens and personal belongings. Bram lives in an unmarked log cabin in the southern woods, without a road to his door, with a small decorative garden outside. Talk to him about his army service and the other kingdom, and accept your first rusty sword. Exits check for a clear outdoor landing tile, including beside the shop wagon.
 
-Press I for the slot-based satchel. Hover for details; click food to eat one, a seed packet to choose what to plant, or the sword to equip it. Tavi sells star-bulb seeds. Turnips restore 8 HP and 12 energy; silverfin restores 5 HP and 8 energy; star bulbs restore 15 mana. Food is kept if all relevant resources are full. HP and energy cap at 100, mana at 60. These are provisional balance values. The camera now uses 1.9125× zoom, a further 15% reduction from 2.25×.
+Press I for the satchel. Hover for details; click an item to save it to a quick slot. Right-click food for Eat, or an elixir for Drink. Select one of eight quick slots with 1–8 or the mouse. The selected tool must also be carried: hoe to till, seeds to plant, watering can to water, sickle to harvest, sword to equip. Assign Wildgrowth through Actions → Spells and skills. Turnips restore 8 HP and 12 energy; silverfin restores 5 HP and 8 energy; star bulbs restore 15 mana; health elixirs restore 25 HP. Food is kept if all relevant resources are full. HP and energy cap at 100, mana at 60. The camera remains at 1.9125×.
+
+The farmhouse chest has eighteen storage slots; the kitchen cabinet and ship locker each have twelve. Select a carried stack and a storage slot to deposit, or click a stored stack to withdraw. A quantity chooser offers a number or the full stack. Swapping different item types requires the whole carried stack. The kitchen stove draws ingredients from both the satchel and cabinet. Buy Tavi's pan to unlock fish sticks (one fish), or his pot to unlock fish stew (one fish, one moon turnip, one star bulb). Each utensil costs 20 crowns; storing it keeps the recipe unlocked. Tavi also sells health elixirs for 15 crowns.
+
+Enter the cloaked ship through its southern hatch. Vale works in engineering among damaged equipment, hanging sparking cables and three glitching displays. The crew section has usable bunks and a twelve-slot supply locker with six rations. Vale consumes one ration per new day, then a cooked fish-sticks or fish-stew meal when rations are gone. Leave meals in that locker. A late delivery feeds him that day if he has not eaten. Missed meals appear in the crew log and dialogue; there is no starvation penalty in this slice.
 
 The project-local launcher is `scripts/play.sh`. It starts the pinned Godot executable under `vendor/godot/`. F11 toggles fullscreen. The game opens at its title screen.
 
@@ -16,26 +20,27 @@ The project-local launcher is `scripts/play.sh`. It starts the pinned Godot exec
 | --- | --- |
 | WASD / arrows | Walk |
 | Shift | Run |
+| 1–8 | Select quick slot |
 | E | Enter/leave buildings, talk, tend soil, gather, fish, or rest |
-| Q | Wildgrowth on a nearby watered crop |
+| Q | Wildgrowth, when its quick slot is selected |
 | I | Satchel |
 | J | Crew notes and objectives |
 | M | Local directions |
 | Escape | Close a window / settings |
 | F11 | Fullscreen / windowed |
 
-The bottom action buttons also work with the mouse. Music, environmental ambience, and spell effects have separate sliders under Settings → Sound. Audio starts when you enter the game. [Sound direction and current profiles](AUDIO.md).
+The bottom Actions button groups inventory, spells, notes, map and settings. Health, energy and mana sit left of the eight quick slots. The crew log is collapsible under the clock at the upper right. Music, ambience and spell effects have separate sliders under Actions → Settings → Sound. [Sound direction and current profiles](AUDIO.md).
 
 ## A good first visit
 
 1. Walk east to Moss, the farmer at your gate, and press E. Agree to meet the mayor tomorrow at noon.
-2. Tend the garden southwest of the house. Face the adjacent square you want to work; the highlight, E actions, and Q spell all target that square. E tills, plants, waters, and harvests. Q grows a watered crop immediately, using regenerating attunement.
+2. Take the hoe, watering can and sickle from the chest outside the farmhouse. Face the adjacent garden square and select the appropriate quick slot before pressing E. Tilling costs 2 energy, watering 1, harvesting 1. The can holds twenty charges; select it and press E at the pond jetty to refill. Select another slot to fish. Energy restores through food or rest in a farmhouse bed or ship bunk.
 3. Follow the lane east into town. Meet Tavi at the market cart and sell your turnips. Iona and Finch have things to say, too.
 4. Follow the south lane west to fish from the pond jetty. E casts; E again reels in while the meter is between 35 and 70. Misses cost no bait.
-5. Find the quiet copper seam southeast of town. Bring three copper to Chief Vale in the hidden clearing northwest of your farm.
-6. At the farmhouse door, choose rest until the appointment. The world advances continuously to Spring 02 at 11:45. Stay near the farmhouse for the mayor's noon visit. If you're late, the meeting remains available.
+5. Find the quiet copper seam southeast of town. Bring three copper to Chief Vale inside the cloaked ship northwest of your farm.
+6. Use the farmhouse bed to rest until the appointment. Moss, Alder and Neral arrive around ten and wait until four the day after the invitation. The introduction begins at noon; an unfinished conversation holds them in place until completed or abandoned.
 
-The clock runs through midnight and conversations by default. One real second is three game minutes; a full ordinary day is eight real minutes. Rest speeds up the continuous clock. Crops mature three game hours after watering. There is no hard day transition or mandatory bedtime.
+The clock runs through midnight and conversations by default. One real second is three game minutes; a full ordinary day is eight real minutes. Rest speeds up the continuous clock. Crops mature three game days after watering. Wildgrowth can mature a watered crop immediately for 15 mana. There is no hard day transition or mandatory bedtime.
 
 Night shifts the world into a blue moonlit palette while interface colors stay readable. Houses and trees fade when their drawn shape covers the avatar, then return to opaque when you step clear. Village dirt roads have connected junctions, worn shoulders, and wheel tracks.
 
@@ -65,7 +70,7 @@ A single-player atmosphere and interaction study. Names, dialogue, crop timing, 
 
 Included: exploration, farming, growth magic, inventory, trading, fishing, safe mining, a crew-link repair errand, day/night lighting, a scheduled introduction, menu-time settings, native saving, playful music, environmental ambience, and Wildgrowth audio.
 
-Network play, combat, cooking, relationships, full seasonal gameplay and lunar magic, the 52-person town, and the later attack-ship storyline remain future work. The calendar uses a provisional 28-day season for development; terrain and crops do not yet change seasonally. The copper errand is a small prototype objective, not a finalized main-story repair chain. The three pause modes are exercised locally; their multiplayer behavior is not yet proven.
+Network play, combat, relationships, full seasonal gameplay and lunar magic, the 52-person town, and the later attack-ship storyline remain future work. The calendar uses a provisional 28-day season for development; terrain and crops do not yet change seasonally. The copper errand is a small prototype objective, not a finalized main-story repair chain. The three pause modes are exercised locally; their multiplayer behavior is not yet proven.
 
 ## Development and checks
 

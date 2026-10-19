@@ -4,7 +4,11 @@ extends RefCounted
 static func for_building(id: String) -> Dictionary:
 	var plan: Dictionary
 	match id:
-		"home": plan=_open_house(14,true)
+		"home":
+			plan=_open_house(14,true)
+			plan.furniture.append(["cabinet",Rect2i(10,8,2,1)])
+			plan.sites.append_array([["cabinet",Vector2i(10,9)],["stove",Vector2i(8,8)]])
+		"ship": plan=_ship()
 		"finch":
 			plan=_open_house(12,false)
 			plan.furniture.append(["radio",Rect2i(8,9,3,1)])
@@ -45,6 +49,15 @@ static func _house(w: int,h: int) -> Dictionary:
 		["plant",Rect2i(w-2,h-2,1,1)],["art",Rect2i(2,0,2,1)]],
 		"sites":[["bed",Vector2i(4,2)],["radio",Vector2i(2,ly)]],
 		"work":[Vector2i(7,ly),Vector2i(8,h-3),Vector2i(kx+1,7)]}
+
+static func _ship() -> Dictionary:
+	return {"size":Vector2i(15,14),"areas":[["engineering",Rect2i(1,1,13,6)],["crew",Rect2i(1,8,13,5)]],
+		"doors":[["engineering","crew",Vector2i(7,7)]],"entry":Vector2i(7,12),"exit":Vector2i(7,13),
+		"furniture":[["reactor",Rect2i(10,2,3,3)],["machine",Rect2i(1,4,3,2)],["machine",Rect2i(5,4,2,2)],
+		["console",Rect2i(2,1,2,1)],["console",Rect2i(5,1,2,1)],["console",Rect2i(8,1,2,1)],
+		["bed",Rect2i(1,9,2,3)],["bed",Rect2i(4,9,2,3)],["cabinet",Rect2i(10,9,3,1)],["table",Rect2i(10,11,2,1)]],
+		"sites":[["bed",Vector2i(3,12)],["ship_storage",Vector2i(11,10)],["diagnostics",Vector2i(8,4)]],
+		"work":[Vector2i(8,3),Vector2i(9,5),Vector2i(7,6)]}
 
 static func _open_house(h: int,guest: bool) -> Dictionary:
 	var furniture=[

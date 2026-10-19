@@ -1,6 +1,8 @@
 extends Node
 
-const TRACKS = ["music","birds","crickets","drips","wildgrowth"]
+const TRACKS = ["music","birds","crickets","drips","wildgrowth","ship"]
+var ship: AudioStreamPlayer
+var ship_weight=0.0
 var testing = false
 var music: AudioStreamPlayer
 var birds: AudioStreamPlayer
@@ -26,6 +28,7 @@ func _ready() -> void:
 	birds=_player("birds")
 	crickets=_player("crickets")
 	drips=_player("drips")
+	ship=_player("ship")
 	spell=_player("wildgrowth")
 	spell.max_polyphony=4
 	if not testing: load_preferences()
@@ -39,6 +42,7 @@ func _player(track: String) -> AudioStreamPlayer:
 	return player
 
 func mix_for(minute: float,environment: String,season: String,cave_weight = 0.0) -> Dictionary:
+	if environment=="ship": return {"birds":0.0,"crickets":0.0,"drips":0.0}
 	if environment=="indoors": return {"birds":0.0,"crickets":0.0,"drips":0.0}
 	if environment in ["cave","mine"]: return {"birds":0.0,"crickets":0.0,"drips":1.0}
 	var day=smoothstep(330.0,420.0,minute)*(1.0-smoothstep(1110.0,1200.0,minute))
@@ -50,6 +54,7 @@ func mix_for(minute: float,environment: String,season: String,cave_weight = 0.0)
 func update_context(minute: float,environment: String,season: String,cave_weight: float,dt: float) -> void:
 	var target=mix_for(minute,environment,season,cave_weight)
 	var blend=1.0-exp(-dt*1.8)
+	ship_weight=lerpf(ship_weight,1.0 if environment=="ship" else 0.0,blend)
 	for name in current_mix: current_mix[name]=lerpf(current_mix[name],target[name],blend)
 	_apply_volumes()
 
@@ -57,7 +62,8 @@ func _db(value: float) -> float:
 	return linear_to_db(value) if value>0.0001 else -80.0
 
 func _apply_volumes() -> void:
-	music.volume_db=_db(music_level)
+	music.volume_db=_db(music_level*(1.0-ship_weight))
+	ship.volume_db=_db(ambience_level*ship_weight)
 	birds.volume_db=_db(ambience_level*current_mix.birds)
 	crickets.volume_db=_db(ambience_level*current_mix.crickets)
 	drips.volume_db=_db(ambience_level*current_mix.drips)
@@ -66,11 +72,11 @@ func _apply_volumes() -> void:
 func start() -> void:
 	if active: return
 	active=true
-	for player in [music,birds,crickets,drips]: player.play()
+	for player in [music,birds,crickets,drips,ship]: player.play()
 
 func stop() -> void:
 	active=false
-	for player in [music,birds,crickets,drips,spell]: player.stop()
+	for player in [music,birds,crickets,drips,ship,spell]: player.stop()
 
 func shutdown() -> void:
 	# Playback can be queued until the next frame, including a just-cast spell.

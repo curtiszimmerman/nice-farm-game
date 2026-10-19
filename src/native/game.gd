@@ -29,6 +29,7 @@ var activity_time = 0.0
 var sound: Node
 var screenshot_requested = false
 var chest_selected=""
+var storage_name="chest"
 var rest_return_position=Vector2.ZERO
 var conversation_members: Array=[]
 var conversation_sequence=false
@@ -145,6 +146,7 @@ func enter_building(id: String) -> void:
 	var building={}
 	for b in outdoors.buildings:
 		if b.id==id: building=b; break
+	if id=="ship": building={"id":"ship","cell":Vector2i(5,5),"tiles":Vector2i(2,2)}
 	if building.is_empty(): return
 	return_position=outdoors.exit_position(building)
 	if not rooms.has(id):
@@ -197,6 +199,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		return
 	if not started: return
 	match event.physical_keycode:
+		KEY_1,KEY_2,KEY_3,KEY_4,KEY_5,KEY_6,KEY_7,KEY_8:
+			select_quick_slot(event.physical_keycode-KEY_1)
 		KEY_ESCAPE:
 			if window_open: close_window()
 			else: settings()
@@ -219,6 +223,25 @@ func hotkey(index: int) -> void:
 		1: cast_growth()
 		2: inventory()
 		3: journal()
+
+func select_quick_slot(index: int) -> void:
+	if index<0 or index>7: return
+	state.selected_slot=index
+	state.equipped="rusty_sword" if state.active_item()=="rusty_sword" and state.rusty_sword>0 else ""
+	ui.update()
+
+func actions() -> void:
+	if window_open: close_window()
+	panel("Actions","CREW CONTROLS","Select quick slots with 1–8. E uses the selected item or interacts with the world.",[
+		["Use selected item / interact · E",interact],["Inventory · I",inventory],["Spells and skills",spell_slots],["Field notes · J",journal],["Map · M",map_notes],["Settings · Esc",settings]])
+
+func spell_slots() -> void:
+	var choices=[]
+	for i in range(8):
+		var index=i
+		choices.append(["Assign Wildgrowth to slot %d" % (i+1),func(): state.assign_slot(index,"wildgrowth"); save_visit(); ui.update()])
+	panel("Spells and skills","WILDGROWTH","Wildgrowth matures one watered crop for 15 mana. Assign it to a slot, select that slot, then press E or Q.",choices)
+	ui.modal.get_child(1).position.y=45
 
 func toast(text: String,duration = 4.0) -> void:
 	ui.message.text = text
@@ -282,27 +305,40 @@ func interact() -> void:
 		_finish_fishing()
 		return
 	if not activity.is_empty(): return
+	if ui.Items.FOOD.has(state.active_item()):
+		toast("Used %s." % ui.Items.CATALOG[state.active_item()].name if state.consume(state.active_item()) else "Nothing to restore, or none carried.")
+		save_visit()
+		return
 	nearest=world.find_nearest()
 	if nearest.is_empty():
 		toast("Walk closer to a person, garden patch, or landmark.")
 		return
 	if nearest.type=="plot":
+		if state.active_item()=="wildgrowth": cast_growth(); return
 		var was_ripe=state.ripe(nearest.index)
-		toast(state.tend(nearest.index),2.5)
-		burst(world.plot_position(nearest.index),"e5d0a4" if was_ripe else "b8bf86",20 if was_ripe else 7)
-		world.crops.queue_redraw()
-		if was_ripe: save_visit()
+		var before: Dictionary=state.plots[nearest.index].duplicate()
+		toast(state.farm(nearest.index),2.5)
+		if before!=state.plots[nearest.index]:
+			burst(world.plot_position(nearest.index),"e5d0a4" if was_ripe else "b8bf86",20 if was_ripe else 7)
+			world.crops.queue_redraw()
+			save_visit()
 	elif nearest.type=="person": talk(nearest.id)
 	else:
 		if nearest.has("door"):
 			enter_building(nearest.door)
 			return
 		match nearest.id:
-			"chest": chest_selected=""; open_chest()
+			"chest","cabinet","ship_storage": open_storage(nearest.id)
+			"stove": cooking()
+			"diagnostics": panel("Engineering diagnostics","CLOAKED SHIP · BATTLE DAMAGE","Phase-conjugate manifold: unstable. Gravitic shear compensator: bypassed. Inertial lattice: cracked. Plasma return bus: vented. Vale has isolated the sparking cables; the cloak and bunk section remain safe.")
 			"exit": leave_building()
 			"shop": talk("tavi")
 			"bed": rest_options()
 			"pond":
+				if state.active_item()=="watering_can":
+					toast("Watering can filled · 20 / 20" if state.refill_water() else "Take your watering can from storage first.")
+					save_visit()
+					return
 				activity="fishing"
 				activity_time=0.0
 				toast("Line cast. E when the meter is between 35 and 70.")
@@ -316,6 +352,7 @@ func interact() -> void:
 
 func cast_growth() -> void:
 	if not started or window_open or resting>0.0 or not activity.is_empty(): return
+	if state.active_item()!="wildgrowth": toast("Select Wildgrowth in a quick slot first."); return
 	nearest=world.find_nearest()
 	if nearest.get("type")!="plot":
 		toast("Stand near a planted, watered garden patch.")
@@ -357,7 +394,7 @@ func _finish_fishing() -> void:
 	activity=""
 
 func rest_options() -> void:
-	if current_room!="home":
+	if current_room not in ["home","ship"]:
 		toast("This bed belongs to someone else. Rest in your own farmhouse bed.")
 		return
 	dialog("The farmhouse","A BED, A ROOF, A LITTLE QUIET","The bed smells of cedar. The window looks out over your patch of soil. How long would you like to rest?",[
@@ -368,7 +405,7 @@ func rest_options() -> void:
 		["Not tired yet.",func(): pass]])
 
 func begin_rest(minutes: float) -> void:
-	if current_room!="home": return
+	if current_room not in ["home","ship"]: return
 	rest_return_position=state.player_position
 	resting=minutes
 	state.player_position=world.bed_position()
@@ -378,10 +415,37 @@ func open_chest() -> void:
 	window_open=true
 	ui.open_chest(chest_selected)
 
-func transfer_chest(index: int) -> void:
-	if state.chest_transfer(index,chest_selected): save_visit()
+func open_storage(id: String) -> void:
+	storage_name=id
 	chest_selected=""
 	open_chest()
+
+func transfer_chest(index: int) -> void:
+	var stack: Dictionary=state.get(storage_name)[index]
+	var available=int(stack.get("count",0)) if chest_selected=="" else int(state.get(chest_selected))
+	if available<1: return
+	var selected=chest_selected
+	window_open=true
+	ui.quantity_picker(available,func(amount):
+		if state.storage_transfer(storage_name,index,selected,amount): save_visit()
+		else: toast("Use the full carried stack to swap different items, or choose an empty slot.")
+		chest_selected=""
+		open_chest(),open_chest)
+
+func cooking() -> void:
+	var choices=[]
+	for id in State.RECIPES:
+		var recipe=State.RECIPES[id]
+		var details=[]
+		for ingredient in recipe.ingredients: details.append("%s %d/%d" % [ui.Items.CATALOG[ingredient].name,state.ingredient_count(ingredient),recipe.ingredients[ingredient]])
+		var meal=id
+		choices.append(["Cook %s · %s · requires %s" % [ui.Items.CATALOG[id].name,", ".join(details),recipe.utensil],func():
+			toast("Cooked %s." % ui.Items.CATALOG[meal].name if state.cook(meal) else "Missing cookware or ingredients. Ingredients can be carried or in your kitchen cabinet.")
+			save_visit()
+			cooking()])
+	choices.append(["Open kitchen cabinet",func(): open_storage("cabinet")])
+	choices.append(["Done cooking",func(): pass])
+	panel("Farmhouse stove","COOKING","Recipes draw ingredients from your satchel and the connected twelve-slot kitchen cabinet. Tavi sells pots and pans for 20 crowns each.",choices)
 
 func talk(id: String) -> void:
 	begin_conversation([id],id in ["veteran","finch","vale"] or (id=="moss" and not state.invited))
@@ -401,7 +465,7 @@ func talk(id: String) -> void:
 			if not state.invited:
 				dialog("Moss","NEIGHBOR · SOUTH FARM","Well. You look like you've had a long walk. This place has been empty since last harvest. You can stay tonight. Tomorrow at noon, I'll bring the mayor round. Best have someone here to meet him.",[
 					["Thank you. Tomorrow at noon. We'll be here.",func(): state.invite_mayor(); save_visit(); toast("Appointment noted · tomorrow at noon · your farmhouse",6.0)],
-					["What can we do with this soil?",func(): dialog("Moss","NEIGHBOR · SOUTH FARM","Good earth doesn't care where you're from. Turn a patch, plant, give it water. Three hours for moon turnips here. Iona's lent you a little magic if patience isn't your strong suit.",[["And the mayor?",func(): talk("moss")]])]])
+					["What can we do with this soil?",func(): dialog("Moss","NEIGHBOR · SOUTH FARM","Select your hoe to till, seeds to plant, then your watering can. Crops take three days to mature. Refill the can at the pond. Iona's lent you a little magic if patience isn't your strong suit.",[["And the mayor?",func(): talk("moss")]])]])
 			elif state.mayor_available(): mayor()
 			else: dialog("Moss","NEIGHBOR · SOUTH FARM","Settling in, then? Tavi buys produce in town. Good neighbor, Tavi. Crosses the border every spring to see family. Funny how a map can make a long journey out of a short road." if state.met_mayor else "Tomorrow at noon, right here. Till then, make yourself comfortable. The pond's good fishing, and the bed's yours if you need a rest.")
 		"tavi":
@@ -419,12 +483,19 @@ func talk(id: String) -> void:
 					if state.buy_star_seeds(): save_visit(); toast("Three star-bulb seeds. Select them in your satchel before planting.",6)
 					else: toast("You need 12 crowns.")
 					talk("tavi")],
+				["Buy frying pan · 20 crowns · unlock fish sticks",func(): buy_cookware("pan")],
+				["Buy cooking pot · 20 crowns · unlock fish stew",func(): buy_cookware("pot")],
+				["Buy elixir of health · 15 crowns",func():
+					if state.money>=15: state.money-=15; state.health_elixir+=1; save_visit()
+					else: toast("You need 15 crowns.")
+					talk("tavi")],
 				["Just passing through.",func(): pass]])
+			ui.modal.get_child(1).position.y=125
 		"iona": dialog("Iona","FIELD MAGICIAN","Moss says you're new. I've left a little Wildgrowth in your hands. Plant a seed, water it, then press Q beside it. Fifteen attunement; yours returns on its own. Farmers pay me to do whole fields. You can start with one turnip.")
 		"finch": dialog("Finch","RADIO CLUB SECRETARY","You're welcome at the club. Last week we heard a dance band from the far side of the border. Clear as anything. Governments can argue all they like; the air doesn't stop at a checkpoint.",[["What's on the air today?",radio],["I'll come back sometime.",func(): pass]])
 		"vale":
-			if state.delivered: dialog("Chief Vale","CHIEF ENGINEER · SECURE CREW LINK","Copper seated. Local crew link stable. I can hear you all the way to town now. The cloak is holding. Go on, Captain. Find something worth telling me about.")
-			else: dialog("Chief Vale","CHIEF ENGINEER · SECURE CREW LINK","Cloak stable. Engines... less so. Three pieces of local copper would get our short-range crew link behaving. There's an exposed seam southeast of town. Safe enough. And Captain? Eat something that didn't come out of a ration packet.",[
+			if state.delivered: dialog("Chief Vale","CHIEF ENGINEER · SECURE CREW LINK","Copper seated. Crew link stable; cloak holding. Keep one ration or cooked meal per day in the supply locker beside the bunks. Fish sticks or stew would beat another ration packet. "+("I've eaten today." if state.crew_fed_day==state.day else "The locker was empty at breakfast. Could you bring a cooked meal?"))
+			else: dialog("Chief Vale","CHIEF ENGINEER · SECURE CREW LINK","Cloak stable. Engines... less so. Three copper from the southeast seam would fix our crew link. There are six rations in the twelve-slot supply locker beside the bunks. I'll eat one each day. When they run out, leave me a cooked meal there every day. Fish sticks or stew would be a welcome change from ration packets, Captain.",[
 				["Hand over three copper." if state.copper>=3 else "I'll look for copper at the southeast outcrop.",func():
 					if state.copper>=3:
 						state.copper-=3
@@ -433,6 +504,11 @@ func talk(id: String) -> void:
 						burst(state.player_position,"a3d4d0")
 						toast("Crew link restored. One small connection home.",6.0)],
 				["How long do we have?",func(): dialog("Chief Vale","CHIEF ENGINEER","As long as the cloak holds, we have room to breathe. No signals. No active scans. I'll keep the lights off. You keep us fed.")]])
+
+func buy_cookware(id: String) -> void:
+	toast("%s purchased. Recipe unlocked at your farmhouse stove." % ui.Items.CATALOG[id].name if state.buy_utensil(id) else "Already purchased, or you need 20 crowns.")
+	save_visit()
+	talk("tavi")
 
 func mayor() -> void:
 	if not state.mayor_available(): return
@@ -457,16 +533,21 @@ func inventory_stacks() -> Array:
 	return stacks
 
 func use_inventory_item(id: String) -> void:
-	if id in ["seeds","star_seeds"]:
-		state.selected_seed=id
-		toast("Selected %s for planting." % ui.Items.CATALOG[id].name)
-	elif id=="rusty_sword" and state.rusty_sword>0:
-		state.equipped="rusty_sword"
-		toast("Rusty sword equipped.")
-	elif state.consume(id): toast("A little better. %s eaten." % ui.Items.CATALOG[id].name)
+	if state.consume(id): toast("%s %s." % [ui.Items.CATALOG[id].name,"drunk" if id=="health_elixir" else "eaten"])
 	else: toast("Nothing to restore." if ui.Items.FOOD.has(id) else "Keep this for crafting.")
 	save_visit()
 	inventory()
+
+func item_options(id: String) -> void:
+	var choices=[]
+	if ui.Items.FOOD.has(id):
+		choices.append(["Drink" if id=="health_elixir" else "Eat",func(): use_inventory_item(id)])
+	for i in range(8):
+		var index=i
+		choices.append(["Save to quick slot %d" % (i+1),func(): state.assign_slot(index,id); select_quick_slot(state.selected_slot); save_visit(); inventory()])
+	choices.append(["Back to inventory",inventory])
+	panel(ui.Items.CATALOG[id].name,"ITEM ACTIONS",ui.Items.CATALOG[id].description,choices)
+	ui.modal.get_child(1).position.y=30
 
 func journal() -> void:
 	panel("Captain's field notes","FIRST LANDING","%s A roof for the night · speak with Moss.\n\n%s Tomorrow, at noon · Spring 02, farmhouse.\nThe mayor will return if we miss him.\n\n%s Something of our own · harvest a moon turnip.\nTavi buys produce at the market.\n\n%s A quiet channel home · bring Chief Vale 3 copper.\nThe exposed seam is southeast of town." % ["✓" if state.invited else "○","✓" if state.met_mayor else "○","✓" if state.harvested>0 else "○","✓" if state.delivered else "○"])

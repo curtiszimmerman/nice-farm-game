@@ -172,12 +172,26 @@ def write(name, samples):
     print(f"{name}: {len(samples)/RATE:.1f}s, peak {peak:.3f}")
 
 
+def ship():
+    track = buffer(16)
+    for i in range(len(track)):
+        t = i / RATE
+        track[i] = (sin(TAU * 55 * t) * .10 + sin(TAU * 110 * t) * .025 + sin(TAU * 82.5 * t) * .018) * (1 + .12 * sin(TAU * .25 * t))
+    for start, hz in [(2.1, 880), (2.32, 1100), (7.7, 660), (11.2, 990), (11.5, 740)]:
+        tone = buffer(.12)
+        for i in range(len(tone)):
+            t = i / RATE
+            tone[i] = sin(TAU * hz * t) * sin(pi * t / .12) ** 2 * .035
+        add(track, start, tone)
+    return track
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--only", choices=["music", "birds", "crickets", "drips", "wildgrowth"], help="Rebuild one sound instead of all assets.")
+    parser.add_argument("--only", choices=["music", "birds", "crickets", "drips", "wildgrowth", "ship"], help="Rebuild one sound instead of all assets.")
     args = parser.parse_args()
     OUTPUT.mkdir(parents=True, exist_ok=True)
-    for name, build in {"music": music, "birds": birds, "crickets": crickets, "drips": drips, "wildgrowth": wildgrowth}.items():
+    for name, build in {"music": music, "birds": birds, "crickets": crickets, "drips": drips, "wildgrowth": wildgrowth, "ship": ship}.items():
         if args.only is None or args.only == name:
             write(name, build())
 
