@@ -21,6 +21,7 @@ func run() -> void:
 	game.testing=true
 	root.add_child(game)
 	game.set_process(false)
+	for i in range(3): game.state.chest_transfer(i)
 	check(game.started and game.world.player!=null and game.ui.root!=null,"native world and interface initialize")
 	check(game.world.crops.z_index>=0,"garden is drawn above terrain")
 	check(game.ui.energy_bar.size.y==4 and game.ui.mana_bar.size.y==4,"resource bars preserve compact layout")
@@ -39,6 +40,7 @@ func run() -> void:
 	game.interact()
 	game.ui.modal_box.get_child(3).pressed.emit()
 	check(game.state.turnips==0 and game.state.money==32,"merchant dialogue actually sells inventory")
+	game.close_window()
 	game.state.player_position=game.world.site_position("ore")-Vector2(0,15)
 	game.interact()
 	game._update_activity(1.2)
@@ -57,7 +59,9 @@ func run() -> void:
 	game.state.minute=719
 	game.state.player_position=game.world.site_position("bed")+Vector2(0,32)
 	game._process(0.5)
-	check(game.state.met_mayor and game.window_open,"mayor arrives at farmhouse when continuous clock reaches noon")
+	check(not game.state.met_mayor and game.window_open,"mayor arrives at farmhouse when continuous clock reaches noon")
+	for i in range(3): game.ui.modal_box.get_child(3).pressed.emit()
+	check(game.state.met_mayor,"completing the introduction records meeting the mayor")
 	game.close_window()
 	game.settings()
 	var menu_labels=[]

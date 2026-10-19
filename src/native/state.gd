@@ -25,6 +25,12 @@ var copper = 0
 var star_seeds = 0
 var star_bulbs = 0
 var rusty_sword = 0
+var hoe = 0
+var watering_can = 0
+var sickle = 0
+var chest: Array=[]
+var invitation_day=1
+var abandoned_day: Dictionary={}
 var equipped = ""
 var health = 100.0
 var selected_seed = "seeds"
@@ -41,6 +47,8 @@ var player_position = Grid.center(Grid.SPAWN_CELL)
 var plots: Array = []
 
 func _init() -> void:
+	chest=[{"id":"hoe","count":1},{"id":"watering_can","count":1},{"id":"sickle","count":1}]
+	while chest.size()<18: chest.append({})
 	for i in range(20):
 		plots.append({"tilled": false, "planted": -1.0, "watered": false,"crop":"turnips"})
 
@@ -64,13 +72,19 @@ func tend(index: int) -> String:
 	if index < 0 or index >= plots.size():
 		return "There is no garden patch here."
 	var p = plots[index]
+	var tool="sickle" if ripe(index) else "hoe" if not p.tilled else "watering_can" if p.planted>=0 and not p.watered else ""
+	var cost=0.5 if tool in ["sickle","watering_can"] else 1.0 if tool=="hoe" else 0.0
+	if tool!="" and int(get(tool))==0: return "Carry your %s from the farmhouse chest." % Items.CATALOG[tool].name.to_lower()
+	if energy<cost: return "Too tired. Sleep in your own bed or eat something restorative."
 	if ripe(index):
+		energy-=cost
 		p.planted = -1.0
 		p.watered = false
 		set(p.crop,int(get(p.crop))+1)
 		harvested += 1
 		return "+1 %s. A small, very real victory." % Items.CATALOG[p.crop].name.to_lower()
 	if not p.tilled:
+		energy-=cost
 		p.tilled = true
 		return "Good earth. Press E again to plant."
 	if p.planted < 0.0:
@@ -81,6 +95,7 @@ func tend(index: int) -> String:
 		p.planted = total()
 		return "%s planted. A little water next." % Items.CATALOG[p.crop].name
 	if not p.watered:
+		energy-=cost
 		p.watered = true
 		p.planted = total()
 		return "Watered. Three game hours, or a little Wildgrowth with Q."
@@ -130,9 +145,35 @@ func consume(id: String) -> bool:
 	return true
 
 func accept_sword() -> bool:
-	if rusty_sword>0: return false
+	if has_sword(): return false
 	rusty_sword=1
 	return true
+
+func has_sword() -> bool:
+	return rusty_sword>0 or chest.any(func(stack): return stack.get("id","")=="rusty_sword")
+
+func chest_transfer(index: int,carried_id: String="") -> bool:
+	if index<0 or index>=18 or (carried_id!="" and (not Items.CATALOG.has(carried_id) or int(get(carried_id))<=0)): return false
+	var stored: Dictionary=chest[index]
+	if carried_id=="":
+		if stored.is_empty(): return false
+		set(stored.id,int(get(stored.id))+int(stored.count))
+		chest[index]={}
+	else:
+		var amount=int(get(carried_id))
+		set(carried_id,0)
+		if not stored.is_empty() and stored.id==carried_id: amount+=int(stored.count)
+		elif not stored.is_empty(): set(stored.id,int(get(stored.id))+int(stored.count))
+		chest[index]={"id":carried_id,"count":amount}
+	if equipped!="" and int(get(equipped))==0: equipped=""
+	return true
+
+func invite_mayor() -> void:
+	invited=true
+	invitation_day=day
+
+func mayor_available() -> bool:
+	return invited and not met_mayor and day>invitation_day and minute>=720 and minute<960 and abandoned_day.get("mayor",0)!=day
 
 func buy_star_seeds() -> bool:
 	if money<12: return false
@@ -141,13 +182,14 @@ func buy_star_seeds() -> bool:
 	return true
 
 func meet_mayor() -> bool:
-	if not invited or met_mayor or total() < 2160.0:
+	if not mayor_available():
 		return false
 	met_mayor = true
 	return true
 
 func to_dict() -> Dictionary:
-	return {"version": 2, "day": day, "minute": minute, "money": money,
+	return {"version": 3, "day": day, "minute": minute, "money": money,
+		"hoe":hoe,"watering_can":watering_can,"sickle":sickle,"chest":chest.duplicate(true),"invitation_day":invitation_day,"abandoned_day":abandoned_day.duplicate(),
 		"health":health,"star_seeds":star_seeds,"star_bulbs":star_bulbs,"rusty_sword":rusty_sword,"equipped":equipped,"selected_seed":selected_seed,
 		"location":location,"outdoor_x":outdoor_position.x,"outdoor_y":outdoor_position.y,
 		"seeds": seeds, "turnips": turnips, "fish": fish, "copper": copper,
@@ -157,10 +199,10 @@ func to_dict() -> Dictionary:
 		"plots": plots.duplicate(true)}
 
 func restore(data: Variant) -> bool:
-	if not data is Dictionary or data.get("version") != 2:
+	if not data is Dictionary or data.get("version") != 3:
 		return false
-	for field in ["day", "money", "seeds", "turnips", "fish", "copper", "harvested","star_seeds","star_bulbs","rusty_sword"]:
-		if not _number(data.get(field)) or data[field] < (1 if field == "day" else 0) or data[field] != floor(data[field]):
+	for field in ["day", "money", "seeds", "turnips", "fish", "copper", "harvested","star_seeds","star_bulbs","rusty_sword","hoe","watering_can","sickle","invitation_day"]:
+		if not _number(data.get(field)) or data[field] < (1 if field in ["day","invitation_day"] else 0) or data[field] != floor(data[field]):
 			return false
 	for field in ["minute", "mana", "energy", "x", "y","health","outdoor_x","outdoor_y"]:
 		if not _number(data.get(field)):
@@ -168,7 +210,16 @@ func restore(data: Variant) -> bool:
 	if data.minute < 0 or data.minute >= 1440 or data.mana < 0 or data.mana > 60 or data.energy < 0 or data.energy > 100:
 		return false
 	if data.health<0 or data.health>100 or data.rusty_sword>1: return false
-	if not data.get("location") in ["","home","moss","finch","mayor","tavi","iona","radio","store","hall","veteran"]: return false
+	if data.invitation_day>data.day: return false
+	if not data.get("location") in ["","home","moss","finch","mayor","tavi","iona","radio","store","hall","veteran","assistant"]: return false
+	if not data.get("chest") is Array or data.chest.size()!=18 or not data.get("abandoned_day") is Dictionary: return false
+	for stack in data.chest:
+		if not stack is Dictionary: return false
+		if stack.is_empty(): continue
+		if not Items.CATALOG.has(stack.get("id")) or not _number(stack.get("count")) or stack.count<1 or stack.count!=floor(stack.count): return false
+	for id in data.abandoned_day:
+		if not id in ["moss","mayor","assistant","tavi","iona","finch","vale","veteran"] or not _number(data.abandoned_day[id]) or data.abandoned_day[id]<1 or data.abandoned_day[id]>data.day: return false
+		if data.abandoned_day[id]!=floor(data.abandoned_day[id]): return false
 	if not data.get("selected_seed") in ["seeds","star_seeds"] or not data.get("equipped") in ["","rusty_sword"]: return false
 	if data.equipped=="rusty_sword" and data.rusty_sword==0: return false
 	if not Grid.contains(Grid.world_to_cell(Vector2(data.outdoor_x,data.outdoor_y))): return false
@@ -187,13 +238,15 @@ func restore(data: Variant) -> bool:
 		if p.planted < -1.0 or p.planted > (data.day - 1) * 1440.0 + data.minute:
 			return false
 		if not p.get("crop") in ["turnips","star_bulbs"]: return false
-	for field in ["day", "money", "seeds", "turnips", "fish", "copper", "harvested","star_seeds","star_bulbs","rusty_sword"]:
+	for field in ["day", "money", "seeds", "turnips", "fish", "copper", "harvested","star_seeds","star_bulbs","rusty_sword","hoe","watering_can","sickle","invitation_day"]:
 		set(field, int(data[field]))
 	for field in ["minute", "mana", "energy", "invited", "met_mayor", "delivered", "pause_mode","health","equipped","selected_seed","location"]:
 		set(field, data[field])
 	player_position = Vector2(data.x, data.y)
 	outdoor_position=Vector2(data.outdoor_x,data.outdoor_y)
 	plots = data.plots.duplicate(true)
+	chest=data.chest.duplicate(true)
+	abandoned_day=data.abandoned_day.duplicate()
 	return true
 
 func _number(value: Variant) -> bool:

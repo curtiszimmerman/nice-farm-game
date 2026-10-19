@@ -3,6 +3,9 @@ extends RefCounted
 const FOOD={"turnips":{"health":8,"energy":12,"mana":0},"fish":{"health":5,"energy":8,"mana":0},"star_bulbs":{"health":0,"energy":0,"mana":15}}
 
 const CATALOG={
+	"hoe":{"name":"Hoe","description":"Carry it to till your own soil. Costs 1 energy per plot.","action":"Farming tool"},
+	"watering_can":{"name":"Watering can","description":"Carry it to water crops. Costs 0.5 energy per plot.","action":"Farming tool"},
+	"sickle":{"name":"Harvesting sickle","description":"Carry it to harvest ripe crops. Costs 0.5 energy per plot.","action":"Farming tool"},
 	"seeds":{"name":"Moon-turnip seeds","description":"Plant in your own tilled soil. Water, then allow three game hours.","action":"Select for planting"},
 	"star_seeds":{"name":"Star-bulb seeds","description":"A small luminous crop. Its bulb restores attunement.","action":"Select for planting"},
 	"turnips":{"name":"Moon turnip","description":"A crisp, sweet root. Restores a little health and energy.","action":"Eat one"},
@@ -21,6 +24,14 @@ static func icon(id: String) -> Texture2D:
 		for x in range(24):
 			var color=Color.TRANSPARENT
 			match id:
+				"hoe","sickle":
+					if x in range(10,13) and y in range(5,23): color=Color("a58a5a")
+					if id=="hoe" and x in range(4,20) and y in range(4,8): color=Color("9ea99f")
+					if id=="sickle" and absf(Vector2(x-12,y-9).length()-7)<2 and x>=12: color=Color("b9c3b6")
+				"watering_can":
+					if x in range(4,17) and y in range(10,21): color=Color("83a7ab")
+					if x in range(9,14) and y in range(5,12): color=Color("b3c5ba")
+					if x in range(16,23) and y in range(11,15): color=Color("9db6b4")
 				"turnips","star_bulbs":
 					var p=(Vector2(x,y)-Vector2(12,15))/Vector2(7,6)
 					if p.length_squared()<1: color=Color("e3d6ad") if id=="turnips" else Color("e5c777")

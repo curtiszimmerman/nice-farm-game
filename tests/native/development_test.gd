@@ -30,6 +30,7 @@ func run() -> void:
 	game.testing=true
 	root.add_child(game)
 	game.set_process(false)
+	for i in range(3): game.state.chest_transfer(i)
 	game.state.player_position=Vector2(900,700)
 	key(KEY_D,true)
 	game._move(0.02)

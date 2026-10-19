@@ -8,6 +8,7 @@ func check(value: bool,label: String) -> void:
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
 	var s=State.new()
+	for i in range(3): s.chest_transfer(i)
 	s.health=60
 	s.energy=50
 	s.mana=20

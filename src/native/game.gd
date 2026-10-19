@@ -28,6 +28,13 @@ var activity = ""
 var activity_time = 0.0
 var sound: Node
 var screenshot_requested = false
+var chest_selected=""
+var rest_return_position=Vector2.ZERO
+var conversation_members: Array=[]
+var conversation_sequence=false
+var conversation_steps=0
+var conversation_location=""
+var conversation_anchor=Vector2.ZERO
 
 func _ready() -> void:
 	Engine.max_fps = 60
@@ -74,6 +81,7 @@ func _process(dt: float) -> void:
 	elapsed += dt
 	world.elapsed = elapsed
 	if not started: return
+	if not conversation_members.is_empty() and (state.location!=conversation_location or state.player_position.distance_to(conversation_anchor)>160): close_window()
 	var frozen = window_open and state.pause_mode=="all"
 	if not frozen:
 		var minutes = dt*3.0
@@ -82,6 +90,7 @@ func _process(dt: float) -> void:
 			resting -= minutes
 			state.energy = minf(100.0,state.energy+minutes*0.2)
 			if resting<=0.0:
+				state.player_position=rest_return_position
 				save_visit()
 				toast("A little rest. A new angle on the same day.")
 		state.advance(minutes,window_open)
@@ -98,7 +107,7 @@ func _process(dt: float) -> void:
 	else: world.moving=false
 	nearest = world.find_nearest()
 	var at_farm=current_room=="home" or (world==outdoors and state.player_position.distance_to(world.site_position("bed"))<110)
-	if at_farm and state.invited and not state.met_mayor and state.total()>=2160.0 and not window_open and activity.is_empty():
+	if at_farm and state.mayor_available() and not window_open and activity.is_empty():
 		mayor()
 	save_elapsed += dt
 	if save_elapsed>12.0:
@@ -220,12 +229,39 @@ func burst(pos: Vector2,color = "a5d8c5",count = 20) -> void:
 		var angle = randf()*TAU
 		world.particles.append({"pos":pos,"velocity":Vector2(cos(angle)*randf_range(10,35),sin(angle)*25-20),"life":randf_range(1,2),"color":color})
 
-func close_window() -> void:
+func close_window(preserve_conversation: bool=false) -> void:
 	window_open = false
+	if not preserve_conversation: end_conversation(conversation_sequence)
 	sound.save_preferences()
 	ui.close_modal()
 
+func begin_conversation(members: Array,sequence: bool=false) -> void:
+	if conversation_members.is_empty():
+		conversation_location=state.location
+		conversation_anchor=state.player_position
+		conversation_steps=0
+	for id in members:
+		if not conversation_members.has(id): conversation_members.append(id)
+		outdoors.conversation_holds[id]=true
+	conversation_sequence=conversation_sequence or sequence or conversation_members.size()>1
+
+func end_conversation(abandoned: bool=false) -> void:
+	for id in conversation_members:
+		outdoors.conversation_holds.erase(id)
+		if abandoned: state.abandoned_day[id]=state.day
+	conversation_members.clear()
+	conversation_sequence=false
+	conversation_steps=0
+
+func choose_dialogue(action: Callable) -> void:
+	close_window(true)
+	action.call()
+	if not window_open: end_conversation(false)
+
 func dialog(title: String,role: String,text: String,choices: Array = []) -> void:
+	if not conversation_members.is_empty():
+		conversation_steps+=1
+		if conversation_steps>1: conversation_sequence=true
 	window_open = true
 	if choices.is_empty(): choices=[["See you around.",func(): pass]]
 	ui.open_modal(title,role,text,choices)
@@ -239,6 +275,7 @@ func interact() -> void:
 	if not started or window_open: return
 	if resting>0.0:
 		resting=0.0
+		state.player_position=rest_return_position
 		toast("Back on your feet.")
 		return
 	if activity=="fishing":
@@ -261,6 +298,7 @@ func interact() -> void:
 			enter_building(nearest.door)
 			return
 		match nearest.id:
+			"chest": chest_selected=""; open_chest()
 			"exit": leave_building()
 			"shop": talk("tavi")
 			"bed": rest_options()
@@ -319,43 +357,68 @@ func _finish_fishing() -> void:
 	activity=""
 
 func rest_options() -> void:
+	if current_room!="home":
+		toast("This bed belongs to someone else. Rest in your own farmhouse bed.")
+		return
 	dialog("The farmhouse","A BED, A ROOF, A LITTLE QUIET","The bed smells of cedar. The window looks out over your patch of soil. How long would you like to rest?",[
-		["Rest for four hours",func(): resting=240.0; toast("Resting. The world keeps turning. E to get up.",6.0)],
+		["Rest for four hours",func(): begin_rest(240)],
 		["Rest until the appointment · Spring 02, 11:45" if state.day<2 else "Rest until the next 11:45",func():
-			if state.day<2: resting=1440.0+705.0-state.total()
-			else:
-				resting=fposmod(705.0-state.minute,1440.0)
-				if resting<1.0: resting=1440.0],
+			var minutes=fposmod(705.0-state.minute,1440.0)
+			begin_rest(1440.0 if minutes<1 else minutes)],
 		["Not tired yet.",func(): pass]])
 
+func begin_rest(minutes: float) -> void:
+	if current_room!="home": return
+	rest_return_position=state.player_position
+	resting=minutes
+	state.player_position=world.bed_position()
+	toast("Resting. The world keeps turning. E to get up.",6)
+
+func open_chest() -> void:
+	window_open=true
+	ui.open_chest(chest_selected)
+
+func transfer_chest(index: int) -> void:
+	if state.chest_transfer(index,chest_selected): save_visit()
+	chest_selected=""
+	open_chest()
+
 func talk(id: String) -> void:
+	begin_conversation([id],id in ["veteran","finch","vale"] or (id=="moss" and not state.invited))
 	match id:
 		"veteran":
 			dialog("Bram","A CABIN IN THE SOUTH WOODS","I served in the army. If you're heading toward the other kingdom, come and talk to me before you go. And take this old blade. Rust comes off. Being unprepared is harder to fix.",[
-				["Accept the rusty sword" if state.rusty_sword==0 else "Thank you for the sword",func():
+				["Accept the rusty sword" if not state.has_sword() else "Thank you for the sword",func():
 					if state.accept_sword(): save_visit(); toast("Rusty sword added to your satchel. Select it to equip.",6)],
 				["What should we know about the other kingdom?",func(): dialog("Bram","RETIRED ARMY","Start by remembering that a kingdom's people and its government aren't the same thing. I learned that in uniform. Some of the people who helped me most lived on the other side of the border.")]])
 		"mayor":
-			if state.invited and not state.met_mayor and state.total()>=2160: mayor()
+			if state.mayor_available(): mayor()
 			else: dialog("Mayor Alder","BRIAR GLEN","Good to see you out and about. Most days I'm at the town hall, with a break in the square at noon.")
+		"assistant":
+			if state.mayor_available(): mayor()
+			else: dialog("Neral","MAYOR'S ASSISTANT · DARK ELF","I keep the town's appointments and records. Alder likes to arrive early. If Moss has arranged our visit, we'll be at your farm until four.")
 		"moss":
 			if not state.invited:
 				dialog("Moss","NEIGHBOR · SOUTH FARM","Well. You look like you've had a long walk. This place has been empty since last harvest. You can stay tonight. Tomorrow at noon, I'll bring the mayor round. Best have someone here to meet him.",[
-					["Thank you. Tomorrow at noon. We'll be here.",func(): state.invited=true; save_visit(); toast("Appointment noted · Spring 02, noon · your farmhouse",6.0)],
+					["Thank you. Tomorrow at noon. We'll be here.",func(): state.invite_mayor(); save_visit(); toast("Appointment noted · tomorrow at noon · your farmhouse",6.0)],
 					["What can we do with this soil?",func(): dialog("Moss","NEIGHBOR · SOUTH FARM","Good earth doesn't care where you're from. Turn a patch, plant, give it water. Three hours for moon turnips here. Iona's lent you a little magic if patience isn't your strong suit.",[["And the mayor?",func(): talk("moss")]])]])
-			elif not state.met_mayor and state.total()>=2160.0: mayor()
+			elif state.mayor_available(): mayor()
 			else: dialog("Moss","NEIGHBOR · SOUTH FARM","Settling in, then? Tavi buys produce in town. Good neighbor, Tavi. Crosses the border every spring to see family. Funny how a map can make a long journey out of a short road." if state.met_mayor else "Tomorrow at noon, right here. Till then, make yourself comfortable. The pond's good fishing, and the bed's yours if you need a rest.")
 		"tavi":
+			conversation_steps=0
 			dialog("Tavi","TRAVELING MERCHANT","Seeds, supper, a good road home. That's most of a life, isn't it? I'm heading across the border for my sister's festival next month. Until then, your turnips are very welcome here.",[
 				["Sell produce · %d crowns" % (state.turnips*8+state.fish*10+state.star_bulbs*12),func():
 					if state.sell(): save_visit(); toast("Sold. Locally grown, very far from home.")
-					else: toast("Bring turnips or silverfin to sell.")],
+					else: toast("Bring turnips or silverfin to sell.")
+					talk("tavi")],
 				["Buy 5 moon-turnip seeds · 10 crowns",func():
 					if state.buy_seeds(): save_visit(); toast("Five seeds tucked into your satchel.")
-					else: toast("You need 10 crowns.")],
+					else: toast("You need 10 crowns.")
+					talk("tavi")],
 				["Buy 3 star-bulb seeds · 12 crowns",func():
 					if state.buy_star_seeds(): save_visit(); toast("Three star-bulb seeds. Select them in your satchel before planting.",6)
-					else: toast("You need 12 crowns.")],
+					else: toast("You need 12 crowns.")
+					talk("tavi")],
 				["Just passing through.",func(): pass]])
 		"iona": dialog("Iona","FIELD MAGICIAN","Moss says you're new. I've left a little Wildgrowth in your hands. Plant a seed, water it, then press Q beside it. Fifteen attunement; yours returns on its own. Farmers pay me to do whole fields. You can start with one turnip.")
 		"finch": dialog("Finch","RADIO CLUB SECRETARY","You're welcome at the club. Last week we heard a dance band from the far side of the border. Clear as anything. Governments can argue all they like; the air doesn't stop at a checkpoint.",[["What's on the air today?",radio],["I'll come back sometime.",func(): pass]])
@@ -372,12 +435,12 @@ func talk(id: String) -> void:
 				["How long do we have?",func(): dialog("Chief Vale","CHIEF ENGINEER","As long as the cloak holds, we have room to breathe. No signals. No active scans. I'll keep the lights off. You keep us fed.")]])
 
 func mayor() -> void:
-	if not state.meet_mayor(): return
-	save_visit()
+	if not state.mayor_available(): return
+	begin_conversation(["mayor","assistant","moss"],true)
 	dialog("Mayor Alder","BRIAR GLEN · AT YOUR FARM","Moss tells me you're looking for a new beginning. We could use a few more hands, and this farm could use a few more mornings. You're welcome to make a home here.",[
-		["We've come a long way. Thank you.",func(): dialog("A voice behind the mayor","AN AIDE, LESS CONVINCED","A long way from which side of the border, exactly? We can't be too careful these days.",[
+		["We've come a long way. Thank you.",func(): dialog("Neral","MAYOR'S ASSISTANT · DARK ELF","A long way from which side of the border, exactly? We can't be too careful these days.",[
 			["Let the mayor answer.",func(): dialog("Mayor Alder","BRIAR GLEN","We can be careful and civil at the same time. For today, let's see what grows. Moss, leave them be. They've got a farm to settle.",[
-				["A place to begin.",func(): toast("A home in Briar Glen. The rest can wait.",7.0); burst(state.player_position,"e7cf8e",30)]])]])]])
+				["A place to begin.",func(): state.met_mayor=true; end_conversation(); save_visit(); toast("A home in Briar Glen. The rest can wait.",7.0); burst(state.player_position,"e7cf8e",30)]])]])]])
 
 func radio() -> void:
 	dialog("Briar Glen Radio","LOCAL SERVICE · 1040","...a fair morning across the valley. The north road is open to travelers, with delays at the border crossing. Tonight: the Radio Club's spring music hour. And if anyone has borrowed Mrs. Bell's ladder, she would like it back.")
@@ -388,7 +451,7 @@ func inventory() -> void:
 
 func inventory_stacks() -> Array:
 	var stacks: Array=[]
-	for id in ["seeds","star_seeds","turnips","fish","star_bulbs","copper","rusty_sword"]:
+	for id in ui.Items.CATALOG:
 		var count=int(state.get(id))
 		if count>0: stacks.append({"id":id,"count":count})
 	return stacks
@@ -482,7 +545,11 @@ func save_visit() -> bool:
 	if file==null:
 		toast("Could not save. Keep the game open to continue.")
 		return false
-	file.store_string(JSON.stringify(state.to_dict(),"\t"))
+	var data=state.to_dict()
+	if resting>0:
+		data.x=rest_return_position.x
+		data.y=rest_return_position.y
+	file.store_string(JSON.stringify(data,"\t"))
 	file.close()
 	if DirAccess.rename_absolute(target+".tmp",target)!=OK:
 		toast("Could not finalize the save. Your previous save is preserved.")
@@ -500,6 +567,7 @@ func _notification(what: int) -> void:
 		quit_game()
 
 func quit_game() -> void:
+	end_conversation(conversation_sequence)
 	if started: save_visit()
 	await sound.shutdown()
 	get_tree().quit()

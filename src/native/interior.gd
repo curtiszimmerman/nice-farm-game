@@ -14,6 +14,18 @@ class Furniture extends Node2D:
 	var item: Dictionary
 	func _draw() -> void: room.paint_furniture(self,item)
 
+class Wall extends Node2D:
+	var room: Node2D
+	var front=false
+	func _draw() -> void:
+		room.r(self,0,-40,32,40,"3e554e")
+		if front:
+			room.r(self,0,-29,32,27,"75877a")
+			room.r(self,0,-4,32,4,"344c45")
+			room.r(self,0,-7,32,3,"a1ac91")
+			room.r(self,0,-35,32,6,"bec0a7")
+			room.r(self,0,-29,32,2,"d1ceb2")
+
 func _ready() -> void:
 	y_sort_enabled=true
 	night_tint=CanvasModulate.new()
@@ -32,6 +44,12 @@ func _ready() -> void:
 	for y in range(ROOM_CELLS.y):
 		for x in range(ROOM_CELLS.x):
 			if not floor_cells.has(Vector2i(x,y)): solid_cells[Vector2i(x,y)]="wall"
+	for cell in solid_cells:
+		var wall=Wall.new()
+		wall.room=self
+		wall.front=floor_cells.has(cell+Vector2i.DOWN)
+		wall.position=Grid.origin(cell)+Vector2(0,32)
+		add_child(wall)
 	for item in layout.furniture: add_furniture(item[0],item[1],item[0] not in ["rug","art"])
 	add_site("exit",layout.exit,"Leave "+room_name())
 	for site in layout.sites:
@@ -68,6 +86,11 @@ func add_furniture(kind: String,bounds: Rect2i,solid: bool=true) -> void:
 
 func entry_position() -> Vector2: return Grid.center(layout.entry)
 
+func bed_position() -> Vector2:
+	for item in furnishings:
+		if item.kind=="bed": return Grid.origin(item.bounds.position)+Vector2(item.bounds.size.x*16,item.bounds.size.y*32-8)
+	return entry_position()
+
 func room_name() -> String:
 	match building.id:
 		"home": return "Your farmhouse"
@@ -76,6 +99,7 @@ func room_name() -> String:
 		"hall": return "Briar Glen town hall"
 		"iona": return "Iona's tower"
 		"veteran": return "Bram's cabin"
+		"assistant": return "Neral's home"
 		_: return building.id.capitalize()+"'s home"
 
 func blocked(p: Vector2) -> bool:
@@ -89,6 +113,7 @@ func audio_context(_p: Vector2) -> Dictionary:
 
 func update_villagers(dt: float,snap: bool=false) -> void:
 	for id in villagers:
+		if outdoors.conversation_holds.has(id): continue
 		var actor: Node2D=villagers[id]
 		var outside: Node2D=outdoors.villagers[id]
 		var active=outside.data.get("room","")==building.id
@@ -96,14 +121,11 @@ func update_villagers(dt: float,snap: bool=false) -> void:
 		if not active: continue
 		var sleeping=outside.data.get("sleeping",false)
 		actor.data.sleeping=sleeping
-		actor.rotation=PI/2 if sleeping else 0.0
+		actor.rotation=0.0
 		actor.z_index=2 if sleeping else 0
 		if sleeping:
-			for item in furnishings:
-				if item.kind!="bed": continue
-				actor.rotation=PI/2 if item.bounds.size.x>1 else 0.0
-				actor.position=Grid.origin(item.bounds.position)+Vector2(10,24) if item.bounds.size.x>1 else Grid.origin(item.bounds.position)+Vector2(16,44)
-				break
+			actor.position=bed_position()
+			actor.data.bed_height=bed_height()
 			actor.queue_redraw()
 			continue
 		var cell: Vector2i=layout.work[int(state.minute/25)%layout.work.size()]
@@ -136,10 +158,23 @@ func find_nearest() -> Dictionary:
 
 func refresh() -> void:
 	player.position=state.player_position.round()
+	player.data.sleeping=get_parent().resting>0
+	player.data.bed_height=bed_height()
+	player.z_index=2 if player.data.sleeping else 0
 	player.queue_redraw()
 	night_tint.color=Color("d5c4ae") if state.minute<360 or state.minute>1200 else Color.WHITE
 	for child in get_children():
 		if child is Prop and child.kind=="effects": child.queue_redraw()
+		if child is Furniture or child is Wall:
+			var width=32.0 if child is Wall else child.item.bounds.size.x*32.0
+			var height=40.0 if child is Wall else child.item.bounds.size.y*32.0+30
+			var covers=state.player_position.y<child.position.y and Rect2(child.position-Vector2(0,height),Vector2(width,height)).grow(8).has_point(state.player_position-Vector2(0,20))
+			child.modulate.a=0.3 if covers and not player.data.sleeping else 1.0
+
+func bed_height() -> float:
+	for item in furnishings:
+		if item.kind=="bed": return item.bounds.size.y*32.0
+	return 64.0
 
 func _draw() -> void:
 	r(self,-400,-250,ROOM_SIZE.x+800,ROOM_SIZE.y+500,"263732")
@@ -149,12 +184,6 @@ func _draw() -> void:
 		r(self,p.x+1,p.y+2,30,1,"b99b6d")
 		r(self,p.x+14,p.y+3,1,26,"876e50")
 		if floor_cells[cell] in ["bathroom","kitchen"]: r(self,p.x+1,p.y+1,30,30,"abb7a4" if (cell.x+cell.y)%2 else "c2c7ae")
-	for cell in solid_cells:
-		if solid_cells[cell]!="wall": continue
-		var p=Grid.origin(cell)
-		r(self,p.x,p.y-35,32,65,"cac6a8")
-		r(self,p.x,p.y+24,32,8,"766d53")
-		r(self,p.x,p.y-35,32,5,"e0d7b7")
 	for item in furnishings:
 		if item.kind!="rug": continue
 		draw_set_transform(Grid.origin(item.bounds.position+Vector2i(0,item.bounds.size.y)))
@@ -174,12 +203,16 @@ func _draw() -> void:
 func paint_furniture(c: CanvasItem,item: Dictionary) -> void:
 	var w=item.bounds.size.x*32
 	var h=item.bounds.size.y*32
+	if item.kind not in ["rug","art"]:
+		oval(c,w/2+3,-3,w/2+4,7,"172d3455")
+		r(c,3,-h+5,w-3,h-2,"263a3b55")
 	match item.kind:
 		"rug":
 			r(c,0,-h,w,h,"667e72" if building.id=="moss" else "7f716f")
 			r(c,5,-h+5,w-10,h-10,"8fa18b" if building.id=="moss" else "a38c7c")
 			for x in range(10,w-10,14): r(c,x,-h+10,7,h-20,"b5a38b")
 		"sofa":
+			for x in [7,w-14]: r(c,x,-4,6,7,"4b4a3b")
 			r(c,0,-h-18,w,h+14,"526f69")
 			r(c,7,-h-12,w-14,25,"7e9a86")
 			for x in range(8,w-10,36): r(c,x,-h+18,30,maxi(8,h-20),"90a58b")
@@ -189,12 +222,18 @@ func paint_furniture(c: CanvasItem,item: Dictionary) -> void:
 				r(c,x,-h+3,22,21,"b3ad8b")
 				r(c,x+3,-h+6,16,2,"d0c49e")
 			for x in range(13,w-10,9): r(c,x,-14,3,2,"49675e")
+			r(c,w-9,-h+12,6,h-13,"3e6059")
+			r(c,9,-5,w-18,3,"3d5b53")
 		"table","chair","desk","counter":
-			r(c,4,-h,w-8,h-5,"8f7050")
-			r(c,6,-h+2,w-12,3,"bca070")
-			for x in [6,w-10]: r(c,x,-8,4,10,"635942")
+			for x in [6,w-10]:
+				r(c,x,-h+2,4,h,"574c3c")
+				r(c,x,-h+2,1,h,"aa8860")
+			r(c,4,-h-11,w-8,h-5,"aa875d")
+			r(c,4,-16,w-8,7,"6c533d")
+			r(c,w-9,-h-9,5,h-7,"785c42")
+			r(c,6,-h-9,w-14,2,"d4b37e")
 			if item.kind=="table": oval(c,w/2,-h/2,13,8,"d4ccaa")
-			for yy in range(-h+8,-7,9): r(c,9,yy,w-18,1,"a5875f")
+			for yy in range(-h,-18,9): r(c,9,yy,w-21,1,"92704d")
 			if item.kind=="chair":
 				r(c,4,-h-19,w-8,15,"a28a60")
 				r(c,7,-h-16,w-14,2,"c1a678")
@@ -208,12 +247,17 @@ func paint_furniture(c: CanvasItem,item: Dictionary) -> void:
 				r(c,w-29,-h-14,21,17,"627769")
 				r(c,w-26,-h-11,14,7,"d0be8a")
 		"bed":
+			r(c,0,-h-12,w,14,"705943")
+			r(c,3,-h-10,w-6,3,"bc9a6c")
 			r(c,0,-h,w,h,"796951")
 			r(c,5,-h+5,w-10,h-12,"d9d4b7")
 			r(c,8,-h+9,w-16,14,"eee2c4")
 			r(c,6,-h+25,w-12,h-31,"7d9390")
 			r(c,8,-h+28,w-16,4,"a2b7a7")
 			for yy in range(-h+36,-8,9): r(c,8,yy,w-16,2,"a0b0a1")
+			r(c,w-7,-h+26,3,h-32,"536f73")
+			r(c,0,-6,w,8,"584b3c")
+			r(c,2,-6,w-4,2,"ae8e61")
 		"kitchen":
 			r(c,0,-h,w,h,"939479")
 			r(c,0,-h-8,w,12,"ddd4b4")
@@ -229,9 +273,11 @@ func paint_furniture(c: CanvasItem,item: Dictionary) -> void:
 				r(c,x,-h-19,10,17,"9d8a67")
 				r(c,x+2,-h-21,6,3,"d3c197")
 		"bath","sink":
-			r(c,0,-h,w,h,"b5c0ae")
-			oval(c,w/2,-h/2,w/2-6,h/2-6,"e1dec3")
-			oval(c,w/2,-h/2,w/2-11,h/2-11,"91aaa2")
+			r(c,3,-h+3,w-6,h-3,"7e958d")
+			r(c,5,-12,w-10,9,"b0bcaa")
+			oval(c,w/2,-h/2-7,w/2-3,h/2-4,"e1dec3")
+			oval(c,w/2,-h/2-8,w/2-8,h/2-9,"708f89")
+			oval(c,w/2,-h/2-6,w/2-10,h/2-12,"a6c3b8")
 			r(c,w-13,-h+3,3,12,"82998f")
 			if item.kind=="sink":
 				r(c,5,-h-39,w-10,31,"8da19b")
@@ -242,9 +288,17 @@ func paint_furniture(c: CanvasItem,item: Dictionary) -> void:
 			oval(c,w/2,-h/2+3,7,9,"98ada3")
 		"bookshelf":
 			r(c,0,-h-30,w,h+28,"6f634c")
+			r(c,0,-h-35,w,5,"c2a37a")
+			r(c,w-5,-h-30,5,h+28,"4c493b")
 			for yy in range(-h-24,-2,18):
-				for x in range(5,w-4,9): r(c,x,yy,6,12,["a08569","78988b","a39377","827c8e"][posmod(x+yy,4)])
+				for x in range(5,w-7,9):
+					r(c,x,yy,6,12,["a08569","78988b","a39377","827c8e"][posmod(x+yy,4)])
+					r(c,x,yy,1,12,"ded0a477")
+					r(c,x+5,yy,1,12,"343d3955")
+					for line in range(3):
+						r(c,x+2,yy+3+line*2,2+posmod(x+line,2),1,"e2d3b0")
 				r(c,3,yy+13,w-6,3,"b89d72")
+				r(c,3,yy+16,w-6,2,"443f34")
 		"radio":
 			r(c,0,-h,w,h,"856c4e")
 			r(c,0,-h-5,w,7,"b19a6d")
@@ -258,6 +312,8 @@ func paint_furniture(c: CanvasItem,item: Dictionary) -> void:
 			r(c,18,-h-46,mini(35,w-22),2,"b5c0ab")
 		"stock","crates","seed_tray","tools":
 			r(c,0,-h,w,h,"857154")
+			r(c,0,-h-6,w,6,"c2a27a")
+			r(c,w-5,-h,5,h,"594f3d")
 			for yy in range(-h+5,-2,14):
 				for x in range(4,w-4,13):
 					r(c,x,yy,9,10,"b7a075" if item.kind=="crates" else "9aa67b")
@@ -274,7 +330,9 @@ func paint_furniture(c: CanvasItem,item: Dictionary) -> void:
 			r(c,5,-h-17,w-10,h+2,"93b0a0")
 			poly(c,[Vector2(6,-10),Vector2(w/2,-h-10),Vector2(w-6,-10)],"637e65")
 		"plant":
-			r(c,6,-18,20,18,"a2805b")
+			poly(c,[Vector2(6,-18),Vector2(26,-18),Vector2(23,0),Vector2(9,0)],"a2805b")
+			r(c,20,-16,4,12,"7c624c")
+			oval(c,16,-18,11,4,"c3a077")
 			for x in [4,14,22]: oval(c,x,-24,8,15,"6e8c61")
 
 func paint_effects(c: CanvasItem) -> void:

@@ -5,6 +5,7 @@ const GOLD = Color("dfba72")
 const MUTED = Color("b6c3ad")
 const Items = preload("res://items.gd")
 var inventory_slots: Array=[]
+var chest_slots: Array=[]
 var game: Node2D
 var root: Control
 var place: Label
@@ -248,7 +249,7 @@ func open_modal(title: String,eyebrow: String,body: String,choices: Array,wide =
 		b.add_theme_font_size_override("font_size",14)
 		_button_style(b)
 		var action = option[1]
-		b.pressed.connect(func(): game.close_window(); action.call())
+		b.pressed.connect(func(): game.choose_dialogue(action))
 		modal_box.add_child(b)
 	var footer = Label.new()
 	footer.text = "ESC closes · " + ("Time keeps moving" if game.state.pause_mode=="none" else "Calendar paused; world active" if game.state.pause_mode=="clock" else "World paused")
@@ -294,35 +295,72 @@ func open_inventory() -> void:
 	modal_box.move_child(grid,3)
 	var stacks=game.inventory_stacks()
 	for i in range(18):
-		var slot=Button.new()
-		slot.custom_minimum_size=Vector2(84,84)
-		_button_style(slot)
+		var stack: Dictionary=stacks[i] if i<stacks.size() else {}
+		var slot=item_slot(stack,84)
 		grid.add_child(slot)
 		inventory_slots.append(slot)
-		if i>=stacks.size():
-			slot.disabled=true
-			continue
-		var stack=stacks[i]
-		var item=Items.CATALOG[stack.id]
-		slot.set_meta("item_id",stack.id)
-		slot.tooltip_text="%s\n%s\n%s" % [item.name,item.description,item.action]
-		if Items.FOOD.has(stack.id):
-			var food=Items.FOOD[stack.id]
-			slot.tooltip_text+="\n+%d HP · +%d energy · +%d mana" % [food.health,food.energy,food.mana]
-		var picture=TextureRect.new()
-		picture.texture=Items.icon(stack.id)
-		picture.texture_filter=CanvasItem.TEXTURE_FILTER_NEAREST
-		picture.position=Vector2(18,8)
-		picture.size=Vector2(48,48)
-		picture.mouse_filter=Control.MOUSE_FILTER_IGNORE
-		slot.add_child(picture)
-		var count=Label.new()
-		count.text=str(stack.count)
-		count.position=Vector2(56,58)
-		count.add_theme_color_override("font_color",CREAM)
-		count.mouse_filter=Control.MOUSE_FILTER_IGNORE
-		slot.add_child(count)
-		slot.pressed.connect(func(): game.use_inventory_item(stack.id))
+		slot.disabled=stack.is_empty()
+		if not stack.is_empty(): slot.pressed.connect(func(): game.use_inventory_item(stack.id))
+
+func item_slot(stack: Dictionary,pixels: int) -> Button:
+	var slot=Button.new()
+	slot.custom_minimum_size=Vector2.ONE*pixels
+	_button_style(slot)
+	if stack.is_empty(): return slot
+	var item=Items.CATALOG[stack.id]
+	slot.set_meta("item_id",stack.id)
+	slot.tooltip_text="%s\n%s\n%s" % [item.name,item.description,item.action]
+	if Items.FOOD.has(stack.id):
+		var food=Items.FOOD[stack.id]
+		slot.tooltip_text+="\n+%d HP · +%d energy · +%d mana" % [food.health,food.energy,food.mana]
+	var picture=TextureRect.new()
+	picture.texture=Items.icon(stack.id)
+	picture.texture_filter=CanvasItem.TEXTURE_FILTER_NEAREST
+	picture.position=Vector2(12,5)
+	picture.size=Vector2.ONE*(pixels-26)
+	picture.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	slot.add_child(picture)
+	var count=Label.new()
+	count.text=str(stack.count)
+	count.position=Vector2(pixels-28,pixels-26)
+	count.add_theme_color_override("font_color",CREAM)
+	count.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	slot.add_child(count)
+	return slot
+
+func open_chest(selected: String) -> void:
+	open_modal("Farmhouse chest","TOOLS & SUPPLIES","Click a chest stack to take it. Select a carried stack, then a chest slot to move or swap it.",[["Close chest",func(): pass]],true)
+	modal.get_child(1).position=Vector2(160,100)
+	modal_box.get_child(2).custom_minimum_size.x=920
+	if selected!="": modal_box.get_child(2).text="Selected: %s. Choose a chest slot to move or swap this stack." % Items.CATALOG[selected].name
+	var row=HBoxContainer.new()
+	row.add_theme_constant_override("separation",30)
+	modal_box.add_child(row)
+	modal_box.move_child(row,3)
+	inventory_slots.clear()
+	chest_slots.clear()
+	var carried=game.inventory_stacks()
+	for side in range(2):
+		var column=VBoxContainer.new()
+		row.add_child(column)
+		var label=Label.new()
+		label.text="CARRIED" if side==0 else "CHEST · 18 SLOTS"
+		column.add_child(label)
+		var grid=GridContainer.new()
+		grid.columns=6
+		column.add_child(grid)
+		for i in range(18):
+			var stack: Dictionary=(carried[i] if i<carried.size() else {}) if side==0 else game.state.chest[i]
+			var button=item_slot(stack,68)
+			grid.add_child(button)
+			if side==0:
+				inventory_slots.append(button)
+				button.disabled=stack.is_empty()
+				if not stack.is_empty(): button.pressed.connect(func(): game.chest_selected=stack.id; game.open_chest())
+			else:
+				chest_slots.append(button)
+				var index=i
+				button.pressed.connect(func(): game.transfer_chest(index))
 
 func update() -> void:
 	var s = game.state

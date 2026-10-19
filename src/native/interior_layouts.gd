@@ -20,6 +20,7 @@ static func for_building(id: String) -> Dictionary:
 		"mayor":
 			plan=_house(16,12)
 			plan.furniture.append(["desk",Rect2i(2,10,2,1)])
+		"assistant": plan=_house(15,12)
 		"veteran": plan=_cabin()
 		"iona": plan=_tower()
 		"radio": plan=_club()

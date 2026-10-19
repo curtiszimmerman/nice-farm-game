@@ -23,7 +23,8 @@ const PEOPLE = [
 	{"id":"finch","name":"Finch","role":"RADIO CLUB SECRETARY","cell":Vector2i(54,38),"coat":"6d96a0","hair":"765842","skin":"d3ab88"},
 	{"id":"vale","name":"Chief Vale","role":"CHIEF ENGINEER","cell":Vector2i(6,8),"coat":"8b9baf","hair":"b5a68e","skin":"a97959"},
 	{"id":"mayor","name":"Mayor Alder","role":"MAYOR","cell":Vector2i(61,42),"coat":"657b70","hair":"c2c4b0","skin":"d0a181"},
-	{"id":"veteran","name":"Bram","role":"RETIRED ARMY","cell":Vector2i(43,82),"coat":"777a60","hair":"b9b6a3","skin":"b08f77"}
+	{"id":"veteran","name":"Bram","role":"RETIRED ARMY","cell":Vector2i(43,82),"coat":"777a60","hair":"b9b6a3","skin":"b08f77"},
+	{"id":"assistant","name":"Neral","role":"MAYOR'S ASSISTANT · DARK ELF","cell":Vector2i(54,46),"coat":"61758a","hair":"c7cbcd","skin":"65566d","elf":true}
 ]
 const BUILDINGS = [
 	{"cell":Vector2i(10,37),"tiles":Vector2i(7,5),"roof":"a65e50","kind":"home"},
@@ -35,10 +36,12 @@ const BUILDINGS = [
 	{"cell":Vector2i(58,51),"tiles":Vector2i(5,3),"roof":"65858b","kind":"cottage","resident":"finch"},
 	{"cell":Vector2i(60,12),"tiles":Vector2i(3,3),"roof":"68658f","kind":"tower","resident":"iona","visual_height":192},
 	{"cell":Vector2i(24,55),"tiles":Vector2i(5,3),"roof":"8c6856","kind":"cottage","resident":"moss"},
-	{"cell":Vector2i(40,76),"tiles":Vector2i(5,4),"roof":"70685a","kind":"cabin","resident":"veteran"}
+	{"cell":Vector2i(40,76),"tiles":Vector2i(5,4),"roof":"70685a","kind":"cabin","resident":"veteran"},
+	{"cell":Vector2i(70,53),"tiles":Vector2i(4,3),"roof":"6c7885","kind":"cottage","resident":"assistant"}
 ]
 const SITES = [
 	{"id":"bed","cell":Vector2i(13,42),"label":"Rest at the farmhouse"},
+	{"id":"chest","cell":Vector2i(17,42),"label":"Open farmhouse chest"},
 	{"id":"pond","cell":Vector2i(21,65),"label":"Fish from the jetty"},
 	{"id":"ore","cell":Vector2i(94,74),"label":"Gather copper"},
 	{"id":"sign","cell":Vector2i(30,42),"label":"Read the signpost"},
@@ -59,10 +62,12 @@ const ROAD_ROUTES = [
 	[Vector2i(60,54),Vector2i(57,54)],
 	[Vector2i(61,49),Vector2i(57,49)],
 	[Vector2i(26,58),Vector2i(26,53)],
-	[Vector2i(14,53),Vector2i(21,53)]
+	[Vector2i(14,53),Vector2i(21,53)],
+	[Vector2i(72,56),Vector2i(72,57)]
 ]
 
 var people: Array = []
+var conversation_holds: Dictionary={}
 var villagers: Dictionary = {}
 var routes: Dictionary = {}
 var buildings: Array = []
@@ -181,6 +186,7 @@ func _build_layout() -> void:
 	_claim(OUTCROP_CELLS,"rock")
 	_claim(MINE_RIDGE,"rock")
 	_claim(CART_CELLS,"cart")
+	_claim(Rect2i(Vector2i(17,42),Vector2i.ONE),"chest")
 	for cell in LAMP_CELLS: _claim(Rect2i(cell,Vector2i.ONE),"lamp")
 	_claim(Rect2i(Grid.world_to_cell(site_position("sign")),Vector2i.ONE),"sign")
 	_claim(Rect2i(Grid.world_to_cell(site_position("radio")),Vector2i.ONE),"radio")
@@ -244,11 +250,16 @@ func _route(start: Vector2i,goal: Vector2i) -> Array:
 
 func update_villagers(dt: float,snap: bool=false) -> void:
 	for id in villagers:
+		if conversation_holds.has(id):
+			villagers[id].data.walking=false
+			villagers[id].queue_redraw()
+			continue
 		var stop=Schedule.stop(id,state.minute)
 		if id=="moss" and not state.invited: stop={"cell":Vector2i(20,43),"sleeping":false,"room":""}
-		if id in ["moss","mayor"] and state.invited and not state.met_mayor and state.total()>=2010:
-			stop={"cell":Grid.SPAWN_CELL+Vector2i(3,0) if id=="moss" else Grid.SPAWN_CELL+Vector2i(1,0),"sleeping":false}
-			stop.room="home" if state.location=="home" and state.total()>=2160 else ""
+		if id in ["moss","mayor","assistant"] and state.invited and not state.met_mayor and state.day>state.invitation_day and state.minute>=(570 if id=="moss" else 480) and state.minute<960:
+			var offset={"moss":Vector2i(3,0),"mayor":Vector2i(1,0),"assistant":Vector2i(2,1)}[id]
+			stop={"cell":Grid.SPAWN_CELL+offset,"sleeping":false,"room":"home" if state.location=="home" and state.minute>=600 else ""}
+		if state.abandoned_day.get(id,0)==state.day: stop=Schedule.home_stop(id)
 		var actor: Node2D=villagers[id]
 		var previous=actor.position
 		var target=Grid.center(stop.cell)
@@ -520,6 +531,11 @@ func _draw() -> void:
 			r(self,p.x+12,p.y+2,8,27,"b8a77a")
 		else: _fence(p.x,p.y+2,Grid.TILE_SIZE)
 	var field=Grid.rect(FARM_CELL,Vector2i(5,4))
+	var chest=site_position("chest")
+	r(self,chest.x-15,chest.y-21,30,22,"796345")
+	r(self,chest.x-15,chest.y-26,30,8,"baa06d")
+	r(self,chest.x+8,chest.y-19,7,20,"5e5741")
+	r(self,chest.x-2,chest.y-18,5,8,"e0c38c")
 	draw_rect(field.grow(3),Color("596341"))
 	draw_rect(field,Color("7b6446"))
 	for garden in DECORATIVE_FIELDS: paint_decorative_garden(garden)
@@ -789,6 +805,16 @@ func paint_building(c: CanvasItem, b: Dictionary) -> void:
 		c.draw_string(ThemeDB.fallback_font,Vector2(50,-92),"PROVISIONS",HORIZONTAL_ALIGNMENT_LEFT,-1,9,Color("e9d7ad"))
 
 func paint_person(c: CanvasItem, p: Dictionary, step: float, direction: String) -> void:
+	if p.get("sleeping",false):
+		var pillow_y=-float(p.get("bed_height",64))+20
+		# The body runs down the mattress beneath its blanket.
+		r(c,-7,pillow_y-7,14,15,p.skin)
+		r(c,-7,pillow_y-8,14,4,p.hair)
+		r(c,-7,pillow_y-4,2,8,p.hair)
+		for x in [-4,2]: r(c,x,pillow_y+2,3,1,"454b48")
+		r(c,-8,pillow_y+8,17,5,p.coat)
+		r(c,-10,pillow_y+12,21,3,"a2b7a7")
+		return
 	oval(c,0,2,10,4,"213e3560")
 	r(c,-7,-14,6,13+step*2,"344a4b")
 	r(c,2,-14,6,13-step*2,"344a4b")
@@ -809,6 +835,9 @@ func paint_person(c: CanvasItem, p: Dictionary, step: float, direction: String) 
 		r(c,3,-35,2,2,"33403a")
 		r(c,0,-31,3,1,"8c6551")
 	else: r(c,-5,-39,11,8,p.hair)
+	if p.get("elf",false):
+		poly(c,[Vector2(-6,-39),Vector2(-13,-44),Vector2(-9,-32)],p.skin)
+		poly(c,[Vector2(6,-39),Vector2(13,-44),Vector2(9,-32)],p.skin)
 	if p.get("hat",false):
 		r(c,-12,-44,25,4,"d2ba7e")
 		r(c,-7,-51,15,8,"c3a773")

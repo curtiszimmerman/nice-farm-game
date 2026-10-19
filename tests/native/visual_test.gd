@@ -27,6 +27,10 @@ func run() -> void:
 	game.testing=true
 	root.add_child(game)
 	game.set_process(false)
+	game.open_chest()
+	await capture("chest")
+	game.close_window()
+	for i in range(3): game.state.chest_transfer(i)
 	game.world.elapsed=2.0
 	game.ui.message.text=""
 	await capture("farm")
@@ -89,6 +93,9 @@ func run() -> void:
 	await capture("interior-living")
 	game.state.player_position=game.world.site_position("bed")
 	await capture("interior-bedroom")
+	game.begin_rest(240)
+	await capture("interior-sleeping")
+	game.interact()
 	game.state.player_position=game.world.Grid.center(Vector2i(10,9))
 	await capture("interior-kitchen-bath")
 	game.leave_building()

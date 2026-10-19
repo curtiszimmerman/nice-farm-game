@@ -26,6 +26,7 @@ func run() -> void:
 	game.testing=true
 	root.add_child(game)
 	game.set_process(false)
+	for i in range(3): game.state.chest_transfer(i)
 	game.testing=false
 	game.state.money=91
 	game.state.invited=true
@@ -42,6 +43,13 @@ func run() -> void:
 	game.state=State.new()
 	game._load_visit()
 	check(game.state.money==105,"second save survives a fresh state load")
+	game.enter_building("home")
+	var standing=game.state.player_position
+	game.begin_rest(240)
+	game.save_visit()
+	var sleeping_save=JSON.parse_string(FileAccess.get_file_as_string(game.save_path()))
+	check(Vector2(sleeping_save.x,sleeping_save.y)==standing,"saving during sleep records the safe position beside the bed")
+	game.resting=0
 	var corrupt=FileAccess.open(game.save_path(),FileAccess.WRITE)
 	corrupt.store_string("{broken save")
 	corrupt.close()

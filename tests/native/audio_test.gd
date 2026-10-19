@@ -75,6 +75,7 @@ func run() -> void:
 	game.testing=true
 	root.add_child(game)
 	game.set_process(false)
+	for i in range(3): game.state.chest_transfer(i)
 	await process_frame
 	game.state.player_position=game.world.plot_position(0)+Vector2.UP*game.world.Grid.TILE_SIZE
 	for i in range(3): game.interact()

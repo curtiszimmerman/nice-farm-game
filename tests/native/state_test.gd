@@ -14,6 +14,7 @@ func check(condition: bool, description: String) -> void:
 
 func _initialize() -> void:
 	var s = State.new()
+	for i in range(3): s.chest_transfer(i)
 	s.tend(0)
 	s.tend(0)
 	check(s.seeds == 7 and not s.ripe(0), "planting spends a seed and requires water")
@@ -66,6 +67,7 @@ func _initialize() -> void:
 	var late = State.new()
 	late.invited = true
 	late.day = 3
+	late.minute=720
 	check(late.meet_mayor(), "missed appointment remains recoverable")
 	var data = s.to_dict()
 	var restored = State.new()

@@ -79,7 +79,9 @@ func run() -> void:
 	game.state.met_mayor=false
 	game.enter_building("home")
 	game._process(0.5)
-	check(game.state.met_mayor and game.window_open,"the noon appointment also works when the captain waits inside the farmhouse")
+	check(game.window_open and game.conversation_members.size()==3,"the noon appointment also works when the captain waits inside the farmhouse")
+	for i in range(3): game.ui.modal_box.get_child(3).pressed.emit()
+	check(game.state.met_mayor,"the indoor introduction completes after its final choice")
 	await game.sound.shutdown()
 	game.queue_free()
 	await process_frame
