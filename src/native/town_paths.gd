@@ -9,6 +9,7 @@ static func yards(world: Node2D) -> void:
 		if building.id not in ["home","moss","mayor","tavi","finch","assistant","veteran","reed_farm","mill_home","woodcutter"]: continue
 		var bounds=Rect2i(building.cell-Vector2i(2,2),building.tiles+Vector2i(4,5))
 		if building.id=="home": bounds=Rect2i(8,37,12,10)
+		if building.id=="veteran": bounds.size.x=12
 		var gate=Vector2i(building.cell.x+int(building.tiles.x/2),bounds.end.y-1)
 		if building.id=="home": gate=Vector2i(14,46)
 		if building.id=="reed_farm": gate.x+=1

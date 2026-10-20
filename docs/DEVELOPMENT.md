@@ -184,6 +184,8 @@ Moon timing is a provisional visual interpretation pending Z's answer: Sael has 
 
 The quest-rollout crash came from freeing a header during its pressed signal. Rows now detach immediately and queue deletion; a regression emits the real signal and checks expansion/collapse. A schedule regression caught Bram's stop on a new fence; it now uses a clear approach. Movement regression fixtures select a real straight road rather than assuming an old authored route still exists. The launcher mode change remains uncommitted. No journal tool is available; findings are recorded here.
 
+Final verification passed 1,472 native checks, four Python asset checks, startup smoke and the complete host visual/audio run, including real item and spell drags. Both atlases and bitmap font rebuild identically. The full run exposed an obsolete UI assertion on the retired single-objective label; the corrected check clicks the actual Crew Log header and verifies its quest list. That test and the remaining suite were rerun with clean output; the preceding tests also had clean output. Earlier failing logs remain under ignored internal/verification for diagnosis. Additional layout checks widened Bram's yard around his existing garden and retained the original three-occupant floor-area budget when married parents began sharing a bed.
+
 ## Next discussion
 
 Play and critique the slice before expanding it. Decide the next milestone, combat controls and feel, art direction, calendar/lunar rules, and the first actual networked cooperative interaction. Do not mistake placeholder content for approved final story or mechanics.

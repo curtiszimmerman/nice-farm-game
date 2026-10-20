@@ -27,6 +27,7 @@ func run() -> void:
 		var room=game.world
 		var beds=room.furnishings.filter(func(item):return item.kind=="bed").size()
 		var budget=210+maxi(0,beds-1)*32
+		if b.id in ["reed_farm","mill_home"]: budget=274
 		if b.id in ["smithy","bakery"]: budget=240
 		if b.id=="tavern": budget=300
 		if room.ROOM_CELLS.x*room.ROOM_CELLS.y>budget: compact=false
