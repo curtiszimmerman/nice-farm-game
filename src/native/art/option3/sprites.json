@@ -1,0 +1,3098 @@
+{
+  "tile_grass0": {
+    "rect": [
+      1,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_wood0": {
+    "rect": [
+      19,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_cave0": {
+    "rect": [
+      37,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_paving0": {
+    "rect": [
+      55,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_trail": {
+    "rect": [
+      73,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_grass1": {
+    "rect": [
+      91,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_wood1": {
+    "rect": [
+      109,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_cave1": {
+    "rect": [
+      127,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_paving1": {
+    "rect": [
+      145,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_grass2": {
+    "rect": [
+      163,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_wood2": {
+    "rect": [
+      181,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_cave2": {
+    "rect": [
+      199,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_paving2": {
+    "rect": [
+      217,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_grass3": {
+    "rect": [
+      235,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_wood3": {
+    "rect": [
+      253,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_cave3": {
+    "rect": [
+      271,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_paving3": {
+    "rect": [
+      289,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_bath": {
+    "rect": [
+      307,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_metal": {
+    "rect": [
+      325,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_metal_wall": {
+    "rect": [
+      343,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_wall": {
+    "rect": [
+      361,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_void": {
+    "rect": [
+      379,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_cliff0": {
+    "rect": [
+      397,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_cliff1": {
+    "rect": [
+      415,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_cliff2": {
+    "rect": [
+      433,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_cliff3": {
+    "rect": [
+      451,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_cliff4": {
+    "rect": [
+      469,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_cliff5": {
+    "rect": [
+      487,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_cliff6": {
+    "rect": [
+      505,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_cliff7": {
+    "rect": [
+      523,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_cliff8": {
+    "rect": [
+      541,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_cliff9": {
+    "rect": [
+      559,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_cliff10": {
+    "rect": [
+      577,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_cliff11": {
+    "rect": [
+      595,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_cliff12": {
+    "rect": [
+      613,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_cliff13": {
+    "rect": [
+      631,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_cliff14": {
+    "rect": [
+      649,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_cliff15": {
+    "rect": [
+      667,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_jetty": {
+    "rect": [
+      685,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_plaster_wall": {
+    "rect": [
+      703,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_plaster_left": {
+    "rect": [
+      721,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_plaster_right": {
+    "rect": [
+      739,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_plaster_foundation": {
+    "rect": [
+      757,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_plaster_window": {
+    "rect": [
+      775,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_plaster_door": {
+    "rect": [
+      793,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_plaster_door_top": {
+    "rect": [
+      811,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_plaster_door_bottom": {
+    "rect": [
+      829,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_log_wall": {
+    "rect": [
+      847,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_log_left": {
+    "rect": [
+      865,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_log_right": {
+    "rect": [
+      883,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_log_foundation": {
+    "rect": [
+      901,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_log_window": {
+    "rect": [
+      919,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_log_door": {
+    "rect": [
+      937,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_log_door_top": {
+    "rect": [
+      955,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_log_door_bottom": {
+    "rect": [
+      973,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_stone_wall": {
+    "rect": [
+      991,
+      1,
+      16,
+      16
+    ]
+  },
+  "tile_stone_left": {
+    "rect": [
+      1,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_stone_right": {
+    "rect": [
+      19,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_stone_foundation": {
+    "rect": [
+      37,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_stone_window": {
+    "rect": [
+      55,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_stone_door": {
+    "rect": [
+      73,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_stone_door_top": {
+    "rect": [
+      91,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_stone_door_bottom": {
+    "rect": [
+      109,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_shop_wall": {
+    "rect": [
+      127,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_shop_left": {
+    "rect": [
+      145,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_shop_right": {
+    "rect": [
+      163,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_shop_foundation": {
+    "rect": [
+      181,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_shop_window": {
+    "rect": [
+      199,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_shop_door": {
+    "rect": [
+      217,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_shop_door_top": {
+    "rect": [
+      235,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_shop_door_bottom": {
+    "rect": [
+      253,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_roof": {
+    "rect": [
+      271,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_roof_left": {
+    "rect": [
+      289,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_roof_right": {
+    "rect": [
+      307,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_ridge": {
+    "rect": [
+      325,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_chimney": {
+    "rect": [
+      343,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_flowerbed": {
+    "rect": [
+      361,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_light": {
+    "rect": [
+      379,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_fence": {
+    "rect": [
+      397,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_fence_mask0": {
+    "rect": [
+      415,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_fence_mask1": {
+    "rect": [
+      433,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_fence_mask2": {
+    "rect": [
+      451,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_fence_mask3": {
+    "rect": [
+      469,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_fence_mask4": {
+    "rect": [
+      487,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_fence_mask5": {
+    "rect": [
+      505,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_fence_mask6": {
+    "rect": [
+      523,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_fence_mask7": {
+    "rect": [
+      541,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_fence_mask8": {
+    "rect": [
+      559,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_fence_mask9": {
+    "rect": [
+      577,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_fence_mask10": {
+    "rect": [
+      595,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_fence_mask11": {
+    "rect": [
+      613,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_fence_mask12": {
+    "rect": [
+      631,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_fence_mask13": {
+    "rect": [
+      649,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_fence_mask14": {
+    "rect": [
+      667,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_fence_mask15": {
+    "rect": [
+      685,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_gate_h_open": {
+    "rect": [
+      703,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_gate_v_open": {
+    "rect": [
+      721,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_tower_left": {
+    "rect": [
+      739,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_tower_right": {
+    "rect": [
+      757,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_cave_arch_left": {
+    "rect": [
+      775,
+      19,
+      16,
+      16
+    ]
+  },
+  "tile_cave_arch_right": {
+    "rect": [
+      793,
+      19,
+      16,
+      16
+    ]
+  },
+  "tree_oak_2": {
+    "rect": [
+      811,
+      19,
+      48,
+      64
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      2
+    ]
+  },
+  "tree_oak_3": {
+    "rect": [
+      861,
+      19,
+      48,
+      80
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      3
+    ]
+  },
+  "tree_oak_4": {
+    "rect": [
+      911,
+      19,
+      48,
+      96
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      4
+    ]
+  },
+  "tree_birch_2": {
+    "rect": [
+      961,
+      19,
+      48,
+      64
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      2
+    ]
+  },
+  "tree_birch_3": {
+    "rect": [
+      1,
+      117,
+      48,
+      80
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      3
+    ]
+  },
+  "tree_birch_4": {
+    "rect": [
+      51,
+      117,
+      48,
+      96
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      4
+    ]
+  },
+  "tree_pine_2": {
+    "rect": [
+      101,
+      117,
+      48,
+      64
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      2
+    ]
+  },
+  "tree_pine_3": {
+    "rect": [
+      151,
+      117,
+      48,
+      80
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      3
+    ]
+  },
+  "tree_pine_4": {
+    "rect": [
+      201,
+      117,
+      48,
+      96
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      4
+    ]
+  },
+  "bush0": {
+    "rect": [
+      251,
+      117,
+      32,
+      24
+    ]
+  },
+  "bush1": {
+    "rect": [
+      285,
+      117,
+      32,
+      24
+    ]
+  },
+  "bush2": {
+    "rect": [
+      319,
+      117,
+      32,
+      24
+    ]
+  },
+  "bush3": {
+    "rect": [
+      353,
+      117,
+      32,
+      24
+    ]
+  },
+  "rock": {
+    "rect": [
+      387,
+      117,
+      16,
+      24
+    ]
+  },
+  "copper": {
+    "rect": [
+      405,
+      117,
+      16,
+      24
+    ]
+  },
+  "barrel": {
+    "rect": [
+      423,
+      117,
+      16,
+      24
+    ]
+  },
+  "chest": {
+    "rect": [
+      441,
+      117,
+      16,
+      24
+    ]
+  },
+  "cart": {
+    "rect": [
+      459,
+      117,
+      48,
+      32
+    ]
+  },
+  "sign": {
+    "rect": [
+      509,
+      117,
+      32,
+      32
+    ]
+  },
+  "lamp": {
+    "rect": [
+      543,
+      117,
+      16,
+      48
+    ]
+  },
+  "fountain": {
+    "rect": [
+      561,
+      117,
+      32,
+      40
+    ]
+  },
+  "chrysalis": {
+    "rect": [
+      595,
+      117,
+      16,
+      24
+    ]
+  },
+  "sparkfire": {
+    "rect": [
+      613,
+      117,
+      16,
+      24
+    ]
+  },
+  "sparkfire_bloom": {
+    "rect": [
+      631,
+      117,
+      16,
+      24
+    ]
+  },
+  "rat0": {
+    "rect": [
+      649,
+      117,
+      16,
+      16
+    ]
+  },
+  "rat1": {
+    "rect": [
+      667,
+      117,
+      16,
+      16
+    ]
+  },
+  "rat2": {
+    "rect": [
+      685,
+      117,
+      16,
+      16
+    ]
+  },
+  "display_console0": {
+    "rect": [
+      703,
+      117,
+      32,
+      16
+    ]
+  },
+  "display_reactor0": {
+    "rect": [
+      737,
+      117,
+      32,
+      16
+    ]
+  },
+  "display_machine0": {
+    "rect": [
+      771,
+      117,
+      32,
+      16
+    ]
+  },
+  "display_console1": {
+    "rect": [
+      805,
+      117,
+      32,
+      16
+    ]
+  },
+  "display_reactor1": {
+    "rect": [
+      839,
+      117,
+      32,
+      16
+    ]
+  },
+  "display_machine1": {
+    "rect": [
+      873,
+      117,
+      32,
+      16
+    ]
+  },
+  "display_console2": {
+    "rect": [
+      907,
+      117,
+      32,
+      16
+    ]
+  },
+  "display_reactor2": {
+    "rect": [
+      941,
+      117,
+      32,
+      16
+    ]
+  },
+  "display_machine2": {
+    "rect": [
+      975,
+      117,
+      32,
+      16
+    ]
+  },
+  "display_console3": {
+    "rect": [
+      1,
+      215,
+      32,
+      16
+    ]
+  },
+  "display_reactor3": {
+    "rect": [
+      35,
+      215,
+      32,
+      16
+    ]
+  },
+  "display_machine3": {
+    "rect": [
+      69,
+      215,
+      32,
+      16
+    ]
+  },
+  "display_console4": {
+    "rect": [
+      103,
+      215,
+      32,
+      16
+    ]
+  },
+  "display_reactor4": {
+    "rect": [
+      137,
+      215,
+      32,
+      16
+    ]
+  },
+  "display_machine4": {
+    "rect": [
+      171,
+      215,
+      32,
+      16
+    ]
+  },
+  "actor_player_down0": {
+    "rect": [
+      205,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_player_down1": {
+    "rect": [
+      223,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_player_down2": {
+    "rect": [
+      241,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_player_up0": {
+    "rect": [
+      259,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_player_up1": {
+    "rect": [
+      277,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_player_up2": {
+    "rect": [
+      295,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_player_left0": {
+    "rect": [
+      313,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_player_left1": {
+    "rect": [
+      331,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_player_left2": {
+    "rect": [
+      349,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_player_right0": {
+    "rect": [
+      367,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_player_right1": {
+    "rect": [
+      385,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_player_right2": {
+    "rect": [
+      403,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_player_sleep0": {
+    "rect": [
+      421,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_moss_down0": {
+    "rect": [
+      439,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_moss_down1": {
+    "rect": [
+      457,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_moss_down2": {
+    "rect": [
+      475,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_moss_up0": {
+    "rect": [
+      493,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_moss_up1": {
+    "rect": [
+      511,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_moss_up2": {
+    "rect": [
+      529,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_moss_left0": {
+    "rect": [
+      547,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_moss_left1": {
+    "rect": [
+      565,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_moss_left2": {
+    "rect": [
+      583,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_moss_right0": {
+    "rect": [
+      601,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_moss_right1": {
+    "rect": [
+      619,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_moss_right2": {
+    "rect": [
+      637,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_moss_sleep0": {
+    "rect": [
+      655,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_tavi_down0": {
+    "rect": [
+      673,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_tavi_down1": {
+    "rect": [
+      691,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_tavi_down2": {
+    "rect": [
+      709,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_tavi_up0": {
+    "rect": [
+      727,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_tavi_up1": {
+    "rect": [
+      745,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_tavi_up2": {
+    "rect": [
+      763,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_tavi_left0": {
+    "rect": [
+      781,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_tavi_left1": {
+    "rect": [
+      799,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_tavi_left2": {
+    "rect": [
+      817,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_tavi_right0": {
+    "rect": [
+      835,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_tavi_right1": {
+    "rect": [
+      853,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_tavi_right2": {
+    "rect": [
+      871,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_tavi_sleep0": {
+    "rect": [
+      889,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_iona_down0": {
+    "rect": [
+      907,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_iona_down1": {
+    "rect": [
+      925,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_iona_down2": {
+    "rect": [
+      943,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_iona_up0": {
+    "rect": [
+      961,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_iona_up1": {
+    "rect": [
+      979,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_iona_up2": {
+    "rect": [
+      997,
+      215,
+      16,
+      32
+    ]
+  },
+  "actor_iona_left0": {
+    "rect": [
+      1,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_iona_left1": {
+    "rect": [
+      19,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_iona_left2": {
+    "rect": [
+      37,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_iona_right0": {
+    "rect": [
+      55,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_iona_right1": {
+    "rect": [
+      73,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_iona_right2": {
+    "rect": [
+      91,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_iona_sleep0": {
+    "rect": [
+      109,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_finch_down0": {
+    "rect": [
+      127,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_finch_down1": {
+    "rect": [
+      145,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_finch_down2": {
+    "rect": [
+      163,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_finch_up0": {
+    "rect": [
+      181,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_finch_up1": {
+    "rect": [
+      199,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_finch_up2": {
+    "rect": [
+      217,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_finch_left0": {
+    "rect": [
+      235,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_finch_left1": {
+    "rect": [
+      253,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_finch_left2": {
+    "rect": [
+      271,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_finch_right0": {
+    "rect": [
+      289,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_finch_right1": {
+    "rect": [
+      307,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_finch_right2": {
+    "rect": [
+      325,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_finch_sleep0": {
+    "rect": [
+      343,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_vale_down0": {
+    "rect": [
+      361,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_vale_down1": {
+    "rect": [
+      379,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_vale_down2": {
+    "rect": [
+      397,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_vale_up0": {
+    "rect": [
+      415,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_vale_up1": {
+    "rect": [
+      433,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_vale_up2": {
+    "rect": [
+      451,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_vale_left0": {
+    "rect": [
+      469,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_vale_left1": {
+    "rect": [
+      487,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_vale_left2": {
+    "rect": [
+      505,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_vale_right0": {
+    "rect": [
+      523,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_vale_right1": {
+    "rect": [
+      541,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_vale_right2": {
+    "rect": [
+      559,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_vale_sleep0": {
+    "rect": [
+      577,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_mayor_down0": {
+    "rect": [
+      595,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_mayor_down1": {
+    "rect": [
+      613,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_mayor_down2": {
+    "rect": [
+      631,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_mayor_up0": {
+    "rect": [
+      649,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_mayor_up1": {
+    "rect": [
+      667,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_mayor_up2": {
+    "rect": [
+      685,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_mayor_left0": {
+    "rect": [
+      703,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_mayor_left1": {
+    "rect": [
+      721,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_mayor_left2": {
+    "rect": [
+      739,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_mayor_right0": {
+    "rect": [
+      757,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_mayor_right1": {
+    "rect": [
+      775,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_mayor_right2": {
+    "rect": [
+      793,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_mayor_sleep0": {
+    "rect": [
+      811,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_veteran_down0": {
+    "rect": [
+      829,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_veteran_down1": {
+    "rect": [
+      847,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_veteran_down2": {
+    "rect": [
+      865,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_veteran_up0": {
+    "rect": [
+      883,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_veteran_up1": {
+    "rect": [
+      901,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_veteran_up2": {
+    "rect": [
+      919,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_veteran_left0": {
+    "rect": [
+      937,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_veteran_left1": {
+    "rect": [
+      955,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_veteran_left2": {
+    "rect": [
+      973,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_veteran_right0": {
+    "rect": [
+      991,
+      249,
+      16,
+      32
+    ]
+  },
+  "actor_veteran_right1": {
+    "rect": [
+      1,
+      283,
+      16,
+      32
+    ]
+  },
+  "actor_veteran_right2": {
+    "rect": [
+      19,
+      283,
+      16,
+      32
+    ]
+  },
+  "actor_veteran_sleep0": {
+    "rect": [
+      37,
+      283,
+      16,
+      32
+    ]
+  },
+  "actor_assistant_down0": {
+    "rect": [
+      55,
+      283,
+      16,
+      32
+    ]
+  },
+  "actor_assistant_down1": {
+    "rect": [
+      73,
+      283,
+      16,
+      32
+    ]
+  },
+  "actor_assistant_down2": {
+    "rect": [
+      91,
+      283,
+      16,
+      32
+    ]
+  },
+  "actor_assistant_up0": {
+    "rect": [
+      109,
+      283,
+      16,
+      32
+    ]
+  },
+  "actor_assistant_up1": {
+    "rect": [
+      127,
+      283,
+      16,
+      32
+    ]
+  },
+  "actor_assistant_up2": {
+    "rect": [
+      145,
+      283,
+      16,
+      32
+    ]
+  },
+  "actor_assistant_left0": {
+    "rect": [
+      163,
+      283,
+      16,
+      32
+    ]
+  },
+  "actor_assistant_left1": {
+    "rect": [
+      181,
+      283,
+      16,
+      32
+    ]
+  },
+  "actor_assistant_left2": {
+    "rect": [
+      199,
+      283,
+      16,
+      32
+    ]
+  },
+  "actor_assistant_right0": {
+    "rect": [
+      217,
+      283,
+      16,
+      32
+    ]
+  },
+  "actor_assistant_right1": {
+    "rect": [
+      235,
+      283,
+      16,
+      32
+    ]
+  },
+  "actor_assistant_right2": {
+    "rect": [
+      253,
+      283,
+      16,
+      32
+    ]
+  },
+  "actor_assistant_sleep0": {
+    "rect": [
+      271,
+      283,
+      16,
+      32
+    ]
+  },
+  "planet": {
+    "rect": [
+      289,
+      283,
+      96,
+      96
+    ]
+  },
+  "particle": {
+    "rect": [
+      387,
+      283,
+      2,
+      2
+    ]
+  },
+  "firefly": {
+    "rect": [
+      391,
+      283,
+      4,
+      4
+    ]
+  },
+  "ripple": {
+    "rect": [
+      397,
+      283,
+      8,
+      2
+    ]
+  },
+  "cable": {
+    "rect": [
+      407,
+      283,
+      16,
+      32
+    ]
+  },
+  "bird0": {
+    "rect": [
+      425,
+      283,
+      8,
+      8
+    ]
+  },
+  "bird1": {
+    "rect": [
+      435,
+      283,
+      8,
+      8
+    ]
+  },
+  "bird2": {
+    "rect": [
+      445,
+      283,
+      8,
+      8
+    ]
+  },
+  "explosion0": {
+    "rect": [
+      455,
+      283,
+      48,
+      48
+    ]
+  },
+  "spark0": {
+    "rect": [
+      505,
+      283,
+      8,
+      8
+    ]
+  },
+  "explosion1": {
+    "rect": [
+      515,
+      283,
+      48,
+      48
+    ]
+  },
+  "spark1": {
+    "rect": [
+      565,
+      283,
+      8,
+      8
+    ]
+  },
+  "explosion2": {
+    "rect": [
+      575,
+      283,
+      48,
+      48
+    ]
+  },
+  "spark2": {
+    "rect": [
+      625,
+      283,
+      8,
+      8
+    ]
+  },
+  "explosion3": {
+    "rect": [
+      635,
+      283,
+      48,
+      48
+    ]
+  },
+  "spark3": {
+    "rect": [
+      685,
+      283,
+      8,
+      8
+    ]
+  },
+  "explosion4": {
+    "rect": [
+      695,
+      283,
+      48,
+      48
+    ]
+  },
+  "spark4": {
+    "rect": [
+      745,
+      283,
+      8,
+      8
+    ]
+  },
+  "explosion5": {
+    "rect": [
+      755,
+      283,
+      48,
+      48
+    ]
+  },
+  "spark5": {
+    "rect": [
+      805,
+      283,
+      8,
+      8
+    ]
+  },
+  "bolt_friendly": {
+    "rect": [
+      815,
+      283,
+      16,
+      4
+    ]
+  },
+  "bolt_enemy": {
+    "rect": [
+      833,
+      283,
+      16,
+      4
+    ]
+  },
+  "ship_crew": {
+    "rect": [
+      851,
+      283,
+      96,
+      48
+    ]
+  },
+  "ship_enemy": {
+    "rect": [
+      1,
+      381,
+      96,
+      48
+    ]
+  },
+  "bridge": {
+    "rect": [
+      99,
+      381,
+      160,
+      78
+    ]
+  },
+  "item_pickaxe": {
+    "rect": [
+      261,
+      381,
+      12,
+      12
+    ]
+  },
+  "item_stones": {
+    "rect": [
+      275,
+      381,
+      12,
+      12
+    ]
+  },
+  "item_cave_moth_chrysalis": {
+    "rect": [
+      289,
+      381,
+      12,
+      12
+    ]
+  },
+  "item_golden_sparkfire_bloom": {
+    "rect": [
+      303,
+      381,
+      12,
+      12
+    ]
+  },
+  "item_moon_pike": {
+    "rect": [
+      317,
+      381,
+      12,
+      12
+    ]
+  },
+  "item_sea_sprat": {
+    "rect": [
+      331,
+      381,
+      12,
+      12
+    ]
+  },
+  "item_blue_mackerel": {
+    "rect": [
+      345,
+      381,
+      12,
+      12
+    ]
+  },
+  "item_storm_eel": {
+    "rect": [
+      359,
+      381,
+      12,
+      12
+    ]
+  },
+  "item_light_bulbs": {
+    "rect": [
+      373,
+      381,
+      12,
+      12
+    ]
+  },
+  "item_pot": {
+    "rect": [
+      387,
+      381,
+      12,
+      12
+    ]
+  },
+  "item_pan": {
+    "rect": [
+      401,
+      381,
+      12,
+      12
+    ]
+  },
+  "item_fish_sticks": {
+    "rect": [
+      415,
+      381,
+      12,
+      12
+    ]
+  },
+  "item_fish_stew": {
+    "rect": [
+      429,
+      381,
+      12,
+      12
+    ]
+  },
+  "item_health_elixir": {
+    "rect": [
+      443,
+      381,
+      12,
+      12
+    ]
+  },
+  "item_rations": {
+    "rect": [
+      457,
+      381,
+      12,
+      12
+    ]
+  },
+  "item_hoe": {
+    "rect": [
+      471,
+      381,
+      12,
+      12
+    ]
+  },
+  "item_watering_can": {
+    "rect": [
+      485,
+      381,
+      12,
+      12
+    ]
+  },
+  "item_sickle": {
+    "rect": [
+      499,
+      381,
+      12,
+      12
+    ]
+  },
+  "item_seeds": {
+    "rect": [
+      513,
+      381,
+      12,
+      12
+    ]
+  },
+  "item_star_seeds": {
+    "rect": [
+      527,
+      381,
+      12,
+      12
+    ]
+  },
+  "item_turnips": {
+    "rect": [
+      541,
+      381,
+      12,
+      12
+    ]
+  },
+  "item_fish": {
+    "rect": [
+      555,
+      381,
+      12,
+      12
+    ]
+  },
+  "item_star_bulbs": {
+    "rect": [
+      569,
+      381,
+      12,
+      12
+    ]
+  },
+  "item_copper": {
+    "rect": [
+      583,
+      381,
+      12,
+      12
+    ]
+  },
+  "item_rusty_sword": {
+    "rect": [
+      597,
+      381,
+      12,
+      12
+    ]
+  },
+  "furniture_art_1x1": {
+    "rect": [
+      611,
+      381,
+      20,
+      36
+    ]
+  },
+  "furniture_art_2x1": {
+    "rect": [
+      633,
+      381,
+      36,
+      36
+    ]
+  },
+  "furniture_bath_1x2": {
+    "rect": [
+      671,
+      381,
+      20,
+      52
+    ]
+  },
+  "furniture_bath_2x2": {
+    "rect": [
+      693,
+      381,
+      36,
+      52
+    ]
+  },
+  "furniture_bed_1x2": {
+    "rect": [
+      731,
+      381,
+      20,
+      52
+    ]
+  },
+  "cover_1x2": {
+    "rect": [
+      753,
+      381,
+      20,
+      52
+    ]
+  },
+  "furniture_bed_2x2": {
+    "rect": [
+      775,
+      381,
+      36,
+      52
+    ]
+  },
+  "cover_2x2": {
+    "rect": [
+      813,
+      381,
+      36,
+      52
+    ]
+  },
+  "furniture_bed_2x3": {
+    "rect": [
+      851,
+      381,
+      36,
+      68
+    ]
+  },
+  "cover_2x3": {
+    "rect": [
+      889,
+      381,
+      36,
+      68
+    ]
+  },
+  "furniture_bookshelf_1x1": {
+    "rect": [
+      927,
+      381,
+      20,
+      36
+    ]
+  },
+  "furniture_bookshelf_1x2": {
+    "rect": [
+      949,
+      381,
+      20,
+      52
+    ]
+  },
+  "furniture_bookshelf_1x3": {
+    "rect": [
+      971,
+      381,
+      20,
+      68
+    ]
+  },
+  "furniture_bookshelf_2x1": {
+    "rect": [
+      1,
+      461,
+      36,
+      36
+    ]
+  },
+  "furniture_bookshelf_3x1": {
+    "rect": [
+      39,
+      461,
+      52,
+      36
+    ]
+  },
+  "furniture_cabinet_2x1": {
+    "rect": [
+      93,
+      461,
+      36,
+      36
+    ]
+  },
+  "furniture_cabinet_3x1": {
+    "rect": [
+      131,
+      461,
+      52,
+      36
+    ]
+  },
+  "furniture_chair_1x1": {
+    "rect": [
+      185,
+      461,
+      20,
+      36
+    ]
+  },
+  "furniture_console_2x1": {
+    "rect": [
+      207,
+      461,
+      36,
+      36
+    ]
+  },
+  "furniture_counter_4x1": {
+    "rect": [
+      245,
+      461,
+      68,
+      36
+    ]
+  },
+  "furniture_crates_2x2": {
+    "rect": [
+      315,
+      461,
+      36,
+      52
+    ]
+  },
+  "furniture_desk_2x1": {
+    "rect": [
+      353,
+      461,
+      36,
+      36
+    ]
+  },
+  "furniture_desk_3x1": {
+    "rect": [
+      391,
+      461,
+      52,
+      36
+    ]
+  },
+  "furniture_kitchen_2x1": {
+    "rect": [
+      445,
+      461,
+      36,
+      36
+    ]
+  },
+  "furniture_kitchen_3x1": {
+    "rect": [
+      483,
+      461,
+      52,
+      36
+    ]
+  },
+  "furniture_kitchen_4x1": {
+    "rect": [
+      537,
+      461,
+      68,
+      36
+    ]
+  },
+  "furniture_machine_2x2": {
+    "rect": [
+      607,
+      461,
+      36,
+      52
+    ]
+  },
+  "furniture_machine_3x2": {
+    "rect": [
+      645,
+      461,
+      52,
+      52
+    ]
+  },
+  "furniture_plant_1x1": {
+    "rect": [
+      699,
+      461,
+      20,
+      36
+    ]
+  },
+  "furniture_radio_1x1": {
+    "rect": [
+      721,
+      461,
+      20,
+      36
+    ]
+  },
+  "cover_1x1": {
+    "rect": [
+      743,
+      461,
+      20,
+      36
+    ]
+  },
+  "furniture_radio_3x1": {
+    "rect": [
+      765,
+      461,
+      52,
+      36
+    ]
+  },
+  "cover_3x1": {
+    "rect": [
+      819,
+      461,
+      52,
+      36
+    ]
+  },
+  "furniture_radio_6x1": {
+    "rect": [
+      873,
+      461,
+      100,
+      36
+    ]
+  },
+  "cover_6x1": {
+    "rect": [
+      1,
+      515,
+      100,
+      36
+    ]
+  },
+  "furniture_reactor_3x3": {
+    "rect": [
+      103,
+      515,
+      52,
+      68
+    ]
+  },
+  "furniture_rug_2x3": {
+    "rect": [
+      157,
+      515,
+      36,
+      68
+    ]
+  },
+  "furniture_rug_3x3": {
+    "rect": [
+      195,
+      515,
+      52,
+      68
+    ]
+  },
+  "furniture_rug_4x3": {
+    "rect": [
+      249,
+      515,
+      68,
+      68
+    ]
+  },
+  "furniture_rug_5x3": {
+    "rect": [
+      319,
+      515,
+      84,
+      68
+    ]
+  },
+  "furniture_rug_6x3": {
+    "rect": [
+      405,
+      515,
+      100,
+      68
+    ]
+  },
+  "furniture_seed_tray_2x1": {
+    "rect": [
+      507,
+      515,
+      36,
+      36
+    ]
+  },
+  "furniture_sink_1x1": {
+    "rect": [
+      545,
+      515,
+      20,
+      36
+    ]
+  },
+  "furniture_sofa_2x1": {
+    "rect": [
+      567,
+      515,
+      36,
+      36
+    ]
+  },
+  "cover_2x1": {
+    "rect": [
+      605,
+      515,
+      36,
+      36
+    ]
+  },
+  "furniture_sofa_3x1": {
+    "rect": [
+      643,
+      515,
+      52,
+      36
+    ]
+  },
+  "furniture_stock_1x2": {
+    "rect": [
+      697,
+      515,
+      20,
+      52
+    ]
+  },
+  "furniture_stock_1x4": {
+    "rect": [
+      719,
+      515,
+      20,
+      84
+    ]
+  },
+  "furniture_stock_3x1": {
+    "rect": [
+      741,
+      515,
+      52,
+      36
+    ]
+  },
+  "furniture_stock_8x1": {
+    "rect": [
+      795,
+      515,
+      132,
+      36
+    ]
+  },
+  "furniture_table_1x1": {
+    "rect": [
+      929,
+      515,
+      20,
+      36
+    ]
+  },
+  "furniture_table_2x1": {
+    "rect": [
+      951,
+      515,
+      36,
+      36
+    ]
+  },
+  "furniture_table_3x1": {
+    "rect": [
+      1,
+      601,
+      52,
+      36
+    ]
+  },
+  "furniture_table_4x1": {
+    "rect": [
+      55,
+      601,
+      68,
+      36
+    ]
+  },
+  "furniture_table_5x2": {
+    "rect": [
+      125,
+      601,
+      84,
+      52
+    ]
+  },
+  "furniture_telescope_1x1": {
+    "rect": [
+      211,
+      601,
+      20,
+      36
+    ]
+  },
+  "furniture_toilet_1x1": {
+    "rect": [
+      233,
+      601,
+      20,
+      36
+    ]
+  },
+  "furniture_tools_1x2": {
+    "rect": [
+      255,
+      601,
+      20,
+      52
+    ]
+  },
+  "furniture_tools_2x1": {
+    "rect": [
+      277,
+      601,
+      36,
+      36
+    ]
+  },
+  "crop_soil": {
+    "rect": [
+      315,
+      601,
+      16,
+      16
+    ]
+  },
+  "crop_tilled": {
+    "rect": [
+      333,
+      601,
+      16,
+      16
+    ]
+  },
+  "crop_wet": {
+    "rect": [
+      351,
+      601,
+      16,
+      16
+    ]
+  },
+  "crop_sprout": {
+    "rect": [
+      369,
+      601,
+      16,
+      16
+    ]
+  },
+  "crop_turnip": {
+    "rect": [
+      387,
+      601,
+      16,
+      16
+    ]
+  },
+  "crop_bulb": {
+    "rect": [
+      405,
+      601,
+      16,
+      16
+    ]
+  },
+  "crop_sprout_wet": {
+    "rect": [
+      423,
+      601,
+      16,
+      16
+    ]
+  },
+  "crop_turnip_wet": {
+    "rect": [
+      441,
+      601,
+      16,
+      16
+    ]
+  },
+  "crop_bulb_wet": {
+    "rect": [
+      459,
+      601,
+      16,
+      16
+    ]
+  }
+}

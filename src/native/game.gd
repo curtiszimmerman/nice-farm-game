@@ -888,7 +888,7 @@ func change_art(value: int) -> void:
 	outdoors._build_terrain()
 	redraw_art(outdoors)
 	for room in rooms.values(): redraw_art(room)
-	toast("Artwork option %d selected." % value)
+	toast("Original artwork selected." if value==1 else str(Art.read_json(Art.pack_path).get("name","Sprite artwork"))+" selected.")
 
 func redraw_art(node: Node) -> void:
 	if node is CanvasItem: node.queue_redraw()

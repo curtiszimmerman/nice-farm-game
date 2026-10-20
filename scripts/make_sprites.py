@@ -114,6 +114,12 @@ def terrain():
     p.box(1, 1, 30, 30, "586b72"); p.box(3, 3, 26, 1, "87989b")
     for x in [5, 26]:
         for y in [5, 26]: p.box(x, y, 2, 2, "b2b8a8")
+    p = tile("metal_wall", "30434d")
+    p.box(1, 4, 30, 23, "586b72"); p.box(0, 0, 32, 3, "a0b3b5")
+    p.box(0, 3, 32, 2, "758d96"); p.box(0, 27, 32, 5, "263941")
+    for x in [4, 26]:
+        p.box(x, 7, 2, 2, "bbc7bd"); p.box(x, 23, 2, 2, "bbc7bd")
+    for y in [17, 21]: p.box(10, y, 12, 2, "344952")
     p = tile("wall", "829082")
     p.box(0, 0, 32, 6, "d1d0b7"); p.box(0, 6, 32, 2, "9da88f")
     p.box(0, 29, 32, 3, "3b544c"); p.box(1, 27, 30, 2, "b6bca0")

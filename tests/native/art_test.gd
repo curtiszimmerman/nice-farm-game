@@ -7,6 +7,7 @@ func check(value: bool,label: String) -> void:
 	else: failed=true; push_error("FAIL: "+label)
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
+	check(Art.select_pack("res://art/option2/pack.json").is_empty(),"the preserved 32-pixel sprite pack loads")
 	var game=Game.new()
 	game.testing=true
 	root.add_child(game)

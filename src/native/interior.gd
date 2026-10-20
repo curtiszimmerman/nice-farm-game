@@ -32,7 +32,7 @@ class Wall extends Node2D:
 	var room: Node2D
 	var front=false
 	func _draw() -> void:
-		if Art.option==2: Art.sprite(self,"tile_wall",Vector2(0,-32)); return
+		if Art.option==2: Art.sprite(self,"tile_"+Art.interior_wall(room),Vector2(0,-32)); return
 		room.r(self,0,-40,32,40,"3e554e")
 		if front:
 			room.r(self,0,-29,32,27,"75877a")

@@ -6,7 +6,7 @@ static var atlas: ImageTexture
 static var pixels: Image
 static var catalog: Dictionary={}
 static var tile_size=32
-static var pack_path="res://art/option2/pack.json"
+static var pack_path="res://art/option3/pack.json"
 static var terrain_tiles: Dictionary={}
 
 static func load_atlas() -> void:
@@ -182,6 +182,9 @@ static func outdoors(w: Node2D) -> void:
 	sprite(w,"furniture_table_2x1",radio-Vector2(36,36))
 	sprite(w,"furniture_radio_1x1",radio-Vector2(20,70))
 
+static func interior_wall(room: Node2D) -> String:
+	return "metal_wall" if room.building.id=="ship" else "wall"
+
 static func interior(room: Node2D) -> void:
 	room.draw_rect(Rect2(-400,-250,room.ROOM_SIZE.x+800,room.ROOM_SIZE.y+500),Color("263732"))
 	for cell in room.floor_cells:
@@ -194,7 +197,7 @@ static func interior(room: Node2D) -> void:
 		room.draw_set_transform(Grid.origin(item.bounds.position+Vector2i(0,item.bounds.size.y)))
 		furniture(room,item)
 	room.draw_set_transform(Vector2.ZERO)
-	tile(room,"jetty",room.layout.exit)
+	tile(room,"metal" if room.building.id=="ship" else "jetty",room.layout.exit)
 
 static func crops(w: Node2D,c: CanvasItem) -> void:
 	for i in range(w.state.plots.size()):

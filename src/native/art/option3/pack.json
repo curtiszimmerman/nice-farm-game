@@ -1,0 +1,7 @@
+{
+  "id": "rustic16",
+  "name": "Rustic 16-pixel artwork",
+  "tile_size": 16,
+  "atlas": "sprites.png",
+  "sprites": "sprites.json"
+}
