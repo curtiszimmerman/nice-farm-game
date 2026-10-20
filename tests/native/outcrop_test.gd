@@ -42,6 +42,7 @@ func run() -> void:
 	var deposits=game.world.rocks.values().filter(func(rock): return rock.ore)
 	for i in range(3):
 		game.state.player_position=game.Grid.center(deposits[i].cell+Vector2i.DOWN)
+		game.world.facing="up"
 		game.interact()
 	check(game.state.copper==3 and game.state.energy==85.0,"three cave deposits supply Vale's copper and charge energy")
 	var other=deposits[3]

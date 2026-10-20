@@ -124,6 +124,7 @@ func room_name() -> String:
 		"iona": return "Iona's tower"
 		"veteran": return "Bram's cabin"
 		"assistant": return "Neral's home"
+		"keeper": return "Oren's lighthouse"
 		_: return building.id.capitalize()+"'s home"
 
 func blocked(p: Vector2) -> bool:
@@ -135,31 +136,83 @@ func in_water(_p: Vector2) -> bool: return false
 func audio_context(_p: Vector2) -> Dictionary:
 	return {"environment":"ship" if building.id=="ship" else "indoors","season":state.season_name(),"cave_weight":0.0}
 
+func prepare_departures() -> void:
+	for id in villagers:
+		if id=="vale" or outdoors.conversation_holds.has(id): continue
+		if villagers[id].visible and outdoors.villagers[id].data.get("room","")==building.id and Schedule.stop(id,state.minute).room!=building.id:
+			outdoors.indoor_departures[id]=building.id
+
+func walk_actor(id: String,cell: Vector2i,dt: float,speed: float=45) -> bool:
+	var actor=villagers[id]
+	var target=Grid.center(cell)
+	if not routes.has(id) or routes[id].target!=target: routes[id]={"target":target,"path":_route(Grid.world_to_cell(actor.position),cell)}
+	var path: Array=routes[id].path
+	var remaining=dt*speed
+	var previous: Vector2=actor.position
+	while remaining>0 and not path.is_empty():
+		var distance=actor.position.distance_to(path[0])
+		actor.position=actor.position.move_toward(path[0],remaining)
+		remaining-=distance
+		if actor.position.distance_to(path[0])<0.1: path.pop_front()
+	var motion: Vector2=actor.position-previous
+	actor.data.walking=motion.length()>0.01
+	if motion.length()>0.01: actor.data.direction=("right" if motion.x>0 else "left") if absf(motion.x)>absf(motion.y) else ("down" if motion.y>0 else "up")
+	actor.queue_redraw()
+	return actor.position.distance_to(target)<1
+
+func step_out_of_bed(actor: Node2D,dt: float) -> bool:
+	if not blocked(actor.position) or actor.position.distance_to(bed_position())>40: return false
+	actor.data.sleeping=false
+	actor.data.walking=true
+	actor.position=actor.position.move_toward(Grid.center(Grid.world_to_cell(bed_position())+Vector2i.DOWN),dt*45)
+	actor.queue_redraw()
+	return true
+
 func update_villagers(dt: float,snap: bool=false) -> void:
 	for id in villagers:
 		if outdoors.conversation_holds.has(id): continue
 		var actor: Node2D=villagers[id]
 		var outside: Node2D=outdoors.villagers[id]
+		if outdoors.indoor_departures.get(id,"")==building.id:
+			actor.data.sleeping=false
+			if step_out_of_bed(actor,dt): continue
+			if walk_actor(id,layout.exit,dt):
+				actor.visible=false
+				outside.data.room=""
+				outside.data.sleeping=false
+				outside.position=outdoors.exit_position(building)
+				outside.visible=true
+				outdoors.indoor_departures.erase(id)
+			continue
 		var active=outside.data.get("room","")==building.id
+		var was_visible=actor.visible
 		actor.visible=active
 		if not active: continue
+		if not was_visible and not snap:
+			actor.position=entry_position()
+			routes.erase(id)
 		var sleeping=outside.data.get("sleeping",false)
-		actor.data.sleeping=sleeping
+		actor.data.sleeping=false
 		actor.rotation=0.0
-		actor.z_index=2 if sleeping else 0
+		actor.z_index=0
 		if sleeping:
-			actor.position=bed_position()
+			if snap: actor.position=bed_position()
+			elif actor.position.distance_to(bed_position())<35:
+				actor.position=actor.position.move_toward(bed_position(),dt*45)
+				actor.data.walking=true
+			else: walk_actor(id,Grid.world_to_cell(bed_position())+Vector2i.DOWN,dt)
+			actor.data.sleeping=actor.position.distance_to(bed_position())<1
+			actor.z_index=2 if actor.data.sleeping else 0
 			actor.data.bed_height=bed_height()
 			actor.queue_redraw()
 			continue
+		if not snap and step_out_of_bed(actor,dt): continue
 		var cell: Vector2i=layout.work[int(state.minute/25)%layout.work.size()]
+		if building.id=="hall":
+			cell=[Vector2i(14,9),Vector2i(14,10)][int(state.minute/35)%2] if id=="mayor" else [Vector2i(6,3),Vector2i(6,4),Vector2i(2,3)][int(state.minute/30)%3]
 		var target=Grid.center(cell)
 		if snap: actor.position=target
-		elif not routes.has(id) or routes[id].target!=target:
-			routes[id]={"target":target,"path":_route(Grid.world_to_cell(actor.position),cell)}
-		if routes.has(id) and not routes[id].path.is_empty():
-			actor.position=actor.position.move_toward(routes[id].path[0],dt*45)
-			if actor.position.distance_to(routes[id].path[0])<0.1: routes[id].path.pop_front()
+		else: walk_actor(id,cell,dt)
 		actor.queue_redraw()
 
 func find_nearest() -> Dictionary:

@@ -7,6 +7,36 @@ var prefix=""
 func _initialize() -> void:
 	call_deferred("run")
 
+func drag_inventory_item(id: String,index: int) -> void:
+	game.inventory()
+	await process_frame
+	var slots=game.ui.inventory_slots.filter(func(slot): return slot.get_meta("item_id","")==id)
+	assert(not slots.is_empty(),"Drag source must be carried")
+	var start: Vector2=slots[0].get_global_rect().get_center()
+	var end: Vector2=game.ui.quick_buttons[index].get_global_rect().get_center()
+	var down=InputEventMouseButton.new()
+	down.button_index=MOUSE_BUTTON_LEFT
+	down.pressed=true
+	down.button_mask=MOUSE_BUTTON_MASK_LEFT
+	down.position=start
+	Input.parse_input_event(down)
+	await process_frame
+	for point in [start+Vector2(20,0),end]:
+		var motion=InputEventMouseMotion.new()
+		motion.position=point
+		motion.relative=point-start
+		motion.button_mask=MOUSE_BUTTON_MASK_LEFT
+		Input.parse_input_event(motion)
+		await process_frame
+	var up=InputEventMouseButton.new()
+	up.button_index=MOUSE_BUTTON_LEFT
+	up.pressed=false
+	up.position=end
+	Input.parse_input_event(up)
+	await process_frame
+	assert(game.state.quick_slots[index]==id,"A real GUI drag must assign its destination slot")
+	print("NATIVE DRAG PASSED: ",id," to slot ",index+1)
+
 func capture(label: String) -> void:
 	if label!="status-banner": game.ui.message.text=""
 	if game.state.welcome_phase not in ["meeting","departing","moss_lesson"]: game.world.update_villagers(0.0,true)
@@ -33,8 +63,10 @@ func run() -> void:
 	root.add_child(game)
 	game.set_process(false)
 	game.opening.set_process(false)
-	for shot in [[2.0,"opening-space"],[6.0,"opening-bridge"],[11.0,"opening-attack"],[18.5,"opening-enemy-explodes"],[23.6,"opening-whiteout"],[26.5,"opening-aftermath"]]:
+	for shot in [[2.0,"opening-space"],[6.0,"opening-bridge"],[11.0,"opening-attack"],[18.5,"opening-enemy-explodes"],[24.2,"opening-whiteout"],[26.5,"opening-aftermath"]]:
 		game.opening.elapsed=shot[0]
+		game.opening.animation_time=shot[0]
+		game.opening.caption_step=7 if shot[0]>=24 else 0
 		game.opening.view.queue_redraw()
 		await capture(shot[1])
 	game.opening.finish()
@@ -177,6 +209,29 @@ func run() -> void:
 	await capture("moss-fields")
 	game.state.player_position=game.world.Grid.center(Vector2i(42,81))
 	await capture("veteran-cabin")
+	game.state.player_position=game.Grid.center(Vector2i(33,76))
+	await capture("bram-footpath")
+	game.state.player_position=game.Grid.center(Vector2i(5,50))
+	await capture("coast-footpath")
+	game.state.player_position=game.Grid.center(Vector2i(-20,48))
+	await capture("western-lighthouse")
+	game.state.player_position=game.Grid.center(Vector2i(-26,53))
+	await capture("stone-jetty-tip")
+	game.state.player_position=game.Grid.center(Vector2i(game.world.Coast.shoreline(45,game.state.world_seed),45))
+	await capture("western-shore")
+	game.state.minute=600
+	game.outdoors.update_villagers(0,true)
+	game.enter_building("keeper")
+	await capture("lighthouse-home")
+	game.state.player_position=game.Grid.center(Vector2i(7,4))
+	await capture("lighthouse-workshop")
+	game.talk("keeper")
+	await capture("oren-firewood-offer")
+	game.ui.modal_box.get_child(3).pressed.emit()
+	while game.window_open: game.ui.modal_box.get_child(3).pressed.emit()
+	await drag_inventory_item("axe",7)
+	await capture("inventory-dragged-axe")
+	game.close_window()
 	game.sound_settings()
 	await capture("sound-settings")
 	assert(game.sound.music.playing,"Native music should play")

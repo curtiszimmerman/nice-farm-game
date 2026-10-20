@@ -8,6 +8,7 @@ var caption_step=0
 var stars: Array=[]
 var game: Node2D
 var elapsed=0.0
+var animation_time=0.0
 var impact_played=false
 var finished=false
 var view: Control
@@ -66,6 +67,7 @@ func caption_at(time: float) -> String:
 
 func _process(dt: float) -> void:
 	if finished: return
+	animation_time+=dt
 	if caption_step<CAPTION_TIMES.size()-1: elapsed=minf(elapsed+dt,CAPTION_TIMES[caption_step+1]-0.001)
 	else: elapsed+=dt
 	if elapsed>=24 and not impact_played:
@@ -108,7 +110,7 @@ func paint(c: CanvasItem) -> void:
 	w.r(c,0,0,1280,720,"090f20")
 	paint_stars(c)
 	if scene=="space":
-		var center=Vector2(650+sin(elapsed*0.7)*25,340+sin(elapsed)*12)
+		var center=Vector2(650+sin(animation_time*0.7)*25,340+sin(animation_time)*12)
 		ship(c,center,2.2)
 		if elapsed>=3 and elapsed<18:
 			ship(c,Vector2(160,170),1.25,true)
@@ -158,7 +160,7 @@ func paint(c: CanvasItem) -> void:
 	var caption=caption_at(elapsed)
 	c.draw_multiline_string(ThemeDB.fallback_font,Vector2(115,626),caption,HORIZONTAL_ALIGNMENT_CENTER,1050,22,-1,Color("eee6cf"))
 	paint_continue_hint(c)
-	if elapsed>=23: c.draw_rect(Rect2(0,0,1280,720),Color(1,1,1,smoothstep(23,24,elapsed)))
+	if whiteout_alpha()>0: c.draw_rect(Rect2(0,0,1280,720),Color(1,1,1,whiteout_alpha()))
 
 func paint_pixels(c: CanvasItem) -> void:
 	var scene=scene_at(elapsed)
@@ -169,7 +171,7 @@ func paint_pixels(c: CanvasItem) -> void:
 	if scene=="space":
 		if elapsed>=18: Art.sprite(c,"planet",Vector2(970,390),Vector2(540,540))
 		paint_stars(c)
-		var center=Vector2(690+sin(elapsed*.7)*25,335+sin(elapsed)*12)
+		var center=Vector2(690+sin(animation_time*.7)*25,335+sin(animation_time)*12)
 		Art.sprite(c,"ship_crew",center-Vector2(192,96),Vector2(384,192))
 		var enemy=Vector2(170,170)
 		var battle=battle_at(elapsed)
@@ -179,13 +181,16 @@ func paint_pixels(c: CanvasItem) -> void:
 		if battle.destroyed and elapsed<20:
 			Art.sprite(c,"explosion"+str(clampi(int((elapsed-18)*3),0,5)),enemy-Vector2(96,96),Vector2(192,192))
 		if elapsed>=18:
-			Art.sprite(c,"explosion"+str(int(elapsed*8)%6),center+Vector2(-150,10),Vector2(48,48))
+			Art.sprite(c,"explosion"+str(int(animation_time*8)%6),center+Vector2(-150,10),Vector2(48,48))
 	else: Art.sprite(c,"bridge",Vector2.ZERO,Vector2(1280,620))
 	c.draw_rect(Rect2(0,0,1280,75),Color("090f20"))
 	c.draw_rect(Rect2(0,572,1280,148),Color("090f20"))
 	c.draw_multiline_string(ThemeDB.fallback_font,Vector2(115,626),caption_at(elapsed),HORIZONTAL_ALIGNMENT_CENTER,1050,22,-1,Color("eee6cf"))
 	paint_continue_hint(c)
-	if elapsed>=23: c.draw_rect(Rect2(0,0,1280,720),Color(1,1,1,smoothstep(23,24,elapsed)))
+	if whiteout_alpha()>0: c.draw_rect(Rect2(0,0,1280,720),Color(1,1,1,whiteout_alpha()))
+
+func whiteout_alpha() -> float:
+	return smoothstep(24,24.2,elapsed) if caption_step>=7 else 0.0
 
 func bolt(c: CanvasItem,start: Vector2,target: Vector2,t: float,friendly: bool) -> void:
 	c.draw_set_transform(start.lerp(target,t),(target-start).angle())
@@ -193,7 +198,9 @@ func bolt(c: CanvasItem,start: Vector2,target: Vector2,t: float,friendly: bool) 
 	c.draw_set_transform(Vector2.ZERO)
 
 func paint_shots(c: CanvasItem,center: Vector2,enemy: Vector2) -> void:
-	for shot in shots_at(elapsed):
+	if not battle_at(elapsed).enemy_fire: return
+	for shot in shots_at(3.4+fposmod(animation_time,15)):
+		if shot.friendly and not battle_at(elapsed).return_fire: continue
 		var start=center+Vector2(-110,-30) if shot.friendly else enemy+Vector2(75,5)
 		var target=enemy+Vector2(25,10-shot.index%3*12) if shot.friendly else center+Vector2(-65,shot.index%3*22-20)
 		if shot.hit: Art.sprite(c,"explosion"+str(clampi(int(shot.impact*18),0,5)),target-Vector2(18,18),Vector2(36,36))
@@ -204,5 +211,5 @@ func paint_continue_hint(c: CanvasItem) -> void:
 
 func paint_stars(c: CanvasItem) -> void:
 	for star in stars:
-		var point=Vector2(fposmod(star.pos.x-elapsed*star.speed,1280),star.pos.y)
+		var point=Vector2(fposmod(star.pos.x-animation_time*star.speed,1280),star.pos.y)
 		Art.sprite(c,"particle",point,Vector2.ONE*star.size,Color(0.7,0.8,0.9,star.alpha))

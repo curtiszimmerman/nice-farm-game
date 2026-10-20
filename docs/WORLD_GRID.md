@@ -1,6 +1,6 @@
 # Invisible world grid
 
-The world uses 32-pixel tiles across a 120 × 90 tile map (3840 × 2880 pixels). This is four times the original area: a 300% increase. The grid is invisible during play. Walking and running remain smooth; placement, population, collision footprints, and adjacent farming targets share the tile coordinates.
+The world uses 32-unit tiles. The mainland spans 120 × 90 cells; a 28-cell western extension brings the full extent to 148 × 90, from world X -896 through 3840. Interior maps keep their own local coordinates. The grid is invisible during play. Walking remains smooth; placement, collision footprints and farming targets share tile coordinates.
 
 `src/native/grid.gd` owns tile size, map dimensions, spawn tile, and conversion between world pixels and cell coordinates. Cell conversion floors positions; cell centers are half a tile from each cell's origin.
 
@@ -12,11 +12,11 @@ The world uses 32-pixel tiles across a 120 × 90 tile map (3840 × 2880 pixels).
 - The garden's twenty plots use the same grid. Facing selects the adjacent cell from the avatar's current cell, even between tile centers.
 - Road routes connect grid cells along rows and columns. Their rendering retains rounded junctions, worn shoulders, and wheel tracks.
 - Fences, lamps, the sign, radio, merchant cart, mine, ship clearing, and fishing jetty are anchored to cells or whole-tile footprints.
-- River and pond cells supply terrain collision. The jetty reserves walkable cells over water. Shoreline detail softens the visible tile corners.
+- Ocean and pond cells supply terrain collision. Both jetties reserve walkable cells over water. The western jetty has a wide end platform and a lighthouse with a square ground footprint. Its outer cells provide the exclusive deep-water fishing habitat.
 - Decorative flower and grass clumps use cell centers. Fine ground texture, sprite detail, particles, and flying insects remain visual detail within or above the layout.
 - Artwork option 2 assembles 32 × 32 PNG components into houses and connected cliffs. Tree sprites combine a 1 × 2 trunk area with a 3 × 2–4 canopy. Decorative bushes reserve population space along the mountain's lower slopes. The farmhouse is two tiles farther south, and its entrance, chest, paths, field and spawn move with it.
 - Doors link the outdoor map to distinct compact interior maps with their own solid cells, room partitions, furniture footprints and exits. The tower is 9 × 11 cells; the largest public buildings are 17 × 12. Bathrooms have one hall entrance. Exit landings check collision so the shop wagon cannot trap the player. Moss's fields and Bram's garden occupy reserved decorative cells and never share player crop indices.
 
 Collision reads the populated cell map. Static solid footprints reject overlapping placement; trees reserve their cells after checking the same map. Farm gates and the jetty reserve traversal space. Native checks verify alignment, population exclusions, footprints, route connectivity, interaction reachability, copper collection, and smooth movement.
 
-The map layout moves slightly as objects align to tiles. Gameplay save structure is unchanged: crops retain their plot indices, and the existing blocked-position recovery places an avatar at the shared spawn if its saved position is now obstructed.
+Saved world and cave seeds vary decoration and resource placement between visits. Authored paths and interaction destinations remain clear. Resource generation consumes the same seeded choices after clearing a tree or rock, so reloading does not reshuffle the rest. Version 8 stores world seed, active-item selection, tree clearings and the keeper's task. Unsupported older saves remain preserved; no automatic migration is implemented.

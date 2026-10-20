@@ -37,7 +37,9 @@ func run() -> void:
 	var routes_clear=true
 	for room in game.rooms.values():
 		for site in room.sites:
-			if site.id!="exit" and room._route(room.Grid.world_to_cell(room.entry_position()),site.cell).is_empty(): routes_clear=false
+			if site.id!="exit" and room._route(room.Grid.world_to_cell(room.entry_position()),site.cell).is_empty():
+				print("Unreachable interaction: ",room.building.id," / ",site.id," at ",site.cell)
+				routes_clear=false
 	check(routes_clear,"every room has routes from the entrance to its bed radio and other interactions")
 	game.state.day=3
 	game.state.minute=600

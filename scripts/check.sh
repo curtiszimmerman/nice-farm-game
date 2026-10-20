@@ -10,7 +10,7 @@ if [[ "${1:-}" == "--help" ]]; then
 fi
 bash -n scripts/play.sh scripts/check.sh
 python3 -B tests/test_sprite_assets.py
-for test_file in intro_pacing_test active_item_test welcome_walk_test hud_pause_test art_pack_test rustic_art_test crew_flow_test art_test; do
+for test_file in intro_pacing_test active_item_test welcome_walk_test coast_test firewood_test randomization_test npc_transition_test hud_pause_test art_pack_test rustic_art_test crew_flow_test art_test; do
     bash scripts/play.sh --headless --script "../../tests/native/$test_file.gd"
 done
 for test_file in state_test integration_test save_test audio_test development_test readability_test outcrop_test grid_test schedule_test landscape_test geography_test interior_test inventory_test interior_layout_test farming_chest_test conversation_test interior_depth_test supplies_test ship_ui_test starting_supplies_test arrival_test welcome_sequence_test fishing_species_test cave_test render_layers_test; do

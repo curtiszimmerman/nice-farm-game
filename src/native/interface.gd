@@ -527,6 +527,7 @@ func update() -> void:
 	if s.invited: quests.append("restore_farmhouse")
 	if s.met_mayor: quests.append("first_harvest")
 	if s.welcome_phase=="complete": quests.append("meet_wizard")
+	if s.firewood_requested: quests.append("keeper_firewood")
 	for quest in quests:
 		if quest not in known_quests:
 			known_quests.append(quest)
@@ -568,6 +569,7 @@ func update() -> void:
 				next_task.text="○ "+{"sofa":"Remove the sofa cover","bed":"Uncover your bed","guest_bed":"Uncover the guest bed","radio":"Uncover the radio","living_light":"Replace the living-room bulb","bathroom_light":"Replace the bathroom bulb"}[task]
 				break
 	if s.crew_fed_day<s.day: next_task.text="○ Vale needs a cooked meal in the ship locker"
+	if s.firewood_requested and not s.firewood_given: next_task.text="○ Bring Oren six firewood"
 	hint.text = "" if game.window_open else "RESTING · E to get up" if game.resting>0 else "E · "+game.nearest.get("label","") if not game.nearest.is_empty() else ""
 	if game.activity=="mining": hint.text = "Gathering copper…"
 	if game.activity=="fishing": hint.text = "E · reel in when the marker crosses the gold band"

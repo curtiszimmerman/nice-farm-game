@@ -51,32 +51,58 @@ func generate() -> void:
 	for i in range(6):
 		var col=i if i<3 else 5-i
 		var row=0 if i<3 else 1
-		var room=Rect2i(col*14+rng.randi_range(2,3),row*13+rng.randi_range(2,3),rng.randi_range(7,10),rng.randi_range(7,10))
+		var room=Rect2i(col*14+rng.randi_range(1,4),row*13+rng.randi_range(1,3),rng.randi_range(7,10),rng.randi_range(7,10))
 		if i==0: room=Rect2i(2,2,8,8)
 		chambers.append(room)
 		for y in range(room.position.y,room.end.y):
-			for x in range(room.position.x,room.end.x): floor_cells[Vector2i(x,y)]=true
+			for x in range(room.position.x,room.end.x):
+				if x in [room.position.x,room.end.x-1] and y in [room.position.y,room.end.y-1]: continue
+				floor_cells[Vector2i(x,y)]=true
 		if i>0:
-			var cell=chambers[i-1].get_center()
+			var cell=chambers[rng.randi_range(maxi(0,i-3),i-1)].get_center()
 			var target=room.get_center()
+			var horizontal_first=rng.randf()<0.5
+			var wide=rng.randf()<0.35
 			while cell!=target:
 				floor_cells[cell]=true
 				corridors[cell]=true
-				cell+=Vector2i(signi(target.x-cell.x),0) if cell.x!=target.x else Vector2i(0,signi(target.y-cell.y))
+				if wide:
+					floor_cells[cell+Vector2i.RIGHT]=true
+					corridors[cell+Vector2i.RIGHT]=true
+				if (horizontal_first and cell.x!=target.x) or cell.y==target.y: cell+=Vector2i(signi(target.x-cell.x),0)
+				else: cell+=Vector2i(0,signi(target.y-cell.y))
 			floor_cells[target]=true
 	for y in range(ROOM_CELLS.y):
 		for x in range(ROOM_CELLS.x):
 			var cell=Vector2i(x,y)
 			if not floor_cells.has(cell): solid_cells[cell]="wall"
-	# Edge deposits leave room centers and connecting corridors clear.
+	# Deposits avoid passageways, entrances, and the room centers used by creatures.
 	for i in range(chambers.size()):
 		var room=chambers[i]
-		for j in range(3):
+		var candidates=[]
+		for y in range(room.position.y+1,room.end.y-1):
+			for x in range(room.position.x+1,room.end.x-1):
+				var cell=Vector2i(x,y)
+				if corridors.has(cell) or cell in [Vector2i(3,4),Vector2i(4,4),layout.entry,layout.exit,chambers.back().position+Vector2i.ONE]: continue
+				if absi(cell.x-room.get_center().x)<=1 and absi(cell.y-room.get_center().y)<=1: continue
+				candidates.append(cell)
+		for k in range(candidates.size()-1,0,-1):
+			var other=rng.randi_range(0,k)
+			var value=candidates[k]
+			candidates[k]=candidates[other]
+			candidates[other]=value
+		var selected=[]
+		var amount=3 if i<2 else rng.randi_range(1,3)
+		for cell in candidates:
+			if selected.any(func(other): return absi(cell.x-other.x)+absi(cell.y-other.y)<3): continue
+			selected.append(cell)
+			if selected.size()==amount: break
+		for j in range(selected.size()):
 			var id=str(i*3+j)
+			var cell: Vector2i=selected[j]
+			var ore=(i<2 and j<2) or rng.randf()<0.6
 			if state.cave_broken.has(id): continue
-			var cell=Vector2i(room.position.x+1+j*2,room.end.y-2)
-			if corridors.has(cell): continue
-			var info={"kind":"rock","id":id,"cell":cell,"ore":j!=1}
+			var info={"kind":"rock","id":id,"cell":cell,"ore":ore}
 			info.node=object(info)
 			rocks[id]=info
 			solid_cells[cell]="rock"
@@ -104,6 +130,10 @@ func blocked(p: Vector2) -> bool:
 	return not floor_cells.has(Grid.world_to_cell(p)) or solid_cells.has(Grid.world_to_cell(p))
 
 func find_nearest() -> Dictionary:
+	if state.active_item()=="pickaxe":
+		var front=Grid.world_to_cell(state.player_position)+{"up":Vector2i.UP,"down":Vector2i.DOWN,"left":Vector2i.LEFT,"right":Vector2i.RIGHT}[facing]
+		for rock in rocks.values():
+			if rock.cell==front: return {"id":rock.id,"type":"rock","label":"Mine copper · pickaxe" if rock.ore else "Break rock · pickaxe"}
 	var best={}
 	var distance=46.0
 	for site in sites:

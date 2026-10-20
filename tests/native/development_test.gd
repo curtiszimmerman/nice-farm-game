@@ -32,13 +32,14 @@ func run() -> void:
 	game.set_process(false)
 	preload("fixture.gd").explore(game)
 	preload("fixture.gd").tools(game.state)
-	game.state.player_position=Vector2(900,700)
+	var start=game.Grid.center(Vector2i(35,45))
+	game.state.player_position=start
 	key(KEY_D,true)
 	game._move(0.02)
-	check(is_equal_approx(game.state.player_position.x,906.3),"development walking is three times normal speed")
+	check(is_equal_approx(game.state.player_position.x,start.x+6.3),"development walking is three times normal speed")
 	key(KEY_SHIFT,true)
 	game._move(0.02)
-	check(is_equal_approx(game.state.player_position.x,915.9),"development running is three times normal speed")
+	check(is_equal_approx(game.state.player_position.x,start.x+15.9),"development running is three times normal speed")
 	var trunk=game.world.trees[0].pos
 	game.state.player_position=trunk-Vector2(17,0)
 	game._move(0.05)

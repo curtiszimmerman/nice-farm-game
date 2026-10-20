@@ -4,9 +4,9 @@ Somewhere, the Sun Still Rises is a small native Godot game. It runs directly on
 
 ## Playing
 
-New visits open at 09:00 on Spring 01 with a back-and-forth ship battle. The attacker explodes, but the crew must crash-land. Vale warns that it sent a signal and reinforcements will probably arrive eventually; the captain prioritizes the cloak. Time remains halted until you leave the ship. Follow the mountain descent to Moss, who is already waiting at its foot. He asks about the flash and crash, then offers the abandoned farmhouse. Accepting starts a guided walk inside without releasing control or the clock.
+New visits open at 09:00 on Spring 01 with a ship battle. Individual laser shots leave gaps between volleys and burst against each hull. Every introductory line waits for a click, E or Space; stars and ships keep animating while you read. The final impact fade waits until the captain's order is acknowledged. The attacker explodes, but the crew must crash-land. Vale warns that it sent a signal; the captain prioritizes the cloak. Time remains halted until you leave the ship. Follow the mountain descent to Moss, already waiting at its foot. He asks about the flash and crash, then offers the abandoned farmhouse. Accepting follows the faint path around the house and inside without releasing control or the clock.
 
-Your first entry into the farmhouse begins a required welcome sequence. Finish removing all covers and replacing both bulbs; the visitors arrive eight real seconds after the house is ready. You cannot leave during this first visit. All three visitors meet you inside. Alder and Neral leave after the meeting; Moss stays to explain farming and recommend Iona's tower. Finish his advice to resume movement and the normal clock.
+Your first entry into the farmhouse begins a required welcome sequence. Finish removing all covers and replacing both bulbs. After a short pause, the visitors walk over and enter through the door. You cannot leave during this first visit. Neral remains suspicious about your arrival and the flash on the mountain. Alder and Neral walk out after the meeting; Moss stays to explain farming and recommend Iona's tower. Movement and the clock resume after Moss leaves too.
 
 The farmhouse initially has dusty covers on the sofa, both beds and radio. Press E at each furnishing to remove its cover. Take the two spare bulbs from the kitchen cabinet, then press E at the broken living-room and bathroom lights. The crew log tracks the remaining jobs. Alder offers permission to stay if you promise to keep the house clean, and suggests working the garden to support yourselves.
 
@@ -14,7 +14,7 @@ Town has a cobbled square with a fountain, nearby homes, and the provisions shop
 
 Press E beside a door to enter its separate furnished interior; press E at the front exit to return outside. Each building has a distinct compact plan. Bathrooms are private rooms entered from halls. The shop has stock shelves and a storeroom, the club has a workshop and reception, and the tower has a small study. Homes have appropriately sized beds, seating, kitchens and personal belongings. Bram lives in an unmarked log cabin in the southern woods, without a road to his door, with a small decorative garden outside. Talk to him about his army service and the other kingdom, and accept your first rusty sword. Exits check for a clear outdoor landing tile, including beside the shop wagon.
 
-Press I for the satchel. Hover for details; click an item to save it to a quick slot. Right-click food for Eat, or an elixir for Drink. Select one of eight quick slots with 1–8 or the mouse. The selected tool must also be carried: hoe to till, seeds to plant, watering can to water, sickle to harvest, sword to equip. Assign Wildgrowth through Actions → Spells and skills. Turnips restore 8 HP and 12 energy; silverfin restores 5 HP and 8 energy; star bulbs restore 15 mana; health elixirs restore 25 HP. Food is kept if all relevant resources are full. HP and energy cap at 100, mana at 60. The camera remains at 1.9125×.
+Press I for the satchel. Hover for details; left-click selects and highlights an item without consuming it. Its picture appears in the separate active-item display between the health bars and quick slots. Drag a carried item onto one of the eight quick slots to assign it; 1–8 selects those shortcuts. Right-click food for Eat, or an elixir for Drink. The active tool must be carried: hoe to till, seeds to plant, watering can to water, sickle to harvest, sword to equip, axe to chop. Assign Wildgrowth through Actions → Spells and skills. Turnips restore 8 HP and 12 energy; silverfin restores 5 HP and 8 energy; star bulbs restore 15 mana; health elixirs restore 25 HP. Food is kept if all relevant resources are full. HP and energy cap at 100, mana at 60. The camera remains at 1.9125×.
 
 Your satchel has twelve slots; the farmhouse chest has eighteen, and the kitchen cabinet and ship locker each have twelve. Quick slots start empty and clear when their carried stack is depleted. Starting seeds are in the chest with the tools; the can is empty. Quantities appear only above one. Storage offers quantity selection and whole-stack swaps.
 
@@ -30,7 +30,8 @@ The project-local launcher is `scripts/play.sh`. It starts the pinned Godot exec
 | --- | --- |
 | WASD / arrows | Walk |
 | Shift | Run |
-| Space | Pause / resume the entire world, including the introduction |
+| Click / E / Space during the introduction | Advance the current dialogue step |
+| Space during ordinary play | Pause / resume the world |
 | 1–8 | Select quick slot |
 | E | Enter/leave buildings, talk, tend soil, gather, fish, or rest |
 | Q | Wildgrowth, when its quick slot is selected |
@@ -55,8 +56,12 @@ The bottom Actions button groups inventory, spells, notes, map and settings. Hea
 | --- | --- | --- | --- |
 | Pond | Silverfin | Easy | 10 crowns |
 | Pond | Moon pike | Hard | 35 crowns |
+| Ocean shore / stone jetty | Sea sprat | Easy | 12 crowns |
+| Ocean shore / stone jetty | Blue mackerel | Easy | 16 crowns |
+| Ocean shore / stone jetty | Storm eel | Hard | 50 crowns |
+| Sea end of stone jetty only | Lantern ray | Hard, rare | 90 crowns |
 
-Coastal fish remain in the item catalog without a playable location. Cooking accepts any fish species from your satchel and connected kitchen cabinet.
+Shore fishing works along reachable pond and ocean banks. Follow the faint western path from the farm to the stone jetty. Oren, a friendly old keeper, lives in the lighthouse at its sea end. Ask about firewood to receive an axe. Three blows fell a tree and yield three wood; each blow costs four energy. Bring six wood to Oren for 25 crowns, once. Tree clearings persist when reloading. Cooking accepts every fish species from your satchel and kitchen cabinet.
 
 The cave's rooms and passages are generated once per new visit and preserved by their saved seed. Mined rocks, defeated rats, the barrel and the deep Cave Moth Chrysalis persist. A Golden Sparkfire plant grows near Iona's tower; its flower opens from 05:30–07:00 during sunrise, with one bloom available per day. Components are available for future advanced lessons; only Wildgrowth is currently taught.
 
@@ -64,7 +69,9 @@ The clock runs through midnight and conversations by default. One real second is
 
 Night shifts the world into a blue moonlit palette while interface colors stay readable. Houses and trees fade when their drawn shape covers the avatar, then return to opaque when you step clear. Village dirt roads have connected junctions, worn shoulders, and wheel tracks.
 
-The 120 × 90 tile map has four times its original area. The farmhouse lies west of town, the hidden ship northwest, the wizard's tower far north, and the copper cave far southeast. The eastern ocean has been removed. The radio is on a table directly outside the Radio Club. Fishing works along the full dock.
+The mainland occupies 120 × 90 tiles; a 28-tile extension west adds the coast and lighthouse, for a total extent of 148 × 90. The farmhouse lies west of town, the hidden ship northwest, the wizard's tower far north, and copper caves southeast. Faint paths lead west to the jetty and south around the pond to Bram's cabin. The stone town hall has a civic banner; Alder and his assistant Neral work there and sleep in separate homes. Briar Glen belongs to Aldermere; Veyr lies across the politically troubled border.
+
+Each visit has saved seeds for its natural scenery and caves. Grass variants, tree and bush placement, interior floor variation, room sizes, branching passages and deposits vary while doors, plots, paths and key landmarks remain usable. Mining or felling a tree does not move the remaining resources on reload. The current save schema is version 8; older unsupported saves are preserved rather than automatically migrated.
 
 The map is populated on a shared invisible 32-pixel tile grid, including buildings, trees, resources, roads, and farm plots. Walking stays smooth between tiles. Objects occupy whole-tile collision footprints; the round tower uses a square base independent of its drawing height. Farm gates and the fishing jetty remain walkable. [World grid details](WORLD_GRID.md).
 

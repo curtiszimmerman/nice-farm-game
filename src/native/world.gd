@@ -3,6 +3,7 @@ extends Node2D
 const Grid = preload("res://grid.gd")
 const Art = preload("res://art.gd")
 const Schedule = preload("res://villager_schedule.gd")
+const Coast=preload("res://coast.gd")
 const SQUARE = Rect2i(59,44,6,6)
 const SIZE = Grid.WORLD_SIZE
 const FARM_CELL = Vector2i(9,48)
@@ -30,20 +31,22 @@ const PEOPLE = [
 	{"id":"vale","name":"Chief Vale","role":"CHIEF ENGINEER","cell":Vector2i(11,14),"coat":"8b9baf","hair":"b5a68e","skin":"a97959"},
 	{"id":"mayor","name":"Mayor Alder","role":"MAYOR","cell":Vector2i(61,42),"coat":"657b70","hair":"c2c4b0","skin":"d0a181"},
 	{"id":"veteran","name":"Bram","role":"RETIRED ARMY","cell":Vector2i(43,82),"coat":"777a60","hair":"b9b6a3","skin":"b08f77"},
-	{"id":"assistant","name":"Neral","role":"MAYOR'S ASSISTANT · DARK ELF","cell":Vector2i(54,46),"coat":"61758a","hair":"c7cbcd","skin":"65566d","elf":true}
+	{"id":"assistant","name":"Neral","role":"MAYOR'S ASSISTANT · DARK ELF","cell":Vector2i(54,46),"coat":"61758a","hair":"c7cbcd","skin":"65566d","elf":true},
+	{"id":"keeper","name":"Oren","role":"LIGHTHOUSE KEEPER","cell":Vector2i(-24,51),"coat":"536e81","hair":"ded8c8","skin":"c99c78"}
 ]
 const BUILDINGS = [
 	{"cell":Vector2i(10,39),"tiles":Vector2i(7,5),"roof":"a65e50","kind":"home"},
 	{"cell":Vector2i(52,34),"tiles":Vector2i(5,4),"roof":"5b8990","kind":"radio"},
 	{"cell":Vector2i(65,40),"tiles":Vector2i(5,4),"roof":"ad7956","kind":"store"},
-	{"cell":Vector2i(52,42),"tiles":Vector2i(5,4),"roof":"818a60","kind":"hall"},
+	{"cell":Vector2i(50,41),"tiles":Vector2i(7,5),"roof":"818a60","kind":"hall"},
 	{"cell":Vector2i(59,39),"tiles":Vector2i(5,3),"roof":"8c6856","kind":"cottage","resident":"mayor"},
 	{"cell":Vector2i(65,48),"tiles":Vector2i(5,3),"roof":"a87858","kind":"cottage","resident":"tavi"},
 	{"cell":Vector2i(58,51),"tiles":Vector2i(5,3),"roof":"65858b","kind":"cottage","resident":"finch"},
 	{"cell":Vector2i(60,12),"tiles":Vector2i(3,3),"roof":"68658f","kind":"tower","resident":"iona","visual_height":192},
 	{"cell":Vector2i(24,55),"tiles":Vector2i(5,3),"roof":"8c6856","kind":"cottage","resident":"moss"},
 	{"cell":Vector2i(40,76),"tiles":Vector2i(5,4),"roof":"70685a","kind":"cabin","resident":"veteran"},
-	{"cell":Vector2i(70,53),"tiles":Vector2i(4,3),"roof":"6c7885","kind":"cottage","resident":"assistant"}
+	{"cell":Vector2i(70,53),"tiles":Vector2i(4,3),"roof":"6c7885","kind":"cottage","resident":"assistant"},
+	{"cell":Vector2i(-25,48),"tiles":Vector2i(3,3),"roof":"656b75","kind":"lighthouse","resident":"keeper","visual_height":256}
 ]
 const SITES = [
 	{"id":"ship_entry","cell":Vector2i(11,14),"door":"ship","label":"Enter cloaked ship"},
@@ -77,6 +80,7 @@ const ROAD_ROUTES = [
 var people: Array = []
 var conversation_holds: Dictionary={}
 var story_destinations: Dictionary={}
+var indoor_departures: Dictionary={}
 var villagers: Dictionary = {}
 var routes: Dictionary = {}
 var buildings: Array = []
@@ -92,6 +96,7 @@ var gate_cells: Array[Vector2i] = []
 var trees: Array = []
 var bushes: Array=[]
 var terrain: ImageTexture
+var west_terrain: ImageTexture
 var road_mask: Image
 var night_tint: CanvasModulate
 var state: RefCounted
@@ -106,6 +111,7 @@ var particles: Array = []
 var scenery_layer: Node2D
 var moving_layer: Node2D
 var crop_signature=0
+var tree_damage: Dictionary={}
 
 class Prop extends Node2D:
 	var owner_world: Node2D
@@ -122,6 +128,7 @@ class Prop extends Node2D:
 		elif kind == "effects": owner_world.paint_effects(self)
 		elif kind == "sparkfire": owner_world.paint_sparkfire(self,data.get("bloom",false))
 		elif kind == "bush": Art.sprite(self,"bush"+str(data.variant),Vector2(-32,-42))
+		elif kind == "stump": Art.sprite(self,"stump",Vector2(-16,-16))
 
 func _ready() -> void:
 	y_sort_enabled = true
@@ -129,29 +136,37 @@ func _ready() -> void:
 	add_child(night_tint)
 	_build_layout()
 	_build_terrain()
-	for cell in [Vector2i(8,29),Vector2i(10,29),Vector2i(16,29),Vector2i(18,29),Vector2i(7,31),Vector2i(19,32)]:
-		if solid_cells.has(cell): continue
+	var random = RandomNumberGenerator.new()
+	random.seed=state.world_seed
+	for anchor in [Vector2i(10,30),Vector2i(8,29),Vector2i(16,29),Vector2i(18,29),Vector2i(7,31),Vector2i(19,32)]:
+		var cell=anchor+Vector2i(random.randi_range(0,1),random.randi_range(0,1)) if anchor==Vector2i(10,30) else anchor+Vector2i(random.randi_range(-1,1),random.randi_range(-1,1))
+		if solid_cells.has(cell) or _clearing(Grid.center(cell)): continue
 		reserved_cells[cell]=true
+		solid_cells[cell]="bush"
 		bushes.append(cell)
-		_prop("bush",Grid.center(cell),{"variant":posmod(cell.x+cell.y,4)})
+		_prop("bush",Grid.center(cell),{"variant":random.randi_range(0,3)})
 	for y in range(24,37):
 		for x in range(4,28):
 			var cell=Vector2i(x,y)
-			if solid_cells.has(cell) or reserved_cells.has(cell) or _clearing(Grid.center(cell)) or posmod(x*17+y*11,4)!=0: continue
+			if solid_cells.has(cell) or reserved_cells.has(cell) or _clearing(Grid.center(cell)) or random.randf()>0.24: continue
 			reserved_cells[cell]=true
+			solid_cells[cell]="bush"
 			bushes.append(cell)
-			_prop("bush",Grid.center(cell),{"variant":posmod(x+y,4)})
-	var random = RandomNumberGenerator.new()
-	random.seed = 41
+			_prop("bush",Grid.center(cell),{"variant":random.randi_range(0,3)})
+	var placed: Array=[]
 	for i in range(1800):
 		var cell=Vector2i(random.randi_range(4,Grid.MAP_SIZE.x-4),random.randi_range(5,Grid.MAP_SIZE.y-4))
 		var p=Grid.center(cell)
 		if solid_cells.has(cell) or reserved_cells.has(cell) or _clearing(p): continue
-		if trees.any(func(t): return absi(t.cell.x-cell.x)<=1 and absi(t.cell.y-cell.y)<=1): continue
+		if placed.any(func(t): return absi(t.x-cell.x)<=1 and absi(t.y-cell.y)<=1): continue
 		var tree = {"cell":cell,"pos":p,"size":random.randf_range(0.8,1.3),"warm":random.randf()>0.72}
+		placed.append(cell)
+		if "%d,%d" % [cell.x,cell.y] in state.felled_trees:
+			_prop("stump",p,{})
+			continue
 		solid_cells[cell]="tree"
 		trees.append(tree)
-		_prop("tree",p,tree)
+		tree.node=_prop("tree",p,tree)
 	for b in buildings: _prop("building",Vector2(b.x,b.y+b.h),b)
 	for p in people: villagers[p.id]=_prop("person",Vector2(p.x,p.y),p)
 	crops = _prop("crops",Vector2.ZERO,{})
@@ -170,15 +185,43 @@ func _claim(footprint: Rect2i,kind: String) -> void:
 			assert(not solid_cells.has(cell),"Overlapping map footprints at %s" % cell)
 			solid_cells[cell]=kind
 
+func chop_tree(cell: Vector2i) -> bool:
+	if state.active_item()!="axe" or state.axe<1 or state.energy<4 or not state.can_carry("wood"): return false
+	var found=trees.filter(func(tree): return tree.cell==cell)
+	if found.is_empty(): return false
+	state.energy-=4
+	tree_damage[cell]=tree_damage.get(cell,0)+1
+	if tree_damage[cell]<3: return true
+	var tree=found[0]
+	state.wood+=3
+	state.felled_trees.append("%d,%d" % [cell.x,cell.y])
+	solid_cells.erase(cell)
+	tree.node.queue_free()
+	trees.erase(tree)
+	_prop("stump",Grid.center(cell),{})
+	return true
+
+func rebuild_visit(new_state: RefCounted) -> void:
+	for child in get_children(): child.free()
+	for field in [people,villagers,routes,buildings,sites,road_segments,road_cells,water_cells,mountain_cells,solid_cells,reserved_cells,fence_cells,gate_cells,trees,bushes,particles,story_destinations,conversation_holds,indoor_departures,tree_damage]: field.clear()
+	scenery_layer=null
+	moving_layer=null
+	crop_signature=0
+	state=new_state
+	_ready()
+
 func _build_layout() -> void:
 	for y in range(Grid.MAP_SIZE.y):
-		for x in range(Grid.MAP_SIZE.x):
+		for x in range(Coast.MIN_X,Grid.MAP_SIZE.x):
 			var cell=Vector2i(x,y)
 			var p=Grid.center(cell)
 			var pond=(p-Grid.center(POND_CELL))/Vector2(160,160)
-			if p.x<96.0+sin(p.y/145.0)*22.0 or pond.length_squared()<1.0:
+			if Coast.is_ocean(cell,state.world_seed) or pond.length_squared()<1.0:
 				water_cells[cell]=true
 				solid_cells[cell]="water"
+	for cell in Coast.dock_cells():
+		solid_cells.erase(cell)
+		reserved_cells[cell]=true
 	for dock in [JETTY_CELLS]:
 		for y in range(dock.position.y,dock.end.y):
 			for x in range(dock.position.x,dock.end.x):
@@ -206,7 +249,8 @@ func _build_layout() -> void:
 		_claim(Rect2i(b.cell,b.tiles),"building")
 		var door_cell=b.cell+Vector2i(int(b.tiles.x/2),b.tiles.y)
 		var door_pos=Grid.center(door_cell)
-		sites.append({"id":"door_"+b.id,"cell":door_cell,"x":door_pos.x,"y":door_pos.y,"door":b.id,"label":"Enter "+b.id.capitalize()})
+		var name={"home":"farmhouse","hall":"town hall","assistant":"Neral's home","keeper":"Oren's lighthouse"}.get(b.id,b.id.capitalize())
+		sites.append({"id":"door_"+b.id,"cell":door_cell,"x":door_pos.x,"y":door_pos.y,"door":b.id,"label":"Enter "+name})
 		reserved_cells[door_cell]=true
 	for item in SITES:
 		var p=item.duplicate(true)
@@ -262,6 +306,8 @@ func _build_layout() -> void:
 				for x in range(mini(a.x,b.x),maxi(a.x,b.x)+1): road_cells[Vector2i(x,y)]=true
 	var approach=FARMHOUSE_APPROACH
 	for i in range(approach.size()-1): road_segments.append([Grid.center(approach[i]),Grid.center(approach[i+1]),7.0])
+	for path in Coast.PATHS:
+		for i in range(path.size()-1): road_segments.append([Grid.center(path[i]),Grid.center(path[i+1]),6.0])
 
 func site_position(id: String) -> Vector2:
 	for site in sites:
@@ -302,7 +348,7 @@ func _route(start: Vector2i,goal: Vector2i) -> Array:
 
 func update_villagers(dt: float,snap: bool=false) -> void:
 	for id in villagers:
-		if conversation_holds.has(id):
+		if conversation_holds.has(id) or indoor_departures.has(id):
 			villagers[id].data.walking=false
 			villagers[id].queue_redraw()
 			continue
@@ -363,7 +409,7 @@ func _prop(kind: String, pos: Vector2, data: Dictionary) -> Prop:
 	p.kind = kind
 	p.data = data
 	p.position = pos
-	(scenery_layer if kind in ["tree","building","bush"] else moving_layer).add_child(p)
+	(scenery_layer if kind in ["tree","building","bush","stump"] else moving_layer).add_child(p)
 	return p
 
 func refresh() -> void:
@@ -420,7 +466,7 @@ func audio_context(player_position: Vector2) -> Dictionary:
 
 func in_water(p: Vector2) -> bool:
 	var cell=Grid.world_to_cell(p)
-	return water_cells.has(cell) and not JETTY_CELLS.has_point(cell)
+	return water_cells.has(cell) and not JETTY_CELLS.has_point(cell) and not Coast.JETTY.has_point(cell) and not Coast.PLATFORM.has_point(cell)
 
 func at_pond_edge(p: Vector2) -> bool:
 	var cell=Grid.world_to_cell(p)
@@ -441,6 +487,9 @@ func blocked(p: Vector2) -> bool:
 	return not Grid.PLAYABLE_CELLS.has_point(cell) or solid_cells.has(cell)
 
 func find_nearest() -> Dictionary:
+	if state.active_item()=="axe":
+		var cell=Grid.world_to_cell(state.player_position)+{"up":Vector2i.UP,"down":Vector2i.DOWN,"left":Vector2i.LEFT,"right":Vector2i.RIGHT}[facing]
+		if trees.any(func(tree): return tree.cell==cell): return {"type":"tree","cell":cell,"label":"Chop tree · axe"}
 	if JETTY_CELLS.has_point(Grid.world_to_cell(state.player_position)):
 		for site in sites:
 			if site.id=="pond":
@@ -475,8 +524,12 @@ func find_nearest() -> Dictionary:
 			best = p.duplicate()
 			best.type = "site"
 			distance = d
+	if best.is_empty(): best=coastal_fishing(state.player_position)
 	nearest = best
 	return best
+
+func coastal_fishing(p: Vector2) -> Dictionary:
+	return Coast.fishing_site(self,p)
 
 func _clearing(p: Vector2) -> bool:
 	if Grid.rect(JETTY_CELLS.position,JETTY_CELLS.size).grow(64).has_point(p): return true
@@ -491,13 +544,13 @@ func _build_terrain() -> void:
 	var image = Image.create(int(SIZE.x),int(SIZE.y),false,Image.FORMAT_RGBA8)
 	image.fill(Color("748c53"))
 	var random = RandomNumberGenerator.new()
-	random.seed = 73
+	random.seed = state.world_seed+73
 	var colors = [Color("7a9258"),Color("6f884f"),Color("83975d"),Color("81965a")]
 	for i in range(180000): image.fill_rect(Rect2i(random.randi_range(0,int(SIZE.x)-5),random.randi_range(0,int(SIZE.y)-3),random.randi_range(2,5),2),colors[i%4])
 	if Art.option==2:
 		Art.load_atlas()
 		for y in range(Grid.MAP_SIZE.y):
-			for x in range(Grid.MAP_SIZE.x): image.blit_rect(Art.tile_image("grass"+str(posmod(x*3+y,4))),Rect2i(0,0,32,32),Vector2i(x,y)*32)
+			for x in range(Grid.MAP_SIZE.x): image.blit_rect(Art.tile_image("grass"+str(random.randi_range(0,3))),Rect2i(0,0,32,32),Vector2i(x,y)*32)
 	_paint_grounding(image,random)
 	_paint_roads(image,random)
 	_paint_water(image)
@@ -510,6 +563,7 @@ func _build_terrain() -> void:
 		image.fill_rect(Rect2i(p.x,p.y,2,5),Color("597b48"))
 		if i%3 == 0: image.fill_rect(Rect2i(p.x-1,p.y-2,4,3),Color("ddd79b") if i%2 else Color("c1acc2"))
 	terrain = ImageTexture.create_from_image(image)
+	west_terrain=Coast.build_texture(self)
 	queue_redraw()
 
 func _paint_grounding(image: Image,random: RandomNumberGenerator) -> void:
@@ -540,6 +594,7 @@ func _paint_grounding(image: Image,random: RandomNumberGenerator) -> void:
 
 func _paint_water(image: Image) -> void:
 	for cell in water_cells:
+		if cell.x<0: continue
 		var origin=Vector2i(Grid.origin(cell))
 		image.fill_rect(Rect2i(origin,Vector2i.ONE*Grid.TILE_SIZE),Color("51868a"))
 		for direction in [Vector2i.UP,Vector2i.DOWN,Vector2i.LEFT,Vector2i.RIGHT]:
@@ -568,12 +623,14 @@ func _paint_roads(image: Image,random: RandomNumberGenerator) -> void:
 	# Merge the whole network before shading its shoulders, so junctions have no seams.
 	for segment in road_segments:
 		var bounds=Rect2(segment[0],Vector2.ZERO).expand(segment[1]).grow(segment[2]+9.0)
+		bounds=bounds.intersection(Rect2(Vector2.ZERO,SIZE-Vector2(2,2)))
 		for y in range(int(bounds.position.y/2.0)*2,int(bounds.end.y)+2,2):
 			for x in range(int(bounds.position.x/2.0)*2,int(bounds.end.x)+2,2):
 				var p=Vector2(x+1,y+1)
 				var distance=p.distance_to(Geometry2D.get_closest_point_to_segment(p,segment[0],segment[1]))
 				var roughness=sin(x*0.071)*1.5+sin(y*0.113)*1.3
-				var coverage=1.0-smoothstep(segment[2]-3.0+roughness,segment[2]+5.0+roughness,distance)
+				var core=maxf(2.0,segment[2]-3.0+roughness)
+				var coverage=1.0-smoothstep(core,maxf(core+1,segment[2]+5.0+roughness),distance)
 				if coverage>road_mask.get_pixel(x,y).r:
 					road_mask.fill_rect(Rect2i(x,y,2,2),Color(coverage,coverage,coverage))
 				var rut=maxf(0.0,1.0-absf(distance-segment[2]*0.43)/2.0)*0.08
@@ -605,6 +662,7 @@ func _draw() -> void:
 	# Raised terrain and paths share their boundaries with the solid-cell map.
 	if not terrain: return
 	draw_texture(terrain,Vector2.ZERO)
+	Coast.draw(self)
 	paint_cliffs(self)
 	for y in range(SQUARE.position.y,SQUARE.end.y):
 		for x in range(SQUARE.position.x,SQUARE.end.x):

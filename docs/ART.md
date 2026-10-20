@@ -1,6 +1,6 @@
 # Pixel artwork
 
-The default artwork is Rustic 16-pixel artwork (option 3): an original RGBA PNG atlas, drawn at 16 pixels per tile and enlarged with nearest-neighbor filtering. Its 378 sprites cover the entire game, including the introduction, actors, buildings, plants, furniture, cave and inventory. The 32-pixel modular pack remains selectable under Settings → Artwork. All assets and build outputs stay in the project.
+The default artwork is Rustic 16-pixel artwork (option 3): an original RGBA PNG atlas, drawn at 16 pixels per tile and enlarged with nearest-neighbor filtering. Its 408 sprites cover the game, including the lighthouse's component tiles, stone jetty, civic emblem, Oren, axe, firewood, stumps and Lantern ray. The 32-pixel modular pack remains selectable under Settings → Artwork. All assets and build outputs stay in the project.
 
 The previous artwork is preserved as option 1. Its source snapshot is [original-art.tar](../src/native/art/option1/original-art.tar), from commit `9527b38`. The original renderers remain available under Settings → Artwork. Switching options redraws the retained scenery and changes the inventory icons; the choice currently lasts for the session.
 

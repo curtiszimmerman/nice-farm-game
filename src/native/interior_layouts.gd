@@ -18,8 +18,23 @@ static func for_building(id: String) -> Dictionary:
 		"iona": plan=_tower()
 		"radio": plan=_club()
 		"store": plan=_public_building(false)
+		"keeper": plan=_lighthouse()
 		_: plan=_council()
 	return plan
+
+static func _lighthouse() -> Dictionary:
+	return {"size":Vector2i(12,16),"areas":[["lamp_workshop",Rect2i(1,1,10,4)],
+		["kitchen",Rect2i(1,6,4,3)],["hall",Rect2i(6,6,1,9)],["bedroom",Rect2i(8,6,3,4)],
+		["living",Rect2i(1,10,4,5)],["bathroom",Rect2i(8,12,3,3)]],
+		"doors":[["lamp_workshop","hall",Vector2i(6,5)],["kitchen","hall",Vector2i(5,7)],
+		["bedroom","hall",Vector2i(7,9)],["living","hall",Vector2i(5,12)],["bathroom","hall",Vector2i(7,13)]],
+		"entry":Vector2i(6,14),"exit":Vector2i(6,15),"furniture":[
+		["desk",Rect2i(1,1,3,1)],["tools",Rect2i(1,3,1,2)],["telescope",Rect2i(9,1,1,1)],["cabinet",Rect2i(8,3,2,1)],
+		["kitchen",Rect2i(1,6,4,1)],["table",Rect2i(2,8,2,1)],["bed",Rect2i(8,6,2,3)],["bookshelf",Rect2i(10,6,1,1)],
+		["sofa",Rect2i(1,10,3,1)],["rug",Rect2i(2,11,2,3)],["table",Rect2i(2,12,2,1)],["chair",Rect2i(1,12,1,1)],
+		["radio",Rect2i(1,14,1,1)],["toilet",Rect2i(8,12,1,1)],["sink",Rect2i(9,12,1,1)],["bath",Rect2i(10,13,1,2)],
+		["art",Rect2i(1,9,2,1)]],"sites":[["radio",Vector2i(2,14)],["bed",Vector2i(10,7)]],
+		"work":[Vector2i(6,3),Vector2i(9,4),Vector2i(6,12)]}
 
 static func _moss() -> Dictionary:
 	return {"size":Vector2i(14,14),"areas":[["hall",Rect2i(6,1,1,12)],

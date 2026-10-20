@@ -112,10 +112,21 @@ static func person(c: CanvasItem,p: Dictionary,step: float,direction: String) ->
 	else: sprite(c,"actor_%s_%s%d" % [id,direction,frame],Vector2(-16,-60))
 
 static func building(c: CanvasItem,b: Dictionary) -> void:
+	if b.kind=="lighthouse":
+		for y in range(6):
+			for x in range(3):
+				var component="stripe" if y==3 else "wall"
+				if x==1 and y==2: component="window"
+				if x==1 and y>=4: component="door_top" if y==4 else "door_bottom"
+				tile(c,"lighthouse_"+component,Vector2i(x,y-6),Color.WHITE if x==1 else Color("e3e8e4") if x==0 else Color("a6b8bb"))
+		for x in range(3):
+			tile(c,"lantern_"+["left","center","right"][x],Vector2i(x,-7))
+			tile(c,"cap_"+["left","center","right"][x],Vector2i(x,-8))
+		return
 	var columns=int(b.w/32)
 	var rows=maxi(2,int(b.h/32)-2)
 	if b.kind=="tower": rows=4
-	var variant="log" if b.kind=="cabin" else "stone" if b.kind=="tower" else "shop" if b.kind=="store" else "plaster"
+	var variant="log" if b.kind=="cabin" else "stone" if b.kind in ["tower","hall"] else "shop" if b.kind=="store" else "plaster"
 	var door=int(columns/2)
 	for y in range(rows):
 		for x in range(columns):
@@ -139,6 +150,7 @@ static func building(c: CanvasItem,b: Dictionary) -> void:
 		if x!=door: tile(c,"flowerbed",Vector2i(x,0))
 	for x in [door-1,door+1]:
 		if x>=0 and x<columns: tile(c,"light",Vector2i(x,-2))
+	if b.kind=="hall": tile(c,"civic_emblem",Vector2i(door,-rows-1))
 
 static func roof_tint(value: String) -> Color:
 	return Color(value).lerp(Color.WHITE,0.65)
@@ -151,6 +163,7 @@ static func cliff(c: CanvasItem,cell: Vector2i,cells: Dictionary) -> void:
 
 static func outdoors(w: Node2D) -> void:
 	w.draw_texture(w.terrain,Vector2.ZERO)
+	w.Coast.draw(w)
 	for cell in w.mountain_cells: cliff(w,cell,w.mountain_cells)
 	for y in range(w.SHIP_MOUNTAIN.position.y,w.SHIP_MOUNTAIN.end.y):
 		for x in range(w.SHIP_MOUNTAIN.position.x,w.SHIP_MOUNTAIN.end.x):
@@ -188,7 +201,7 @@ static func interior_wall(room: Node2D) -> String:
 static func interior(room: Node2D) -> void:
 	room.draw_rect(Rect2(-400,-250,room.ROOM_SIZE.x+800,room.ROOM_SIZE.y+500),Color("263732"))
 	for cell in room.floor_cells:
-		var id="metal" if room.building.id=="ship" else "bath" if room.floor_cells[cell] in ["bathroom","kitchen"] else "wood"+str(posmod(cell.x+cell.y,4))
+		var id="metal" if room.building.id=="ship" else "bath" if room.floor_cells[cell] in ["bathroom","kitchen"] else "wood"+str(posmod(hash([room.state.world_seed,room.building.id,cell]),4))
 		var tint=Color.WHITE
 		if room.building.id=="home" and ((cell.y>=7 and not room.state.house_tasks.living_light) or (room.floor_cells[cell]=="bathroom" and not room.state.house_tasks.bathroom_light)): tint=Color("8b9690")
 		tile(room,id,cell,tint)

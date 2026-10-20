@@ -9,7 +9,8 @@ const ROUTINES = {
 	"mayor":[[0,61,42,true],[420,61,42,false,"mayor"],[480,54,46,false,"hall"],[720,60,45,false],[780,54,46,false,"hall"],[1050,63,48,false],[1200,61,42,false,"mayor"],[1380,61,42,true]],
 	"vale":[[0,11,14,false]],
 	"veteran":[[0,42,80,true],[390,42,80,false,"veteran"],[480,43,82,false],[720,42,80,false,"veteran"],[840,39,81,false],[1080,42,80,false,"veteran"],[1320,42,80,true]],
-	"assistant":[[0,72,56,true],[420,72,56,false,"assistant"],[480,54,46,false,"hall"],[720,63,48,false],[780,54,46,false,"hall"],[1080,72,56,false,"assistant"],[1350,72,56,true]]
+	"assistant":[[0,72,56,true],[420,72,56,false,"assistant"],[480,54,46,false,"hall"],[720,63,48,false],[780,54,46,false,"hall"],[1080,72,56,false,"assistant"],[1350,72,56,true]],
+	"keeper":[[0,-24,51,true],[390,-24,51,false,"keeper"],[690,-19,53,false],[780,-24,51,false,"keeper"],[1080,-21,51,false],[1200,-24,51,false,"keeper"],[1380,-24,51,true]]
 }
 
 static func home_stop(id: String) -> Dictionary:

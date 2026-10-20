@@ -436,6 +436,7 @@ def props():
 
 def actors():
     palettes = {"player": ("6f9793", "5c5045", "d0a981"), "moss": ("a7834d", "d6cb9c", "d4a776"), "tavi": ("aa7262", "bd996b", "c0a070"), "iona": ("8885ad", "e3d7bd", "ae856c"), "finch": ("6d96a0", "765842", "d3ab88"), "vale": ("8b9baf", "b5a68e", "a97959"), "mayor": ("657b70", "c2c4b0", "d0a181"), "veteran": ("777a60", "b9b6a3", "b08f77"), "assistant": ("61758a", "c7cbcd", "65566d")}
+    palettes["keeper"] = ("536e81", "ded8c8", "c99c78")
     for name, (coat, hair, skin) in palettes.items():
         for direction in ["down", "up", "left", "right", "sleep"]:
             for frame in range(3 if direction != "sleep" else 1):
@@ -530,7 +531,14 @@ def item_icons():
     names = re.findall(r'^\t"(\w+)":\{"name"', source, re.MULTILINE)
     for name in names:
         p = add("item_" + name, Pixels(24, 24))
-        if name in ["hoe", "pickaxe", "sickle", "rusty_sword"]:
+        if name == "wood":
+            for x, y in [(3, 8), (9, 13), (5, 18)]:
+                p.box(x, y - 3, 14, 5, "85603d"); p.box(x + 1, y - 3, 12, 1, "cca46a"); p.oval(x, y, 2, 2, "d5b57d")
+        elif name == "lantern_ray":
+            p.polygon([(2, 8), (11, 2), (22, 9), (12, 16)], "8fa6a0")
+            for i in range(7): p.dot(12 + i, 15 + i, "d9be72")
+            for x, y in [(8, 7), (14, 6), (12, 11)]: p.box(x, y, 2, 2, "f4da87")
+        elif name in ["hoe", "pickaxe", "sickle", "rusty_sword", "axe"]:
             for i in range(4, 21): p.box(i, 24 - i, 2, 2, "aa8856")
             if name == "rusty_sword":
                 for i in range(9, 22): p.box(i, 23 - i, 3, 2, "bbc6ba"); p.dot(i, 23 - i, "e1ddc3")
@@ -541,6 +549,9 @@ def item_icons():
                 p.box(8, 12, 7, 2, "dce0c9")
             elif name == "pickaxe":
                 p.polygon([(5, 7), (11, 2), (18, 3), (23, 10), (17, 6), (11, 5)], "a8b9b5")
+            elif name == "axe":
+                p.polygon([(12, 3), (18, 1), (23, 5), (23, 12), (18, 12), (15, 7)], "a3b6b4")
+                p.box(21, 4, 2, 7, "d9dfc7")
             else:
                 p.box(15, 3, 6, 9, "92a7a8"); p.box(15, 3, 5, 2, "d2d8c0")
         elif name in ["seeds", "star_seeds", "rations"]:
@@ -570,9 +581,39 @@ def item_icons():
                 for x, y in [(7, 9), (13, 16), (17, 10)]: p.box(x, y, 4, 3, "d2a367")
 
 
+def coastal_sprites():
+    p = tile("stone_jetty", "657783")
+    for y in range(0, 32, 8):
+        for x in range(-8 if y % 16 else 0, 32, 16):
+            p.box(x + 1, y + 1, 14, 6, "929d99"); p.box(x + 2, y + 1, 12, 1, "c1c4ad")
+    for kind in ["wall", "stripe", "window", "door_top", "door_bottom"]:
+        p = tile("lighthouse_" + kind, "e3dfc8" if kind != "stripe" else "af5147")
+        p.box(0, 29, 32, 3, "a7aaa0" if kind != "stripe" else "7d3e3d")
+        for y in [8, 19]: p.box(0, y, 32, 1, "c3c3b0" if kind != "stripe" else "bf6554")
+        if kind == "window":
+            p.box(9, 3, 14, 25, "414b50"); p.box(11, 5, 10, 20, "94bdc4"); p.box(15, 5, 2, 20, "e6dcc0")
+        if kind.startswith("door"):
+            p.box(3, 0, 26, 32, "52646b"); p.box(6, 0, 20, 31, "758d8e")
+            if kind == "door_bottom": p.box(22, 13, 3, 3, "e3c072")
+    for part in ["left", "center", "right"]:
+        p = tile("lantern_" + part, "46555d")
+        p.box(2, 3, 28, 22, "a8c7bc"); p.box(5, 5, 22, 17, "edcf78")
+        p.box(14, 3, 3, 23, "56666a"); p.box(0, 25, 32, 7, "334850")
+        p = add("tile_cap_" + part, Pixels(32, 32))
+        if part == "center": p.box(0, 15, 32, 17, "52616b"); p.box(14, 3, 4, 17, "3d4d56")
+        elif part == "left": p.polygon([(0, 31), (31, 15), (31, 31)], "697b81")
+        else: p.polygon([(0, 15), (31, 31), (0, 31)], "3d4e59")
+    p = add("tile_civic_emblem", Pixels(32, 32))
+    p.box(5, 2, 22, 30, "425e71"); p.box(6, 3, 20, 2, "d6bd72")
+    p.polygon([(16, 7), (24, 16), (16, 26), (8, 16)], "d6bd72")
+    p.box(14, 12, 4, 10, "526979")
+    p = add("stump", Pixels(32, 32))
+    p.box(5, 17, 22, 13, "665039"); p.oval(16, 17, 11, 5, "bf9c6c"); p.oval(16, 17, 7, 3, "806447")
+
+
 def main():
     argparse.ArgumentParser(description=__doc__).parse_args()
-    terrain(); buildings(); trees_and_bushes(); props(); actors(); effects_and_ships(); item_icons()
+    terrain(); buildings(); coastal_sprites(); trees_and_bushes(); props(); actors(); effects_and_ships(); item_icons()
     source = (ROOT / "src/native/interior_layouts.gd").read_text()
     kinds = {"rug", "bed", "sofa", "table", "chair", "desk", "counter", "bookshelf", "stock", "cabinet", "crates", "tools", "seed_tray", "kitchen", "bath", "sink", "toilet", "reactor", "machine", "console", "radio", "art", "telescope", "plant"}
     sizes = {(kind, int(w), int(h)) for kind, w, h in re.findall(r'\["(\w+)",Rect2i\([^,]+,[^,]+,(\d+),(\d+)\)\]', source) if kind in kinds and (kind != "kitchen" or h == "1")}

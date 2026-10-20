@@ -1645,6 +1645,7 @@ CAST = {
     "mayor": ("657b70", "c2c4b0", "d0a181", "33363a", "e2b84f", "tophat"),
     "veteran": ("777a60", "b9b6a3", "b08f77", "4a4436", None, "beard"),
     "assistant": ("61758a", "c7cbcd", "65566d", "2e3440", "8fd0b6", "ears"),
+    "keeper": ("536e81", "ded8c8", "c99c78", "393e4c", "e0b96e", "beard"),
 }
 
 
@@ -1956,7 +1957,17 @@ def fish_icon(p, length, height, body, belly, fin, stripes=False, eel=False):
 
 def item_icon(name):
     p = add("item_" + name, Pixels(12, 12))
-    if name == "hoe":
+    if name == "axe":
+        handle(p, 1, 11, 7, 3)
+        p.polygon([(6, 2), (9, 0), (11, 2), (11, 6), (8, 7), (7, 4)], METAL[3])
+        p.vline(11, 2, 6, METAL[5]); p.dot(7, 3, WOOD[1])
+    elif name == "wood":
+        for x, y in [(1, 4), (4, 7), (2, 10)]:
+            p.box(x, y - 1, 7, 2, WOOD[3]); p.hline(x, x + 6, y - 1, WOOD[5]); p.dot(x, y, WOOD[2])
+    elif name == "lantern_ray":
+        p.polygon([(0, 4), (5, 1), (11, 4), (6, 8)], "82a2a5")
+        p.line(6, 7, 9, 11, GOLD[3]); p.dot(4, 4, GOLD[5]); p.dot(7, 4, GOLD[5]); p.dot(6, 6, GOLD[4])
+    elif name == "hoe":
         handle(p, 1, 11, 7, 3)
         p.box(7, 1, 2, 2, METAL[2]); p.box(8, 2, 4, 5, METAL[3]); p.vline(8, 2, 6, METAL[5]); p.hline(8, 11, 6, METAL[1])
     elif name == "pickaxe":
@@ -2099,9 +2110,47 @@ FURNITURE_KINDS = {"rug", "bed", "sofa", "table", "chair", "desk", "counter", "b
 EXTRA_IDS = [f"tile_fence_mask{i}" for i in range(16)] + ["tile_gate_h_open", "tile_gate_v_open", "crop_sprout_wet", "crop_turnip_wet", "crop_bulb_wet"]
 
 
+def coastal_sprites():
+    p = tile("stone_jetty")
+    p.box(0, 0, 16, 16, "354d59")
+    for row in range(4):
+        for x in range(-4 if row % 2 else 0, 16, 8):
+            p.box(x + 1, row * 4 + 1, 7, 3, "88978e")
+            p.hline(x + 1, x + 6, row * 4 + 1, "c0c3aa")
+            p.dot(x + 6, row * 4 + 2, "657b7a")
+    for kind in ("wall", "stripe", "window", "door_top", "door_bottom"):
+        p = tile("lighthouse_" + kind)
+        ramp = ["8b3e38", "b45a48", "d17a5a"] if kind == "stripe" else ["b1b7a6", "e2dfc6", "fff1ce"]
+        p.box(0, 0, 16, 16, ramp[1]); p.hline(0, 15, 0, ramp[2]); p.hline(0, 15, 15, ramp[0])
+        for y in (5, 10):
+            p.hline(0, 15, y, ramp[0]); p.dot((y * 3) % 16, y - 1, ramp[2])
+        if kind == "window":
+            p.box(4, 1, 8, 13, "303e49"); p.box(5, 2, 6, 10, "92b8bc")
+            p.hline(5, 10, 2, "d5e2ce"); p.vline(8, 2, 11, "e0dbc3"); p.hline(3, 12, 13, "929d91")
+        if kind.startswith("door"):
+            p.box(2, 0, 12, 16, "3c5361"); p.box(3, 0, 10, 15, "617d85")
+            p.vline(3, 0, 15, "9ab0ab"); p.vline(12, 0, 15, "344d59")
+            if kind == "door_bottom": p.dot(11, 7, "f0c574")
+    for part in ("left", "center", "right"):
+        p = tile("lantern_" + part)
+        p.box(0, 0, 16, 16, "344650"); p.box(1, 2, 14, 10, "dbb65c")
+        p.box(3, 3, 10, 7, "ffe6a0"); p.vline(7, 1, 12, "52636a")
+        p.hline(0, 15, 0, "8f9c95"); p.hline(0, 15, 13, "86978f"); p.box(0, 14, 16, 2, "243b48")
+        p = tile("cap_" + part)
+        if part == "center":
+            p.box(0, 8, 16, 8, "465b67"); p.vline(7, 1, 9, "263e4e"); p.hline(0, 15, 8, "8e9d9a")
+        elif part == "left": p.polygon([(0, 15), (15, 8), (15, 15)], "728992")
+        else: p.polygon([(0, 8), (15, 15), (0, 15)], "344b5b")
+    p = tile("civic_emblem")
+    p.box(2, 0, 12, 16, "2f4f67"); p.hline(2, 13, 1, "dfbd71")
+    p.polygon([(8, 3), (12, 8), (8, 13), (4, 8)], "e5c77e"); p.vline(8, 6, 10, "6d7a75")
+    p = add("stump", Pixels(16, 16))
+    p.box(3, 9, 10, 6, WOOD[2]); p.oval(8, 9, 5, 3, WOOD[4]); p.oval(8, 9, 3, 1, WOOD[2]); p.dot(8, 9, WOOD[5])
+
+
 def main():
     argparse.ArgumentParser(description=__doc__).parse_args()
-    terrain(); buildings(); vegetation(); props(); actors(); effects_and_ships()
+    terrain(); buildings(); coastal_sprites(); vegetation(); props(); actors(); effects_and_ships()
     for name in item_names(): item_icon(name)
     source = (ROOT / "src/native/interior_layouts.gd").read_text()
     sizes = {(kind, int(w), int(h)) for kind, w, h in re.findall(r'\["(\w+)",Rect2i\([^,]+,[^,]+,(\d+),(\d+)\)\]', source) if kind in FURNITURE_KINDS and (kind != "kitchen" or h == "1")}
