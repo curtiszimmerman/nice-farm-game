@@ -19,7 +19,7 @@ Wildlife and water loops have different lengths to reduce synchronized repetitio
 
 ## Calendar and map boundaries
 
-The audio controller accepts farm/town or cave/mine context, time of day, and season. Summer has more insect activity; autumn has less; winter has no cricket chorus and quieter birds. These profiles are tested. The world supplies the season from the provisional 28-day development calendar, including after a development time jump. Its mine is an outdoor entrance/outcrop, not a playable cave interior. Full seasonal gameplay and cave interiors remain separate changes.
+The audio controller accepts farm/town or cave/mine context, time of day, and season. Summer has more insect activity; autumn has less; winter has no cricket chorus and quieter birds. The world supplies the season from the provisional 28-day calendar. Entering the generated cave selects echoing water drops at every time of day and excludes outdoor wildlife. Full seasonal gameplay remains future work.
 
 ## Editing the sound
 

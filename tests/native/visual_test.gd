@@ -8,7 +8,7 @@ func _initialize() -> void:
 
 func capture(label: String) -> void:
 	game.ui.message.text=""
-	if game.state.welcome_phase not in ["meeting","departing"]: game.world.update_villagers(0.0,true)
+	if game.state.welcome_phase not in ["meeting","departing","moss_lesson"]: game.world.update_villagers(0.0,true)
 	game.nearest=game.world.find_nearest()
 	game.world.refresh()
 	game.camera.position=game.state.player_position+Vector2(20,-5)
@@ -44,12 +44,16 @@ func run() -> void:
 	while game.window_open: game.ui.modal_box.get_child(3).pressed.emit()
 	game.enter_building("home")
 	await capture("welcome-waiting")
+	game.state.storage_transfer("cabinet",0)
+	for task in game.state.house_tasks: game.tidy_farmhouse(task)
 	game._process(8)
 	await capture("welcome-party-inside")
 	while game.window_open: game.ui.modal_box.get_child(3).pressed.emit()
 	game._process(0.4)
 	await capture("welcome-departure")
 	while game.state.welcome_phase=="departing": game._process(0.25)
+	await capture("moss-farming-lesson")
+	while game.window_open: game.ui.modal_box.get_child(3).pressed.emit()
 	game.leave_building()
 	game.state.player_position=game.world.Grid.center(game.world.Grid.SPAWN_CELL)
 	game.open_chest()
@@ -102,13 +106,12 @@ func run() -> void:
 	await capture("radio-table")
 	game.state.player_position=game.world.site_position("pond")
 	await capture("dock")
-	game.state.player_position=game.world.site_position("ocean")
-	await capture("ocean-dock")
-	game.start_fishing("ocean")
-	game.fishing_species="storm_eel"
-	game.activity_time=3
-	await capture("ocean-fishing")
-	game.activity=""
+	game.enter_building("cave")
+	game.state.player_position=game.Grid.center(Vector2i(6,7))
+	await capture("cave-entrance")
+	game.state.player_position=game.Grid.center(game.world.chambers[2].get_center()+Vector2i(-1,2))
+	await capture("cave-rats")
+	game.leave_building()
 	game.state.player_position=game.world.Grid.center(game.world.SHIP_CELL)+Vector2(64,64)
 	await capture("ship")
 	game.state.turnips=4
@@ -152,7 +155,7 @@ func run() -> void:
 	game.state.player_position=game.world.site_position("radio")+Vector2(32,0)
 	await capture("interior-radio-club")
 	game.leave_building()
-	for id in ["moss","finch","tavi","mayor","veteran","iona","store","hall"]:
+	for id in ["moss","finch","tavi","mayor","assistant","veteran","iona","store","hall"]:
 		game.enter_building(id)
 		game.state.player_position=game.world.entry_position()
 		await capture("interior-"+id)

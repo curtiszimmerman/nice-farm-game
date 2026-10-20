@@ -51,7 +51,7 @@ func run() -> void:
 	check(game.ui.purse.modulate==Color.WHITE,"world night tint leaves interface colors unchanged")
 	var tree=null
 	var house=null
-	for child in world.get_children():
+	for child in world.scenery_layer.get_children():
 		if child is World.Prop:
 			if child.kind=="tree" and tree==null: tree=child
 			if child.kind=="building" and house==null: house=child

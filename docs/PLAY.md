@@ -6,7 +6,7 @@ Somewhere, the Sun Still Rises is a small native Godot game. It runs directly on
 
 New visits open at 09:00 on Spring 01 with an animated ship attack, emergency landing and Vale's status report. Time remains halted until you first leave the ship. Bunks and supplies are in the upper rear; damaged machinery is in front. Follow the single mountain descent and longer meadow approach. Coming around either side of the farmhouse forces an on-screen meeting with Moss. He asks about the mountain flash and crash, wonders about spellcasting and asks if you are travelers. The captain reacts with surprise and asks about lodging. Moss offers the abandoned farmhouse while he fetches Alder and Neral; this dialogue also holds time.
 
-Your first entry into the farmhouse begins a required welcome sequence. You can look around while waiting, but cannot leave. All three visitors appear inside, and their meeting cannot be dismissed. After the final choice, the captain waits while the entire group walks out. Only then do movement and the normal clock resume. The opening reaches the farmhouse in mid-morning, without running the clock through the introductory dialogue.
+Your first entry into the farmhouse begins a required welcome sequence. Finish removing all covers and replacing both bulbs; the visitors arrive eight real seconds after the house is ready. You cannot leave during this first visit. All three visitors meet you inside. Alder and Neral leave after the meeting; Moss stays to explain farming and recommend Iona's tower. Finish his advice to resume movement and the normal clock.
 
 The farmhouse initially has dusty covers on the sofa, both beds and radio. Press E at each furnishing to remove its cover. Take the two spare bulbs from the kitchen cabinet, then press E at the broken living-room and bathroom lights. The crew log tracks the remaining jobs. Alder offers permission to stay if you promise to keep the house clean, and suggests working the garden to support yourselves.
 
@@ -39,22 +39,21 @@ The bottom Actions button groups inventory, spells, notes, map and settings. Hea
 
 ## A good first visit
 
-1. Complete the ship briefing, leave the ship and follow the mountain path around the farmhouse to Moss. Enter the house to receive the mayor and Neral. Uncover furniture or look around while waiting; the first visit holds time and prevents leaving until all visitors have departed.
+1. Complete the ship briefing, follow the mountain descent to Moss, and enter the farmhouse. Remove every cover and install both cabinet bulbs. Meet the mayor and Neral, then hear Moss's farming advice after they leave. Time is held throughout the welcome.
 2. Take the seeds, hoe, watering can and sickle from the chest outside the farmhouse. Assign them to quick slots yourself. Face the adjacent garden square and select the appropriate slot before pressing E. Tilling costs 2 energy, watering 1, harvesting 1. The can starts empty and holds twenty charges; select it and press E at the pond jetty to refill. Select another slot to fish. Energy restores through food or rest in a farmhouse bed or ship bunk.
-3. Follow the lane east into town. Meet Tavi at the market cart and sell your turnips. Iona and Finch have things to say, too.
-4. Fish from the pond jetty or southern ocean dock. E casts; E again reels in while the meter is between 35 and 70. Hard fish have a faster, erratic gauge. Casts vary their opening positions. Misses cost no bait. Arm the watering can and activate at reachable pond borders to fill it; seawater cannot refill it.
-5. Find the quiet copper seam southeast of town. Bring three copper to Chief Vale inside the cloaked ship northwest of your farm.
+3. Meet Tavi at the market cart. Visit Iona's northern tower to learn Wildgrowth free, then assign the spell yourself. You cannot cast before learning. Iona explains regional magic and the unusual components she wants for further lessons.
+4. Fish from the pond jetty. E casts; E again reels in while the marker crosses the gold band. Hard fish move faster and more erratically. Misses cost no bait. The southern ocean and dock have been removed.
+5. Enter the copper cave southeast of town. Search the four-slot barrel just inside, take its pickaxe, then assign and select it. Press E beside rocks to mine stone or copper for five energy. Bring Vale three copper. Rats approach within five tiles and bite for four HP. Bram's selected rusty sword swings with E for two energy; two hits defeat a rat. If overwhelmed, you stagger to the cave entrance with 25 HP. These combat values are provisional.
 6. After the welcome, keep the house clean and work the garden. Ordinary conversations follow your chosen time policy. Tavi keeps selling after closing while his dialogue stays open.
 
 | Water | Fish | Difficulty | Sale value |
 | --- | --- | --- | --- |
 | Pond | Silverfin | Easy | 10 crowns |
 | Pond | Moon pike | Hard | 35 crowns |
-| Ocean dock | Sea sprat | Easy | 12 crowns |
-| Ocean dock | Blue mackerel | Easy | 16 crowns |
-| Ocean dock | Storm eel | Hard | 50 crowns |
 
-All five fish can be eaten, sold or used in fish sticks and stew. Cooking draws any fish species from your satchel and connected kitchen cabinet.
+Coastal fish remain in the item catalog without a playable location. Cooking accepts any fish species from your satchel and connected kitchen cabinet.
+
+The cave's rooms and passages are generated once per new visit and preserved by their saved seed. Mined rocks, defeated rats, the barrel and the deep Cave Moth Chrysalis persist. A Golden Sparkfire plant grows near Iona's tower; its flower opens from 05:30–07:00 during sunrise, with one bloom available per day. Components are available for future advanced lessons; only Wildgrowth is currently taught.
 
 The clock runs through midnight and conversations by default. One real second is three game minutes; a full ordinary day is eight real minutes. Rest speeds up the continuous clock. Crops mature three game days after watering. Wildgrowth can mature a watered crop immediately for 15 mana. There is no hard day transition or mandatory bedtime.
 
@@ -84,9 +83,9 @@ Progress autosaves every twelve seconds, at milestones, and on exit. Settings in
 
 A single-player atmosphere and interaction study. Names, dialogue, crop timing, art, and the working title are provisional.
 
-Included: exploration, farming, growth magic, inventory, trading, fishing, safe mining, a crew-link repair errand, day/night lighting, a scheduled introduction, menu-time settings, native saving, playful music, environmental ambience, and Wildgrowth audio.
+Included: exploration, farming, a free first magic lesson, inventory, trading, pond fishing, generated caves, pickaxe mining, basic rat combat, a crew-link repair errand, day/night lighting, a staged introduction, native saving, and layered audio.
 
-Network play, combat, relationships, full seasonal gameplay and lunar magic, the 52-person town, and the later attack-ship storyline remain future work. The calendar uses a provisional 28-day season for development; terrain and crops do not yet change seasonally. The copper errand is a small prototype objective, not a finalized main-story repair chain. The three pause modes are exercised locally; their multiplayer behavior is not yet proven.
+Network play, broader combat, relationships, advanced spells, full seasonal gameplay and lunar magic, the 52-person town, and the later attack-ship storyline remain future work. The calendar uses a provisional 28-day season. The three pause modes are exercised locally; multiplayer remains unproven.
 
 ## Development and checks
 

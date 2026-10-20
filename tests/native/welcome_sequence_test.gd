@@ -35,6 +35,14 @@ func run() -> void:
 	game.leave_building()
 	check(game.current_room=="home","the first farmhouse visit cannot be exited before the welcome")
 	game._process(9)
+	check(game.state.welcome_phase=="waiting" and not game.window_open,"the mayor waits until every cover and bulb is finished")
+	game.state.house_tasks.living_light=true
+	game._process(20)
+	check(game.state.welcome_phase=="waiting","partial cleanup never starts the welcome")
+	for task in game.state.house_tasks: game.state.house_tasks[task]=true
+	game._process(7)
+	check(game.state.welcome_phase=="waiting","the visitors allow a short pause after cleanup")
+	game._process(2)
 	check(game.state.welcome_phase=="meeting" and game.window_open,"the mayor's party arrives during the paused first visit")
 	check(["moss","mayor","assistant"].all(func(id): return game.world.villagers[id].visible),"all three visitors are inside the farmhouse together")
 	check(game.state.total()==now,"arrival and meeting leave the clock unchanged")
@@ -61,15 +69,21 @@ func run() -> void:
 	Input.parse_input_event(released)
 	Input.flush_buffered_events()
 	for i in range(60):
+		if game.state.welcome_phase=="moss_lesson":
+			check(game.world.villagers.moss.visible and not game.world.villagers.mayor.visible and not game.world.villagers.assistant.visible,"Moss stays physically inside after both officials leave")
+			check("energy" in game.ui.modal_box.get_child(2).text and game.clock_held(),"Moss explains farm work while the introductory clock stays held")
+			game.ui.modal_box.get_child(3).pressed.emit()
+			check("Iona" in game.ui.modal_box.get_child(2).text and "gods" in game.ui.modal_box.get_child(2).text,"Moss introduces the tower wizard and regional magic")
+		if game.window_open: game.ui.modal_box.get_child(3).pressed.emit()
 		if game.state.welcome_phase=="complete": break
 		game._process(0.25)
-	check(game.state.welcome_phase=="complete" and ["moss","mayor","assistant"].all(func(id): return not game.world.villagers[id].visible),"all visitors walk out before control resumes")
+	check(game.state.welcome_phase=="complete" and ["mayor","assistant"].all(func(id): return not game.world.villagers[id].visible),"Moss gives farming advice after the mayor and assistant leave")
 	now=game.state.total()
 	var outside_positions={}
 	for id in game.WELCOME_MEMBERS: outside_positions[id]=game.outdoors.villagers[id].position
 	game._process(1)
 	check(game.state.total()>now,"time resumes after the entire group has left")
-	check(game.WELCOME_MEMBERS.all(func(id): return game.outdoors.villagers[id].position!=outside_positions[id]),"each departing visitor resumes an outdoor route from the farmhouse")
+	check(["mayor","assistant"].all(func(id): return game.outdoors.villagers[id].position!=outside_positions[id]),"departing officials resume their outdoor routes")
 	game.state.welcome_phase="waiting"
 	game.reset_confirmation()
 	game.ui.modal_box.get_child(3).pressed.emit()

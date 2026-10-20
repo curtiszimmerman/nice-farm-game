@@ -8,13 +8,25 @@ var floor_cells: Dictionary={}
 var building: Dictionary
 var outdoors: Node2D
 var furnishings: Array=[]
+var rendered_tasks: Dictionary={}
+var animated_displays: Array=[]
 
 class Furniture extends Node2D:
 	var room: Node2D
 	var item: Dictionary
+	var draw_count=0
 	func _draw() -> void:
+		draw_count+=1
 		room.paint_furniture(self,item)
 		if item.has("task") and not room.state.house_tasks[item.task]: room.paint_cover(self,item)
+
+class Display extends Node2D:
+	var room: Node2D
+	var item: Dictionary
+	var draw_count=0
+	func _draw() -> void:
+		draw_count+=1
+		room.paint_display(self,item)
 
 class Wall extends Node2D:
 	var room: Node2D
@@ -87,6 +99,12 @@ func add_furniture(kind: String,bounds: Rect2i,solid: bool=true) -> void:
 	prop.item=data
 	prop.position=Grid.origin(bounds.position+Vector2i(0,bounds.size.y))
 	add_child(prop)
+	if kind in ["reactor","machine","console"]:
+		var display=Display.new()
+		display.room=self
+		display.item=data
+		prop.add_child(display)
+		animated_displays.append(display)
 
 func entry_position() -> Vector2: return Grid.center(layout.entry)
 
@@ -162,15 +180,23 @@ func find_nearest() -> Dictionary:
 	return best
 
 func refresh() -> void:
+	var previous_tasks=rendered_tasks
+	var tasks_changed=rendered_tasks!=state.house_tasks
+	if tasks_changed:
+		rendered_tasks=state.house_tasks.duplicate()
+		if building.id=="home": queue_redraw()
+	for display in animated_displays: display.queue_redraw()
 	player.position=state.player_position.round()
 	player.data.sleeping=get_parent().resting>0
 	player.data.bed_height=bed_height()
 	player.z_index=2 if player.data.sleeping else 0
 	player.queue_redraw()
 	night_tint.color=Color("b3c9d0") if building.id=="ship" else Color("d5c4ae") if state.minute<360 or state.minute>1200 else Color.WHITE
-	for child in get_children():
+	for child in moving_layer.get_children():
 		if child is Prop and child.kind=="effects": child.queue_redraw()
-		if building.id in ["ship","home"] and child is Furniture: child.queue_redraw()
+	for child in get_children():
+		if tasks_changed and child is Furniture and child.item.has("task"):
+			if previous_tasks.get(child.item.task)!=state.house_tasks[child.item.task]: child.queue_redraw()
 		if building.id=="home" and child is Furniture:
 			var cell: Vector2i=child.item.bounds.position
 			var dim=(cell.y>=7 and not state.house_tasks.living_light) or (cell.x>=9 and cell.y<4 and not state.house_tasks.bathroom_light)
@@ -366,6 +392,12 @@ func paint_furniture(c: CanvasItem,item: Dictionary) -> void:
 			r(c,3,-h-24,w-6,6,"9aadae")
 			r(c,5,-h-17,w-15,h+7,"586f78")
 			r(c,w-10,-h-18,8,h+14,"344751")
+
+func paint_display(c: CanvasItem,item: Dictionary) -> void:
+	var w=item.bounds.size.x*32
+	var h=item.bounds.size.y*32
+	match item.kind:
+		"reactor","machine","console":
 			if item.kind=="reactor":
 				for y in range(-h-10,-8,14):
 					r(c,16,y,w-40,8,"335358")

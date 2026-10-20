@@ -13,6 +13,7 @@ static func explore(game: Node2D,meet_moss: bool=false) -> void:
 	game.world.refresh()
 
 static func tools(state: RefCounted) -> void:
+	state.magic_learned=true
 	for i in range(4): state.chest_transfer(i)
 	for pair in [[0,"hoe"],[1,"watering_can"],[2,"sickle"],[3,"seeds"],[5,"wildgrowth"]]: state.assign_slot(pair[0],pair[1])
 	state.selected_slot=1

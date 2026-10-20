@@ -64,6 +64,7 @@ func run() -> void:
 	check(["moss","mayor","assistant"].all(func(id): return game.world.villagers[id].visible),"all visitors physically reach the farmhouse before the welcome conversation")
 	while game.window_open: game.ui.modal_box.get_child(3).pressed.emit()
 	while game.state.welcome_phase=="departing": game._process(0.25)
+	while game.window_open: game.ui.modal_box.get_child(3).pressed.emit()
 	check(game.state.met_mayor,"agreeing to keep the farmhouse clean completes the welcome")
 	game.sound.update_context(720,"farm","spring",0,10)
 	game.reset_confirmation()

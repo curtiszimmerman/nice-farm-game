@@ -67,11 +67,7 @@ func run() -> void:
 	game.state.buy_utensil("pan")
 	game.state.storm_eel=1
 	check(game.state.cook("fish_sticks") and game.state.storm_eel==0,"cooking accepts fish from the ocean")
-	game.state.player_position=w.site_position("ocean")
-	check(not w.blocked(game.state.player_position) and w.find_nearest().id=="ocean","the ocean dock is reachable and offers fishing")
-	game.state.water=0
-	game.interact()
-	check(game.state.water==0,"the watering can uses fresh pond water rather than seawater")
+	check(not w.sites.any(func(site): return site.id=="ocean") and not w.in_water(w.Grid.center(Vector2i(75,85))),"the invented southern ocean and its dock have been removed")
 	await game.sound.shutdown()
 	game.queue_free()
 	await process_frame

@@ -18,7 +18,6 @@ const DESCENT_EXIT=Vector2i(13,28)
 const MOSS_ENCOUNTER_CELL=Vector2i(18,41)
 const POND_CELL = Vector2i(17,67)
 const JETTY_CELLS = Rect2i(20,65,3,1)
-const OCEAN_DOCK=Rect2i(74,82,2,5)
 const CART_CELLS = Rect2i(65,45,3,1)
 const LAMP_CELLS = [Vector2i(58,43),Vector2i(64,50),Vector2i(20,42)]
 const PEOPLE = [
@@ -49,8 +48,8 @@ const SITES = [
 	{"id":"bed","cell":Vector2i(13,42),"label":"Rest at the farmhouse"},
 	{"id":"chest","cell":Vector2i(17,42),"label":"Open farmhouse chest"},
 	{"id":"pond","cell":Vector2i(21,65),"label":"Fish from the jetty"},
-	{"id":"ocean","cell":Vector2i(75,85),"label":"Fish from the ocean dock"},
-	{"id":"ore","cell":Vector2i(94,74),"label":"Gather copper"},
+	{"id":"ore","cell":Vector2i(94,74),"door":"cave","label":"Enter copper cave"},
+	{"id":"sparkfire","cell":Vector2i(58,16),"label":"Inspect woodland plant"},
 	{"id":"sign","cell":Vector2i(30,42),"label":"Read the signpost"},
 	{"id":"radio","cell":Vector2i(55,39),"label":"Listen to the radio"}
 ]
@@ -99,18 +98,24 @@ var moving = false
 var facing = "down"
 var nearest: Dictionary = {}
 var particles: Array = []
+var scenery_layer: Node2D
+var moving_layer: Node2D
+var crop_signature=0
 
 class Prop extends Node2D:
 	var owner_world: Node2D
 	var kind: String
 	var data: Dictionary
+	var draw_count=0
 	func _draw() -> void:
+		draw_count+=1
 		if kind == "tree": owner_world.paint_tree(self, data)
 		elif kind == "building": owner_world.paint_building(self, data)
 		elif kind == "person": owner_world.paint_person(self, data, sin(owner_world.elapsed*10.0) if data.get("walking",false) else 0.0, data.get("direction","down"))
 		elif kind == "player": owner_world.paint_person(self, data, sin(owner_world.elapsed * 14.0) if owner_world.moving else 0.0, owner_world.facing)
 		elif kind == "crops": owner_world.paint_crops(self)
 		elif kind == "effects": owner_world.paint_effects(self)
+		elif kind == "sparkfire": owner_world.paint_sparkfire(self,data.get("bloom",false))
 
 func _ready() -> void:
 	y_sort_enabled = true
@@ -138,6 +143,7 @@ func _ready() -> void:
 	update_villagers(0.0,true)
 	var effects = _prop("effects",Vector2.ZERO,{})
 	effects.z_index = 5
+	_prop("sparkfire",site_position("sparkfire"),{"bloom":false})
 
 func _claim(footprint: Rect2i,kind: String) -> void:
 	for y in range(footprint.position.y,footprint.end.y):
@@ -152,17 +158,15 @@ func _build_layout() -> void:
 			var cell=Vector2i(x,y)
 			var p=Grid.center(cell)
 			var pond=(p-Grid.center(POND_CELL))/Vector2(160,160)
-			if p.x<96.0+sin(p.y/145.0)*22.0 or pond.length_squared()<1.0 or y>=84+roundi(sin(x*0.12)):
+			if p.x<96.0+sin(p.y/145.0)*22.0 or pond.length_squared()<1.0:
 				water_cells[cell]=true
 				solid_cells[cell]="water"
-	for dock in [JETTY_CELLS,OCEAN_DOCK]:
+	for dock in [JETTY_CELLS]:
 		for y in range(dock.position.y,dock.end.y):
 			for x in range(dock.position.x,dock.end.x):
 				var cell=Vector2i(x,y)
 				solid_cells.erase(cell)
 				reserved_cells[cell]=true
-	for y in range(78,84):
-		for x in range(73,77): reserved_cells[Vector2i(x,y)]=true
 	for y in range(29,44):
 		for x in range(8,20): reserved_cells[Vector2i(x,y)]=true
 	for item in PEOPLE:
@@ -191,9 +195,7 @@ func _build_layout() -> void:
 		var pos=Grid.center(p.cell)
 		p.x=pos.x
 		p.y=pos.y
-		if p.id=="ore": p.bounds=Grid.rect(COPPER_CELLS.position,COPPER_CELLS.size)
 		if p.id=="pond": p.bounds=Grid.rect(JETTY_CELLS.position,JETTY_CELLS.size)
-		if p.id=="ocean": p.bounds=Grid.rect(OCEAN_DOCK.position,OCEAN_DOCK.size)
 		sites.append(p)
 		reserved_cells[p.cell]=true
 	_claim(OUTCROP_CELLS,"rock")
@@ -320,23 +322,41 @@ func update_villagers(dt: float,snap: bool=false) -> void:
 		actor.queue_redraw()
 
 func _prop(kind: String, pos: Vector2, data: Dictionary) -> Prop:
+	if scenery_layer==null:
+		scenery_layer=Node2D.new()
+		scenery_layer.name="StaticScenery"
+		scenery_layer.y_sort_enabled=true
+		add_child(scenery_layer)
+		moving_layer=Node2D.new()
+		moving_layer.name="MovingObjects"
+		moving_layer.y_sort_enabled=true
+		add_child(moving_layer)
 	var p = Prop.new()
 	p.owner_world = self
 	p.kind = kind
 	p.data = data
 	p.position = pos
-	add_child(p)
+	(scenery_layer if kind in ["tree","building"] else moving_layer).add_child(p)
 	return p
 
 func refresh() -> void:
 	var daylight=smoothstep(330.0,420.0,state.minute)*(1.0-smoothstep(1110.0,1200.0,state.minute))
 	night_tint.color=Color(0.32,0.42,0.92).lerp(Color.WHITE,daylight)
-	crops.queue_redraw()
+	var ripe_mask=0
+	for i in range(state.plots.size()):
+		if state.ripe(i): ripe_mask|=1<<i
+	var signature=hash(state.plots)^ripe_mask
+	if signature!=crop_signature:
+		crop_signature=signature
+		crops.queue_redraw()
 	player.position = state.player_position.round()
 	player.queue_redraw()
-	for child in get_children():
+	for child in scenery_layer.get_children()+moving_layer.get_children():
 		if child is Prop:
 			if child.kind == "effects": child.queue_redraw()
+			elif child.kind=="sparkfire":
+				var bloom=state.minute>=330 and state.minute<420 and state.sparkfire_picked_day!=state.day
+				if child.data.bloom!=bloom: child.data.bloom=bloom; child.queue_redraw()
 			elif child.kind in ["tree","building"]:
 				var hidden=prop_hides_player(child)
 				child.modulate.a=move_toward(child.modulate.a,0.22 if hidden else 1.0,0.14)
@@ -371,7 +391,7 @@ func audio_context(player_position: Vector2) -> Dictionary:
 
 func in_water(p: Vector2) -> bool:
 	var cell=Grid.world_to_cell(p)
-	return water_cells.has(cell) and not JETTY_CELLS.has_point(cell) and not OCEAN_DOCK.has_point(cell)
+	return water_cells.has(cell) and not JETTY_CELLS.has_point(cell)
 
 func at_pond_edge(p: Vector2) -> bool:
 	var cell=Grid.world_to_cell(p)
@@ -560,13 +580,6 @@ func _draw() -> void:
 		r(self,x,-10,5,48,"776a4e")
 		r(self,x,-12,5,3,"d0bb87")
 	draw_set_transform(Vector2.ZERO)
-	for y in range(OCEAN_DOCK.position.y,OCEAN_DOCK.end.y):
-		var p=Grid.origin(Vector2i(OCEAN_DOCK.position.x,y))
-		r(self,p.x,p.y,64,32,"625d49")
-		for yy in range(0,32,8):
-			r(self,p.x+1,p.y+yy,62,6,"ac946b")
-			r(self,p.x+6,p.y+yy,1,2,"dbbe8a")
-		for x in [0,60]: r(self,p.x+x,p.y+4,4,9,"655b49")
 	for cell in fence_cells:
 		var p=Grid.origin(cell)
 		if cell.x==FARM_CELL.x-1 and cell.y not in [FARM_CELL.y-2,FARM_CELL.y+5]:
@@ -598,9 +611,6 @@ func _draw() -> void:
 		var x=-rock_width/2+7+(i*37)%(rock_width-12)
 		var y=-6+(i*11)%18
 		poly(self,[Vector2(x,y),Vector2(x+5,y-4),Vector2(x+10,y+1),Vector2(x+7,y+4)],"7c8876" if i%3 else "a2a488")
-	for i in range(OUTCROP_CELLS.size.x):
-		r(self,-rock_width/2+12+i*32,-12+sin(i*3.0)*5,8,5,"9b7b5e")
-		r(self,-rock_width/2+14+i*32,-12+sin(i*3.0)*5,3,3,"c7a36d")
 	draw_set_transform(Grid.center(SHIP_CELL))
 	oval(self,0,0,87,43,"6d8958")
 	oval(self,0,0,71,30,"7b9060")
@@ -934,6 +944,17 @@ func paint_person(c: CanvasItem, p: Dictionary, step: float, direction: String) 
 			r(c,12,-26,3,28,"aab1a5")
 			r(c,8,-8,12,3,"b39a66")
 			r(c,12,-5,3,8,"796448")
+
+func paint_sparkfire(c: CanvasItem,bloom: bool) -> void:
+	oval(c,0,1,12,5,"465c4355")
+	r(c,-1,-18,3,20,"526d43")
+	for p in [Vector2(-7,-10),Vector2(7,-6),Vector2(-4,-3)]:
+		oval(c,p.x,p.y,6,3,"7e9451")
+	if bloom:
+		for i in range(6):
+			var p=Vector2(cos(i*TAU/6),sin(i*TAU/6))*7+Vector2(0,-20)
+			oval(c,p.x,p.y,5,4,"e4bb55")
+		oval(c,0,-20,4,4,"fff0a3")
 
 func paint_crops(c: CanvasItem) -> void:
 	for i in range(20):

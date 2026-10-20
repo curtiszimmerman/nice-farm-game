@@ -17,6 +17,7 @@ func run() -> void:
 	check(not game.world.blocked(game.state.player_position),"leaving the store never places the player inside the wagon")
 	check(not game.world._route(game.world.Grid.world_to_cell(game.state.player_position),game.world.Grid.SPAWN_CELL).is_empty(),"store exit connects to the outdoor walking network")
 	var shapes={}
+	var room_shapes={}
 	var compact=true
 	var private_baths=true
 	var routes_clear=true
@@ -27,6 +28,13 @@ func run() -> void:
 		if room.ROOM_CELLS.x*room.ROOM_CELLS.y>210: compact=false
 		var shape=JSON.stringify(room.layout)
 		shapes[shape]=true
+		var geometry=[]
+		for area in room.layout.areas: geometry.append(area[1])
+		room_shapes[str(geometry)]=true
+		for cell in room.layout.work:
+			if room.blocked(room.Grid.center(cell)) or room._route(room.layout.entry,cell).is_empty():
+				routes_clear=false
+				print("Unreachable work cell: ",b.id," ",cell)
 		var bath_doors=0
 		for door in room.layout.doors:
 			if "bathroom" in [door[0],door[1]]:
@@ -37,11 +45,14 @@ func run() -> void:
 			if room.floor_cells[cell]=="bathroom": room.solid_cells[cell]="closed bathroom"
 		for site in room.sites:
 			if site.id=="exit" or room.floor_cells.get(site.cell)=="bathroom": continue
-			if room._route(room.Grid.world_to_cell(room.entry_position()),site.cell).is_empty(): routes_clear=false
+			if room._route(room.Grid.world_to_cell(room.entry_position()),site.cell).is_empty():
+				routes_clear=false
+				print("Unreachable interior site: ",b.id," ",site.id)
 		game.leave_building()
 		if game.world.blocked(game.state.player_position): exits_clear=false
 	check(compact,"interiors use compact building-sized floor plans")
 	check(shapes.size()==game.outdoors.buildings.size(),"every building has a distinct interior plan")
+	check(room_shapes.size()==game.outdoors.buildings.size(),"each interior has its own room geometry, beyond furniture and names")
 	check(private_baths,"each bathroom has one private doorway and no kitchen connection")
 	check(routes_clear,"bedrooms kitchens and public spaces remain reachable with bathrooms closed")
 	check(exits_clear,"every building returns the player to a clear outdoor tile")

@@ -48,8 +48,15 @@ func run() -> void:
 	game.close_window()
 	game.state.player_position=game.world.site_position("ore")-Vector2(0,15)
 	game.interact()
-	game._update_activity(1.2)
-	check(game.state.copper==1 and game.activity=="","mining completes through the game controller")
+	check(game.current_room=="cave","the copper entrance enters its own cave map")
+	game.state.storage_transfer("cave_barrel",0)
+	game.state.assign_slot(4,"pickaxe")
+	game.select_quick_slot(4)
+	var rock=game.world.rocks.values().filter(func(item): return item.ore)[0]
+	game.state.player_position=game.Grid.center(rock.cell+Vector2i.DOWN)
+	game.interact()
+	check(game.state.copper==1,"mining completes through the game controller with a selected pickaxe")
+	game.leave_building()
 	game.state.copper=3
 	game.enter_building("ship")
 	game.state.player_position=game.world.villagers.vale.position+Vector2(0,15)

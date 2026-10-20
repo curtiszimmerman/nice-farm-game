@@ -4,6 +4,10 @@ const FOOD={"turnips":{"health":8,"energy":12,"mana":0},"fish":{"health":5,"ener
 const FISH={"fish":{"habitat":"pond","hard":false,"price":10,"color":"9dbcc0"},"moon_pike":{"habitat":"pond","hard":true,"price":35,"color":"a8ad7b"},"sea_sprat":{"habitat":"ocean","hard":false,"price":12,"color":"c1c7b2"},"blue_mackerel":{"habitat":"ocean","hard":false,"price":16,"color":"729ab6"},"storm_eel":{"habitat":"ocean","hard":true,"price":50,"color":"a58bb6"}}
 
 const CATALOG={
+	"pickaxe":{"name":"Pickaxe","description":"Select to break cave rocks and copper deposits. Costs 5 energy per rock.","action":"Mining tool"},
+	"stones":{"name":"Stone","description":"Rock collected in the cave.","action":"Building material"},
+	"cave_moth_chrysalis":{"name":"Cave Moth Chrysalis","description":"Found deep in the caves. Iona seeks it for further magic lessons.","action":"Magic component"},
+	"golden_sparkfire_bloom":{"name":"Golden Sparkfire Bloom","description":"A magical flower that opens only during sunrise.","action":"Magic component"},
 	"moon_pike":{"name":"Moon pike","description":"An elusive, valuable pond predator. Difficult to catch; suitable for cooking.","action":"Cooking ingredient · sell for 35 crowns"},
 	"sea_sprat":{"name":"Sea sprat","description":"A small, easy coastal catch. Suitable for cooking.","action":"Cooking ingredient · sell for 12 crowns"},
 	"blue_mackerel":{"name":"Blue mackerel","description":"A striped coastal fish. Easy to catch; suitable for cooking.","action":"Cooking ingredient · sell for 16 crowns"},
@@ -24,7 +28,7 @@ const CATALOG={
 	"fish":{"name":"Pond silverfin","description":"A small freshwater fish. Restores a little health and energy.","action":"Eat one"},
 	"star_bulbs":{"name":"Star bulb","description":"Cool and peppery, with a faint light beneath its skin. Restores mana.","action":"Eat one"},
 	"copper":{"name":"Copper ore","description":"Local copper for Chief Vale's crew-link repair.","action":"Crafting material"},
-	"rusty_sword":{"name":"Rusty sword","description":"An old army blade. Worn, serviceable, and freely given.","action":"Equip"}
+	"rusty_sword":{"name":"Rusty sword","description":"Bram's old army blade. Select and activate to swing in caves. Costs 2 energy.","action":"Weapon"}
 }
 static var textures: Dictionary={}
 
@@ -36,6 +40,16 @@ static func icon(id: String) -> Texture2D:
 		for x in range(24):
 			var color=Color.TRANSPARENT
 			match id:
+				"pickaxe":
+					if abs(x+y-24)<2 and x in range(5,20): color=Color("aa8555")
+					if y in range(4,8) and x in range(6,22): color=Color("a6b8bc") if y<6 else Color("61747c")
+				"stones":
+					if Vector2(x-12,y-14).length()<8: color=Color("8c9291") if x+y<26 else Color("555f64")
+				"cave_moth_chrysalis":
+					if pow((x-12)/5.0,2)+pow((y-12)/9.0,2)<1: color=Color("acbcb2") if y%4 else Color("668a91")
+				"golden_sparkfire_bloom":
+					if x in range(11,14) and y>10: color=Color("6b9754")
+					if Vector2(x-12,y-9).length()<7: color=Color("eac363") if (x+y)%3 else Color("fff0a0")
 				"light_bulbs":
 					if Vector2(x-12,y-10).length()<6: color=Color("e9deb0") if x<13 else Color("c5b67e")
 					if x in range(9,16) and y in range(14,21): color=Color("819499") if y%2 else Color("afbbb7")

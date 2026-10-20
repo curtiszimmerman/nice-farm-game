@@ -348,7 +348,7 @@ func item_slot(stack: Dictionary,pixels: int) -> Button:
 
 func open_chest(selected: String) -> void:
 	var storage: Array=game.state.get(game.storage_name)
-	var title={"chest":"Farmhouse chest","cabinet":"Kitchen cabinet","ship_storage":"Crew supplies"}[game.storage_name]
+	var title={"chest":"Farmhouse chest","cabinet":"Kitchen cabinet","ship_storage":"Crew supplies","cave_barrel":"Cave entrance barrel"}[game.storage_name]
 	open_modal(title,"TOOLS & SUPPLIES","Choose a stack, then choose the quantity. Select a carried stack and a storage slot to deposit or swap.",[["Close storage",func(): pass]],true)
 	modal.get_child(1).position=Vector2(160,100)
 	modal_box.get_child(2).custom_minimum_size.x=920
@@ -429,12 +429,12 @@ func update() -> void:
 	if game.world.Grid.rect(game.world.SQUARE.position,game.world.SQUARE.size).has_point(p): region.text="Briar Glen town square"
 	elif p.x>1500 and p.x<2500 and p.y<650: region.text="Wizard's tower · northern mountains"
 	elif game.world.SHIP_MOUNTAIN.has_point(game.world.Grid.world_to_cell(p)): region.text="Shipwreck ridge · mountain trail"
-	elif p.y>2550: region.text="South coast · ocean dock"
+	elif p.y>2550: region.text="Southern woodland"
 	elif game.world.Grid.rect(game.world.OUTCROP_CELLS.position,game.world.OUTCROP_CELLS.size).grow(200).has_point(p): region.text="Copper foothills"
 	if game.world!=game.outdoors: region.text=game.world.room_name()
 	place.text = "A quiet signal" if region.text=="The hidden clearing" else "Briar Glen"
 	objective.text = "Follow the mountain path to the back of the farmhouse. Find out who lives here." if not s.invited else "The mayor's party is waiting at the farmhouse." if not s.met_mayor and s.mayor_available() else "Moss is fetching the mayor. They return two hours after you spoke. Tidy the farmhouse while you wait." if not s.met_mayor else "A home, a little soil, a place in the world. Keep the farmhouse clean and work the garden."
-	if s.invited and not s.met_mayor: objective.text="Wait inside while Moss fetches the mayor and Neral. The clock is held during this first visit."
+	if s.invited and not s.met_mayor: objective.text="Uncover the farmhouse furniture and replace both bulbs. Moss will return with the mayor after the house is ready."
 	next_task.text = "○ Tend your first moon turnip" if s.harvested==0 else "○ Chief Vale needs 3 copper" if not s.delivered else "✓ Crew link restored"
 	if s.invited:
 		for task in s.house_tasks:

@@ -104,6 +104,16 @@ The copper interaction point was at (1585,1090), below the visible veins around 
 
 Z requested invisible grid-based population throughout the world, like the farm. `grid.gd` now owns 32-pixel tiles on a 60 × 45 map. Layout data is authored in cells; population and collision share an occupancy map. Building dimensions, tree roots, resource bounds, NPC anchors, road routes, fences, scenery, and terrain derive from that grid. Movement remains smooth, and farming targets the adjacent cell. Gates and the jetty reserve walkable space. See `WORLD_GRID.md` for the placement model and tests.
 
+## Cave and town-life implementation
+
+Z's latest scope adds cleanup-gated arrival, Moss's post-mayor farming lesson, learned magic, generated cave mining/combat, distinct authored interiors, and retained scenery drawing. Work is on `wip/caves-and-town-life`. The preceding 17 commits were rewritten to curtiszimmerman / curtis.zimmerman@gmail.com and published to GitHub main at 67d1ebd; the original history bundle remains ignored in internal/. New work is not automatically published.
+
+Save format 7 strictly includes magic learning, the cave seed/barrel/cleared rocks/defeated rats/component flags, and the Moss lesson phase. No migration was added; old saves remain protected. Cave generation uses six nonoverlapping room bins joined by orthogonal corridors; deposits skip corridor cells. Two rats use existing grid routing. Current combat tuning is provisional: mining 5 energy, sword swings 2, rats take two hits and bite for 4 HP. Defeat returns the player to the cave entrance with 25 HP and no inventory loss.
+
+Rendering uses explicit static scenery and moving-object nodes with recursive y sorting. Terrain and static CanvasItem drawing lists are retained; GPU scene rendering still happens each frame. Crop drawings change only when plot data or ripeness changes. Furniture covers and room lights use change detection; ship machinery has separate animated display children. Actual draw callbacks are counted in regression tests. This avoids rebuilding static geometry each frame without allocating an enormous world-sized viewport cache.
+
+All house geometries are individually authored. Reachability checks cover interaction points, NPC work cells, and circulation with bathroom doors closed. A failed route check found blocked doorways behind beds, shelves and dining chairs; furniture positions were corrected instead of weakening the checks. The southern ocean and dock are removed; unused coastal fish remain catalog entries pending approved geography.
+
 ## Next discussion
 
 Play and critique the slice before expanding it. Decide the next milestone, combat controls and feel, art direction, calendar/lunar rules, and the first actual networked cooperative interaction. Do not mistake placeholder content for approved final story or mechanics.

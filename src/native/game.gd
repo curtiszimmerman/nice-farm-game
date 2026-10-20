@@ -6,6 +6,7 @@ const Interface = preload("res://interface.gd")
 const Sound = preload("res://sound.gd")
 const Grid = preload("res://grid.gd")
 const Interior = preload("res://interior.gd")
+const Cave = preload("res://cave.gd")
 const Opening = preload("res://opening.gd")
 var opening: CanvasLayer
 const BRIEFING=[
@@ -102,6 +103,10 @@ func begin() -> void:
 	elif not state.briefing_complete: show_briefing()
 	elif state.welcome_phase=="meeting": mayor()
 	elif state.welcome_phase=="departing": place_welcome_party()
+	elif state.welcome_phase=="moss_lesson":
+		place_welcome_party()
+		for id in ["mayor","assistant"]: world.villagers[id].visible=false
+		moss_lesson()
 	else: toast("WASD to walk. E to interact. Follow the mountain path down.",6)
 	if saving_disabled: toast("An unreadable save was preserved. This visit will not overwrite it.",8.0)
 
@@ -131,7 +136,7 @@ func _process(dt: float) -> void:
 	if opening!=null: return
 	if not conversation_members.is_empty() and (state.location!=conversation_location or state.player_position.distance_to(conversation_anchor)>160): close_window()
 	if state.welcome_phase=="waiting":
-		state.welcome_elapsed+=dt
+		state.welcome_elapsed=state.welcome_elapsed+dt if state.house_tasks.values().all(func(done): return done) else 0.0
 		if state.welcome_elapsed>=8:
 			if window_open: close_window()
 			mayor()
@@ -151,6 +156,12 @@ func _process(dt: float) -> void:
 		var walking_dt=dt*maxf(1.0,minutes/maxf(dt*3.0,0.001))
 		outdoors.update_villagers(walking_dt)
 		if world!=outdoors: world.update_villagers(walking_dt)
+		if current_room=="cave":
+			world.update_enemies(dt)
+			if state.health<=0:
+				state.player_position=world.entry_position()
+				state.health=25
+				toast("You stagger back to the cave entrance. Eat or rest before returning.",6)
 		_move(dt)
 		_update_activity(dt)
 		for p in world.particles:
@@ -191,11 +202,11 @@ func _process(dt: float) -> void:
 	ui.update()
 
 func clock_held() -> bool:
-	return not state.ship_departed or state.welcome_phase in ["waiting","meeting","departing"] or ("moss" in conversation_members and not state.invited)
+	return not state.ship_departed or state.welcome_phase in ["waiting","meeting","departing","moss_lesson"] or ("moss" in conversation_members and not state.invited)
 
 func _move(dt: float) -> void:
 	world.moving = false
-	if state.welcome_phase in ["meeting","departing"]: return
+	if state.welcome_phase in ["meeting","departing","moss_lesson"]: return
 	if resting>0.0 or not activity.is_empty() or window_open: return
 	var direction = Vector2(
 		float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT))-float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT)),
@@ -220,6 +231,7 @@ func enter_building(id: String) -> void:
 	for b in outdoors.buildings:
 		if b.id==id: building=b; break
 	if id=="ship": building={"id":"ship","cell":World.SHIP_CELL+Vector2i(-1,0),"tiles":Vector2i(2,2)}
+	if id=="cave": building={"id":"cave","cell":Vector2i(93,73),"tiles":Vector2i(2,1)}
 	if id=="home" and not state.invited and state.briefing_complete:
 		if outdoors.villagers.moss.position.distance_to(state.player_position)<75: talk("moss")
 		else: toast("A farmer is coming around the side of the house.")
@@ -227,7 +239,7 @@ func enter_building(id: String) -> void:
 	if building.is_empty(): return
 	return_position=outdoors.exit_position(building)
 	if not rooms.has(id):
-		var room=Interior.new()
+		var room=Cave.new() if id=="cave" else Interior.new()
 		room.state=state
 		room.building=building
 		room.outdoors=outdoors
@@ -258,7 +270,7 @@ func enter_building(id: String) -> void:
 
 func leave_building() -> void:
 	if world==outdoors: return
-	if current_room=="home" and state.welcome_phase in ["waiting","meeting","departing"]:
+	if current_room=="home" and state.welcome_phase in ["waiting","meeting","departing","moss_lesson"]:
 		toast("Wait for Moss and the mayor's party to finish their visit.")
 		return
 	if current_room=="ship" and not state.briefing_complete:
@@ -286,7 +298,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		return
 	if not started: return
 	if opening!=null: return
-	if state.welcome_phase in ["meeting","departing"] or ("moss" in conversation_members and not state.invited): return
+	if state.welcome_phase in ["meeting","departing","moss_lesson"] or ("moss" in conversation_members and not state.invited): return
 	match event.physical_keycode:
 		KEY_1,KEY_2,KEY_3,KEY_4,KEY_5,KEY_6,KEY_7,KEY_8:
 			select_quick_slot(event.physical_keycode-KEY_1)
@@ -325,6 +337,9 @@ func actions() -> void:
 		["Use selected item / interact · E",interact],["Inventory · I",inventory],["Spells and skills",spell_slots],["Field notes · J",journal],["Map · M",map_notes],["Settings · Esc",settings]])
 
 func spell_slots() -> void:
+	if not state.magic_learned:
+		panel("Spells and skills","NO SPELLS LEARNED","You have not learned to use this world's magic.")
+		return
 	var choices=[]
 	for i in range(8):
 		var index=i
@@ -342,7 +357,7 @@ func burst(pos: Vector2,color = "a5d8c5",count = 20) -> void:
 		world.particles.append({"pos":pos,"velocity":Vector2(cos(angle)*randf_range(10,35),sin(angle)*25-20),"life":randf_range(1,2),"color":color})
 
 func close_window(preserve_conversation: bool=false) -> void:
-	if not preserve_conversation and (state.welcome_phase in ["meeting","departing"] or ("moss" in conversation_members and not state.invited)): return
+	if not preserve_conversation and (state.welcome_phase in ["meeting","departing","moss_lesson"] or ("moss" in conversation_members and not state.invited)): return
 	window_open = false
 	if not preserve_conversation: end_conversation(conversation_sequence)
 	sound.save_preferences()
@@ -378,10 +393,10 @@ func dialog(title: String,role: String,text: String,choices: Array = []) -> void
 	window_open = true
 	if choices.is_empty(): choices=[["See you around.",func(): pass]]
 	ui.open_modal(title,role,text,choices)
-	if state.welcome_phase=="meeting" or ("moss" in conversation_members and not state.invited): ui.modal.get_child(1).position.y=35
+	if state.welcome_phase in ["meeting","moss_lesson"] or ("moss" in conversation_members and not state.invited): ui.modal.get_child(1).position.y=35
 
 func panel(title: String,eyebrow: String,text: String,choices: Array = []) -> void:
-	if state.welcome_phase in ["meeting","departing"] or ("moss" in conversation_members and not state.invited): return
+	if state.welcome_phase in ["meeting","departing","moss_lesson"] or ("moss" in conversation_members and not state.invited): return
 	window_open = true
 	if choices.is_empty(): choices=[["Back to the morning",func(): pass]]
 	ui.open_modal(title,eyebrow,text,choices,true)
@@ -397,6 +412,11 @@ func interact() -> void:
 		_finish_fishing()
 		return
 	if not activity.is_empty(): return
+	nearest=world.find_nearest()
+	if current_room=="cave" and state.active_item()=="rusty_sword" and nearest.get("type")!="site":
+		if world.attack(): burst(state.player_position+Vector2({"up":Vector2.UP,"down":Vector2.DOWN,"left":Vector2.LEFT,"right":Vector2.RIGHT}[world.facing])*26,"e8d2a0",10); save_visit()
+		else: toast("Carry and select your sword, and keep enough energy to swing.")
+		return
 	if ui.Items.FOOD.has(state.active_item()):
 		toast("Used %s." % ui.Items.CATALOG[state.active_item()].name if state.consume(state.active_item()) else "Nothing to restore, or none carried.")
 		save_visit()
@@ -405,7 +425,11 @@ func interact() -> void:
 		toast("Watering can filled · 20 / 20" if state.refill_water() else "Take your watering can from storage first.")
 		save_visit()
 		return
-	nearest=world.find_nearest()
+	if nearest.get("type")=="rock":
+		var position=Grid.center(world.rocks[nearest.id].cell)
+		if world.mine_rock(nearest.id): burst(position,"c6a47b",12); save_visit(); toast("Rock mined. Five energy spent.")
+		else: toast("Select a carried pickaxe. Mining costs 5 energy and needs room in your satchel.")
+		return
 	if nearest.is_empty():
 		toast("Walk closer to a person, garden patch, or landmark.")
 		return
@@ -426,7 +450,19 @@ func interact() -> void:
 		match nearest.id:
 			"uncover_sofa","uncover_guest_bed","living_light","bathroom_light":
 				tidy_farmhouse(nearest.id.trim_prefix("uncover_"))
-			"chest","cabinet","ship_storage": open_storage(nearest.id)
+			"chest","cabinet","ship_storage","cave_barrel": open_storage(nearest.id)
+			"chrysalis":
+				toast("Cave Moth Chrysalis collected." if world.collect_chrysalis() else "Make room in your satchel.")
+				save_visit()
+			"sparkfire":
+				if state.minute<330 or state.minute>=420: toast("An ordinary-looking plant. Its golden flower opens only at sunrise.")
+				elif state.sparkfire_picked_day==state.day: toast("The dawn flower has already been gathered today.")
+				elif not state.can_carry("golden_sparkfire_bloom"): toast("Make room in your satchel.")
+				else:
+					state.golden_sparkfire_bloom+=1
+					state.sparkfire_picked_day=state.day
+					toast("Golden Sparkfire Bloom gathered in the sunrise.")
+					save_visit()
 			"stove": cooking()
 			"diagnostics": panel("Engineering diagnostics","CLOAKED SHIP · BATTLE DAMAGE","Phase-conjugate manifold: unstable. Gravitic shear compensator: bypassed. Inertial lattice: cracked. Plasma return bus: vented. Vale has isolated the sparking cables; the cloak and bunk section remain safe.")
 			"exit": leave_building()
@@ -441,11 +477,6 @@ func interact() -> void:
 					save_visit()
 					return
 				start_fishing(nearest.id)
-			"ore":
-				if state.energy<5.0: toast("A little rest would help. There's a bed at the farm.")
-				else:
-					activity="mining"
-					activity_time=0.0
 			"sign": dialog("A weathered sign","BRIAR GLEN","East: town and market. Southwest: the old mill pond. Southeast: copper outcrop. Northwest: nothing in particular, according to the official map.")
 			"radio":
 				if current_room=="home" and not state.house_tasks.radio: tidy_farmhouse("radio")
@@ -461,6 +492,7 @@ func tidy_farmhouse(task: String) -> void:
 
 func cast_growth() -> void:
 	if not started or window_open or resting>0.0 or not activity.is_empty(): return
+	if not state.magic_learned: toast("You have not learned to use local magic."); return
 	if state.active_item()!="wildgrowth": toast("Select Wildgrowth in a quick slot first."); return
 	nearest=world.find_nearest()
 	if nearest.get("type")!="plot":
@@ -476,13 +508,7 @@ func cast_growth() -> void:
 func _update_activity(dt: float) -> void:
 	if activity.is_empty(): return
 	activity_time+=dt
-	if activity=="mining" and activity_time>=1.1:
-		state.mine()
-		activity=""
-		burst(world.site_position("ore")-Vector2(0,Grid.TILE_SIZE*0.5),"d4ae7b",18)
-		toast("+1 copper ore. A quiet seam, no monsters.")
-		save_visit()
-	elif activity=="fishing" and activity_time>18.0:
+	if activity=="fishing" and activity_time>18.0:
 		activity=""
 		toast("You reel in the line. The pond can wait.")
 
@@ -633,13 +659,18 @@ func talk(id: String) -> void:
 					talk("tavi")],
 				["Just passing through.",func(): pass]])
 			ui.modal.get_child(1).position.y=125
-		"iona": dialog("Iona","FIELD MAGICIAN","Moss says you're new. I've left a little Wildgrowth in your hands. Plant a seed, water it, then press Q beside it. Fifteen attunement; yours returns on its own. Farmers pay me to do whole fields. You can start with one turnip.")
+		"iona":
+			if current_room!="iona" and state.player_position.distance_to(Grid.center(Vector2i(61,15)))>160:
+				dialog("Iona","FIELD MAGICIAN","Come visit my tower in the northern cliffs if you'd like a lesson. I keep late hours.")
+			else:
+				dialog("Iona","MAGIC OF BRIAR GLEN","Our spells answer the gods and goddesses of this region. Another city may work quite different magic. I'll teach you Wildgrowth for free: water a planted seed, then use the spell to hasten its growth. It costs fifteen mana, which returns with time. For further lessons, bring unusual components: a Cave Moth Chrysalis from deep in the caves, or a Golden Sparkfire Bloom. That flower opens only at dawn while the sun rises; at other hours it looks like an ordinary plant.",[
+					["Learn the basics" if not state.magic_learned else "Practice Wildgrowth",func(): state.magic_learned=true; save_visit(); toast("Wildgrowth learned. Assign it yourself under Actions → Spells and skills.",7)]])
 		"finch": dialog("Finch","RADIO CLUB SECRETARY","You're welcome at the club. Last week we heard a dance band from the far side of the border. Clear as anything. Governments can argue all they like; the air doesn't stop at a checkpoint.",[["What's on the air today?",radio],["I'll come back sometime.",func(): pass]])
 		"vale":
 			if not state.briefing_complete: show_briefing(); return
 			if state.delivered: dialog("Chief Vale","CHIEF ENGINEER · SECURE CREW LINK","Copper seated. Crew link stable; cloak holding. Keep one ration or cooked meal per day in the supply locker beside the bunks. Fish sticks or stew would beat another ration packet. "+("I've eaten today." if state.crew_fed_day==state.day else "The locker was empty at breakfast. Could you bring a cooked meal?"))
-			else: dialog("Chief Vale","CHIEF ENGINEER · SECURE CREW LINK","Cloak stable. Engines... less so. Three copper from the southeast seam would fix our crew link. There are six rations in the twelve-slot supply locker beside the bunks. I'll eat one each day. When they run out, leave me a cooked meal there every day. Fish sticks or stew would be a welcome change from ration packets, Captain.",[
-				["Hand over three copper." if state.copper>=3 else "I'll look for copper at the southeast outcrop.",func():
+			else: dialog("Chief Vale","CHIEF ENGINEER · SECURE CREW LINK","Cloak stable. Engines... less so. Three copper from inside the southeast cave would fix our crew link. There are six rations in the twelve-slot supply locker beside the bunks. I'll eat one each day. When they run out, leave me a cooked meal there every day. Fish sticks or stew would be a welcome change from ration packets, Captain.",[
+				["Hand over three copper." if state.copper>=3 else "I'll look inside the southeast cave.",func():
 					if state.copper>=3:
 						state.copper-=3
 						state.delivered=true
@@ -693,7 +724,7 @@ func place_welcome_party() -> void:
 
 func update_welcome_departure(dt: float) -> void:
 	var remaining=0
-	for id in WELCOME_MEMBERS:
+	for id in ["mayor","assistant"]:
 		var actor=world.villagers[id]
 		if not actor.visible: continue
 		if not departure_paths.has(id): departure_paths[id]=world._route(Grid.world_to_cell(actor.position),world.layout.exit)
@@ -713,15 +744,27 @@ func update_welcome_departure(dt: float) -> void:
 			outdoors.routes.erase(id)
 		else: remaining+=1
 	if remaining==0:
-		state.welcome_phase="complete"
-		save_visit()
-		toast("The visitors have left. The house is yours to settle into.",5)
+		moss_lesson()
+
+func moss_lesson() -> void:
+	state.welcome_phase="moss_lesson"
+	begin_conversation(["moss"],true)
+	dialog("Moss","A LITTLE HELP GETTING STARTED","Before I go: the chest outside holds your seeds, hoe, watering can and sickle. Carry a tool, assign it to a quick slot and select it. Hoe the earth, plant, then water. Fill the empty can at the pond's edge. Crops take three days. Farm work costs energy; food and your own bed restore it.",[
+		["And the spell you mentioned?",func(): dialog("Moss","THE WIZARD IN THE NORTHERN CLIFFS","Visit Iona by her tower, north of town. She'll teach you local magic to help the plants grow. Magic here belongs to our region's gods and goddesses, so travelers often need a lesson even if they know spells from another city. Iona rises around noon and stays up almost until sunrise.",[
+			["Thanks, Moss. We'll visit her.",func():
+				state.welcome_phase="complete"
+				end_conversation()
+				outdoors.villagers.moss.data.room=""
+				outdoors.villagers.moss.position=outdoors.site_position("bed")+Vector2(24,32)
+				outdoors.routes.erase("moss")
+				world.villagers.moss.visible=false
+				save_visit()]])]])
 
 func radio() -> void:
 	dialog("Briar Glen Radio","LOCAL SERVICE · 1040","...a fair morning across the valley. The north road is open to travelers, with delays at the border crossing. Tonight: the Radio Club's spring music hour. And if anyone has borrowed Mrs. Bell's ladder, she would like it back.")
 
 func inventory() -> void:
-	if state.welcome_phase in ["meeting","departing"] or ("moss" in conversation_members and not state.invited): return
+	if state.welcome_phase in ["meeting","departing","moss_lesson"] or ("moss" in conversation_members and not state.invited): return
 	window_open=true
 	ui.open_inventory()
 
@@ -752,12 +795,13 @@ func item_options(id: String) -> void:
 func journal() -> void:
 	var visit="Speak with Moss behind the farmhouse to arrange the visit."
 	if state.invited:
-		visit="The mayor's welcome is complete." if state.met_mayor else "Wait inside the farmhouse while Moss fetches Alder and Neral. The welcome sequence holds the clock."
+		visit="The mayor's welcome is complete." if state.met_mayor else "Wait inside the farmhouse and finish every cover and bulb. Moss brings Alder and Neral after the house is ready. The welcome sequence holds the clock."
 	panel("Captain's field notes","FIRST LANDING","%s Shelter · speak with Moss behind the farmhouse.\n\n%s %s\n\n%s Make the house a home · remove the furniture covers and replace both broken light bulbs. Spares are in the kitchen cabinet.\n\n%s Provide for ourselves · harvest a moon turnip; Tavi buys produce.\n\n%s Crew communications · bring Vale three copper from southeast of town. Keep food in the ship locker." % ["✓" if state.invited else "○","✓" if state.met_mayor else "○",visit,"✓" if state.house_tasks.values().all(func(done): return done) else "○","✓" if state.harvested>0 else "○","✓" if state.delivered else "○"])
 	ui.modal.get_child(1).position.y=55
 
 func map_notes() -> void:
-	panel("Around Briar Glen","MOSS'S HAND-DRAWN DIRECTIONS","↖ Hidden ship & Chief Vale\n↑ Radio Club & Finch\n← Your farm & Moss\n→ Town square, homes & Tavi's cart\n↑ Iona's tower in the northern mountains\n↙ Pond & fishing jetty\n↘ Safe copper outcrop\n\nTavi keeps the cart 08:00–20:00, with lunch at 12:30. Iona wakes at noon and sleeps around 05:00.\nFollow the sandy lanes; neighbors have places to be.")
+	var wizard="↑ Iona's tower in the northern mountains · she rises at noon" if state.welcome_phase=="complete" else "↑ Northern cliffs"
+	panel("Around Briar Glen","LOCAL DIRECTIONS","↖ Hidden ship & Chief Vale\n↑ Radio Club & Finch\n← Your farm & Moss\n→ Town square, homes & Tavi's cart\n%s\n↙ Pond & fishing jetty\n↘ Copper cave · bring a pickaxe\n\nTavi keeps the cart 08:00–20:00, with lunch at 12:30.\nFollow the sandy lanes; neighbors have places to be." % wizard)
 
 func settings() -> void:
 	if not started: return
@@ -815,6 +859,9 @@ func reset_confirmation() -> void:
 			state=State.new()
 			outdoors.state=state
 			for room in rooms.values(): room.state=state
+			if rooms.has("cave"):
+				rooms.cave.queue_free()
+				rooms.erase("cave")
 			outdoors.update_villagers(0.0,true)
 			saving_disabled=false
 			activity=""
