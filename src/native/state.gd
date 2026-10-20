@@ -38,6 +38,9 @@ var ship_storage: Array=[]
 var quick_slots: Array=["","","","","","","",""]
 var selected_slot=0
 var inventory_selection=""
+var auxiliary_selection=""
+var action_channel="primary"
+const Skills=preload("res://skills.gd")
 var world_seed=0
 var lantern_ray=0
 var axe=0
@@ -91,7 +94,7 @@ var energy = 100.0
 var invited = false
 var met_mayor = false
 var delivered = false
-var pause_mode = "none"
+var pause_mode = "all"
 var player_position = Grid.center(Vector2i(7,12))
 var plots: Array = []
 
@@ -153,13 +156,26 @@ func ripe(index: int) -> bool:
 	return index >= 0 and index < plots.size() and plots[index].planted >= 0.0 and plots[index].watered and total() - plots[index].planted+plots[index].growth >= CROP_MINUTES
 
 func clear_empty_slots() -> void:
-	if inventory_selection!="" and int(get(inventory_selection))<1: inventory_selection=""
+	if inventory_selection!="" and not available_action(inventory_selection): inventory_selection=""
+	if auxiliary_selection!="" and not available_action(auxiliary_selection): auxiliary_selection=""
 	for i in range(quick_slots.size()):
-		if quick_slots[i]!="" and quick_slots[i]!="wildgrowth" and int(get(quick_slots[i]))<1: quick_slots[i]=""
+		if quick_slots[i]!="" and not available_action(quick_slots[i]): quick_slots[i]=""
 
-func active_item() -> String:
+func active_item(channel: String="") -> String:
 	clear_empty_slots()
+	if (channel if channel!="" else action_channel)=="aux": return auxiliary_selection
 	return inventory_selection if selected_slot==8 else quick_slots[selected_slot]
+
+func available_action(id: String) -> bool:
+	return Skills.known(self,id) if Skills.CATALOG.has(id) else Items.CATALOG.has(id) and int(get(id))>0
+
+func assign_active(channel: String,id: String) -> bool:
+	if channel not in ["primary","aux"] or (id!="" and not available_action(id)): return false
+	if channel=="aux": auxiliary_selection=id
+	else:
+		inventory_selection=id
+		selected_slot=8
+	return true
 
 func select_inventory(id: String) -> bool:
 	if not Items.CATALOG.has(id) or int(get(id))<1: return false
@@ -168,8 +184,7 @@ func select_inventory(id: String) -> bool:
 	return true
 
 func assign_slot(index: int,id: String) -> bool:
-	if id=="wildgrowth" and not magic_learned: return false
-	if index<0 or index>=8 or (id!="" and id!="wildgrowth" and (not Items.CATALOG.has(id) or int(get(id))<1)): return false
+	if index<0 or index>=8 or (id!="" and not available_action(id)): return false
 	quick_slots[index]=id
 	return true
 
@@ -415,7 +430,7 @@ func meet_mayor() -> bool:
 func to_dict() -> Dictionary:
 	var supplies={}
 	for id in EXTRA_ITEMS: supplies[id]=get(id)
-	return {"version": 8, "world_seed":world_seed,"inventory_selection":inventory_selection,"firewood_requested":firewood_requested,"firewood_given":firewood_given,"felled_trees":felled_trees.duplicate(),"day": day, "minute": minute, "money": money,"magic_learned":magic_learned,
+	return {"version": 9, "auxiliary_selection":auxiliary_selection,"world_seed":world_seed,"inventory_selection":inventory_selection,"firewood_requested":firewood_requested,"firewood_given":firewood_given,"felled_trees":felled_trees.duplicate(),"day": day, "minute": minute, "money": money,"magic_learned":magic_learned,
 		"cave_seed":cave_seed,"cave_broken":cave_broken.duplicate(),"cave_defeated":cave_defeated.duplicate(),"cave_chrysalis_taken":cave_chrysalis_taken,"sparkfire_picked_day":sparkfire_picked_day,"cave_barrel":cave_barrel.duplicate(true),
 		"ship_departed":ship_departed,"welcome_phase":welcome_phase,"welcome_elapsed":welcome_elapsed,
 		"intro_complete":intro_complete,"briefing_complete":briefing_complete,"mayor_due":mayor_due,"house_tasks":house_tasks.duplicate(),
@@ -430,10 +445,12 @@ func to_dict() -> Dictionary:
 		"plots": plots.duplicate(true)}
 
 func restore(data: Variant) -> bool:
-	if not data is Dictionary or data.get("version") != 8:
+	if not data is Dictionary or data.get("version") != 9:
 		return false
 	if not _number(data.get("world_seed")) or data.world_seed<1 or data.world_seed>2147483646 or data.world_seed!=floor(data.world_seed): return false
-	if not data.get("inventory_selection") is String or (data.inventory_selection!="" and not Items.CATALOG.has(data.inventory_selection)): return false
+	for field in ["inventory_selection","auxiliary_selection"]:
+		if not data.get(field) is String: return false
+		if data[field]!="" and not Items.CATALOG.has(data[field]) and not Skills.CATALOG.has(data[field]): return false
 	if not data.get("firewood_requested") is bool or not data.get("firewood_given") is bool or (data.firewood_given and not data.firewood_requested): return false
 	if not data.get("felled_trees") is Array: return false
 	for cell in data.felled_trees:
@@ -441,6 +458,7 @@ func restore(data: Variant) -> bool:
 		var pair=cell.split(",")
 		if pair.size()!=2 or not pair[0].is_valid_int() or not pair[1].is_valid_int() or not Grid.contains(Vector2i(int(pair[0]),int(pair[1]))): return false
 	if not data.get("magic_learned") is bool: return false
+	if not data.magic_learned and "wildgrowth" in [data.inventory_selection,data.auxiliary_selection]: return false
 	if not _number(data.get("cave_seed")) or data.cave_seed<1 or data.cave_seed>2147483646 or data.cave_seed!=floor(data.cave_seed): return false
 	if not data.get("cave_chrysalis_taken") is bool or not _number(data.get("sparkfire_picked_day")) or data.sparkfire_picked_day<0 or data.sparkfire_picked_day!=floor(data.sparkfire_picked_day): return false
 	if not data.get("cave_broken") is Array or not data.get("cave_defeated") is Array: return false
@@ -467,7 +485,7 @@ func restore(data: Variant) -> bool:
 	if data.water>20 or data.selected_slot>8 or data.crew_fed_day<1: return false
 	if not data.get("quick_slots") is Array or data.quick_slots.size()!=8: return false
 	for id in data.quick_slots:
-		if id!="" and id!="wildgrowth" and not Items.CATALOG.has(id): return false
+		if id!="" and not Skills.CATALOG.has(id) and not Items.CATALOG.has(id): return false
 		if id=="wildgrowth" and not data.magic_learned: return false
 	for field in ["cabinet","ship_storage"]:
 		if not data.get(field) is Array or data[field].size()!=12: return false
@@ -490,14 +508,15 @@ func restore(data: Variant) -> bool:
 		var quantity=data.supplies[id] if id in EXTRA_ITEMS else data[id]
 		if quantity>0: occupied+=1
 	if occupied>INVENTORY_SLOTS: return false
-	if not data.get("location") in ["","home","moss","finch","mayor","tavi","iona","radio","store","hall","veteran","assistant","ship","cave","keeper"]: return false
+	if not data.get("location") in ["","home","moss","finch","mayor","tavi","iona","radio","store","hall","veteran","assistant","ship","cave","keeper","reed_farm","windmill","mill_home","smithy","tavern","bakery"]: return false
 	if not data.get("chest") is Array or data.chest.size()!=18 or not data.get("abandoned_day") is Dictionary: return false
 	for stack in data.chest:
 		if not stack is Dictionary: return false
 		if stack.is_empty(): continue
 		if not Items.CATALOG.has(stack.get("id")) or not _number(stack.get("count")) or stack.count<1 or stack.count!=floor(stack.count): return false
 	for id in data.abandoned_day:
-		if not id in ["moss","mayor","assistant","tavi","iona","finch","vale","veteran","keeper"] or not _number(data.abandoned_day[id]) or data.abandoned_day[id]<1 or data.abandoned_day[id]>data.day: return false
+		if not id in ["moss","mayor","assistant","tavi","iona","finch","vale","veteran","keeper"] and not preload("res://neighbors.gd").STORIES.has(id): return false
+		if not _number(data.abandoned_day[id]) or data.abandoned_day[id]<1 or data.abandoned_day[id]>data.day: return false
 		if data.abandoned_day[id]!=floor(data.abandoned_day[id]): return false
 	if not data.get("selected_seed") in ["seeds","star_seeds"] or not data.get("equipped") in ["","rusty_sword"]: return false
 	if data.equipped=="rusty_sword" and data.rusty_sword==0: return false
@@ -531,6 +550,7 @@ func restore(data: Variant) -> bool:
 	for field in ["water","selected_slot","crew_fed_day","crew_hungry_days"]: set(field,int(data[field]))
 	quick_slots=data.quick_slots.duplicate()
 	inventory_selection=data.inventory_selection
+	auxiliary_selection=data.auxiliary_selection
 	world_seed=int(data.world_seed)
 	firewood_requested=data.firewood_requested
 	firewood_given=data.firewood_given

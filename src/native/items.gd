@@ -38,7 +38,7 @@ const CATALOG={
 static var textures: Dictionary={}
 
 static func icon(id: String) -> Texture2D:
-	if Art.option==2:
+	if Art.option==2 and Art.catalog.has("item_"+id):
 		var key="sprite_"+id
 		if not textures.has(key):
 			var texture=AtlasTexture.new()
@@ -53,6 +53,12 @@ static func icon(id: String) -> Texture2D:
 		for x in range(24):
 			var color=Color.TRANSPARENT
 			match id:
+				"wildgrowth":
+					if pow((x-12)/7.0,2)+pow((y-12)/9.0,2)<1: color=Color("9ac483") if x<12 else Color("547c63")
+					if abs(x-y)<2: color=Color("e2dfaa")
+				"sit":
+					if x in range(4,20) and y in range(6,15): color=Color("b59460")
+					if x in [5,6,17,18] and y in range(14,22): color=Color("685943")
 				"pickaxe":
 					if abs(x+y-24)<2 and x in range(5,20): color=Color("aa8555")
 					if y in range(4,8) and x in range(6,22): color=Color("a6b8bc") if y<6 else Color("61747c")

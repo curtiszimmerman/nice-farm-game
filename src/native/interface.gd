@@ -17,28 +17,36 @@ var hint_panel: PanelContainer
 var pulse_time=0.0
 var pause_shield: Control
 var pause_badge: PanelContainer
-var active_button: Button
+var active_button: ItemButton
+var auxiliary_button: ItemButton
+const Skills=preload("res://skills.gd")
+var equipment_slots: Dictionary={}
+var skill_buttons: Array=[]
 var dialogue_open=false
+var controls_hint: Label
 
 class ItemButton extends Button:
 	var interface: CanvasLayer
 	var quick_index=-1
 	var inventory_source=false
+	var skill_source=false
+	var active_channel=""
 	func _get_drag_data(_position: Vector2) -> Variant:
-		if not inventory_source or not has_meta("item_id"): return null
+		if not (inventory_source or skill_source) or not has_meta("item_id"): return null
 		var id: String=get_meta("item_id")
-		if int(interface.game.state.get(id))<1: return null
+		if not interface.game.state.available_action(id): return null
 		var preview=TextureRect.new()
 		preview.texture=Items.icon(id)
 		preview.custom_minimum_size=Vector2(40,40)
 		preview.texture_filter=CanvasItem.TEXTURE_FILTER_NEAREST
 		set_drag_preview(preview)
-		return {"type":"inventory_item","id":id}
+		return {"type":"ability" if skill_source else "inventory_item","id":id}
 	func _can_drop_data(_position: Vector2,data: Variant) -> bool:
-		return quick_index>=0 and data is Dictionary and data.get("type")=="inventory_item" and Items.CATALOG.has(data.get("id")) and int(interface.game.state.get(data.id))>0
+		return (quick_index>=0 or active_channel!="") and data is Dictionary and data.get("type") in ["inventory_item","ability"] and interface.game.state.available_action(data.get("id",""))
 	func _drop_data(position: Vector2,data: Variant) -> void:
 		if not _can_drop_data(position,data): return
-		interface.game.state.assign_slot(quick_index,data.id)
+		if active_channel!="": interface.game.state.assign_active(active_channel,data.id)
+		else: interface.game.state.assign_slot(quick_index,data.id)
 		interface.game.save_visit()
 		interface.update()
 var quantity_control: SpinBox
@@ -117,20 +125,32 @@ func _ready() -> void:
 	energy_bar = _bar(Vector2(19,46),Vector2(132,4),Color("a5bb78"),tray)
 	attunement = _label("MANA  60",Vector2(19,53),10,MUTED,false,tray)
 	mana_bar = _bar(Vector2(19,69),Vector2(132,4),Color("90b9d2"),tray)
-	_label("ACTIVE",Vector2(166,4),9,GOLD,false,tray)
-	active_button=Button.new()
+	_label("PRIMARY",Vector2(163,3),8,GOLD,false,tray)
+	active_button=ItemButton.new()
+	active_button.interface=self
+	active_button.active_channel="primary"
 	active_button.position=Vector2(162,20)
-	active_button.size=Vector2(54,57)
+	active_button.size=Vector2(48,57)
 	active_button.expand_icon=true
 	active_button.add_theme_constant_override("icon_max_width",28)
 	_button_style(active_button,true,true)
 	tray.add_child(active_button)
+	decorate_action_slot(active_button,"E")
+	_label("AUX",Vector2(220,3),8,GOLD,false,tray)
+	auxiliary_button=ItemButton.new()
+	auxiliary_button.interface=self
+	auxiliary_button.active_channel="aux"
+	auxiliary_button.position=Vector2(216,20)
+	auxiliary_button.size=Vector2(48,57)
+	_button_style(auxiliary_button,false,true)
+	tray.add_child(auxiliary_button)
+	decorate_action_slot(auxiliary_button,"Q")
 	for i in range(8):
 		var b = ItemButton.new()
 		b.interface=self
 		b.quick_index=i
-		b.position = Vector2(228+i*58,10)
-		b.size = Vector2(53,68)
+		b.position = Vector2(274+i*54,10)
+		b.size = Vector2(50,68)
 		b.expand_icon=true
 		b.add_theme_constant_override("icon_max_width",28)
 		b.add_theme_font_size_override("font_size",12)
@@ -138,9 +158,10 @@ func _ready() -> void:
 		var index = i
 		b.pressed.connect(func(): game.select_quick_slot(index))
 		tray.add_child(b)
+		decorate_action_slot(b,str(i+1))
 		quick_buttons.append(b)
 	var actions=Button.new()
-	actions.position=Vector2(705,15)
+	actions.position=Vector2(712,15)
 	actions.size=Vector2(104,58)
 	actions.text="Actions"
 	_button_style(actions)
@@ -148,9 +169,9 @@ func _ready() -> void:
 	tray.add_child(actions)
 	purse = _label("24",Vector2(832,18),24,GOLD,true,tray)
 	_label("crowns",Vector2(834,51),12,MUTED,false,tray)
-	var controls = _label("WASD / ARROWS  walk    SHIFT  run    E  interact    Q  magic    M  map    ESC  settings    F11  fullscreen",Vector2(0,699),10,MUTED)
-	controls.size.x = 1280
-	controls.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	controls_hint = _label("",Vector2(0,699),10,MUTED)
+	controls_hint.size.x = 1280
+	controls_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint_panel=PanelContainer.new()
 	hint_panel.position=Vector2(390,554)
 	hint_panel.size=Vector2(500,30)
@@ -387,24 +408,64 @@ func add_volume_slider(title: String,value: float,on_changed: Callable) -> void:
 	modal_box.move_child(row,modal_box.get_child_count()-4)
 
 func open_inventory() -> void:
+	open_character_inventory()
+
+func open_character_inventory() -> void:
 	# The quick bar remains a drop target while the satchel is open.
 	open_modal("Your satchel","SUPPLIES & EQUIPMENT","Hover over an item for details. Select an item to use it.",[["Close satchel",func(): pass]],true)
 	var water=game.state.water
-	modal_box.get_child(2).text="Click an item to make it active. Drag it onto a quick slot to save it there. Right-click for Eat or Drink.\nWater: %s" % ["Empty" if water==0 else "Low" if water==1 else "%d/20" % water]
-	modal.get_child(1).position.y=55
+	modal_box.get_child(2).text="Click to select · drag onto either action or a quick slot · right-click food to eat or drink"
+	modal_box.get_child(2).custom_minimum_size.x=1000
+	modal.get_child(1).position=Vector2(100,40)
 	modal.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	modal.get_child(0).mouse_filter=Control.MOUSE_FILTER_IGNORE
 	inventory_slots.clear()
+	skill_buttons.clear()
+	equipment_slots.clear()
+	var row=HBoxContainer.new()
+	row.add_theme_constant_override("separation",26)
+	modal_box.add_child(row)
+	modal_box.move_child(row,3)
+	var equipment=Control.new()
+	equipment.custom_minimum_size=Vector2(250,280)
+	row.add_child(equipment)
+	_label("EQUIPMENT",Vector2(65,0),12,GOLD,false,equipment)
+	var silhouette=TextureRect.new()
+	var portrait=AtlasTexture.new()
+	portrait.atlas=Items.Art.atlas
+	portrait.region=Items.Art.region("actor_player_down0")
+	silhouette.texture=portrait
+	silhouette.modulate=Color("728b8060")
+	silhouette.position=Vector2(94,70)
+	silhouette.size=Vector2(64,128)
+	silhouette.texture_filter=CanvasItem.TEXTURE_FILTER_NEAREST
+	equipment.add_child(silhouette)
+	var positions={"head":Vector2(100,22),"necklace":Vector2(10,22),"chest":Vector2(10,82),"arms":Vector2(190,82),"hands":Vector2(10,142),"legs":Vector2(190,142),"feet":Vector2(100,212),"left_ring":Vector2(10,212),"right_ring":Vector2(190,212)}
+	for id in positions:
+		var slot=Button.new()
+		slot.position=positions[id]
+		slot.size=Vector2(54,48)
+		slot.text=id.replace("_ring","\nring").capitalize()
+		slot.add_theme_font_size_override("font_size",10)
+		slot.tooltip_text="Empty "+id.replace("_"," ")+" slot"
+		_button_style(slot)
+		equipment.add_child(slot)
+		equipment_slots[id]=slot
+	var supplies=VBoxContainer.new()
+	row.add_child(supplies)
+	var heading=Label.new()
+	heading.text="SATCHEL · 12 SLOTS"
+	heading.add_theme_color_override("font_color",GOLD)
+	supplies.add_child(heading)
 	var grid=GridContainer.new()
-	grid.columns=6
+	grid.columns=4
 	grid.add_theme_constant_override("h_separation",9)
 	grid.add_theme_constant_override("v_separation",9)
-	modal_box.add_child(grid)
-	modal_box.move_child(grid,3)
+	supplies.add_child(grid)
 	var stacks=game.inventory_stacks()
 	for i in range(game.State.INVENTORY_SLOTS):
 		var stack: Dictionary=stacks[i] if i<stacks.size() else {}
-		var slot=item_slot(stack,84)
+		var slot=item_slot(stack,70)
 		grid.add_child(slot)
 		inventory_slots.append(slot)
 		slot.disabled=stack.is_empty()
@@ -415,6 +476,94 @@ func open_inventory() -> void:
 				if event is InputEventMouseButton and event.button_index==MOUSE_BUTTON_RIGHT and event.pressed:
 					game.item_options(stack.id)
 					slot.accept_event())
+	var abilities=VBoxContainer.new()
+	abilities.custom_minimum_size.x=260
+	row.add_child(abilities)
+	var title=Label.new()
+	title.text="SPELLS & SKILLS"
+	title.add_theme_color_override("font_color",GOLD)
+	abilities.add_child(title)
+	var scroll=ScrollContainer.new()
+	scroll.custom_minimum_size=Vector2(260,260)
+	abilities.add_child(scroll)
+	var list=VBoxContainer.new()
+	list.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	scroll.add_child(list)
+	for id in Skills.learned(game.state):
+		var button=ItemButton.new()
+		button.interface=self
+		button.skill_source=true
+		button.set_meta("item_id",id)
+		button.text=Skills.CATALOG[id].name+"\n"+Skills.CATALOG[id].kind
+		button.icon=Items.icon(id)
+		button.expand_icon=true
+		button.add_theme_constant_override("icon_max_width",32)
+		button.custom_minimum_size=Vector2(245,60)
+		button.tooltip_text=Skills.CATALOG[id].description+" Drag to E, Q or a quick slot."
+		_button_style(button)
+		button.pressed.connect(func(): game.state.assign_active("primary",id); update())
+		list.add_child(button)
+		skill_buttons.append(button)
+
+func decorate_action_slot(button: Button,key: String) -> void:
+	var picture=TextureRect.new()
+	picture.name="Picture"
+	picture.position=Vector2(8,8)
+	picture.size=Vector2(32,32)
+	picture.texture_filter=CanvasItem.TEXTURE_FILTER_NEAREST
+	picture.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	button.add_child(picture)
+	var badge=PanelContainer.new()
+	badge.name="KeyBadge"
+	badge.position=Vector2(button.size.x-17,0)
+	var bubble=StyleBoxFlat.new()
+	bubble.bg_color=Color("40544b")
+	bubble.border_color=GOLD
+	bubble.set_border_width_all(1)
+	bubble.set_corner_radius_all(5)
+	bubble.content_margin_left=3
+	bubble.content_margin_right=3
+	bubble.content_margin_top=1
+	bubble.content_margin_bottom=1
+	badge.add_theme_stylebox_override("panel",bubble)
+	badge.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	button.add_child(badge)
+	var key_label=Label.new()
+	key_label.text=key
+	key_label.add_theme_font_size_override("font_size",9)
+	key_label.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	badge.add_child(key_label)
+	var charge=Label.new()
+	charge.name="Quantity"
+	charge.position=Vector2(0,button.size.y-19)
+	charge.size.x=button.size.x
+	charge.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
+	charge.add_theme_font_size_override("font_size",10)
+	charge.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	button.add_child(charge)
+
+func show_action(button: Button,id: String) -> void:
+	button.text=""
+	button.icon=null
+	button.get_node("Picture").texture=Items.icon(id) if id!="" else null
+	button.tooltip_text=Items.CATALOG[id].name if Items.CATALOG.has(id) else Skills.CATALOG[id].name if Skills.CATALOG.has(id) else "Empty action slot"
+	button.get_node("Quantity").text=("Empty" if game.state.water==0 else "%d/20" % game.state.water) if id=="watering_can" else str(game.state.get(id)) if Items.CATALOG.has(id) and game.state.get(id)>1 else ""
+
+func add_control_bindings() -> void:
+	modal.get_child(1).position=Vector2(250,35)
+	var scroll=ScrollContainer.new()
+	scroll.custom_minimum_size=Vector2(700,370)
+	modal_box.add_child(scroll)
+	modal_box.move_child(scroll,3)
+	var list=VBoxContainer.new()
+	list.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	scroll.add_child(list)
+	for action in game.controls.keys:
+		var button=Button.new()
+		button.text=game.controls.LABELS.get(action,action.capitalize())+"     "+OS.get_keycode_string(game.controls.keys[action])
+		_button_style(button)
+		button.pressed.connect(func(): game.remapping=action; button.text="Press a key… (Escape cancels)")
+		list.add_child(button)
 
 func item_slot(stack: Dictionary,pixels: int) -> Button:
 	var slot=ItemButton.new()
@@ -518,9 +667,11 @@ func update() -> void:
 	pause_badge.visible=game.world_paused
 	root.move_child(pause_shield,-1)
 	var s = game.state
-	var active=s.active_item()
-	active_button.icon=Items.icon(active) if Items.CATALOG.has(active) else null
-	active_button.tooltip_text=Items.CATALOG[active].name if Items.CATALOG.has(active) else "No active item"
+	var active=s.active_item("primary")
+	show_action(active_button,active)
+	show_action(auxiliary_button,s.active_item("aux"))
+	active_button.get_node("KeyBadge").get_child(0).text=OS.get_keycode_string(game.controls.keys.primary)
+	auxiliary_button.get_node("KeyBadge").get_child(0).text=OS.get_keycode_string(game.controls.keys.aux)
 	for slot in inventory_slots:
 		if is_instance_valid(slot): _button_style(slot,slot.get_meta("item_id","")==active and active!="",true)
 	var quests=["crew_supplies"]
@@ -535,11 +686,8 @@ func update() -> void:
 	for i in range(8):
 		var id: String=s.quick_slots[i]
 		var button: Button=quick_buttons[i]
-		button.text=str(i+1)
-		button.icon=Items.icon(id) if Items.CATALOG.has(id) else null
-		button.tooltip_text="Empty slot" if id=="" else "Wildgrowth · 15 mana" if id=="wildgrowth" else Items.CATALOG[id].name+(" · "+str(s.get(id)) if s.get(id)>1 else "")
-		if id=="watering_can": button.text+="\n"+("Empty" if s.water==0 else "Low" if s.water==1 else "%d/20" % s.water)
-		if id=="wildgrowth": button.text+="\n✦"
+		show_action(button,id)
+		button.get_node("KeyBadge").get_child(0).text=OS.get_keycode_string(game.controls.keys["slot"+str(i+1)])
 		_button_style(button,i==s.selected_slot,true)
 	clock.text = "%02d:%02d" % [int(s.minute/60.0),int(s.minute)%60]
 	date.text = "%s %02d" % [s.season_name().to_upper(),s.season_day()]
@@ -570,9 +718,11 @@ func update() -> void:
 				break
 	if s.crew_fed_day<s.day: next_task.text="○ Vale needs a cooked meal in the ship locker"
 	if s.firewood_requested and not s.firewood_given: next_task.text="○ Bring Oren six firewood"
-	hint.text = "" if game.window_open else "RESTING · E to get up" if game.resting>0 else "E · "+game.nearest.get("label","") if not game.nearest.is_empty() else ""
+	var primary_key=OS.get_keycode_string(game.controls.keys.primary)
+	hint.text = "" if game.window_open else "RESTING · "+primary_key+" to get up" if game.resting>0 else primary_key+" · "+game.nearest.get("label","") if not game.nearest.is_empty() else ""
 	if game.activity=="mining": hint.text = "Gathering copper…"
-	if game.activity=="fishing": hint.text = "E · reel in when the marker crosses the gold band"
+	if game.activity=="fishing": hint.text = primary_key+" · reel in when the marker crosses the gold band"
+	controls_hint.text="%s%s%s%s / arrows  walk    %s  run    %s / left click  primary    %s / right click  auxiliary    %s  inventory    %s  menu" % [OS.get_keycode_string(game.controls.keys.up),OS.get_keycode_string(game.controls.keys.left),OS.get_keycode_string(game.controls.keys.down),OS.get_keycode_string(game.controls.keys.right),OS.get_keycode_string(game.controls.keys.run),primary_key,OS.get_keycode_string(game.controls.keys.aux),OS.get_keycode_string(game.controls.keys.inventory),OS.get_keycode_string(game.controls.keys.menu)]
 	if game.world_paused: hint.text=""
 	hint_panel.visible=not hint.text.is_empty()
 	var hint_width=hint.get_theme_font("font").get_string_size(hint.text,HORIZONTAL_ALIGNMENT_LEFT,-1,14).x+24

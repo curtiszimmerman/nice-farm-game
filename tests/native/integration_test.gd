@@ -90,7 +90,7 @@ func run() -> void:
 	var menu_labels=[]
 	for child in game.ui.modal_box.get_children():
 		if child is Button: menu_labels.append(child.text)
-	check("Development tools · advance time" in menu_labels and "Save and quit" in menu_labels,"settings exposes development tools and standard controls")
+	check(["Controls","Settings","Development","Save","Quit"].all(func(label):return label in menu_labels),"game menu exposes compact submenus")
 	game.close_window()
 	game.inventory()
 	check(game.window_open,"satchel opens in native interface")

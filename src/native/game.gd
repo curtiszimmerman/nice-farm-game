@@ -9,6 +9,8 @@ const Interior = preload("res://interior.gd")
 const Cave = preload("res://cave.gd")
 const Opening = preload("res://opening.gd")
 const Art = preload("res://art.gd")
+var controls=preload("res://controls.gd").new()
+var remapping=""
 var opening: CanvasLayer
 const BRIEFING=[
 	["Captain","Status report?"],
@@ -66,6 +68,7 @@ func _ready() -> void:
 	fishing_rng.randomize()
 	get_tree().auto_accept_quit = false
 	testing = testing or OS.get_cmdline_user_args().has("--smoke-test")
+	if not testing: controls.load_keys()
 	if not testing: _load_visit()
 	world = World.new()
 	world.state = state
@@ -246,21 +249,29 @@ func _move(dt: float) -> void:
 	if welcome_control_locked(): return
 	if resting>0.0 or not activity.is_empty() or window_open: return
 	var direction = Vector2(
-		float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT))-float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT)),
-		float(Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN))-float(Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP)))
+		float(controls.held("right") or controls.held("right_arrow"))-float(controls.held("left") or controls.held("left_arrow")),
+		float(controls.held("down") or controls.held("down_arrow"))-float(controls.held("up") or controls.held("up_arrow")))
 	if direction.is_zero_approx(): return
 	world.moving = true
+	world.player.data.seated=false
 	if absf(direction.x)>absf(direction.y): world.facing="right" if direction.x>0 else "left"
 	else: world.facing="down" if direction.y>0 else "up"
 	var development_multiplier = 3.0 if OS.is_debug_build() else 1.0
-	var distance = direction.normalized()*(160.0 if Input.is_physical_key_pressed(KEY_SHIFT) else 105.0)*development_multiplier*minf(dt,0.05)
+	var distance = direction.normalized()*(160.0 if controls.held("run") else 105.0)*development_multiplier*minf(dt,0.05)
 	# Resolve each axis independently so walking along a wall never feels sticky.
 	# Small steps preserve collision at development running speeds, even on slow frames.
 	var steps=maxi(1,ceili(distance.length()/6.0))
 	var step=distance/steps
 	for i in range(steps):
-		if not world.blocked(state.player_position+Vector2(step.x,0)): state.player_position.x+=step.x
-		if not world.blocked(state.player_position+Vector2(0,step.y)): state.player_position.y+=step.y
+		try_player_step(Vector2(step.x,0))
+		try_player_step(Vector2(0,step.y))
+
+func try_player_step(delta: Vector2) -> bool:
+	if world is Cave:
+		if world.blocked(state.player_position+delta): return false
+		state.player_position+=delta
+		return true
+	return preload("res://npc_bodies.gd").player_step(world,delta,outdoors.conversation_holds)
 
 func enter_building(id: String) -> void:
 	if world!=outdoors: return
@@ -330,7 +341,14 @@ func leave_building() -> void:
 	activity=""
 
 func _input(event: InputEvent) -> void:
-	var advance_key=event is InputEventKey and event.pressed and not event.echo and event.physical_keycode in [KEY_SPACE,KEY_E]
+	if remapping!="" and event is InputEventKey and event.pressed and not event.echo:
+		var action=remapping
+		remapping=""
+		if event.physical_keycode!=KEY_ESCAPE: remap_control(action,event.physical_keycode)
+		control_settings()
+		get_viewport().set_input_as_handled()
+		return
+	var advance_key=controls.matches(event,"pause") or controls.matches(event,"primary")
 	var advance_click=event is InputEventMouseButton and event.pressed and event.button_index==MOUSE_BUTTON_LEFT
 	if started and (advance_key or advance_click):
 		if opening!=null:
@@ -340,7 +358,7 @@ func _input(event: InputEvent) -> void:
 		if window_open and clock_held() and ui.advance_dialogue():
 			get_viewport().set_input_as_handled()
 			return
-	if started and event is InputEventKey and event.pressed and not event.echo and event.physical_keycode==KEY_SPACE:
+	if started and controls.matches(event,"pause"):
 		toggle_pause()
 		get_viewport().set_input_as_handled()
 
@@ -352,44 +370,55 @@ func toggle_pause() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if world_paused: return
-	if not event is InputEventMouseButton or event.button_index!=MOUSE_BUTTON_LEFT or not event.pressed: return
-	if not started or window_open or opening!=null or current_room!="home" or welcome_control_locked(): return
-	var stove=world.site_position("stove")
-	if state.player_position.distance_to(stove)>55: return
-	var point=get_viewport().get_canvas_transform().affine_inverse()*event.position
-	if Rect2(stove+Vector2(-16,-58),Vector2(64,42)).has_point(point):
-		cooking()
+	if not event is InputEventMouseButton or not event.pressed: return
+	if not started or window_open or opening!=null or welcome_control_locked(): return
+	if event.button_index in [MOUSE_BUTTON_LEFT,MOUSE_BUTTON_RIGHT]:
+		activate_channel("primary" if event.button_index==MOUSE_BUTTON_LEFT else "aux")
 		get_viewport().set_input_as_handled()
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	if not event is InputEventKey or not event.pressed or event.echo: return
-	if event.keycode==KEY_F11:
+	if controls.matches(event,"fullscreen"):
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED if DisplayServer.window_get_mode()==DisplayServer.WINDOW_MODE_FULLSCREEN else DisplayServer.WINDOW_MODE_FULLSCREEN)
 		return
 	if not started: return
-	if event.physical_keycode==KEY_SPACE:
+	if controls.matches(event,"pause"):
 		toggle_pause()
 		return
 	if world_paused: return
 	if opening!=null: return
 	if welcome_control_locked(): return
-	match event.physical_keycode:
-		KEY_1,KEY_2,KEY_3,KEY_4,KEY_5,KEY_6,KEY_7,KEY_8:
-			select_quick_slot(event.physical_keycode-KEY_1)
-		KEY_ESCAPE:
-			if window_open: close_window()
-			else: settings()
-		KEY_E: interact()
-		KEY_Q: cast_growth()
-		KEY_I:
-			if window_open: close_window()
-			else: inventory()
-		KEY_J:
-			if window_open: close_window()
-			else: journal()
-		KEY_M:
-			if window_open: close_window()
-			else: map_notes()
+	for i in range(8):
+		if controls.matches(event,"slot"+str(i+1)): select_quick_slot(i); return
+	if controls.matches(event,"menu"):
+		if window_open: close_window()
+		else: settings()
+	elif controls.matches(event,"primary"): activate_channel("primary")
+	elif controls.matches(event,"aux"): activate_channel("aux")
+	elif controls.matches(event,"inventory"):
+		if window_open: close_window()
+		else: inventory()
+	elif controls.matches(event,"journal"):
+		if window_open: close_window()
+		else: journal()
+	elif controls.matches(event,"map"):
+		if window_open: close_window()
+		else: map_notes()
+
+func activate_channel(channel: String) -> void:
+	state.action_channel=channel
+	if channel=="primary": interact()
+	elif state.active_item()=="sit": sit_on_bench()
+	elif state.active_item()=="wildgrowth": cast_growth()
+	elif state.active_item()!="": interact()
+	state.action_channel="primary"
+
+func sit_on_bench() -> void:
+	var site=world.find_nearest()
+	if site.get("id","").begins_with("bench"):
+		world.player.data.seated=true
+		toast("A moment to sit. Move when you're ready to go.")
+	else: toast("Find a bench to sit on.")
 
 func hotkey(index: int) -> void:
 	if not started: return
@@ -416,15 +445,7 @@ func actions() -> void:
 		["Use selected item / interact · E",interact],["Inventory · I",inventory],["Spells and skills",spell_slots],["Field notes · J",journal],["Map · M",map_notes],["Settings · Esc",settings]])
 
 func spell_slots() -> void:
-	if not state.magic_learned:
-		panel("Spells and skills","NO SPELLS LEARNED","You have not learned to use this world's magic.")
-		return
-	var choices=[]
-	for i in range(8):
-		var index=i
-		choices.append(["Assign Wildgrowth to slot %d" % (i+1),func(): state.assign_slot(index,"wildgrowth"); save_visit(); ui.update()])
-	panel("Spells and skills","WILDGROWTH","Wildgrowth matures one watered crop for 15 mana. Assign it to a slot, select that slot, then press E or Q.",choices)
-	ui.modal.get_child(1).position.y=45
+	inventory()
 
 func toast(text: String,duration = 4.0) -> void:
 	ui.message.text = text
@@ -493,6 +514,10 @@ func interact() -> void:
 		return
 	if not activity.is_empty(): return
 	nearest=world.find_nearest()
+	if nearest.get("type")=="person": talk(nearest.id); return
+	if nearest.get("id","").begins_with("bench"):
+		sit_on_bench()
+		return
 	if nearest.get("id")=="stove": cooking(); return
 	if current_room=="cave" and state.active_item()=="rusty_sword" and nearest.get("type")!="site":
 		if world.attack(): burst(state.player_position+Vector2({"up":Vector2.UP,"down":Vector2.DOWN,"left":Vector2.LEFT,"right":Vector2.RIGHT}[world.facing])*26,"e8d2a0",10); save_visit()
@@ -707,6 +732,7 @@ func cooking() -> void:
 
 func talk(id: String) -> void:
 	begin_conversation([id],id in ["veteran","finch","vale"] or (id=="moss" and not state.invited))
+	if preload("res://neighbors.gd").talk(self,id): return
 	match id:
 		"keeper":
 			var choices=[]
@@ -825,7 +851,7 @@ func mayor() -> void:
 
 func place_welcome_party() -> void:
 	if current_room!="home": return
-	state.player_position=Grid.center(Vector2i(6,12))
+	state.player_position=Grid.center(Vector2i(6,11))
 	for i in range(WELCOME_MEMBERS.size()):
 		var id=WELCOME_MEMBERS[i]
 		var actor=world.villagers[id]
@@ -841,6 +867,12 @@ func walk_visitor(id: String,cell: Vector2i,dt: float) -> bool:
 	return world.walk_actor(id,cell,dt,65)
 
 func update_welcome_arrival(dt: float) -> void:
+	if state.player_position.distance_to(Grid.center(world.layout.exit))<63:
+		var path=world._route(Grid.world_to_cell(state.player_position),Vector2i(6,11))
+		if not path.is_empty():
+			state.player_position=state.player_position.move_toward(path[0],dt*65)
+			world.moving=true
+			return
 	outdoors.update_villagers(dt)
 	var arrived=true
 	for i in range(WELCOME_MEMBERS.size()):
@@ -924,20 +956,41 @@ func map_notes() -> void:
 
 func settings() -> void:
 	if not started: return
+	var choices=[["Controls",control_settings],["Settings",preferences],["Save",save_menu],["Quit",quit_menu],["Return to game",func(): pass]]
+	if OS.is_debug_build(): choices.insert(2,["Development",development_tools])
+	panel("Game menu","BRIAR GLEN","Take a moment.",choices)
+	ui.modal.get_child(1).position.y=125
+
+func save_menu() -> void:
+	panel("Your visit","SAVE", "Progress is stored inside this project.",[["Save this visit",func(): if save_visit(): toast("Visit saved.")],["Begin a new visit…",reset_confirmation],["Back",settings]])
+
+func quit_menu() -> void:
+	panel("Leaving for now?","QUIT","Save your visit before closing the game.",[["Save and quit",quit_game],["Back",settings]])
+
+func preferences() -> void:
 	var selected = state.pause_mode
 	var choices = [
-		[("✓ " if selected=="none" else "")+"Time continues · default",func(): state.pause_mode="none"; settings()],
-		[("✓ " if selected=="clock" else "")+"Stop calendar · simulation continues",func(): state.pause_mode="clock"; settings()],
-		[("✓ " if selected=="all" else "")+"Pause entire world",func(): state.pause_mode="all"; settings()],
+		[("✓ " if selected=="none" else "")+"Time continues",func(): state.pause_mode="none"; preferences()],
+		[("✓ " if selected=="clock" else "")+"Stop calendar · simulation continues",func(): state.pause_mode="clock"; preferences()],
+		[("✓ " if selected=="all" else "")+"Pause entire world · single-player default",func(): state.pause_mode="all"; preferences()],
 		["Sound · music, ambience, and spells",sound_settings],
 		["Artwork · choose a sprite pack",art_settings],
-		["Save this visit",func(): if save_visit(): toast("Visit saved inside this project.")],
-		["Begin a new visit…",reset_confirmation],
-		["Return to the farm",func(): pass],
-		["Save and quit",quit_game]]
-	if OS.is_debug_build(): choices.insert(4,["Development tools · advance time",development_tools])
+		["Back",settings]]
 	panel("Make yourself comfortable","FIELD SETTINGS","While a conversation or menu is open:",choices)
 	if OS.is_debug_build(): ui.modal.get_child(1).position.y=75
+
+func remap_control(action: String,key: int) -> void:
+	controls.rebind(action,key)
+	if not testing: controls.save()
+
+func control_settings() -> void:
+	panel("Controls","KEYBOARD & MOUSE","Choose a binding, then press a key. Escape cancels. Conflicting keys swap assignments. Left/right mouse buttons use primary/auxiliary actions.",[["Restore defaults",reset_controls],["Back",settings]])
+	ui.add_control_bindings()
+
+func reset_controls() -> void:
+	controls.reset()
+	if not testing: controls.save()
+	control_settings()
 
 func art_settings() -> void:
 	var choices=[["Option 1 · original artwork",func(): change_art(1)]]
