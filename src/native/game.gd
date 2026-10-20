@@ -34,6 +34,7 @@ var ui: CanvasLayer
 var camera: Camera2D
 var started = false
 var window_open = false
+var world_paused=false
 var testing = false
 var saving_disabled = false
 var nearest: Dictionary = {}
@@ -133,6 +134,7 @@ func show_briefing(step: int=0) -> void:
 	dialog(line[0],"CLOAKED SHIP · AFTER THE CRASH",line[1],[["Continue",func(): show_briefing(step+1)]])
 
 func _process(dt: float) -> void:
+	if world_paused: return
 	elapsed += dt
 	world.elapsed = elapsed
 	if not started: return
@@ -307,7 +309,19 @@ func leave_building() -> void:
 	camera.position=state.player_position
 	activity=""
 
+func _input(event: InputEvent) -> void:
+	if started and event is InputEventKey and event.pressed and not event.echo and event.physical_keycode==KEY_SPACE:
+		toggle_pause()
+		get_viewport().set_input_as_handled()
+
+func toggle_pause() -> void:
+	world_paused=not world_paused
+	if world_paused: get_viewport().gui_release_focus()
+	if opening!=null: opening.set_process(not world_paused)
+	ui.update()
+
 func _unhandled_input(event: InputEvent) -> void:
+	if world_paused: return
 	if not event is InputEventMouseButton or event.button_index!=MOUSE_BUTTON_LEFT or not event.pressed: return
 	if not started or window_open or opening!=null or current_room!="home" or state.welcome_phase in ["meeting","departing","moss_lesson"]: return
 	var stove=world.site_position("stove")
@@ -323,6 +337,10 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED if DisplayServer.window_get_mode()==DisplayServer.WINDOW_MODE_FULLSCREEN else DisplayServer.WINDOW_MODE_FULLSCREEN)
 		return
 	if not started: return
+	if event.physical_keycode==KEY_SPACE:
+		toggle_pause()
+		return
+	if world_paused: return
 	if opening!=null: return
 	if state.welcome_phase in ["escorting","meeting","departing","moss_lesson"] or ("moss" in conversation_members and not state.invited): return
 	match event.physical_keycode:
@@ -498,11 +516,6 @@ func interact() -> void:
 				if current_room=="home" and not state.house_tasks.bed: tidy_farmhouse("bed")
 				else: rest_options()
 			"pond","ocean":
-				if state.active_item()=="watering_can":
-					if nearest.id=="ocean": toast("Use fresh water from the pond to fill your can."); return
-					toast("Watering can filled · 20 / 20" if state.refill_water() else "Take your watering can from storage first.")
-					save_visit()
-					return
 				start_fishing(nearest.id)
 			"sign": dialog("A weathered sign","BRIAR GLEN","East: town and market. Southwest: the old mill pond. Southeast: copper outcrop. Northwest: nothing in particular, according to the official map.")
 			"radio":
@@ -847,7 +860,7 @@ func settings() -> void:
 		[("✓ " if selected=="clock" else "")+"Stop calendar · simulation continues",func(): state.pause_mode="clock"; settings()],
 		[("✓ " if selected=="all" else "")+"Pause entire world",func(): state.pause_mode="all"; settings()],
 		["Sound · music, ambience, and spells",sound_settings],
-		["Artwork · compare options 1 and 2",art_settings],
+		["Artwork · choose a sprite pack",art_settings],
 		["Save this visit",func(): if save_visit(): toast("Visit saved inside this project.")],
 		["Begin a new visit…",reset_confirmation],
 		["Return to the farm",func(): pass],
@@ -857,13 +870,21 @@ func settings() -> void:
 	if OS.is_debug_build(): ui.modal.get_child(1).position.y=75
 
 func art_settings() -> void:
-	panel("Artwork","PIXEL ART OPTIONS","Option 1 preserves the previous drawn artwork. Option 2 uses the new modular PNG sprite atlas. This choice lasts for this session.",[
-		["Option 1 · original artwork",func(): change_art(1)],
-		["Option 2 · modular pixel sprites",func(): change_art(2)],
-		["Back to settings",settings]])
+	var choices=[["Option 1 · original artwork",func(): change_art(1)]]
+	for pack in Art.available_packs():
+		var path: String=pack.path
+		choices.append([pack.name,func(): change_art_pack(path)])
+	choices.append(["Back to settings",settings])
+	panel("Artwork","SPRITE PACKS","Choose the artwork for this session. Install your own pack under src/native/art/packs/ to add it here.",choices)
+
+func change_art_pack(path: String) -> void:
+	var error=Art.select_pack(path)
+	if not error.is_empty(): toast(error); return
+	change_art(2)
 
 func change_art(value: int) -> void:
 	Art.option=value
+	ui.Items.textures.clear()
 	outdoors._build_terrain()
 	redraw_art(outdoors)
 	for room in rooms.values(): redraw_art(room)

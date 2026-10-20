@@ -2,6 +2,7 @@ extends SceneTree
 
 const Game = preload("res://game.gd")
 var game: Node2D
+var prefix=""
 
 func _initialize() -> void:
 	call_deferred("run")
@@ -17,12 +18,16 @@ func capture(label: String) -> void:
 		game.world.refresh()
 		await process_frame
 	await RenderingServer.frame_post_draw
-	var path=ProjectSettings.globalize_path("res://../../internal/verification/native-"+label+".png").simplify_path()
+	var path=ProjectSettings.globalize_path("res://../../internal/verification/native-"+prefix+label+".png").simplify_path()
 	var image=root.get_texture().get_image()
 	assert(image.save_png(path)==OK,"Screenshot must stay in the project")
 	print("Captured native ",label)
 
 func run() -> void:
+	if OS.get_cmdline_user_args().has("--rustic16"):
+		var error=preload("res://art.gd").select_pack("res://art/option3/pack.json")
+		assert(error.is_empty(),error)
+		prefix="rustic16-"
 	game=Game.new()
 	game.testing=true
 	root.add_child(game)

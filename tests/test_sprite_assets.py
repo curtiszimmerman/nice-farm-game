@@ -8,6 +8,14 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 
 
 class SpriteAssets(unittest.TestCase):
+    def test_connected_fences_and_watered_crops(self):
+        base = ROOT / "src/native/art/option2"
+        manifest = json.loads((base / "sprites.json").read_text())
+        for mask in range(16):
+            self.assertIn(f"tile_fence_mask{mask}", manifest)
+        for crop in ("sprout", "turnip", "bulb"):
+            self.assertIn(f"crop_{crop}_wet", manifest)
+
     def test_atlas_and_tile_contract(self):
         base = ROOT / "src/native/art/option2"
         manifest = json.loads((base / "sprites.json").read_text())

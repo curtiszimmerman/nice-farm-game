@@ -1,0 +1,7 @@
+{
+  "id": "modular32",
+  "name": "Modular 32-pixel artwork",
+  "tile_size": 32,
+  "atlas": "sprites.png",
+  "sprites": "sprites.json"
+}

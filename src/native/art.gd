@@ -5,13 +5,74 @@ static var option=2
 static var atlas: ImageTexture
 static var pixels: Image
 static var catalog: Dictionary={}
+static var tile_size=32
+static var pack_path="res://art/option2/pack.json"
+static var terrain_tiles: Dictionary={}
 
 static func load_atlas() -> void:
 	if atlas!=null: return
-	pixels=Image.load_from_file("res://art/option2/sprites.png")
-	assert(pixels!=null,"The pixel sprite atlas must exist")
-	atlas=ImageTexture.create_from_image(pixels)
-	catalog=JSON.parse_string(FileAccess.get_file_as_string("res://art/option2/sprites.json"))
+	var error=select_pack(pack_path)
+	assert(error.is_empty(),error)
+
+static func read_json(path: String) -> Dictionary:
+	if not FileAccess.file_exists(path): return {}
+	var parser=JSON.new()
+	if parser.parse(FileAccess.get_file_as_string(path))!=OK or not parser.data is Dictionary: return {}
+	return parser.data
+
+static func select_pack(path: String) -> String:
+	var manifest=read_json(path)
+	if not manifest.has_all(["id","name","tile_size","atlas","sprites"]): return "Incomplete artwork manifest."
+	if not (manifest.tile_size is int or manifest.tile_size is float) or (manifest.tile_size!=16.0 and manifest.tile_size!=32.0): return "Artwork tiles must be 16 or 32 pixels."
+	for key in ["atlas","sprites"]:
+		if not manifest[key] is String or manifest[key].is_absolute_path() or ".." in manifest[key].split("/"): return "Artwork files must be inside their pack folder."
+	var folder=path.get_base_dir()
+	var entries=read_json(folder.path_join(manifest.sprites))
+	var baseline=read_json("res://art/option2/sprites.json")
+	if not entries.has_all(baseline.keys()): return "The artwork pack is missing required sprites."
+	var image_path=folder.path_join(manifest.atlas)
+	if not FileAccess.file_exists(image_path): return "The artwork PNG is missing."
+	var image=Image.load_from_file(image_path)
+	if image==null: return "Could not read the artwork PNG."
+	var scale=32.0/manifest.tile_size
+	for id in entries:
+		if not entries[id] is Dictionary or not entries[id].get("rect") is Array or entries[id].rect.size()!=4: return "Invalid sprite rectangle: "+id
+		var r=entries[id].rect
+		for number in r:
+			if not (number is int or number is float) or number!=floor(number): return "Sprite coordinates must be integer pixels: "+id
+		if r[0]<0 or r[1]<0 or r[2]<=0 or r[3]<=0 or r[0]+r[2]>image.get_width() or r[1]+r[3]>image.get_height(): return "Sprite lies outside the atlas: "+id
+		if baseline.has(id):
+			var expected=baseline[id].rect
+			if r[2]!=ceil(expected[2]/scale) or r[3]!=ceil(expected[3]/scale): return "Sprite dimensions do not match its world footprint: "+id
+	pixels=image
+	pixels.convert(Image.FORMAT_RGBA8)
+	atlas=ImageTexture.create_from_image(image)
+	catalog=entries
+	tile_size=int(manifest.tile_size)
+	pack_path=path
+	option=2
+	terrain_tiles.clear()
+	return ""
+
+static func available_packs() -> Array:
+	var result=[]
+	for directory in ["res://art","res://art/packs"]:
+		for folder in DirAccess.get_directories_at(directory):
+			var path=directory.path_join(folder).path_join("pack.json")
+			var manifest=read_json(path)
+			if manifest.get("name") is String: result.append({"name":manifest.name,"path":path})
+	return result
+
+static func sprite_size(id: String) -> Vector2:
+	return region(id).size*(32.0/tile_size)
+
+static func tile_image(id: String) -> Image:
+	load_atlas()
+	if not terrain_tiles.has(id):
+		var image=pixels.get_region(Rect2i(region("tile_"+id)))
+		image.resize(32,32,Image.INTERPOLATE_NEAREST)
+		terrain_tiles[id]=image
+	return terrain_tiles[id]
 
 static func region(id: String) -> Rect2:
 	load_atlas()
@@ -21,7 +82,7 @@ static func region(id: String) -> Rect2:
 
 static func sprite(c: CanvasItem,id: String,p: Vector2,size: Vector2=Vector2.ZERO,tint: Color=Color.WHITE) -> void:
 	var source=region(id)
-	c.draw_texture_rect_region(atlas,Rect2(p.round(),source.size if size==Vector2.ZERO else size),source,tint)
+	c.draw_texture_rect_region(atlas,Rect2(p.round(),sprite_size(id) if size==Vector2.ZERO else size),source,tint)
 
 static func tile(c: CanvasItem,id: String,cell: Vector2i,tint: Color=Color.WHITE) -> void:
 	sprite(c,"tile_"+id,Grid.origin(cell),Vector2.ZERO,tint)
@@ -41,7 +102,7 @@ static func tree_id(data: Dictionary) -> String:
 
 static func tree(c: CanvasItem,data: Dictionary) -> void:
 	var id=tree_id(data)
-	sprite(c,id,Vector2(-48,-region(id).size.y+5))
+	sprite(c,id,Vector2(-48,-sprite_size(id).y+5))
 
 static func person(c: CanvasItem,p: Dictionary,step: float,direction: String) -> void:
 	var frame=0 if absf(step)<0.3 else 1 if step>0 else 2
@@ -108,7 +169,8 @@ static func outdoors(w: Node2D) -> void:
 		for x in range(w.SQUARE.position.x,w.SQUARE.end.x): tile(w,"paving"+str(posmod(x+y,4)),Vector2i(x,y))
 	sprite(w,"fountain",Grid.origin(w.SQUARE.position+Vector2i(2,2))+Vector2(0,-16))
 	for x in range(w.JETTY_CELLS.position.x,w.JETTY_CELLS.end.x): tile(w,"jetty",Vector2i(x,w.JETTY_CELLS.position.y))
-	for cell in w.fence_cells: tile(w,"fence",cell)
+	for cell in w.fence_cells: tile(w,"fence_mask"+str(w.fence_mask(cell)),cell)
+	for cell in w.gate_cells: tile(w,"gate_h_open",cell)
 	for garden in w.DECORATIVE_FIELDS:
 		for y in range(garden.position.y,garden.end.y):
 			for x in range(garden.position.x,garden.end.x): sprite(w,"crop_turnip" if (x+y)%3 else "crop_sprout",Grid.origin(Vector2i(x,y)))
@@ -139,6 +201,7 @@ static func crops(w: Node2D,c: CanvasItem) -> void:
 		var p=w.state.plots[i]
 		var id="soil" if not p.tilled else "wet" if p.watered else "tilled"
 		if p.planted>=0: id="bulb" if w.state.ripe(i) and p.crop=="star_bulbs" else "turnip" if w.state.ripe(i) else "sprout"
+		if p.planted>=0 and p.watered: id+="_wet"
 		sprite(c,"crop_"+id,w.plot_position(i)-Vector2(16,16))
 
 static func particles(w: Node2D,c: CanvasItem) -> void:

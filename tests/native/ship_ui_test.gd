@@ -23,6 +23,8 @@ func run() -> void:
 	game.interact()
 	check(not game.state.plots[0].tilled and game.world.particles.size()==particle_count,"an unselected hoe causes neither work nor false action effects")
 	game.ui.toggle_log()
+	check(game.ui.objective.visible,"crew log opens when clicked")
+	game.ui.toggle_log()
 	check(not game.ui.objective.visible and game.ui.log_panel.position.x>900,"crew log collapses below the clock")
 	game.open_storage("ship_storage")
 	game.ui.chest_slots[0].pressed.emit()

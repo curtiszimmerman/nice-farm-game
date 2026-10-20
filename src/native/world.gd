@@ -18,7 +18,7 @@ const DESCENT_AREAS=[Rect2i(8,9,7,7),Rect2i(11,15,2,5),Rect2i(11,18,6,2),Rect2i(
 const DESCENT_EXIT=Vector2i(13,28)
 const MOSS_ENCOUNTER_CELL=Vector2i(13,30)
 const POND_CELL = Vector2i(17,67)
-const JETTY_CELLS = Rect2i(20,65,3,1)
+const JETTY_CELLS = Rect2i(19,67,4,1)
 const CART_CELLS = Rect2i(65,45,3,1)
 const LAMP_CELLS = [Vector2i(58,43),Vector2i(64,50),Vector2i(20,42)]
 const PEOPLE = [
@@ -48,7 +48,7 @@ const SITES = [
 	{"id":"ship_entry","cell":Vector2i(11,14),"door":"ship","label":"Enter cloaked ship"},
 	{"id":"bed","cell":Vector2i(13,44),"label":"Rest at the farmhouse"},
 	{"id":"chest","cell":Vector2i(17,44),"label":"Open farmhouse chest"},
-	{"id":"pond","cell":Vector2i(21,65),"label":"Fish from the jetty"},
+	{"id":"pond","cell":Vector2i(21,67),"label":"Fish from the jetty"},
 	{"id":"ore","cell":Vector2i(94,74),"door":"cave","label":"Enter copper cave"},
 	{"id":"sparkfire","cell":Vector2i(58,16),"label":"Inspect woodland plant"},
 	{"id":"sign","cell":Vector2i(30,42),"label":"Read the signpost"},
@@ -59,7 +59,7 @@ const ROAD_ROUTES = [
 	[Vector2i(14,45),Vector2i(50,45),Vector2i(50,46),Vector2i(59,46)],
 	[Vector2i(57,40),Vector2i(57,57),Vector2i(87,57),Vector2i(87,74),Vector2i(94,74)],
 	[Vector2i(21,53),Vector2i(57,53)],
-	[Vector2i(21,53),Vector2i(21,65)],
+	[Vector2i(23,53),Vector2i(23,67),Vector2i(22,67)],
 	[Vector2i(54,38),Vector2i(54,40),Vector2i(57,40)],
 	[Vector2i(67,44),Vector2i(67,46)],
 	[Vector2i(61,42),Vector2i(61,44)],
@@ -86,6 +86,7 @@ var mountain_cells: Dictionary = {}
 var solid_cells: Dictionary = {}
 var reserved_cells: Dictionary = {}
 var fence_cells: Array[Vector2i] = []
+var gate_cells: Array[Vector2i] = []
 var trees: Array = []
 var bushes: Array=[]
 var terrain: ImageTexture
@@ -246,7 +247,8 @@ func _build_layout() -> void:
 			for x in range(field.position.x-1,field.end.x+1): reserved_cells[Vector2i(x,y)]=true
 	for y in [FARM_CELL.y-2,FARM_CELL.y+5]:
 		for x in range(FARM_CELL.x-1,FARM_CELL.x+11):
-			if x not in [14,15,16]: fence_cells.append(Vector2i(x,y))
+			if x!=14: fence_cells.append(Vector2i(x,y))
+		gate_cells.append(Vector2i(14,y))
 	for y in range(FARM_CELL.y-1,FARM_CELL.y+5): fence_cells.append(Vector2i(FARM_CELL.x-1,y))
 	for cell in fence_cells: _claim(Rect2i(cell,Vector2i.ONE),"fence")
 	for route in ROAD_ROUTES:
@@ -381,7 +383,7 @@ func prop_hides_player(prop: Prop) -> bool:
 	var bounds: Rect2
 	if prop.kind=="tree":
 		if Art.option==2:
-			return Rect2(prop.position+Vector2(-48,-Art.region(Art.tree_id(prop.data)).size.y),Vector2(96,Art.region(Art.tree_id(prop.data)).size.y)).has_point(state.player_position-Vector2(0,20))
+			return Rect2(prop.position+Vector2(-48,-Art.sprite_size(Art.tree_id(prop.data)).y),Vector2(96,Art.sprite_size(Art.tree_id(prop.data)).y)).has_point(state.player_position-Vector2(0,20))
 		var scale_factor=prop.data.size
 		bounds=Rect2(prop.position+Vector2(-34,-92)*scale_factor,Vector2(68,94)*scale_factor)
 	elif prop.kind=="building":
@@ -412,17 +414,29 @@ func in_water(p: Vector2) -> bool:
 
 func at_pond_edge(p: Vector2) -> bool:
 	var cell=Grid.world_to_cell(p)
-	if blocked(p): return false
+	if blocked(p) or JETTY_CELLS.has_point(cell): return false
 	for direction in [Vector2i.UP,Vector2i.DOWN,Vector2i.LEFT,Vector2i.RIGHT]:
 		var water=cell+direction
 		if water_cells.has(water) and Grid.center(water).distance_to(Grid.center(POND_CELL))<190: return true
 	return false
+
+func fence_mask(cell: Vector2i) -> int:
+	var mask=0
+	for pair in [[Vector2i.LEFT,1],[Vector2i.RIGHT,2],[Vector2i.UP,4],[Vector2i.DOWN,8]]:
+		if cell+pair[0] in fence_cells or cell+pair[0] in gate_cells: mask|=pair[1]
+	return mask
 
 func blocked(p: Vector2) -> bool:
 	var cell=Grid.world_to_cell(p)
 	return not Grid.PLAYABLE_CELLS.has_point(cell) or solid_cells.has(cell)
 
 func find_nearest() -> Dictionary:
+	if JETTY_CELLS.has_point(Grid.world_to_cell(state.player_position)):
+		for site in sites:
+			if site.id=="pond":
+				var result=site.duplicate()
+				result.type="site"
+				return result
 	var best: Dictionary = {}
 	var distance = 55.0
 	var i=target_plot()
@@ -442,6 +456,7 @@ func find_nearest() -> Dictionary:
 			best.label = "Talk to " + p.name
 			distance = d
 	for p in sites:
+		if p.id=="pond": continue
 		var interaction_point=Vector2(p.x,p.y)
 		if p.has("bounds"):
 			interaction_point=state.player_position.clamp(p.bounds.position,p.bounds.end)
@@ -472,7 +487,7 @@ func _build_terrain() -> void:
 	if Art.option==2:
 		Art.load_atlas()
 		for y in range(Grid.MAP_SIZE.y):
-			for x in range(Grid.MAP_SIZE.x): image.blit_rect(Art.pixels,Rect2i(Art.region("tile_grass"+str(posmod(x*3+y,4)))),Vector2i(x,y)*32)
+			for x in range(Grid.MAP_SIZE.x): image.blit_rect(Art.tile_image("grass"+str(posmod(x*3+y,4))),Rect2i(0,0,32,32),Vector2i(x,y)*32)
 	_paint_grounding(image,random)
 	_paint_roads(image,random)
 	_paint_water(image)
@@ -598,9 +613,10 @@ func _draw() -> void:
 	oval(self,fountain.x+32,fountain.y+4,16,7,"d7d4b9")
 	paint_rock_mass(self,Grid.origin(MINE_RIDGE.position+Vector2i(0,MINE_RIDGE.size.y+2)),MINE_RIDGE.size.x*Grid.TILE_SIZE,(MINE_RIDGE.size.y+2)*Grid.TILE_SIZE,117)
 	draw_set_transform(Grid.origin(JETTY_CELLS.position))
-	r(self,0,0,96,32,"655d46")
-	for i in range(12): r(self,1+i*8,0,6,32,"b09b6c")
-	for x in [2,89]:
+	var dock_width=JETTY_CELLS.size.x*Grid.TILE_SIZE
+	r(self,0,0,dock_width,32,"655d46")
+	for i in range(dock_width/8): r(self,1+i*8,0,6,32,"b09b6c")
+	for x in [2,dock_width-7]:
 		r(self,x,-10,5,48,"776a4e")
 		r(self,x,-12,5,3,"d0bb87")
 	draw_set_transform(Vector2.ZERO)

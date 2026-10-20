@@ -30,6 +30,7 @@ The project-local launcher is `scripts/play.sh`. It starts the pinned Godot exec
 | --- | --- |
 | WASD / arrows | Walk |
 | Shift | Run |
+| Space | Pause / resume the entire world, including the introduction |
 | 1–8 | Select quick slot |
 | E | Enter/leave buildings, talk, tend soil, gather, fish, or rest |
 | Q | Wildgrowth, when its quick slot is selected |
@@ -39,12 +40,12 @@ The project-local launcher is `scripts/play.sh`. It starts the pinned Godot exec
 | Escape | Close a window / settings |
 | F11 | Fullscreen / windowed |
 
-The bottom Actions button groups inventory, spells, notes, map and settings. Health, energy and mana sit left of the eight quick slots. The crew log is collapsible under the clock at the upper right. Music, ambience and spell effects have separate sliders under Actions → Settings → Sound. [Sound direction and current profiles](AUDIO.md).
+The bottom Actions button groups inventory, spells, notes, map and settings. Health, energy and mana sit left of the eight quick slots. This tray fades when it covers the avatar. The crew log starts collapsed under the clock and slowly pulses gold when a new quest arrives; click it to acknowledge the new quests. Status banners and interaction prompts have compact backgrounds. Music, ambience and spell effects have separate sliders under Actions → Settings → Sound. [Sound direction and current profiles](AUDIO.md).
 
 ## A good first visit
 
 1. Complete the ship briefing, follow the mountain descent to Moss, and enter the farmhouse. Remove every cover and install both cabinet bulbs. Meet the mayor and Neral, then hear Moss's farming advice after they leave. Time is held throughout the welcome.
-2. Take the seeds, hoe, watering can and sickle from the chest outside the farmhouse. Assign them to quick slots yourself. Face the adjacent garden square and select the appropriate slot before pressing E. Tilling costs 2 energy, watering 1, harvesting 1. The can starts empty and holds twenty charges; select it and press E at the pond jetty to refill. Select another slot to fish. Energy restores through food or rest in a farmhouse bed or ship bunk.
+2. Take the seeds, hoe, watering can and sickle from the chest outside the farmhouse. Assign them to quick slots yourself. Face the adjacent garden square and select the appropriate slot before pressing E. Tilling costs 2 energy, watering 1, harvesting 1. Watered soil turns dark brown, including beneath crops. The can starts empty and holds twenty charges; select it and press E on the pond shoreline to refill. Every dock square offers fishing, including with the can selected. Energy restores through food or rest in a farmhouse bed or ship bunk.
 3. Meet Tavi at the market cart. Visit Iona's northern tower to learn Wildgrowth free, then assign the spell yourself. You cannot cast before learning. Iona explains regional magic and the unusual components she wants for further lessons.
 4. Fish from the pond jetty. E casts; E again reels in while the marker crosses the gold band. Hard fish move faster and more erratically. Misses cost no bait. The southern ocean and dock have been removed.
 5. Enter the copper cave southeast of town. Search the four-slot barrel just inside, take its pickaxe, then assign and select it. Press E beside rocks to mine stone or copper for five energy. Bring Vale three copper. Rats approach within five tiles and bite for four HP. Bram's selected rusty sword swings with E for two energy; two hits defeat a rat. If overwhelmed, you stagger to the cave entrance with 25 HP. These combat values are provisional.

@@ -126,6 +126,18 @@ An early atlas import check exposed an RGB/RGBA blit mismatch, corrected by givi
 
 The final atlas contains 356 sprites at 2048 × 1157 pixels. The oven supports both nearby left clicks and E; cookware selection is unnecessary. Final verification passed 565 native checks, two PNG/archive checks, startup smoke, and the host visual/audio run without warnings or errors. Screenshots include both sides firing, the enemy explosion, the status banner, the planted mountain foot with Moss, and every house interior. The existing launcher executable-bit modification remains outside these commits.
 
+## HUD and sprite packs in progress
+
+The WIP branch is `wip/hud-and-art-packs`. Compact notifications and measured interaction prompt backgrounds replace the large banner and bare hints. The tray fades when its screen rectangle intersects the avatar. Crew Log starts collapsed, pulses gold for newly assigned quest stages, and acknowledges those stages on click. Space intercepts input before focused buttons can consume it, freezes the world and intro, and blocks modal clicks until resumed.
+
+The default atlas now has 377 sprites: connected fence masks, open gate cells and watered variants of each planted crop. Detached furniture shadow ellipses are removed. Hoe, sickle and pickaxe have different silhouettes. The pond dock extends west from its eastern shore, with a straight approach; every dock cell fishes, while pond shoreline cells refill the armed can. Site coordinates follow the new dock.
+
+Artwork packs use `pack.json`, `sprites.json` and a PNG. Complete 16- or 32-pixel packs retain the 32-unit grid and existing anchors. Selection validates coverage, bounds and dimensions before replacing cached artwork; terrain tiles resize once and icon caches clear on selection. Player folders live under `src/native/art/packs/`. The additional 16-pixel pack is being generated separately and still needs integration and visual review.
+
+External CLI tasks need XDG_RUNTIME_DIR redirected along with config, data, cache and temp paths; otherwise a runtime socket can escape the project. Keep stream logs inside ignored internal storage and inspect progress rather than waiting on buffered final JSON. Tool restrictions must allow the task's required inspection commands. No dependencies were installed.
+
+Core verification passed 594 native checks, three Python asset checks, startup smoke and the host visual/audio run with clean logs. The pack loader test uses a generated 16-pixel fixture under ignored internal storage to test installation independently of the new artwork's production. The final 16-pixel game atlas still needs its own review. The launcher's preexisting executable-bit change remains uncommitted.
+
 ## Next discussion
 
 Play and critique the slice before expanding it. Decide the next milestone, combat controls and feel, art direction, calendar/lunar rules, and the first actual networked cooperative interaction. Do not mistake placeholder content for approved final story or mechanics.

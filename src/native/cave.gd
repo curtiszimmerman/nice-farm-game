@@ -224,7 +224,7 @@ func paint_effects(c: CanvasItem) -> void:
 func paint_object(c: CanvasItem,info: Dictionary) -> void:
 	if Art.option==2:
 		var id="copper" if info.kind=="rock" and info.ore else "rock" if info.kind=="rock" else "rat"+str(int(elapsed*6)%3) if info.kind=="rat" else info.kind
-		var size=Art.region(id).size
+		var size=Art.sprite_size(id)
 		Art.sprite(c,id,Vector2(-size.x/2,-size.y+8))
 		return
 	match info.kind:

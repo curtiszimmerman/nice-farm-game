@@ -24,3 +24,21 @@ python3 -B tests/test_sprite_assets.py
 The generator uses only the Python standard library. It writes `src/native/art/option2/sprites.png` and `sprites.json`. The catalog records each atlas region, and tree entries include their trunk and canopy dimensions. Furniture footprints are collected from the authored interior layouts. New furniture sizes need a generated sprite before they can render.
 
 `art.gd` assembles sprites at runtime. Its atlas cache is shared by the world, rooms, opening and item slots. The editable generator, palettes and atlas metadata are the sources for further art work; screenshots remain under ignored `internal/verification/`.
+
+## Player sprite packs
+
+Place a pack folder under `src/native/art/packs/`, then open Settings → Artwork. The menu discovers its `pack.json` each time it opens. A pack contains a PNG atlas, the complete sprite catalog, and this manifest:
+
+```json
+{
+  "id": "my-artwork",
+  "name": "My artwork",
+  "tile_size": 16,
+  "atlas": "sprites.png",
+  "sprites": "sprites.json"
+}
+```
+
+Use option 2's `sprites.json` as the required sprite list. Each entry has an integer `rect: [x, y, width, height]` in native atlas pixels. Packs must supply every sprite. With `tile_size: 32`, keep the original dimensions; with `tile_size: 16`, halve each dimension, rounding up. The engine scales the artwork with nearest-neighbor filtering, retaining the 32-unit world grid, furniture anchors, collision and depth ordering. Both file paths must stay inside the pack folder. Invalid manifests, missing sprites, invalid dimensions and out-of-bounds rectangles leave the current pack active.
+
+Fence sprites `tile_fence_mask0` through `tile_fence_mask15` connect toward their neighbors: left = 1, right = 2, up = 4, down = 8. A tile has one centered post. Open gates occupy separate walkable tiles. Watered planted crops use the `_wet` variants so their soil remains visibly dark beneath the plant. Furniture uses its own shaded faces and feet without a detached oval shadow.

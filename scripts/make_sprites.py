@@ -202,6 +202,23 @@ def buildings():
     for x in [1, 13, 25]:
         p.polygon([(x, 31), (x, 6), (x + 3, 2), (x + 6, 6), (x + 6, 31)], "d1c6a3")
         p.box(x + 4, 7, 2, 24, "9a9677")
+    for mask in range(16):
+        p = add(f"tile_fence_mask{mask}", Pixels(32, 32))
+        for y in [13, 23]:
+            if mask & 1: p.box(0, y, 16, 3, "b9ae8a")
+            if mask & 2: p.box(16, y, 16, 3, "b9ae8a")
+        if mask & 4: p.box(15, 0, 3, 18, "b9ae8a")
+        if mask & 8: p.box(15, 18, 3, 14, "b9ae8a")
+        p.polygon([(13, 31), (13, 9), (16, 5), (19, 9), (19, 31)], "d1c6a3")
+        p.box(17, 10, 2, 21, "9a9677")
+    for vertical in [False, True]:
+        p = add("tile_gate_v_open" if vertical else "tile_gate_h_open", Pixels(32, 32))
+        if vertical:
+            p.box(13, 0, 6, 6, "d1c6a3"); p.box(13, 27, 6, 5, "d1c6a3")
+            p.box(17, 1, 14, 3, "b9ae8a")
+        else:
+            p.box(0, 11, 4, 21, "d1c6a3"); p.box(28, 11, 4, 21, "d1c6a3")
+            p.box(1, 4, 3, 24, "b9ae8a")
     for right in [False, True]:
         p = add("tile_tower_right" if right else "tile_tower_left", Pixels(32, 32))
         shades = ["b0b8ac", "a2afa3", "91a297", "7c9387", "6e857a", "596f66"]
@@ -259,7 +276,6 @@ def furniture(kind, w, h):
     p = add(f"furniture_{kind}_{w}x{h}", Pixels(w * 32 + 8, h * 32 + 40))
     width, depth = w * 32, h * 32
     x, y = 4, 24
-    p.oval(width // 2 + 5, p.h - 6, width // 2, 5, "1d353944")
     wood, light, dark = "a08158", "c6a778", "5b4b37"
     if kind == "rug":
         p.box(x, y, width, depth, "685e65"); p.box(x + 3, y + 3, width - 6, depth - 6, "a58b7a")
@@ -513,7 +529,14 @@ def item_icons():
             if name == "rusty_sword":
                 for i in range(9, 22): p.box(i, 23 - i, 3, 2, "bbc6ba"); p.dot(i, 23 - i, "e1ddc3")
                 p.polygon([(5, 11), (14, 20), (12, 22), (3, 13)], "bea16b")
-            else: p.box(9, 3, 13, 4, "92a7a8"); p.box(10, 3, 10, 1, "d2d8c0")
+            elif name == "sickle":
+                p.oval(15, 8, 7, 7, "c4d0c5")
+                p.oval(12, 7, 6, 5, "00000000")
+                p.box(8, 12, 7, 2, "dce0c9")
+            elif name == "pickaxe":
+                p.polygon([(5, 7), (11, 2), (18, 3), (23, 10), (17, 6), (11, 5)], "a8b9b5")
+            else:
+                p.box(15, 3, 6, 9, "92a7a8"); p.box(15, 3, 5, 2, "d2d8c0")
         elif name in ["seeds", "star_seeds", "rations"]:
             p.box(4, 4, 16, 18, "8c734e"); p.box(5, 3, 13, 18, "c6ab77")
             p.box(7, 7, 9, 10, "87946d" if name != "star_seeds" else "8c85a0")
@@ -548,9 +571,10 @@ def main():
     kinds = {"rug", "bed", "sofa", "table", "chair", "desk", "counter", "bookshelf", "stock", "cabinet", "crates", "tools", "seed_tray", "kitchen", "bath", "sink", "toilet", "reactor", "machine", "console", "radio", "art", "telescope", "plant"}
     sizes = {(kind, int(w), int(h)) for kind, w, h in re.findall(r'\["(\w+)",Rect2i\([^,]+,[^,]+,(\d+),(\d+)\)\]', source) if kind in kinds and (kind != "kitchen" or h == "1")}
     for kind, w, h in sorted(sizes): furniture(kind, w, h)
-    for crop in ["soil", "tilled", "wet", "sprout", "turnip", "bulb"]:
+    for crop in ["soil", "tilled", "wet", "sprout", "turnip", "bulb", "sprout_wet", "turnip_wet", "bulb_wet"]:
         p = add("crop_" + crop, Pixels(32, 32))
-        p.box(2, 6, 28, 23, "61523d" if crop == "wet" else "8b6947")
+        p.box(2, 6, 28, 23, "57422f" if crop == "wet" or crop.endswith("_wet") else "8b6947")
+        crop = crop.removesuffix("_wet")
         for x in [5, 12, 19, 26]: p.box(x, 8, 1, 18, "a08155" if crop == "soil" else "564b39")
         if crop in ["sprout", "turnip", "bulb"]:
             p.oval(16, 18, 7 if crop != "sprout" else 3, 5, "e3d5b2" if crop == "turnip" else "e8d784" if crop == "bulb" else "79a05b")

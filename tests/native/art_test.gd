@@ -16,6 +16,21 @@ func run() -> void:
 	check(opening.battle_at(19).destroyed and not opening.battle_at(19).enemy_fire,"the attacker explodes and stops firing before the crash")
 	preload("fixture.gd").explore(game,true)
 	Art.load_atlas()
+	var hoe=Art.pixels.get_region(Rect2i(Art.region("item_hoe")))
+	var sickle=Art.pixels.get_region(Rect2i(Art.region("item_sickle")))
+	var pickaxe=Art.pixels.get_region(Rect2i(Art.region("item_pickaxe")))
+	check(hoe.get_data()!=sickle.get_data() and hoe.get_data()!=pickaxe.get_data() and sickle.get_data()!=pickaxe.get_data(),"hoe sickle and pickaxe have different pixel silhouettes")
+	var wet_visible=true
+	for crop in ["sprout","turnip","bulb"]:
+		var dry=Art.region("crop_"+crop).position+Vector2(3,7)
+		var wet=Art.region("crop_"+crop+"_wet").position+Vector2(3,7)
+		if Art.pixels.get_pixelv(Vector2i(wet)).get_luminance()>=Art.pixels.get_pixelv(Vector2i(dry)).get_luminance(): wet_visible=false
+	check(wet_visible,"watered soil stays darker underneath each crop stage")
+	var left=Art.pixels.get_region(Rect2i(Art.region("tile_fence_mask1")))
+	var right=Art.pixels.get_region(Rect2i(Art.region("tile_fence_mask2")))
+	check(left.get_pixel(0,13).a>0 and left.get_pixel(31,13).a==0 and right.get_pixel(0,13).a==0 and right.get_pixel(31,13).a>0,"fence end sprites only extend rails toward their neighbor")
+	var sofa=Art.pixels.get_region(Rect2i(Art.region("furniture_sofa_3x1")))
+	check(sofa.get_pixel(sofa.get_width()/2,sofa.get_height()-5).a==0,"furniture does not cast a detached shadow beneath its base")
 	check(Art.catalog.size()>300 and Art.atlas!=null,"the native game loads the complete PNG sprite atlas")
 	var trees=true
 	for tree in game.outdoors.trees:

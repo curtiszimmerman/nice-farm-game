@@ -10,6 +10,13 @@ var quick_buttons: Array=[]
 var log_panel: Panel
 var log_toggle: Button
 var log_expanded=true
+var quest_unread=false
+var known_quests: Array=[]
+var quick_tray: Panel
+var hint_panel: PanelContainer
+var pulse_time=0.0
+var pause_shield: Control
+var pause_badge: PanelContainer
 var quantity_control: SpinBox
 var game: Node2D
 var root: Control
@@ -77,7 +84,9 @@ func _ready() -> void:
 	objective.size = Vector2(220,80)
 	objective.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	next_task = _label("",Vector2(14,175),11,GOLD,false,log_panel)
+	toggle_log()
 	var tray = _panel(Vector2(140,602),Vector2(1000,88),Color("172b2bf5"))
+	quick_tray=tray
 	health_label = _label("HP  100",Vector2(19,7),10,MUTED,false,tray)
 	health_bar = _bar(Vector2(19,23),Vector2(132,4),Color("c38e80"),tray)
 	vitality = _label("ENERGY  100",Vector2(19,30),10,MUTED,false,tray)
@@ -108,22 +117,32 @@ func _ready() -> void:
 	var controls = _label("WASD / ARROWS  walk    SHIFT  run    E  interact    Q  magic    M  map    ESC  settings    F11  fullscreen",Vector2(0,699),10,MUTED)
 	controls.size.x = 1280
 	controls.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hint = _label("",Vector2(340,559),15,CREAM,true)
-	hint.size.x = 600
+	hint_panel=PanelContainer.new()
+	hint_panel.position=Vector2(390,554)
+	hint_panel.size=Vector2(500,30)
+	var hint_style=style(Color("172b2be8"))
+	hint_style.content_margin_left=10
+	hint_style.content_margin_right=10
+	hint_style.content_margin_top=5
+	hint_style.content_margin_bottom=5
+	hint_panel.add_theme_stylebox_override("panel",hint_style)
+	hint_panel.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	root.add_child(hint_panel)
+	hint = _label("",Vector2.ZERO,14,CREAM,true,hint_panel)
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	message_panel=PanelContainer.new()
-	message_panel.position=Vector2(320,112)
-	message_panel.size=Vector2(640,76)
+	message_panel.position=Vector2(420,112)
+	message_panel.size=Vector2(440,38)
 	var border=style(Color("172d30f5"),GOLD)
-	border.content_margin_left=20
-	border.content_margin_right=20
-	border.content_margin_top=14
-	border.content_margin_bottom=14
+	border.content_margin_left=12
+	border.content_margin_right=12
+	border.content_margin_top=7
+	border.content_margin_bottom=7
 	message_panel.add_theme_stylebox_override("panel",border)
 	message_panel.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	root.add_child(message_panel)
-	message = _label("",Vector2.ZERO,18,CREAM,true,message_panel)
-	message.custom_minimum_size=Vector2(600,45)
+	message = _label("",Vector2.ZERO,14,CREAM,true,message_panel)
+	message.custom_minimum_size=Vector2(416,20)
 	message.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	message.vertical_alignment=VERTICAL_ALIGNMENT_CENTER
 	message.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -137,6 +156,23 @@ func _ready() -> void:
 	action_label.size.x = 400
 	action_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	show_title()
+	pause_shield=Control.new()
+	pause_shield.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	pause_shield.mouse_filter=Control.MOUSE_FILTER_STOP
+	pause_shield.visible=false
+	root.add_child(pause_shield)
+	var pause_layer=CanvasLayer.new()
+	pause_layer.layer=30
+	add_child(pause_layer)
+	pause_badge=PanelContainer.new()
+	pause_badge.position=Vector2(525,18)
+	pause_badge.size=Vector2(230,34)
+	pause_badge.add_theme_stylebox_override("panel",hint_style)
+	pause_badge.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	pause_badge.visible=false
+	pause_layer.add_child(pause_badge)
+	var pause_text=_label("PAUSED · Space to resume",Vector2.ZERO,14,GOLD,false,pause_badge)
+	pause_text.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
 
 func _label(text: String,pos: Vector2,font_size: int,color: Color,book = false,parent: Node = null) -> Label:
 	var label = Label.new()
@@ -410,16 +446,38 @@ func quantity_picker(maximum: int,confirm: Callable,cancel: Callable) -> void:
 	modal_box.move_child(amount,3)
 
 func toggle_log() -> void:
+	quest_unread=false
 	log_expanded=not log_expanded
 	for child in log_panel.get_children():
 		if child!=log_toggle: child.visible=log_expanded
 	log_panel.size.y=210 if log_expanded else 55
 	log_toggle.text=("▾" if log_expanded else "▸")+" CREW LOG"
 
+func _process(dt: float) -> void:
+	if game==null or quick_tray==null: return
+	pulse_time+=dt
+	log_toggle.modulate=Color.WHITE.lerp(Color("ffd276"),0.45+0.4*sin(pulse_time*TAU/3.5)) if quest_unread else Color.WHITE
+	var screen=get_viewport().get_canvas_transform()*game.state.player_position
+	var avatar=Rect2(screen-Vector2(15,58)*game.camera.zoom,Vector2(30,64)*game.camera.zoom)
+	var obscured=quick_tray.get_global_rect().intersects(avatar)
+	quick_tray.modulate.a=move_toward(quick_tray.modulate.a,0.22 if obscured else 1.0,dt*4)
+
 func update() -> void:
 	game.state.clear_empty_slots()
 	message_panel.visible=not message.text.is_empty()
+	message_panel.size=Vector2(440,0)
+	pause_shield.visible=game.world_paused
+	pause_badge.visible=game.world_paused
+	root.move_child(pause_shield,-1)
 	var s = game.state
+	var quests=["crew_supplies"]
+	if s.invited: quests.append("restore_farmhouse")
+	if s.met_mayor: quests.append("first_harvest")
+	if s.welcome_phase=="complete": quests.append("meet_wizard")
+	for quest in quests:
+		if quest not in known_quests:
+			known_quests.append(quest)
+			quest_unread=true
 	for i in range(8):
 		var id: String=s.quick_slots[i]
 		var button: Button=quick_buttons[i]
@@ -460,6 +518,11 @@ func update() -> void:
 	hint.text = "" if game.window_open else "RESTING · E to get up" if game.resting>0 else "E · "+game.nearest.get("label","") if not game.nearest.is_empty() else ""
 	if game.activity=="mining": hint.text = "Gathering copper…"
 	if game.activity=="fishing": hint.text = "E · reel in when the marker crosses the gold band"
+	if game.world_paused: hint.text=""
+	hint_panel.visible=not hint.text.is_empty()
+	var hint_width=hint.get_theme_font("font").get_string_size(hint.text,HORIZONTAL_ALIGNMENT_LEFT,-1,14).x+24
+	hint_panel.size=Vector2(minf(740,hint_width),0)
+	hint_panel.position.x=(1280-hint_panel.size.x)/2
 	action_meter.visible = game.activity=="fishing"
 	action_label.text = ""
 	if game.activity=="fishing":
