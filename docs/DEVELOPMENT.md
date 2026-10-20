@@ -124,6 +124,8 @@ Empty carried stacks clear their quick-slot references on use, transfer, selling
 
 An early atlas import check exposed an RGB/RGBA blit mismatch, corrected by giving the retained terrain texture the atlas's RGBA format. Native art checks also account for JSON numeric values loading as floats when validating tree dimensions. Asset tests verify PNG bounds, exact tile dimensions, tree contracts and the original-art archive. Full native visual runs inspect both the new sprite work and the preserved render option.
 
+The final atlas contains 356 sprites at 2048 × 1157 pixels. The oven supports both nearby left clicks and E; cookware selection is unnecessary. Final verification passed 565 native checks, two PNG/archive checks, startup smoke, and the host visual/audio run without warnings or errors. Screenshots include both sides firing, the enemy explosion, the status banner, the planted mountain foot with Moss, and every house interior. The existing launcher executable-bit modification remains outside these commits.
+
 ## Next discussion
 
 Play and critique the slice before expanding it. Decide the next milestone, combat controls and feel, art direction, calendar/lunar rules, and the first actual networked cooperative interaction. Do not mistake placeholder content for approved final story or mechanics.

@@ -52,6 +52,13 @@ func run() -> void:
 		if child is Button: labels.append(child.text)
 	check(labels.any(func(label): return "fish sticks" in label.to_lower()) and not labels.any(func(label): return "fish stew" in label.to_lower()),"a carried pan expands only its oven recipes")
 	game.close_window()
+	var click=InputEventMouseButton.new()
+	click.button_index=MOUSE_BUTTON_LEFT
+	click.pressed=true
+	click.position=game.get_viewport().get_canvas_transform()*(game.world.site_position("stove")-Vector2(0,40))
+	if game.has_method("_unhandled_input"): game._unhandled_input(click)
+	check(game.window_open and game.state.fish==1,"clicking the nearby oven opens cooking without selecting cookware")
+	game.close_window()
 	game.leave_building()
 	game.change_art(1)
 	await process_frame

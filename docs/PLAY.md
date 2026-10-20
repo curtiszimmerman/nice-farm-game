@@ -18,7 +18,7 @@ Press I for the satchel. Hover for details; click an item to save it to a quick 
 
 Your satchel has twelve slots; the farmhouse chest has eighteen, and the kitchen cabinet and ship locker each have twelve. Quick slots start empty and clear when their carried stack is depleted. Starting seeds are in the chest with the tools; the can is empty. Quantities appear only above one. Storage offers quantity selection and whole-stack swaps.
 
-Use the farmhouse oven to cook. Its menu expands according to cookware physically present in your satchel or kitchen cabinet. A pan enables fish sticks (one fish); a pot enables fish stew (one fish, one moon turnip, one star bulb). Neither needs a quick slot. Cookware in the outdoor chest or ship does not enable oven recipes. Ingredients come from carried supplies and the kitchen cabinet. Tavi sells each utensil for 20 crowns and health elixirs for 15 crowns.
+Click the farmhouse oven while standing nearby, or press E beside it, to cook. Its menu expands according to cookware physically present in your satchel or kitchen cabinet. A pan enables fish sticks (one fish); a pot enables fish stew (one fish, one moon turnip, one star bulb). Neither needs a quick slot. Cookware in the outdoor chest or ship does not enable oven recipes. Ingredients come from carried supplies and the kitchen cabinet. Tavi sells each utensil for 20 crowns and health elixirs for 15 crowns.
 
 Option 2's modular PNG pixel sprites are the default. Settings → Artwork lets you compare the preserved option 1. Houses, trees, cliffs, furniture, actors and other objects use the atlas; see [ART.md](ART.md) for component rules, the original-art backup and the reproducible asset builder. Status notifications use a prominent framed panel.
 

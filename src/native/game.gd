@@ -307,6 +307,16 @@ func leave_building() -> void:
 	camera.position=state.player_position
 	activity=""
 
+func _unhandled_input(event: InputEvent) -> void:
+	if not event is InputEventMouseButton or event.button_index!=MOUSE_BUTTON_LEFT or not event.pressed: return
+	if not started or window_open or opening!=null or current_room!="home" or state.welcome_phase in ["meeting","departing","moss_lesson"]: return
+	var stove=world.site_position("stove")
+	if state.player_position.distance_to(stove)>55: return
+	var point=get_viewport().get_canvas_transform().affine_inverse()*event.position
+	if Rect2(stove+Vector2(-16,-58),Vector2(64,42)).has_point(point):
+		cooking()
+		get_viewport().set_input_as_handled()
+
 func _unhandled_key_input(event: InputEvent) -> void:
 	if not event is InputEventKey or not event.pressed or event.echo: return
 	if event.keycode==KEY_F11:
