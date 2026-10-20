@@ -2951,9 +2951,17 @@
       72
     ]
   },
-  "furniture_crates_2x2": {
+  "furniture_counter_7x1": {
     "rect": [
       815,
+      842,
+      232,
+      72
+    ]
+  },
+  "furniture_crates_2x2": {
+    "rect": [
+      1049,
       842,
       72,
       104
@@ -2961,7 +2969,7 @@
   },
   "furniture_desk_2x1": {
     "rect": [
-      889,
+      1123,
       842,
       72,
       72
@@ -2969,7 +2977,7 @@
   },
   "furniture_desk_3x1": {
     "rect": [
-      963,
+      1197,
       842,
       104,
       72
@@ -2977,7 +2985,7 @@
   },
   "furniture_kitchen_2x1": {
     "rect": [
-      1069,
+      1303,
       842,
       72,
       72
@@ -2985,7 +2993,7 @@
   },
   "furniture_kitchen_3x1": {
     "rect": [
-      1143,
+      1377,
       842,
       104,
       72
@@ -2993,7 +3001,7 @@
   },
   "furniture_kitchen_4x1": {
     "rect": [
-      1249,
+      1483,
       842,
       136,
       72
@@ -3001,7 +3009,7 @@
   },
   "furniture_kitchen_5x1": {
     "rect": [
-      1387,
+      1621,
       842,
       168,
       72
@@ -3009,7 +3017,7 @@
   },
   "furniture_kitchen_6x1": {
     "rect": [
-      1557,
+      1791,
       842,
       200,
       72
@@ -3017,31 +3025,23 @@
   },
   "furniture_machine_2x2": {
     "rect": [
-      1759,
-      842,
+      1,
+      980,
       72,
       104
     ]
   },
   "furniture_machine_3x2": {
     "rect": [
-      1833,
-      842,
+      75,
+      980,
       104,
       104
     ]
   },
-  "furniture_machine_3x3": {
-    "rect": [
-      1939,
-      842,
-      104,
-      136
-    ]
-  },
   "furniture_plant_1x1": {
     "rect": [
-      1,
+      181,
       980,
       40,
       72
@@ -3049,7 +3049,7 @@
   },
   "furniture_radio_1x1": {
     "rect": [
-      43,
+      223,
       980,
       40,
       72
@@ -3057,7 +3057,7 @@
   },
   "cover_1x1": {
     "rect": [
-      85,
+      265,
       980,
       40,
       72
@@ -3065,7 +3065,7 @@
   },
   "furniture_radio_3x1": {
     "rect": [
-      127,
+      307,
       980,
       104,
       72
@@ -3073,7 +3073,7 @@
   },
   "cover_3x1": {
     "rect": [
-      233,
+      413,
       980,
       104,
       72
@@ -3081,7 +3081,7 @@
   },
   "furniture_radio_6x1": {
     "rect": [
-      339,
+      519,
       980,
       200,
       72
@@ -3089,7 +3089,7 @@
   },
   "cover_6x1": {
     "rect": [
-      541,
+      721,
       980,
       200,
       72
@@ -3097,7 +3097,7 @@
   },
   "furniture_reactor_3x3": {
     "rect": [
-      743,
+      923,
       980,
       104,
       136
@@ -3105,7 +3105,7 @@
   },
   "furniture_rug_2x3": {
     "rect": [
-      849,
+      1029,
       980,
       72,
       136
@@ -3113,7 +3113,7 @@
   },
   "furniture_rug_2x4": {
     "rect": [
-      923,
+      1103,
       980,
       72,
       168
@@ -3121,7 +3121,7 @@
   },
   "furniture_rug_3x3": {
     "rect": [
-      997,
+      1177,
       980,
       104,
       136
@@ -3129,7 +3129,7 @@
   },
   "furniture_rug_3x4": {
     "rect": [
-      1103,
+      1283,
       980,
       104,
       168
@@ -3137,7 +3137,7 @@
   },
   "furniture_rug_4x2": {
     "rect": [
-      1209,
+      1389,
       980,
       136,
       104
@@ -3145,7 +3145,7 @@
   },
   "furniture_rug_4x3": {
     "rect": [
-      1347,
+      1527,
       980,
       136,
       136
@@ -3153,7 +3153,7 @@
   },
   "furniture_rug_5x3": {
     "rect": [
-      1485,
+      1665,
       980,
       168,
       136
@@ -3161,7 +3161,7 @@
   },
   "furniture_rug_6x3": {
     "rect": [
-      1655,
+      1835,
       980,
       200,
       136
@@ -3169,31 +3169,31 @@
   },
   "furniture_seed_tray_2x1": {
     "rect": [
-      1857,
-      980,
+      1,
+      1150,
       72,
       72
     ]
   },
   "furniture_sink_1x1": {
     "rect": [
-      1931,
-      980,
+      75,
+      1150,
       40,
       72
     ]
   },
   "furniture_sofa_2x1": {
     "rect": [
-      1973,
-      980,
+      117,
+      1150,
       72,
       72
     ]
   },
   "cover_2x1": {
     "rect": [
-      1,
+      191,
       1150,
       72,
       72
@@ -3201,7 +3201,7 @@
   },
   "furniture_sofa_3x1": {
     "rect": [
-      75,
+      265,
       1150,
       104,
       72
@@ -3209,7 +3209,7 @@
   },
   "furniture_stock_1x2": {
     "rect": [
-      181,
+      371,
       1150,
       40,
       104
@@ -3217,7 +3217,7 @@
   },
   "furniture_stock_1x4": {
     "rect": [
-      223,
+      413,
       1150,
       40,
       168
@@ -3225,7 +3225,7 @@
   },
   "furniture_stock_3x1": {
     "rect": [
-      265,
+      455,
       1150,
       104,
       72
@@ -3233,7 +3233,7 @@
   },
   "furniture_stock_8x1": {
     "rect": [
-      371,
+      561,
       1150,
       264,
       72
@@ -3241,7 +3241,7 @@
   },
   "furniture_table_1x1": {
     "rect": [
-      637,
+      827,
       1150,
       40,
       72
@@ -3249,7 +3249,7 @@
   },
   "furniture_table_2x1": {
     "rect": [
-      679,
+      869,
       1150,
       72,
       72
@@ -3257,7 +3257,7 @@
   },
   "furniture_table_3x1": {
     "rect": [
-      753,
+      943,
       1150,
       104,
       72
@@ -3265,7 +3265,7 @@
   },
   "furniture_table_4x1": {
     "rect": [
-      859,
+      1049,
       1150,
       136,
       72
@@ -3273,7 +3273,7 @@
   },
   "furniture_table_5x2": {
     "rect": [
-      997,
+      1187,
       1150,
       168,
       104
@@ -3281,7 +3281,7 @@
   },
   "furniture_table_6x1": {
     "rect": [
-      1167,
+      1357,
       1150,
       200,
       72
@@ -3289,7 +3289,7 @@
   },
   "furniture_telescope_1x1": {
     "rect": [
-      1369,
+      1559,
       1150,
       40,
       72
@@ -3297,7 +3297,7 @@
   },
   "furniture_toilet_1x1": {
     "rect": [
-      1411,
+      1601,
       1150,
       40,
       72
@@ -3305,7 +3305,7 @@
   },
   "furniture_tools_1x2": {
     "rect": [
-      1453,
+      1643,
       1150,
       40,
       104
@@ -3313,7 +3313,7 @@
   },
   "furniture_tools_2x1": {
     "rect": [
-      1495,
+      1685,
       1150,
       72,
       72
@@ -3321,7 +3321,7 @@
   },
   "crop_soil": {
     "rect": [
-      1569,
+      1759,
       1150,
       32,
       32
@@ -3329,7 +3329,7 @@
   },
   "crop_tilled": {
     "rect": [
-      1603,
+      1793,
       1150,
       32,
       32
@@ -3337,7 +3337,7 @@
   },
   "crop_wet": {
     "rect": [
-      1637,
+      1827,
       1150,
       32,
       32
@@ -3345,7 +3345,7 @@
   },
   "crop_sprout": {
     "rect": [
-      1671,
+      1861,
       1150,
       32,
       32
@@ -3353,7 +3353,7 @@
   },
   "crop_turnip": {
     "rect": [
-      1705,
+      1895,
       1150,
       32,
       32
@@ -3361,7 +3361,7 @@
   },
   "crop_bulb": {
     "rect": [
-      1739,
+      1929,
       1150,
       32,
       32
@@ -3369,7 +3369,7 @@
   },
   "crop_sprout_wet": {
     "rect": [
-      1773,
+      1963,
       1150,
       32,
       32
@@ -3377,7 +3377,7 @@
   },
   "crop_turnip_wet": {
     "rect": [
-      1807,
+      1997,
       1150,
       32,
       32
@@ -3385,55 +3385,55 @@
   },
   "crop_bulb_wet": {
     "rect": [
-      1841,
-      1150,
+      1,
+      1320,
       32,
       32
     ]
   },
   "tile_stone_jetty_edge_n": {
     "rect": [
-      1875,
-      1150,
+      35,
+      1320,
       32,
       32
     ]
   },
   "tile_stone_jetty_edge_e": {
     "rect": [
-      1909,
-      1150,
+      69,
+      1320,
       32,
       32
     ]
   },
   "tile_stone_jetty_edge_s": {
     "rect": [
-      1943,
-      1150,
+      103,
+      1320,
       32,
       32
     ]
   },
   "tile_stone_jetty_edge_w": {
     "rect": [
-      1977,
-      1150,
+      137,
+      1320,
       32,
       32
     ]
   },
   "tile_smithy_sign": {
     "rect": [
-      2011,
-      1150,
+      171,
+      1320,
       32,
       32
     ]
   },
   "tile_bakery_sign": {
     "rect": [
-      1,
+      205,
       1320,
       32,
       32
@@ -3441,7 +3441,7 @@
   },
   "tile_tavern_sign": {
     "rect": [
-      35,
+      239,
       1320,
       32,
       32
@@ -3449,7 +3449,7 @@
   },
   "tile_windmill_wall": {
     "rect": [
-      69,
+      273,
       1320,
       32,
       32
@@ -3457,7 +3457,7 @@
   },
   "mill_sails0": {
     "rect": [
-      103,
+      307,
       1320,
       96,
       96
@@ -3465,7 +3465,7 @@
   },
   "mill_sails1": {
     "rect": [
-      201,
+      405,
       1320,
       96,
       96
@@ -3473,7 +3473,7 @@
   },
   "mill_sails2": {
     "rect": [
-      299,
+      503,
       1320,
       96,
       96
@@ -3481,7 +3481,7 @@
   },
   "mill_sails3": {
     "rect": [
-      397,
+      601,
       1320,
       96,
       96
@@ -3489,7 +3489,7 @@
   },
   "tile_flowerbed0": {
     "rect": [
-      495,
+      699,
       1320,
       32,
       32
@@ -3497,7 +3497,7 @@
   },
   "tile_flowerbed1": {
     "rect": [
-      529,
+      733,
       1320,
       32,
       32
@@ -3505,7 +3505,7 @@
   },
   "bench": {
     "rect": [
-      563,
+      767,
       1320,
       64,
       48
@@ -3513,7 +3513,7 @@
   },
   "fountain0": {
     "rect": [
-      629,
+      833,
       1320,
       64,
       80
@@ -3521,7 +3521,7 @@
   },
   "fountain1": {
     "rect": [
-      695,
+      899,
       1320,
       64,
       80
@@ -3529,7 +3529,7 @@
   },
   "fountain2": {
     "rect": [
-      761,
+      965,
       1320,
       64,
       80
@@ -3537,7 +3537,7 @@
   },
   "fountain3": {
     "rect": [
-      827,
+      1031,
       1320,
       64,
       80
@@ -3545,7 +3545,7 @@
   },
   "furniture_forge_3x2": {
     "rect": [
-      893,
+      1097,
       1320,
       96,
       80
@@ -3553,7 +3553,7 @@
   },
   "furniture_anvil_1x1": {
     "rect": [
-      991,
+      1195,
       1320,
       32,
       48
@@ -3561,7 +3561,7 @@
   },
   "furniture_oven_2x2": {
     "rect": [
-      1025,
+      1229,
       1320,
       64,
       80
@@ -3569,7 +3569,7 @@
   },
   "furniture_barrels_2x1": {
     "rect": [
-      1091,
+      1295,
       1320,
       64,
       48
@@ -3577,7 +3577,7 @@
   },
   "furniture_flour_2x1": {
     "rect": [
-      1157,
+      1361,
       1320,
       64,
       48
@@ -3585,7 +3585,7 @@
   },
   "item_wildgrowth": {
     "rect": [
-      1223,
+      1427,
       1320,
       32,
       32
@@ -3593,7 +3593,7 @@
   },
   "item_sit": {
     "rect": [
-      1257,
+      1461,
       1320,
       32,
       32
@@ -3601,7 +3601,7 @@
   },
   "actor_farmer_mother_down0": {
     "rect": [
-      1291,
+      1495,
       1320,
       32,
       64
@@ -3609,7 +3609,7 @@
   },
   "actor_farmer_mother_down1": {
     "rect": [
-      1325,
+      1529,
       1320,
       32,
       64
@@ -3617,7 +3617,7 @@
   },
   "actor_farmer_mother_down2": {
     "rect": [
-      1359,
+      1563,
       1320,
       32,
       64
@@ -3625,7 +3625,7 @@
   },
   "actor_farmer_mother_up0": {
     "rect": [
-      1393,
+      1597,
       1320,
       32,
       64
@@ -3633,7 +3633,7 @@
   },
   "actor_farmer_mother_up1": {
     "rect": [
-      1427,
+      1631,
       1320,
       32,
       64
@@ -3641,7 +3641,7 @@
   },
   "actor_farmer_mother_up2": {
     "rect": [
-      1461,
+      1665,
       1320,
       32,
       64
@@ -3649,7 +3649,7 @@
   },
   "actor_farmer_mother_left0": {
     "rect": [
-      1495,
+      1699,
       1320,
       32,
       64
@@ -3657,7 +3657,7 @@
   },
   "actor_farmer_mother_left1": {
     "rect": [
-      1529,
+      1733,
       1320,
       32,
       64
@@ -3665,7 +3665,7 @@
   },
   "actor_farmer_mother_left2": {
     "rect": [
-      1563,
+      1767,
       1320,
       32,
       64
@@ -3673,7 +3673,7 @@
   },
   "actor_farmer_mother_right0": {
     "rect": [
-      1597,
+      1801,
       1320,
       32,
       64
@@ -3681,7 +3681,7 @@
   },
   "actor_farmer_mother_right1": {
     "rect": [
-      1631,
+      1835,
       1320,
       32,
       64
@@ -3689,7 +3689,7 @@
   },
   "actor_farmer_mother_right2": {
     "rect": [
-      1665,
+      1869,
       1320,
       32,
       64
@@ -3697,7 +3697,7 @@
   },
   "actor_farmer_mother_sleep0": {
     "rect": [
-      1699,
+      1903,
       1320,
       32,
       64
@@ -3705,7 +3705,7 @@
   },
   "actor_farmer_father_down0": {
     "rect": [
-      1733,
+      1937,
       1320,
       32,
       64
@@ -3713,7 +3713,7 @@
   },
   "actor_farmer_father_down1": {
     "rect": [
-      1767,
+      1971,
       1320,
       32,
       64
@@ -3721,7 +3721,7 @@
   },
   "actor_farmer_father_down2": {
     "rect": [
-      1801,
+      2005,
       1320,
       32,
       64
@@ -3729,55 +3729,55 @@
   },
   "actor_farmer_father_up0": {
     "rect": [
-      1835,
-      1320,
+      1,
+      1418,
       32,
       64
     ]
   },
   "actor_farmer_father_up1": {
     "rect": [
-      1869,
-      1320,
+      35,
+      1418,
       32,
       64
     ]
   },
   "actor_farmer_father_up2": {
     "rect": [
-      1903,
-      1320,
+      69,
+      1418,
       32,
       64
     ]
   },
   "actor_farmer_father_left0": {
     "rect": [
-      1937,
-      1320,
+      103,
+      1418,
       32,
       64
     ]
   },
   "actor_farmer_father_left1": {
     "rect": [
-      1971,
-      1320,
+      137,
+      1418,
       32,
       64
     ]
   },
   "actor_farmer_father_left2": {
     "rect": [
-      2005,
-      1320,
+      171,
+      1418,
       32,
       64
     ]
   },
   "actor_farmer_father_right0": {
     "rect": [
-      1,
+      205,
       1418,
       32,
       64
@@ -3785,7 +3785,7 @@
   },
   "actor_farmer_father_right1": {
     "rect": [
-      35,
+      239,
       1418,
       32,
       64
@@ -3793,7 +3793,7 @@
   },
   "actor_farmer_father_right2": {
     "rect": [
-      69,
+      273,
       1418,
       32,
       64
@@ -3801,7 +3801,7 @@
   },
   "actor_farmer_father_sleep0": {
     "rect": [
-      103,
+      307,
       1418,
       32,
       64
@@ -3809,7 +3809,7 @@
   },
   "actor_farmer_son_down0": {
     "rect": [
-      137,
+      341,
       1418,
       32,
       64
@@ -3817,7 +3817,7 @@
   },
   "actor_farmer_son_down1": {
     "rect": [
-      171,
+      375,
       1418,
       32,
       64
@@ -3825,7 +3825,7 @@
   },
   "actor_farmer_son_down2": {
     "rect": [
-      205,
+      409,
       1418,
       32,
       64
@@ -3833,7 +3833,7 @@
   },
   "actor_farmer_son_up0": {
     "rect": [
-      239,
+      443,
       1418,
       32,
       64
@@ -3841,7 +3841,7 @@
   },
   "actor_farmer_son_up1": {
     "rect": [
-      273,
+      477,
       1418,
       32,
       64
@@ -3849,7 +3849,7 @@
   },
   "actor_farmer_son_up2": {
     "rect": [
-      307,
+      511,
       1418,
       32,
       64
@@ -3857,7 +3857,7 @@
   },
   "actor_farmer_son_left0": {
     "rect": [
-      341,
+      545,
       1418,
       32,
       64
@@ -3865,7 +3865,7 @@
   },
   "actor_farmer_son_left1": {
     "rect": [
-      375,
+      579,
       1418,
       32,
       64
@@ -3873,7 +3873,7 @@
   },
   "actor_farmer_son_left2": {
     "rect": [
-      409,
+      613,
       1418,
       32,
       64
@@ -3881,7 +3881,7 @@
   },
   "actor_farmer_son_right0": {
     "rect": [
-      443,
+      647,
       1418,
       32,
       64
@@ -3889,7 +3889,7 @@
   },
   "actor_farmer_son_right1": {
     "rect": [
-      477,
+      681,
       1418,
       32,
       64
@@ -3897,7 +3897,7 @@
   },
   "actor_farmer_son_right2": {
     "rect": [
-      511,
+      715,
       1418,
       32,
       64
@@ -3905,7 +3905,7 @@
   },
   "actor_farmer_son_sleep0": {
     "rect": [
-      545,
+      749,
       1418,
       32,
       64
@@ -3913,7 +3913,7 @@
   },
   "actor_smith_down0": {
     "rect": [
-      579,
+      783,
       1418,
       32,
       64
@@ -3921,7 +3921,7 @@
   },
   "actor_smith_down1": {
     "rect": [
-      613,
+      817,
       1418,
       32,
       64
@@ -3929,7 +3929,7 @@
   },
   "actor_smith_down2": {
     "rect": [
-      647,
+      851,
       1418,
       32,
       64
@@ -3937,7 +3937,7 @@
   },
   "actor_smith_up0": {
     "rect": [
-      681,
+      885,
       1418,
       32,
       64
@@ -3945,7 +3945,7 @@
   },
   "actor_smith_up1": {
     "rect": [
-      715,
+      919,
       1418,
       32,
       64
@@ -3953,7 +3953,7 @@
   },
   "actor_smith_up2": {
     "rect": [
-      749,
+      953,
       1418,
       32,
       64
@@ -3961,7 +3961,7 @@
   },
   "actor_smith_left0": {
     "rect": [
-      783,
+      987,
       1418,
       32,
       64
@@ -3969,7 +3969,7 @@
   },
   "actor_smith_left1": {
     "rect": [
-      817,
+      1021,
       1418,
       32,
       64
@@ -3977,7 +3977,7 @@
   },
   "actor_smith_left2": {
     "rect": [
-      851,
+      1055,
       1418,
       32,
       64
@@ -3985,7 +3985,7 @@
   },
   "actor_smith_right0": {
     "rect": [
-      885,
+      1089,
       1418,
       32,
       64
@@ -3993,7 +3993,7 @@
   },
   "actor_smith_right1": {
     "rect": [
-      919,
+      1123,
       1418,
       32,
       64
@@ -4001,7 +4001,7 @@
   },
   "actor_smith_right2": {
     "rect": [
-      953,
+      1157,
       1418,
       32,
       64
@@ -4009,7 +4009,7 @@
   },
   "actor_smith_sleep0": {
     "rect": [
-      987,
+      1191,
       1418,
       32,
       64
@@ -4017,7 +4017,7 @@
   },
   "actor_miller_down0": {
     "rect": [
-      1021,
+      1225,
       1418,
       32,
       64
@@ -4025,7 +4025,7 @@
   },
   "actor_miller_down1": {
     "rect": [
-      1055,
+      1259,
       1418,
       32,
       64
@@ -4033,7 +4033,7 @@
   },
   "actor_miller_down2": {
     "rect": [
-      1089,
+      1293,
       1418,
       32,
       64
@@ -4041,7 +4041,7 @@
   },
   "actor_miller_up0": {
     "rect": [
-      1123,
+      1327,
       1418,
       32,
       64
@@ -4049,7 +4049,7 @@
   },
   "actor_miller_up1": {
     "rect": [
-      1157,
+      1361,
       1418,
       32,
       64
@@ -4057,7 +4057,7 @@
   },
   "actor_miller_up2": {
     "rect": [
-      1191,
+      1395,
       1418,
       32,
       64
@@ -4065,7 +4065,7 @@
   },
   "actor_miller_left0": {
     "rect": [
-      1225,
+      1429,
       1418,
       32,
       64
@@ -4073,7 +4073,7 @@
   },
   "actor_miller_left1": {
     "rect": [
-      1259,
+      1463,
       1418,
       32,
       64
@@ -4081,7 +4081,7 @@
   },
   "actor_miller_left2": {
     "rect": [
-      1293,
+      1497,
       1418,
       32,
       64
@@ -4089,7 +4089,7 @@
   },
   "actor_miller_right0": {
     "rect": [
-      1327,
+      1531,
       1418,
       32,
       64
@@ -4097,7 +4097,7 @@
   },
   "actor_miller_right1": {
     "rect": [
-      1361,
+      1565,
       1418,
       32,
       64
@@ -4105,7 +4105,7 @@
   },
   "actor_miller_right2": {
     "rect": [
-      1395,
+      1599,
       1418,
       32,
       64
@@ -4113,7 +4113,7 @@
   },
   "actor_miller_sleep0": {
     "rect": [
-      1429,
+      1633,
       1418,
       32,
       64
@@ -4121,7 +4121,7 @@
   },
   "actor_miller_wife_down0": {
     "rect": [
-      1463,
+      1667,
       1418,
       32,
       64
@@ -4129,7 +4129,7 @@
   },
   "actor_miller_wife_down1": {
     "rect": [
-      1497,
+      1701,
       1418,
       32,
       64
@@ -4137,7 +4137,7 @@
   },
   "actor_miller_wife_down2": {
     "rect": [
-      1531,
+      1735,
       1418,
       32,
       64
@@ -4145,7 +4145,7 @@
   },
   "actor_miller_wife_up0": {
     "rect": [
-      1565,
+      1769,
       1418,
       32,
       64
@@ -4153,7 +4153,7 @@
   },
   "actor_miller_wife_up1": {
     "rect": [
-      1599,
+      1803,
       1418,
       32,
       64
@@ -4161,7 +4161,7 @@
   },
   "actor_miller_wife_up2": {
     "rect": [
-      1633,
+      1837,
       1418,
       32,
       64
@@ -4169,7 +4169,7 @@
   },
   "actor_miller_wife_left0": {
     "rect": [
-      1667,
+      1871,
       1418,
       32,
       64
@@ -4177,7 +4177,7 @@
   },
   "actor_miller_wife_left1": {
     "rect": [
-      1701,
+      1905,
       1418,
       32,
       64
@@ -4185,7 +4185,7 @@
   },
   "actor_miller_wife_left2": {
     "rect": [
-      1735,
+      1939,
       1418,
       32,
       64
@@ -4193,7 +4193,7 @@
   },
   "actor_miller_wife_right0": {
     "rect": [
-      1769,
+      1973,
       1418,
       32,
       64
@@ -4201,7 +4201,7 @@
   },
   "actor_miller_wife_right1": {
     "rect": [
-      1803,
+      2007,
       1418,
       32,
       64
@@ -4209,61 +4209,13 @@
   },
   "actor_miller_wife_right2": {
     "rect": [
-      1837,
-      1418,
-      32,
-      64
-    ]
-  },
-  "actor_miller_wife_sleep0": {
-    "rect": [
-      1871,
-      1418,
-      32,
-      64
-    ]
-  },
-  "actor_miller_daughter_down0": {
-    "rect": [
-      1905,
-      1418,
-      32,
-      64
-    ]
-  },
-  "actor_miller_daughter_down1": {
-    "rect": [
-      1939,
-      1418,
-      32,
-      64
-    ]
-  },
-  "actor_miller_daughter_down2": {
-    "rect": [
-      1973,
-      1418,
-      32,
-      64
-    ]
-  },
-  "actor_miller_daughter_up0": {
-    "rect": [
-      2007,
-      1418,
-      32,
-      64
-    ]
-  },
-  "actor_miller_daughter_up1": {
-    "rect": [
       1,
       1484,
       32,
       64
     ]
   },
-  "actor_miller_daughter_up2": {
+  "actor_miller_wife_sleep0": {
     "rect": [
       35,
       1484,
@@ -4271,7 +4223,7 @@
       64
     ]
   },
-  "actor_miller_daughter_left0": {
+  "actor_miller_daughter_down0": {
     "rect": [
       69,
       1484,
@@ -4279,7 +4231,7 @@
       64
     ]
   },
-  "actor_miller_daughter_left1": {
+  "actor_miller_daughter_down1": {
     "rect": [
       103,
       1484,
@@ -4287,7 +4239,7 @@
       64
     ]
   },
-  "actor_miller_daughter_left2": {
+  "actor_miller_daughter_down2": {
     "rect": [
       137,
       1484,
@@ -4295,7 +4247,7 @@
       64
     ]
   },
-  "actor_miller_daughter_right0": {
+  "actor_miller_daughter_up0": {
     "rect": [
       171,
       1484,
@@ -4303,7 +4255,7 @@
       64
     ]
   },
-  "actor_miller_daughter_right1": {
+  "actor_miller_daughter_up1": {
     "rect": [
       205,
       1484,
@@ -4311,7 +4263,7 @@
       64
     ]
   },
-  "actor_miller_daughter_right2": {
+  "actor_miller_daughter_up2": {
     "rect": [
       239,
       1484,
@@ -4319,7 +4271,7 @@
       64
     ]
   },
-  "actor_miller_daughter_sleep0": {
+  "actor_miller_daughter_left0": {
     "rect": [
       273,
       1484,
@@ -4327,7 +4279,7 @@
       64
     ]
   },
-  "actor_barkeep_down0": {
+  "actor_miller_daughter_left1": {
     "rect": [
       307,
       1484,
@@ -4335,7 +4287,7 @@
       64
     ]
   },
-  "actor_barkeep_down1": {
+  "actor_miller_daughter_left2": {
     "rect": [
       341,
       1484,
@@ -4343,7 +4295,7 @@
       64
     ]
   },
-  "actor_barkeep_down2": {
+  "actor_miller_daughter_right0": {
     "rect": [
       375,
       1484,
@@ -4351,7 +4303,7 @@
       64
     ]
   },
-  "actor_barkeep_up0": {
+  "actor_miller_daughter_right1": {
     "rect": [
       409,
       1484,
@@ -4359,7 +4311,7 @@
       64
     ]
   },
-  "actor_barkeep_up1": {
+  "actor_miller_daughter_right2": {
     "rect": [
       443,
       1484,
@@ -4367,7 +4319,7 @@
       64
     ]
   },
-  "actor_barkeep_up2": {
+  "actor_miller_daughter_sleep0": {
     "rect": [
       477,
       1484,
@@ -4375,7 +4327,7 @@
       64
     ]
   },
-  "actor_barkeep_left0": {
+  "actor_barkeep_down0": {
     "rect": [
       511,
       1484,
@@ -4383,7 +4335,7 @@
       64
     ]
   },
-  "actor_barkeep_left1": {
+  "actor_barkeep_down1": {
     "rect": [
       545,
       1484,
@@ -4391,7 +4343,7 @@
       64
     ]
   },
-  "actor_barkeep_left2": {
+  "actor_barkeep_down2": {
     "rect": [
       579,
       1484,
@@ -4399,7 +4351,7 @@
       64
     ]
   },
-  "actor_barkeep_right0": {
+  "actor_barkeep_up0": {
     "rect": [
       613,
       1484,
@@ -4407,7 +4359,7 @@
       64
     ]
   },
-  "actor_barkeep_right1": {
+  "actor_barkeep_up1": {
     "rect": [
       647,
       1484,
@@ -4415,7 +4367,7 @@
       64
     ]
   },
-  "actor_barkeep_right2": {
+  "actor_barkeep_up2": {
     "rect": [
       681,
       1484,
@@ -4423,7 +4375,7 @@
       64
     ]
   },
-  "actor_barkeep_sleep0": {
+  "actor_barkeep_left0": {
     "rect": [
       715,
       1484,
@@ -4431,7 +4383,7 @@
       64
     ]
   },
-  "actor_baker_down0": {
+  "actor_barkeep_left1": {
     "rect": [
       749,
       1484,
@@ -4439,7 +4391,7 @@
       64
     ]
   },
-  "actor_baker_down1": {
+  "actor_barkeep_left2": {
     "rect": [
       783,
       1484,
@@ -4447,7 +4399,7 @@
       64
     ]
   },
-  "actor_baker_down2": {
+  "actor_barkeep_right0": {
     "rect": [
       817,
       1484,
@@ -4455,7 +4407,7 @@
       64
     ]
   },
-  "actor_baker_up0": {
+  "actor_barkeep_right1": {
     "rect": [
       851,
       1484,
@@ -4463,7 +4415,7 @@
       64
     ]
   },
-  "actor_baker_up1": {
+  "actor_barkeep_right2": {
     "rect": [
       885,
       1484,
@@ -4471,7 +4423,7 @@
       64
     ]
   },
-  "actor_baker_up2": {
+  "actor_barkeep_sleep0": {
     "rect": [
       919,
       1484,
@@ -4479,7 +4431,7 @@
       64
     ]
   },
-  "actor_baker_left0": {
+  "actor_baker_down0": {
     "rect": [
       953,
       1484,
@@ -4487,7 +4439,7 @@
       64
     ]
   },
-  "actor_baker_left1": {
+  "actor_baker_down1": {
     "rect": [
       987,
       1484,
@@ -4495,7 +4447,7 @@
       64
     ]
   },
-  "actor_baker_left2": {
+  "actor_baker_down2": {
     "rect": [
       1021,
       1484,
@@ -4503,7 +4455,7 @@
       64
     ]
   },
-  "actor_baker_right0": {
+  "actor_baker_up0": {
     "rect": [
       1055,
       1484,
@@ -4511,7 +4463,7 @@
       64
     ]
   },
-  "actor_baker_right1": {
+  "actor_baker_up1": {
     "rect": [
       1089,
       1484,
@@ -4519,7 +4471,7 @@
       64
     ]
   },
-  "actor_baker_right2": {
+  "actor_baker_up2": {
     "rect": [
       1123,
       1484,
@@ -4527,10 +4479,1594 @@
       64
     ]
   },
-  "actor_baker_sleep0": {
+  "actor_baker_left0": {
     "rect": [
       1157,
       1484,
+      32,
+      64
+    ]
+  },
+  "actor_baker_left1": {
+    "rect": [
+      1191,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_baker_left2": {
+    "rect": [
+      1225,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_baker_right0": {
+    "rect": [
+      1259,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_baker_right1": {
+    "rect": [
+      1293,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_baker_right2": {
+    "rect": [
+      1327,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_baker_sleep0": {
+    "rect": [
+      1361,
+      1484,
+      32,
+      64
+    ]
+  },
+  "calendar_ring0": {
+    "rect": [
+      1395,
+      1484,
+      128,
+      128
+    ]
+  },
+  "calendar_ring1": {
+    "rect": [
+      1525,
+      1484,
+      128,
+      128
+    ]
+  },
+  "calendar_ring2": {
+    "rect": [
+      1655,
+      1484,
+      128,
+      128
+    ]
+  },
+  "calendar_ring3": {
+    "rect": [
+      1785,
+      1484,
+      128,
+      128
+    ]
+  },
+  "calendar_ring4": {
+    "rect": [
+      1915,
+      1484,
+      128,
+      128
+    ]
+  },
+  "calendar_ring5": {
+    "rect": [
+      1,
+      1614,
+      128,
+      128
+    ]
+  },
+  "calendar_ring6": {
+    "rect": [
+      131,
+      1614,
+      128,
+      128
+    ]
+  },
+  "season_spring": {
+    "rect": [
+      261,
+      1614,
+      32,
+      32
+    ]
+  },
+  "season_summer": {
+    "rect": [
+      295,
+      1614,
+      32,
+      32
+    ]
+  },
+  "season_autumn": {
+    "rect": [
+      329,
+      1614,
+      32,
+      32
+    ]
+  },
+  "season_winter": {
+    "rect": [
+      363,
+      1614,
+      32,
+      32
+    ]
+  },
+  "moon_purple0": {
+    "rect": [
+      397,
+      1614,
+      48,
+      48
+    ]
+  },
+  "moon_white0": {
+    "rect": [
+      447,
+      1614,
+      48,
+      48
+    ]
+  },
+  "moon_purple1": {
+    "rect": [
+      497,
+      1614,
+      48,
+      48
+    ]
+  },
+  "moon_white1": {
+    "rect": [
+      547,
+      1614,
+      48,
+      48
+    ]
+  },
+  "moon_purple2": {
+    "rect": [
+      597,
+      1614,
+      48,
+      48
+    ]
+  },
+  "moon_white2": {
+    "rect": [
+      647,
+      1614,
+      48,
+      48
+    ]
+  },
+  "moon_purple3": {
+    "rect": [
+      697,
+      1614,
+      48,
+      48
+    ]
+  },
+  "moon_white3": {
+    "rect": [
+      747,
+      1614,
+      48,
+      48
+    ]
+  },
+  "moon_purple4": {
+    "rect": [
+      797,
+      1614,
+      48,
+      48
+    ]
+  },
+  "moon_white4": {
+    "rect": [
+      847,
+      1614,
+      48,
+      48
+    ]
+  },
+  "moon_purple5": {
+    "rect": [
+      897,
+      1614,
+      48,
+      48
+    ]
+  },
+  "moon_white5": {
+    "rect": [
+      947,
+      1614,
+      48,
+      48
+    ]
+  },
+  "moon_purple6": {
+    "rect": [
+      997,
+      1614,
+      48,
+      48
+    ]
+  },
+  "moon_white6": {
+    "rect": [
+      1047,
+      1614,
+      48,
+      48
+    ]
+  },
+  "moon_purple7": {
+    "rect": [
+      1097,
+      1614,
+      48,
+      48
+    ]
+  },
+  "moon_white7": {
+    "rect": [
+      1147,
+      1614,
+      48,
+      48
+    ]
+  },
+  "moon_purple8": {
+    "rect": [
+      1197,
+      1614,
+      48,
+      48
+    ]
+  },
+  "moon_white8": {
+    "rect": [
+      1247,
+      1614,
+      48,
+      48
+    ]
+  },
+  "moon_purple9": {
+    "rect": [
+      1297,
+      1614,
+      48,
+      48
+    ]
+  },
+  "moon_white9": {
+    "rect": [
+      1347,
+      1614,
+      48,
+      48
+    ]
+  },
+  "moon_purple10": {
+    "rect": [
+      1397,
+      1614,
+      48,
+      48
+    ]
+  },
+  "moon_white10": {
+    "rect": [
+      1447,
+      1614,
+      48,
+      48
+    ]
+  },
+  "moon_purple11": {
+    "rect": [
+      1497,
+      1614,
+      48,
+      48
+    ]
+  },
+  "moon_white11": {
+    "rect": [
+      1547,
+      1614,
+      48,
+      48
+    ]
+  },
+  "moon_purple12": {
+    "rect": [
+      1597,
+      1614,
+      48,
+      48
+    ]
+  },
+  "moon_white12": {
+    "rect": [
+      1647,
+      1614,
+      48,
+      48
+    ]
+  },
+  "moon_purple13": {
+    "rect": [
+      1697,
+      1614,
+      48,
+      48
+    ]
+  },
+  "moon_white13": {
+    "rect": [
+      1747,
+      1614,
+      48,
+      48
+    ]
+  },
+  "moon_purple14": {
+    "rect": [
+      1797,
+      1614,
+      48,
+      48
+    ]
+  },
+  "moon_white14": {
+    "rect": [
+      1847,
+      1614,
+      48,
+      48
+    ]
+  },
+  "moon_purple15": {
+    "rect": [
+      1897,
+      1614,
+      48,
+      48
+    ]
+  },
+  "moon_white15": {
+    "rect": [
+      1947,
+      1614,
+      48,
+      48
+    ]
+  },
+  "tile_grass0_summer": {
+    "rect": [
+      1997,
+      1614,
+      32,
+      32
+    ]
+  },
+  "tile_grass1_summer": {
+    "rect": [
+      1,
+      1744,
+      32,
+      32
+    ]
+  },
+  "tile_grass2_summer": {
+    "rect": [
+      35,
+      1744,
+      32,
+      32
+    ]
+  },
+  "tile_grass3_summer": {
+    "rect": [
+      69,
+      1744,
+      32,
+      32
+    ]
+  },
+  "tile_flowerbed0_summer": {
+    "rect": [
+      103,
+      1744,
+      32,
+      32
+    ]
+  },
+  "tile_flowerbed1_summer": {
+    "rect": [
+      137,
+      1744,
+      32,
+      32
+    ]
+  },
+  "bush0_summer": {
+    "rect": [
+      171,
+      1744,
+      64,
+      48
+    ]
+  },
+  "bush1_summer": {
+    "rect": [
+      237,
+      1744,
+      64,
+      48
+    ]
+  },
+  "bush2_summer": {
+    "rect": [
+      303,
+      1744,
+      64,
+      48
+    ]
+  },
+  "tree_oak_2_summer": {
+    "rect": [
+      369,
+      1744,
+      96,
+      128
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      2
+    ]
+  },
+  "tree_oak_3_summer": {
+    "rect": [
+      467,
+      1744,
+      96,
+      160
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      3
+    ]
+  },
+  "tree_oak_4_summer": {
+    "rect": [
+      565,
+      1744,
+      96,
+      192
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      4
+    ]
+  },
+  "tree_birch_2_summer": {
+    "rect": [
+      663,
+      1744,
+      96,
+      128
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      2
+    ]
+  },
+  "tree_birch_3_summer": {
+    "rect": [
+      761,
+      1744,
+      96,
+      160
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      3
+    ]
+  },
+  "tree_birch_4_summer": {
+    "rect": [
+      859,
+      1744,
+      96,
+      192
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      4
+    ]
+  },
+  "tree_pine_2_summer": {
+    "rect": [
+      957,
+      1744,
+      96,
+      128
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      2
+    ]
+  },
+  "tree_pine_3_summer": {
+    "rect": [
+      1055,
+      1744,
+      96,
+      160
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      3
+    ]
+  },
+  "tree_pine_4_summer": {
+    "rect": [
+      1153,
+      1744,
+      96,
+      192
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      4
+    ]
+  },
+  "tile_grass0_autumn": {
+    "rect": [
+      1251,
+      1744,
+      32,
+      32
+    ]
+  },
+  "tile_grass1_autumn": {
+    "rect": [
+      1285,
+      1744,
+      32,
+      32
+    ]
+  },
+  "tile_grass2_autumn": {
+    "rect": [
+      1319,
+      1744,
+      32,
+      32
+    ]
+  },
+  "tile_grass3_autumn": {
+    "rect": [
+      1353,
+      1744,
+      32,
+      32
+    ]
+  },
+  "tile_flowerbed0_autumn": {
+    "rect": [
+      1387,
+      1744,
+      32,
+      32
+    ]
+  },
+  "tile_flowerbed1_autumn": {
+    "rect": [
+      1421,
+      1744,
+      32,
+      32
+    ]
+  },
+  "bush0_autumn": {
+    "rect": [
+      1455,
+      1744,
+      64,
+      48
+    ]
+  },
+  "bush1_autumn": {
+    "rect": [
+      1521,
+      1744,
+      64,
+      48
+    ]
+  },
+  "bush2_autumn": {
+    "rect": [
+      1587,
+      1744,
+      64,
+      48
+    ]
+  },
+  "tree_oak_2_autumn": {
+    "rect": [
+      1653,
+      1744,
+      96,
+      128
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      2
+    ]
+  },
+  "tree_oak_3_autumn": {
+    "rect": [
+      1751,
+      1744,
+      96,
+      160
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      3
+    ]
+  },
+  "tree_oak_4_autumn": {
+    "rect": [
+      1849,
+      1744,
+      96,
+      192
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      4
+    ]
+  },
+  "tree_birch_2_autumn": {
+    "rect": [
+      1947,
+      1744,
+      96,
+      128
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      2
+    ]
+  },
+  "tree_birch_3_autumn": {
+    "rect": [
+      1,
+      1938,
+      96,
+      160
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      3
+    ]
+  },
+  "tree_birch_4_autumn": {
+    "rect": [
+      99,
+      1938,
+      96,
+      192
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      4
+    ]
+  },
+  "tree_pine_2_autumn": {
+    "rect": [
+      197,
+      1938,
+      96,
+      128
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      2
+    ]
+  },
+  "tree_pine_3_autumn": {
+    "rect": [
+      295,
+      1938,
+      96,
+      160
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      3
+    ]
+  },
+  "tree_pine_4_autumn": {
+    "rect": [
+      393,
+      1938,
+      96,
+      192
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      4
+    ]
+  },
+  "tile_grass0_winter": {
+    "rect": [
+      491,
+      1938,
+      32,
+      32
+    ]
+  },
+  "tile_grass1_winter": {
+    "rect": [
+      525,
+      1938,
+      32,
+      32
+    ]
+  },
+  "tile_grass2_winter": {
+    "rect": [
+      559,
+      1938,
+      32,
+      32
+    ]
+  },
+  "tile_grass3_winter": {
+    "rect": [
+      593,
+      1938,
+      32,
+      32
+    ]
+  },
+  "tile_flowerbed0_winter": {
+    "rect": [
+      627,
+      1938,
+      32,
+      32
+    ]
+  },
+  "tile_flowerbed1_winter": {
+    "rect": [
+      661,
+      1938,
+      32,
+      32
+    ]
+  },
+  "bush0_winter": {
+    "rect": [
+      695,
+      1938,
+      64,
+      48
+    ]
+  },
+  "bush1_winter": {
+    "rect": [
+      761,
+      1938,
+      64,
+      48
+    ]
+  },
+  "bush2_winter": {
+    "rect": [
+      827,
+      1938,
+      64,
+      48
+    ]
+  },
+  "tree_oak_2_winter": {
+    "rect": [
+      893,
+      1938,
+      96,
+      128
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      2
+    ]
+  },
+  "tree_oak_3_winter": {
+    "rect": [
+      991,
+      1938,
+      96,
+      160
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      3
+    ]
+  },
+  "tree_oak_4_winter": {
+    "rect": [
+      1089,
+      1938,
+      96,
+      192
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      4
+    ]
+  },
+  "tree_birch_2_winter": {
+    "rect": [
+      1187,
+      1938,
+      96,
+      128
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      2
+    ]
+  },
+  "tree_birch_3_winter": {
+    "rect": [
+      1285,
+      1938,
+      96,
+      160
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      3
+    ]
+  },
+  "tree_birch_4_winter": {
+    "rect": [
+      1383,
+      1938,
+      96,
+      192
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      4
+    ]
+  },
+  "tree_pine_2_winter": {
+    "rect": [
+      1481,
+      1938,
+      96,
+      128
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      2
+    ]
+  },
+  "tree_pine_3_winter": {
+    "rect": [
+      1579,
+      1938,
+      96,
+      160
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      3
+    ]
+  },
+  "tree_pine_4_winter": {
+    "rect": [
+      1677,
+      1938,
+      96,
+      192
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      4
+    ]
+  },
+  "tile_roof_snow": {
+    "rect": [
+      1775,
+      1938,
+      32,
+      32
+    ]
+  },
+  "tile_town_iron_mask0": {
+    "rect": [
+      1809,
+      1938,
+      32,
+      32
+    ]
+  },
+  "tile_town_iron_mask1": {
+    "rect": [
+      1843,
+      1938,
+      32,
+      32
+    ]
+  },
+  "tile_town_iron_mask2": {
+    "rect": [
+      1877,
+      1938,
+      32,
+      32
+    ]
+  },
+  "tile_town_iron_mask3": {
+    "rect": [
+      1911,
+      1938,
+      32,
+      32
+    ]
+  },
+  "tile_town_iron_mask4": {
+    "rect": [
+      1945,
+      1938,
+      32,
+      32
+    ]
+  },
+  "tile_town_iron_mask5": {
+    "rect": [
+      1979,
+      1938,
+      32,
+      32
+    ]
+  },
+  "tile_town_iron_mask6": {
+    "rect": [
+      2013,
+      1938,
+      32,
+      32
+    ]
+  },
+  "tile_town_iron_mask7": {
+    "rect": [
+      1,
+      2132,
+      32,
+      32
+    ]
+  },
+  "tile_town_iron_mask8": {
+    "rect": [
+      35,
+      2132,
+      32,
+      32
+    ]
+  },
+  "tile_town_iron_mask9": {
+    "rect": [
+      69,
+      2132,
+      32,
+      32
+    ]
+  },
+  "tile_town_iron_mask10": {
+    "rect": [
+      103,
+      2132,
+      32,
+      32
+    ]
+  },
+  "tile_town_iron_mask11": {
+    "rect": [
+      137,
+      2132,
+      32,
+      32
+    ]
+  },
+  "tile_town_iron_mask12": {
+    "rect": [
+      171,
+      2132,
+      32,
+      32
+    ]
+  },
+  "tile_town_iron_mask13": {
+    "rect": [
+      205,
+      2132,
+      32,
+      32
+    ]
+  },
+  "tile_town_iron_mask14": {
+    "rect": [
+      239,
+      2132,
+      32,
+      32
+    ]
+  },
+  "tile_town_iron_mask15": {
+    "rect": [
+      273,
+      2132,
+      32,
+      32
+    ]
+  },
+  "tile_town_iron_gate": {
+    "rect": [
+      307,
+      2132,
+      32,
+      32
+    ]
+  },
+  "tile_town_wood_mask0": {
+    "rect": [
+      341,
+      2132,
+      32,
+      32
+    ]
+  },
+  "tile_town_wood_mask1": {
+    "rect": [
+      375,
+      2132,
+      32,
+      32
+    ]
+  },
+  "tile_town_wood_mask2": {
+    "rect": [
+      409,
+      2132,
+      32,
+      32
+    ]
+  },
+  "tile_town_wood_mask3": {
+    "rect": [
+      443,
+      2132,
+      32,
+      32
+    ]
+  },
+  "tile_town_wood_mask4": {
+    "rect": [
+      477,
+      2132,
+      32,
+      32
+    ]
+  },
+  "tile_town_wood_mask5": {
+    "rect": [
+      511,
+      2132,
+      32,
+      32
+    ]
+  },
+  "tile_town_wood_mask6": {
+    "rect": [
+      545,
+      2132,
+      32,
+      32
+    ]
+  },
+  "tile_town_wood_mask7": {
+    "rect": [
+      579,
+      2132,
+      32,
+      32
+    ]
+  },
+  "tile_town_wood_mask8": {
+    "rect": [
+      613,
+      2132,
+      32,
+      32
+    ]
+  },
+  "tile_town_wood_mask9": {
+    "rect": [
+      647,
+      2132,
+      32,
+      32
+    ]
+  },
+  "tile_town_wood_mask10": {
+    "rect": [
+      681,
+      2132,
+      32,
+      32
+    ]
+  },
+  "tile_town_wood_mask11": {
+    "rect": [
+      715,
+      2132,
+      32,
+      32
+    ]
+  },
+  "tile_town_wood_mask12": {
+    "rect": [
+      749,
+      2132,
+      32,
+      32
+    ]
+  },
+  "tile_town_wood_mask13": {
+    "rect": [
+      783,
+      2132,
+      32,
+      32
+    ]
+  },
+  "tile_town_wood_mask14": {
+    "rect": [
+      817,
+      2132,
+      32,
+      32
+    ]
+  },
+  "tile_town_wood_mask15": {
+    "rect": [
+      851,
+      2132,
+      32,
+      32
+    ]
+  },
+  "tile_town_wood_gate": {
+    "rect": [
+      885,
+      2132,
+      32,
+      32
+    ]
+  },
+  "wall_house_mask0": {
+    "rect": [
+      919,
+      2132,
+      32,
+      64
+    ]
+  },
+  "wall_house_mask1": {
+    "rect": [
+      953,
+      2132,
+      32,
+      64
+    ]
+  },
+  "wall_house_mask2": {
+    "rect": [
+      987,
+      2132,
+      32,
+      64
+    ]
+  },
+  "wall_house_mask3": {
+    "rect": [
+      1021,
+      2132,
+      32,
+      64
+    ]
+  },
+  "wall_house_mask4": {
+    "rect": [
+      1055,
+      2132,
+      32,
+      64
+    ]
+  },
+  "wall_house_mask5": {
+    "rect": [
+      1089,
+      2132,
+      32,
+      64
+    ]
+  },
+  "wall_house_mask6": {
+    "rect": [
+      1123,
+      2132,
+      32,
+      64
+    ]
+  },
+  "wall_house_mask7": {
+    "rect": [
+      1157,
+      2132,
+      32,
+      64
+    ]
+  },
+  "wall_house_mask8": {
+    "rect": [
+      1191,
+      2132,
+      32,
+      64
+    ]
+  },
+  "wall_house_mask9": {
+    "rect": [
+      1225,
+      2132,
+      32,
+      64
+    ]
+  },
+  "wall_house_mask10": {
+    "rect": [
+      1259,
+      2132,
+      32,
+      64
+    ]
+  },
+  "wall_house_mask11": {
+    "rect": [
+      1293,
+      2132,
+      32,
+      64
+    ]
+  },
+  "wall_house_mask12": {
+    "rect": [
+      1327,
+      2132,
+      32,
+      64
+    ]
+  },
+  "wall_house_mask13": {
+    "rect": [
+      1361,
+      2132,
+      32,
+      64
+    ]
+  },
+  "wall_house_mask14": {
+    "rect": [
+      1395,
+      2132,
+      32,
+      64
+    ]
+  },
+  "wall_house_mask15": {
+    "rect": [
+      1429,
+      2132,
+      32,
+      64
+    ]
+  },
+  "furniture_millstone_3x3": {
+    "rect": [
+      1463,
+      2132,
+      96,
+      112
+    ]
+  },
+  "furniture_mill_gears_2x2": {
+    "rect": [
+      1561,
+      2132,
+      64,
+      80
+    ]
+  },
+  "bulletin_board": {
+    "rect": [
+      1627,
+      2132,
+      96,
+      96
+    ]
+  },
+  "woodpile": {
+    "rect": [
+      1725,
+      2132,
+      64,
+      48
+    ]
+  },
+  "actor_woodcutter_down0": {
+    "rect": [
+      1791,
+      2132,
+      32,
+      64
+    ]
+  },
+  "actor_woodcutter_down1": {
+    "rect": [
+      1825,
+      2132,
+      32,
+      64
+    ]
+  },
+  "actor_woodcutter_down2": {
+    "rect": [
+      1859,
+      2132,
+      32,
+      64
+    ]
+  },
+  "actor_woodcutter_up0": {
+    "rect": [
+      1893,
+      2132,
+      32,
+      64
+    ]
+  },
+  "actor_woodcutter_up1": {
+    "rect": [
+      1927,
+      2132,
+      32,
+      64
+    ]
+  },
+  "actor_woodcutter_up2": {
+    "rect": [
+      1961,
+      2132,
+      32,
+      64
+    ]
+  },
+  "actor_woodcutter_left0": {
+    "rect": [
+      1995,
+      2132,
+      32,
+      64
+    ]
+  },
+  "actor_woodcutter_left1": {
+    "rect": [
+      1,
+      2246,
+      32,
+      64
+    ]
+  },
+  "actor_woodcutter_left2": {
+    "rect": [
+      35,
+      2246,
+      32,
+      64
+    ]
+  },
+  "actor_woodcutter_right0": {
+    "rect": [
+      69,
+      2246,
+      32,
+      64
+    ]
+  },
+  "actor_woodcutter_right1": {
+    "rect": [
+      103,
+      2246,
+      32,
+      64
+    ]
+  },
+  "actor_woodcutter_right2": {
+    "rect": [
+      137,
+      2246,
+      32,
+      64
+    ]
+  },
+  "actor_woodcutter_sleep0": {
+    "rect": [
+      171,
+      2246,
       32,
       64
     ]

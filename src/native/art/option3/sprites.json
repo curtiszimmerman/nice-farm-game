@@ -2983,9 +2983,17 @@
       36
     ]
   },
-  "furniture_crates_2x2": {
+  "furniture_counter_7x1": {
     "rect": [
       855,
+      381,
+      116,
+      36
+    ]
+  },
+  "furniture_crates_2x2": {
+    "rect": [
+      973,
       381,
       36,
       52
@@ -2993,31 +3001,31 @@
   },
   "furniture_desk_2x1": {
     "rect": [
-      893,
-      381,
+      1,
+      451,
       36,
       36
     ]
   },
   "furniture_desk_3x1": {
     "rect": [
-      931,
-      381,
+      39,
+      451,
       52,
       36
     ]
   },
   "furniture_flour_2x1": {
     "rect": [
-      985,
-      381,
+      93,
+      451,
       32,
       24
     ]
   },
   "furniture_forge_3x2": {
     "rect": [
-      1,
+      127,
       451,
       48,
       40
@@ -3025,7 +3033,7 @@
   },
   "furniture_kitchen_2x1": {
     "rect": [
-      51,
+      177,
       451,
       36,
       36
@@ -3033,7 +3041,7 @@
   },
   "furniture_kitchen_3x1": {
     "rect": [
-      89,
+      215,
       451,
       52,
       36
@@ -3041,7 +3049,7 @@
   },
   "furniture_kitchen_4x1": {
     "rect": [
-      143,
+      269,
       451,
       68,
       36
@@ -3049,7 +3057,7 @@
   },
   "furniture_kitchen_5x1": {
     "rect": [
-      213,
+      339,
       451,
       84,
       36
@@ -3057,7 +3065,7 @@
   },
   "furniture_kitchen_6x1": {
     "rect": [
-      299,
+      425,
       451,
       100,
       36
@@ -3065,7 +3073,7 @@
   },
   "furniture_machine_2x2": {
     "rect": [
-      401,
+      527,
       451,
       36,
       52
@@ -3073,23 +3081,31 @@
   },
   "furniture_machine_3x2": {
     "rect": [
-      439,
+      565,
       451,
       52,
       52
     ]
   },
-  "furniture_machine_3x3": {
+  "furniture_mill_gears_2x2": {
     "rect": [
-      493,
+      619,
       451,
-      52,
-      68
+      32,
+      40
+    ]
+  },
+  "furniture_millstone_3x3": {
+    "rect": [
+      653,
+      451,
+      48,
+      56
     ]
   },
   "furniture_oven_2x2": {
     "rect": [
-      547,
+      703,
       451,
       32,
       40
@@ -3097,7 +3113,7 @@
   },
   "furniture_plant_1x1": {
     "rect": [
-      581,
+      737,
       451,
       20,
       36
@@ -3105,7 +3121,7 @@
   },
   "furniture_radio_1x1": {
     "rect": [
-      603,
+      759,
       451,
       20,
       36
@@ -3113,7 +3129,7 @@
   },
   "cover_1x1": {
     "rect": [
-      625,
+      781,
       451,
       20,
       36
@@ -3121,7 +3137,7 @@
   },
   "furniture_radio_3x1": {
     "rect": [
-      647,
+      803,
       451,
       52,
       36
@@ -3129,7 +3145,7 @@
   },
   "cover_3x1": {
     "rect": [
-      701,
+      857,
       451,
       52,
       36
@@ -3137,7 +3153,7 @@
   },
   "furniture_radio_6x1": {
     "rect": [
-      755,
+      911,
       451,
       100,
       36
@@ -3145,1392 +3161,2912 @@
   },
   "cover_6x1": {
     "rect": [
-      857,
-      451,
+      1,
+      509,
       100,
       36
     ]
   },
   "furniture_reactor_3x3": {
     "rect": [
-      959,
-      451,
+      103,
+      509,
       52,
       68
     ]
   },
   "furniture_rug_2x3": {
     "rect": [
-      1,
-      521,
+      157,
+      509,
       36,
       68
     ]
   },
   "furniture_rug_2x4": {
     "rect": [
-      39,
-      521,
+      195,
+      509,
       36,
       84
     ]
   },
   "furniture_rug_3x3": {
     "rect": [
-      77,
-      521,
+      233,
+      509,
       52,
       68
     ]
   },
   "furniture_rug_3x4": {
     "rect": [
-      131,
-      521,
+      287,
+      509,
       52,
       84
     ]
   },
   "furniture_rug_4x2": {
     "rect": [
-      185,
-      521,
+      341,
+      509,
       68,
       52
     ]
   },
   "furniture_rug_4x3": {
     "rect": [
-      255,
-      521,
+      411,
+      509,
       68,
       68
     ]
   },
   "furniture_rug_5x3": {
     "rect": [
-      325,
-      521,
+      481,
+      509,
       84,
       68
     ]
   },
   "furniture_rug_6x3": {
     "rect": [
-      411,
-      521,
+      567,
+      509,
       100,
       68
     ]
   },
   "furniture_seed_tray_2x1": {
     "rect": [
-      513,
-      521,
+      669,
+      509,
       36,
       36
     ]
   },
   "furniture_sink_1x1": {
     "rect": [
-      551,
-      521,
+      707,
+      509,
       20,
       36
     ]
   },
   "furniture_sofa_2x1": {
     "rect": [
-      573,
-      521,
+      729,
+      509,
       36,
       36
     ]
   },
   "cover_2x1": {
     "rect": [
-      611,
-      521,
+      767,
+      509,
       36,
       36
     ]
   },
   "furniture_sofa_3x1": {
     "rect": [
-      649,
-      521,
+      805,
+      509,
       52,
       36
     ]
   },
   "furniture_stock_1x2": {
     "rect": [
-      703,
-      521,
+      859,
+      509,
       20,
       52
     ]
   },
   "furniture_stock_1x4": {
     "rect": [
-      725,
-      521,
+      881,
+      509,
       20,
       84
     ]
   },
   "furniture_stock_3x1": {
     "rect": [
-      747,
-      521,
+      903,
+      509,
       52,
       36
     ]
   },
   "furniture_stock_8x1": {
     "rect": [
-      801,
-      521,
+      1,
+      595,
       132,
       36
     ]
   },
   "furniture_table_1x1": {
     "rect": [
-      935,
-      521,
+      135,
+      595,
       20,
       36
     ]
   },
   "furniture_table_2x1": {
     "rect": [
-      957,
-      521,
+      157,
+      595,
       36,
       36
     ]
   },
   "furniture_table_3x1": {
     "rect": [
-      1,
-      607,
+      195,
+      595,
       52,
       36
     ]
   },
   "furniture_table_4x1": {
     "rect": [
-      55,
-      607,
+      249,
+      595,
       68,
       36
     ]
   },
   "furniture_table_5x2": {
     "rect": [
-      125,
-      607,
+      319,
+      595,
       84,
       52
     ]
   },
   "furniture_table_6x1": {
     "rect": [
-      211,
-      607,
+      405,
+      595,
       100,
       36
     ]
   },
   "furniture_telescope_1x1": {
     "rect": [
-      313,
-      607,
+      507,
+      595,
       20,
       36
     ]
   },
   "furniture_toilet_1x1": {
     "rect": [
-      335,
-      607,
+      529,
+      595,
       20,
       36
     ]
   },
   "furniture_tools_1x2": {
     "rect": [
-      357,
-      607,
+      551,
+      595,
       20,
       52
     ]
   },
   "furniture_tools_2x1": {
     "rect": [
-      379,
-      607,
+      573,
+      595,
       36,
       36
     ]
   },
   "tile_stone_jetty_edge_n": {
     "rect": [
-      417,
-      607,
+      611,
+      595,
       16,
       16
     ]
   },
   "tile_stone_jetty_edge_e": {
     "rect": [
-      435,
-      607,
+      629,
+      595,
       16,
       16
     ]
   },
   "tile_stone_jetty_edge_s": {
     "rect": [
-      453,
-      607,
+      647,
+      595,
       16,
       16
     ]
   },
   "tile_stone_jetty_edge_w": {
     "rect": [
-      471,
-      607,
+      665,
+      595,
       16,
       16
     ]
   },
   "tile_smithy_sign": {
     "rect": [
-      489,
-      607,
+      683,
+      595,
       16,
       16
     ]
   },
   "tile_bakery_sign": {
     "rect": [
-      507,
-      607,
+      701,
+      595,
       16,
       16
     ]
   },
   "tile_tavern_sign": {
     "rect": [
-      525,
-      607,
+      719,
+      595,
       16,
       16
     ]
   },
   "tile_windmill_wall": {
     "rect": [
-      543,
-      607,
+      737,
+      595,
       16,
       16
     ]
   },
   "mill_sails0": {
     "rect": [
-      561,
-      607,
+      755,
+      595,
       48,
       48
     ]
   },
   "mill_sails1": {
     "rect": [
-      611,
-      607,
+      805,
+      595,
       48,
       48
     ]
   },
   "mill_sails2": {
     "rect": [
-      661,
-      607,
+      855,
+      595,
       48,
       48
     ]
   },
   "mill_sails3": {
     "rect": [
-      711,
-      607,
+      905,
+      595,
       48,
       48
     ]
   },
   "tile_flowerbed0": {
     "rect": [
-      761,
-      607,
+      955,
+      595,
       16,
       16
     ]
   },
   "tile_flowerbed1": {
     "rect": [
-      779,
-      607,
+      973,
+      595,
       16,
       16
     ]
   },
   "bench": {
     "rect": [
-      797,
-      607,
+      991,
+      595,
       32,
       24
     ]
   },
   "fountain0": {
     "rect": [
-      831,
-      607,
+      1,
+      649,
       32,
       40
     ]
   },
   "fountain1": {
     "rect": [
-      865,
-      607,
+      35,
+      649,
       32,
       40
     ]
   },
   "fountain2": {
     "rect": [
-      899,
-      607,
+      69,
+      649,
       32,
       40
     ]
   },
   "fountain3": {
     "rect": [
-      933,
-      607,
+      103,
+      649,
       32,
       40
     ]
   },
   "actor_farmer_mother_down0": {
     "rect": [
-      967,
-      607,
+      137,
+      649,
       16,
       32
     ]
   },
   "actor_farmer_mother_down1": {
     "rect": [
-      985,
-      607,
+      155,
+      649,
       16,
       32
     ]
   },
   "actor_farmer_mother_down2": {
     "rect": [
-      1003,
-      607,
+      173,
+      649,
       16,
       32
     ]
   },
   "actor_farmer_mother_up0": {
     "rect": [
-      1,
-      661,
+      191,
+      649,
       16,
       32
     ]
   },
   "actor_farmer_mother_up1": {
     "rect": [
-      19,
-      661,
+      209,
+      649,
       16,
       32
     ]
   },
   "actor_farmer_mother_up2": {
     "rect": [
-      37,
-      661,
+      227,
+      649,
       16,
       32
     ]
   },
   "actor_farmer_mother_left0": {
     "rect": [
-      55,
-      661,
+      245,
+      649,
       16,
       32
     ]
   },
   "actor_farmer_mother_left1": {
     "rect": [
-      73,
-      661,
+      263,
+      649,
       16,
       32
     ]
   },
   "actor_farmer_mother_left2": {
     "rect": [
-      91,
-      661,
+      281,
+      649,
       16,
       32
     ]
   },
   "actor_farmer_mother_right0": {
     "rect": [
-      109,
-      661,
+      299,
+      649,
       16,
       32
     ]
   },
   "actor_farmer_mother_right1": {
     "rect": [
-      127,
-      661,
+      317,
+      649,
       16,
       32
     ]
   },
   "actor_farmer_mother_right2": {
     "rect": [
-      145,
-      661,
+      335,
+      649,
       16,
       32
     ]
   },
   "actor_farmer_mother_sleep0": {
     "rect": [
-      163,
-      661,
+      353,
+      649,
       16,
       32
     ]
   },
   "actor_farmer_father_down0": {
     "rect": [
-      181,
-      661,
+      371,
+      649,
       16,
       32
     ]
   },
   "actor_farmer_father_down1": {
     "rect": [
-      199,
-      661,
+      389,
+      649,
       16,
       32
     ]
   },
   "actor_farmer_father_down2": {
     "rect": [
-      217,
-      661,
+      407,
+      649,
       16,
       32
     ]
   },
   "actor_farmer_father_up0": {
     "rect": [
-      235,
-      661,
+      425,
+      649,
       16,
       32
     ]
   },
   "actor_farmer_father_up1": {
     "rect": [
-      253,
-      661,
+      443,
+      649,
       16,
       32
     ]
   },
   "actor_farmer_father_up2": {
     "rect": [
-      271,
-      661,
+      461,
+      649,
       16,
       32
     ]
   },
   "actor_farmer_father_left0": {
     "rect": [
-      289,
-      661,
+      479,
+      649,
       16,
       32
     ]
   },
   "actor_farmer_father_left1": {
     "rect": [
-      307,
-      661,
+      497,
+      649,
       16,
       32
     ]
   },
   "actor_farmer_father_left2": {
     "rect": [
-      325,
-      661,
+      515,
+      649,
       16,
       32
     ]
   },
   "actor_farmer_father_right0": {
     "rect": [
-      343,
-      661,
+      533,
+      649,
       16,
       32
     ]
   },
   "actor_farmer_father_right1": {
     "rect": [
-      361,
-      661,
+      551,
+      649,
       16,
       32
     ]
   },
   "actor_farmer_father_right2": {
     "rect": [
-      379,
-      661,
+      569,
+      649,
       16,
       32
     ]
   },
   "actor_farmer_father_sleep0": {
     "rect": [
-      397,
-      661,
+      587,
+      649,
       16,
       32
     ]
   },
   "actor_farmer_son_down0": {
     "rect": [
-      415,
-      661,
+      605,
+      649,
       16,
       32
     ]
   },
   "actor_farmer_son_down1": {
     "rect": [
-      433,
-      661,
+      623,
+      649,
       16,
       32
     ]
   },
   "actor_farmer_son_down2": {
     "rect": [
-      451,
-      661,
+      641,
+      649,
       16,
       32
     ]
   },
   "actor_farmer_son_up0": {
     "rect": [
-      469,
-      661,
+      659,
+      649,
       16,
       32
     ]
   },
   "actor_farmer_son_up1": {
     "rect": [
-      487,
-      661,
+      677,
+      649,
       16,
       32
     ]
   },
   "actor_farmer_son_up2": {
     "rect": [
-      505,
-      661,
+      695,
+      649,
       16,
       32
     ]
   },
   "actor_farmer_son_left0": {
     "rect": [
-      523,
-      661,
+      713,
+      649,
       16,
       32
     ]
   },
   "actor_farmer_son_left1": {
     "rect": [
-      541,
-      661,
+      731,
+      649,
       16,
       32
     ]
   },
   "actor_farmer_son_left2": {
     "rect": [
-      559,
-      661,
+      749,
+      649,
       16,
       32
     ]
   },
   "actor_farmer_son_right0": {
     "rect": [
-      577,
-      661,
+      767,
+      649,
       16,
       32
     ]
   },
   "actor_farmer_son_right1": {
     "rect": [
-      595,
-      661,
+      785,
+      649,
       16,
       32
     ]
   },
   "actor_farmer_son_right2": {
     "rect": [
-      613,
-      661,
+      803,
+      649,
       16,
       32
     ]
   },
   "actor_farmer_son_sleep0": {
     "rect": [
-      631,
-      661,
+      821,
+      649,
       16,
       32
     ]
   },
   "actor_smith_down0": {
     "rect": [
+      839,
       649,
-      661,
       16,
       32
     ]
   },
   "actor_smith_down1": {
     "rect": [
-      667,
-      661,
+      857,
+      649,
       16,
       32
     ]
   },
   "actor_smith_down2": {
     "rect": [
-      685,
-      661,
+      875,
+      649,
       16,
       32
     ]
   },
   "actor_smith_up0": {
     "rect": [
-      703,
-      661,
+      893,
+      649,
       16,
       32
     ]
   },
   "actor_smith_up1": {
     "rect": [
-      721,
-      661,
+      911,
+      649,
       16,
       32
     ]
   },
   "actor_smith_up2": {
     "rect": [
-      739,
-      661,
+      929,
+      649,
       16,
       32
     ]
   },
   "actor_smith_left0": {
     "rect": [
-      757,
-      661,
+      947,
+      649,
       16,
       32
     ]
   },
   "actor_smith_left1": {
     "rect": [
-      775,
-      661,
+      965,
+      649,
       16,
       32
     ]
   },
   "actor_smith_left2": {
     "rect": [
-      793,
-      661,
+      983,
+      649,
       16,
       32
     ]
   },
   "actor_smith_right0": {
     "rect": [
-      811,
-      661,
+      1001,
+      649,
       16,
       32
     ]
   },
   "actor_smith_right1": {
     "rect": [
-      829,
-      661,
+      1,
+      691,
       16,
       32
     ]
   },
   "actor_smith_right2": {
     "rect": [
-      847,
-      661,
+      19,
+      691,
       16,
       32
     ]
   },
   "actor_smith_sleep0": {
     "rect": [
-      865,
-      661,
+      37,
+      691,
       16,
       32
     ]
   },
   "actor_miller_down0": {
     "rect": [
-      883,
-      661,
+      55,
+      691,
       16,
       32
     ]
   },
   "actor_miller_down1": {
     "rect": [
-      901,
-      661,
+      73,
+      691,
       16,
       32
     ]
   },
   "actor_miller_down2": {
     "rect": [
-      919,
-      661,
+      91,
+      691,
       16,
       32
     ]
   },
   "actor_miller_up0": {
     "rect": [
-      937,
-      661,
+      109,
+      691,
       16,
       32
     ]
   },
   "actor_miller_up1": {
     "rect": [
-      955,
-      661,
+      127,
+      691,
       16,
       32
     ]
   },
   "actor_miller_up2": {
     "rect": [
-      973,
-      661,
+      145,
+      691,
       16,
       32
     ]
   },
   "actor_miller_left0": {
     "rect": [
-      991,
-      661,
+      163,
+      691,
       16,
       32
     ]
   },
   "actor_miller_left1": {
     "rect": [
-      1,
-      695,
+      181,
+      691,
       16,
       32
     ]
   },
   "actor_miller_left2": {
     "rect": [
-      19,
-      695,
+      199,
+      691,
       16,
       32
     ]
   },
   "actor_miller_right0": {
     "rect": [
-      37,
-      695,
+      217,
+      691,
       16,
       32
     ]
   },
   "actor_miller_right1": {
     "rect": [
-      55,
-      695,
+      235,
+      691,
       16,
       32
     ]
   },
   "actor_miller_right2": {
     "rect": [
-      73,
-      695,
+      253,
+      691,
       16,
       32
     ]
   },
   "actor_miller_sleep0": {
     "rect": [
-      91,
-      695,
+      271,
+      691,
       16,
       32
     ]
   },
   "actor_miller_wife_down0": {
     "rect": [
-      109,
-      695,
+      289,
+      691,
       16,
       32
     ]
   },
   "actor_miller_wife_down1": {
     "rect": [
-      127,
-      695,
+      307,
+      691,
       16,
       32
     ]
   },
   "actor_miller_wife_down2": {
     "rect": [
-      145,
-      695,
+      325,
+      691,
       16,
       32
     ]
   },
   "actor_miller_wife_up0": {
     "rect": [
-      163,
-      695,
+      343,
+      691,
       16,
       32
     ]
   },
   "actor_miller_wife_up1": {
     "rect": [
-      181,
-      695,
+      361,
+      691,
       16,
       32
     ]
   },
   "actor_miller_wife_up2": {
     "rect": [
-      199,
-      695,
+      379,
+      691,
       16,
       32
     ]
   },
   "actor_miller_wife_left0": {
     "rect": [
-      217,
-      695,
+      397,
+      691,
       16,
       32
     ]
   },
   "actor_miller_wife_left1": {
     "rect": [
-      235,
-      695,
+      415,
+      691,
       16,
       32
     ]
   },
   "actor_miller_wife_left2": {
     "rect": [
-      253,
-      695,
+      433,
+      691,
       16,
       32
     ]
   },
   "actor_miller_wife_right0": {
     "rect": [
-      271,
-      695,
+      451,
+      691,
       16,
       32
     ]
   },
   "actor_miller_wife_right1": {
     "rect": [
-      289,
-      695,
+      469,
+      691,
       16,
       32
     ]
   },
   "actor_miller_wife_right2": {
     "rect": [
-      307,
-      695,
+      487,
+      691,
       16,
       32
     ]
   },
   "actor_miller_wife_sleep0": {
     "rect": [
-      325,
-      695,
+      505,
+      691,
       16,
       32
     ]
   },
   "actor_miller_daughter_down0": {
     "rect": [
-      343,
-      695,
+      523,
+      691,
       16,
       32
     ]
   },
   "actor_miller_daughter_down1": {
     "rect": [
-      361,
-      695,
+      541,
+      691,
       16,
       32
     ]
   },
   "actor_miller_daughter_down2": {
     "rect": [
-      379,
-      695,
+      559,
+      691,
       16,
       32
     ]
   },
   "actor_miller_daughter_up0": {
     "rect": [
-      397,
-      695,
+      577,
+      691,
       16,
       32
     ]
   },
   "actor_miller_daughter_up1": {
     "rect": [
-      415,
-      695,
+      595,
+      691,
       16,
       32
     ]
   },
   "actor_miller_daughter_up2": {
     "rect": [
-      433,
-      695,
+      613,
+      691,
       16,
       32
     ]
   },
   "actor_miller_daughter_left0": {
     "rect": [
-      451,
-      695,
+      631,
+      691,
       16,
       32
     ]
   },
   "actor_miller_daughter_left1": {
     "rect": [
-      469,
-      695,
+      649,
+      691,
       16,
       32
     ]
   },
   "actor_miller_daughter_left2": {
     "rect": [
-      487,
-      695,
+      667,
+      691,
       16,
       32
     ]
   },
   "actor_miller_daughter_right0": {
     "rect": [
-      505,
-      695,
+      685,
+      691,
       16,
       32
     ]
   },
   "actor_miller_daughter_right1": {
     "rect": [
-      523,
-      695,
+      703,
+      691,
       16,
       32
     ]
   },
   "actor_miller_daughter_right2": {
     "rect": [
-      541,
-      695,
+      721,
+      691,
       16,
       32
     ]
   },
   "actor_miller_daughter_sleep0": {
     "rect": [
-      559,
-      695,
+      739,
+      691,
       16,
       32
     ]
   },
   "actor_barkeep_down0": {
     "rect": [
-      577,
-      695,
+      757,
+      691,
       16,
       32
     ]
   },
   "actor_barkeep_down1": {
     "rect": [
-      595,
-      695,
+      775,
+      691,
       16,
       32
     ]
   },
   "actor_barkeep_down2": {
     "rect": [
-      613,
-      695,
+      793,
+      691,
       16,
       32
     ]
   },
   "actor_barkeep_up0": {
     "rect": [
-      631,
-      695,
+      811,
+      691,
       16,
       32
     ]
   },
   "actor_barkeep_up1": {
     "rect": [
-      649,
-      695,
+      829,
+      691,
       16,
       32
     ]
   },
   "actor_barkeep_up2": {
     "rect": [
-      667,
-      695,
+      847,
+      691,
       16,
       32
     ]
   },
   "actor_barkeep_left0": {
     "rect": [
-      685,
-      695,
+      865,
+      691,
       16,
       32
     ]
   },
   "actor_barkeep_left1": {
     "rect": [
-      703,
-      695,
+      883,
+      691,
       16,
       32
     ]
   },
   "actor_barkeep_left2": {
     "rect": [
-      721,
-      695,
+      901,
+      691,
       16,
       32
     ]
   },
   "actor_barkeep_right0": {
     "rect": [
-      739,
-      695,
+      919,
+      691,
       16,
       32
     ]
   },
   "actor_barkeep_right1": {
     "rect": [
-      757,
-      695,
+      937,
+      691,
       16,
       32
     ]
   },
   "actor_barkeep_right2": {
     "rect": [
-      775,
-      695,
+      955,
+      691,
       16,
       32
     ]
   },
   "actor_barkeep_sleep0": {
     "rect": [
-      793,
-      695,
+      973,
+      691,
       16,
       32
     ]
   },
   "actor_baker_down0": {
     "rect": [
-      811,
-      695,
+      991,
+      691,
       16,
       32
     ]
   },
   "actor_baker_down1": {
     "rect": [
-      829,
-      695,
+      1,
+      725,
       16,
       32
     ]
   },
   "actor_baker_down2": {
     "rect": [
-      847,
-      695,
+      19,
+      725,
       16,
       32
     ]
   },
   "actor_baker_up0": {
     "rect": [
-      865,
-      695,
+      37,
+      725,
       16,
       32
     ]
   },
   "actor_baker_up1": {
     "rect": [
-      883,
-      695,
+      55,
+      725,
       16,
       32
     ]
   },
   "actor_baker_up2": {
     "rect": [
-      901,
-      695,
+      73,
+      725,
       16,
       32
     ]
   },
   "actor_baker_left0": {
     "rect": [
-      919,
-      695,
+      91,
+      725,
       16,
       32
     ]
   },
   "actor_baker_left1": {
     "rect": [
-      937,
-      695,
+      109,
+      725,
       16,
       32
     ]
   },
   "actor_baker_left2": {
     "rect": [
-      955,
-      695,
+      127,
+      725,
       16,
       32
     ]
   },
   "actor_baker_right0": {
     "rect": [
-      973,
-      695,
+      145,
+      725,
       16,
       32
     ]
   },
   "actor_baker_right1": {
     "rect": [
-      991,
-      695,
+      163,
+      725,
       16,
       32
     ]
   },
   "actor_baker_right2": {
     "rect": [
-      1,
-      729,
+      181,
+      725,
       16,
       32
     ]
   },
   "actor_baker_sleep0": {
     "rect": [
+      199,
+      725,
+      16,
+      32
+    ]
+  },
+  "calendar_ring0": {
+    "rect": [
+      217,
+      725,
+      64,
+      64
+    ]
+  },
+  "calendar_ring1": {
+    "rect": [
+      283,
+      725,
+      64,
+      64
+    ]
+  },
+  "calendar_ring2": {
+    "rect": [
+      349,
+      725,
+      64,
+      64
+    ]
+  },
+  "calendar_ring3": {
+    "rect": [
+      415,
+      725,
+      64,
+      64
+    ]
+  },
+  "calendar_ring4": {
+    "rect": [
+      481,
+      725,
+      64,
+      64
+    ]
+  },
+  "calendar_ring5": {
+    "rect": [
+      547,
+      725,
+      64,
+      64
+    ]
+  },
+  "calendar_ring6": {
+    "rect": [
+      613,
+      725,
+      64,
+      64
+    ]
+  },
+  "season_spring": {
+    "rect": [
+      679,
+      725,
+      16,
+      16
+    ]
+  },
+  "season_summer": {
+    "rect": [
+      697,
+      725,
+      16,
+      16
+    ]
+  },
+  "season_autumn": {
+    "rect": [
+      715,
+      725,
+      16,
+      16
+    ]
+  },
+  "season_winter": {
+    "rect": [
+      733,
+      725,
+      16,
+      16
+    ]
+  },
+  "moon_purple0": {
+    "rect": [
+      751,
+      725,
+      24,
+      24
+    ]
+  },
+  "moon_white0": {
+    "rect": [
+      777,
+      725,
+      24,
+      24
+    ]
+  },
+  "moon_purple1": {
+    "rect": [
+      803,
+      725,
+      24,
+      24
+    ]
+  },
+  "moon_white1": {
+    "rect": [
+      829,
+      725,
+      24,
+      24
+    ]
+  },
+  "moon_purple2": {
+    "rect": [
+      855,
+      725,
+      24,
+      24
+    ]
+  },
+  "moon_white2": {
+    "rect": [
+      881,
+      725,
+      24,
+      24
+    ]
+  },
+  "moon_purple3": {
+    "rect": [
+      907,
+      725,
+      24,
+      24
+    ]
+  },
+  "moon_white3": {
+    "rect": [
+      933,
+      725,
+      24,
+      24
+    ]
+  },
+  "moon_purple4": {
+    "rect": [
+      959,
+      725,
+      24,
+      24
+    ]
+  },
+  "moon_white4": {
+    "rect": [
+      985,
+      725,
+      24,
+      24
+    ]
+  },
+  "moon_purple5": {
+    "rect": [
+      1,
+      791,
+      24,
+      24
+    ]
+  },
+  "moon_white5": {
+    "rect": [
+      27,
+      791,
+      24,
+      24
+    ]
+  },
+  "moon_purple6": {
+    "rect": [
+      53,
+      791,
+      24,
+      24
+    ]
+  },
+  "moon_white6": {
+    "rect": [
+      79,
+      791,
+      24,
+      24
+    ]
+  },
+  "moon_purple7": {
+    "rect": [
+      105,
+      791,
+      24,
+      24
+    ]
+  },
+  "moon_white7": {
+    "rect": [
+      131,
+      791,
+      24,
+      24
+    ]
+  },
+  "moon_purple8": {
+    "rect": [
+      157,
+      791,
+      24,
+      24
+    ]
+  },
+  "moon_white8": {
+    "rect": [
+      183,
+      791,
+      24,
+      24
+    ]
+  },
+  "moon_purple9": {
+    "rect": [
+      209,
+      791,
+      24,
+      24
+    ]
+  },
+  "moon_white9": {
+    "rect": [
+      235,
+      791,
+      24,
+      24
+    ]
+  },
+  "moon_purple10": {
+    "rect": [
+      261,
+      791,
+      24,
+      24
+    ]
+  },
+  "moon_white10": {
+    "rect": [
+      287,
+      791,
+      24,
+      24
+    ]
+  },
+  "moon_purple11": {
+    "rect": [
+      313,
+      791,
+      24,
+      24
+    ]
+  },
+  "moon_white11": {
+    "rect": [
+      339,
+      791,
+      24,
+      24
+    ]
+  },
+  "moon_purple12": {
+    "rect": [
+      365,
+      791,
+      24,
+      24
+    ]
+  },
+  "moon_white12": {
+    "rect": [
+      391,
+      791,
+      24,
+      24
+    ]
+  },
+  "moon_purple13": {
+    "rect": [
+      417,
+      791,
+      24,
+      24
+    ]
+  },
+  "moon_white13": {
+    "rect": [
+      443,
+      791,
+      24,
+      24
+    ]
+  },
+  "moon_purple14": {
+    "rect": [
+      469,
+      791,
+      24,
+      24
+    ]
+  },
+  "moon_white14": {
+    "rect": [
+      495,
+      791,
+      24,
+      24
+    ]
+  },
+  "moon_purple15": {
+    "rect": [
+      521,
+      791,
+      24,
+      24
+    ]
+  },
+  "moon_white15": {
+    "rect": [
+      547,
+      791,
+      24,
+      24
+    ]
+  },
+  "tile_grass0_summer": {
+    "rect": [
+      573,
+      791,
+      16,
+      16
+    ]
+  },
+  "tile_grass1_summer": {
+    "rect": [
+      591,
+      791,
+      16,
+      16
+    ]
+  },
+  "tile_grass2_summer": {
+    "rect": [
+      609,
+      791,
+      16,
+      16
+    ]
+  },
+  "tile_grass3_summer": {
+    "rect": [
+      627,
+      791,
+      16,
+      16
+    ]
+  },
+  "tile_flowerbed0_summer": {
+    "rect": [
+      645,
+      791,
+      16,
+      16
+    ]
+  },
+  "tile_flowerbed1_summer": {
+    "rect": [
+      663,
+      791,
+      16,
+      16
+    ]
+  },
+  "bush0_summer": {
+    "rect": [
+      681,
+      791,
+      32,
+      24
+    ]
+  },
+  "bush1_summer": {
+    "rect": [
+      715,
+      791,
+      32,
+      24
+    ]
+  },
+  "bush2_summer": {
+    "rect": [
+      749,
+      791,
+      32,
+      24
+    ]
+  },
+  "tree_oak_2_summer": {
+    "rect": [
+      783,
+      791,
+      48,
+      64
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      2
+    ]
+  },
+  "tree_oak_3_summer": {
+    "rect": [
+      833,
+      791,
+      48,
+      80
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      3
+    ]
+  },
+  "tree_oak_4_summer": {
+    "rect": [
+      883,
+      791,
+      48,
+      96
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      4
+    ]
+  },
+  "tree_birch_2_summer": {
+    "rect": [
+      933,
+      791,
+      48,
+      64
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      2
+    ]
+  },
+  "tree_birch_3_summer": {
+    "rect": [
+      1,
+      889,
+      48,
+      80
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      3
+    ]
+  },
+  "tree_birch_4_summer": {
+    "rect": [
+      51,
+      889,
+      48,
+      96
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      4
+    ]
+  },
+  "tree_pine_2_summer": {
+    "rect": [
+      101,
+      889,
+      48,
+      64
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      2
+    ]
+  },
+  "tree_pine_3_summer": {
+    "rect": [
+      151,
+      889,
+      48,
+      80
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      3
+    ]
+  },
+  "tree_pine_4_summer": {
+    "rect": [
+      201,
+      889,
+      48,
+      96
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      4
+    ]
+  },
+  "tile_grass0_autumn": {
+    "rect": [
+      251,
+      889,
+      16,
+      16
+    ]
+  },
+  "tile_grass1_autumn": {
+    "rect": [
+      269,
+      889,
+      16,
+      16
+    ]
+  },
+  "tile_grass2_autumn": {
+    "rect": [
+      287,
+      889,
+      16,
+      16
+    ]
+  },
+  "tile_grass3_autumn": {
+    "rect": [
+      305,
+      889,
+      16,
+      16
+    ]
+  },
+  "tile_flowerbed0_autumn": {
+    "rect": [
+      323,
+      889,
+      16,
+      16
+    ]
+  },
+  "tile_flowerbed1_autumn": {
+    "rect": [
+      341,
+      889,
+      16,
+      16
+    ]
+  },
+  "bush0_autumn": {
+    "rect": [
+      359,
+      889,
+      32,
+      24
+    ]
+  },
+  "bush1_autumn": {
+    "rect": [
+      393,
+      889,
+      32,
+      24
+    ]
+  },
+  "bush2_autumn": {
+    "rect": [
+      427,
+      889,
+      32,
+      24
+    ]
+  },
+  "tree_oak_2_autumn": {
+    "rect": [
+      461,
+      889,
+      48,
+      64
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      2
+    ]
+  },
+  "tree_oak_3_autumn": {
+    "rect": [
+      511,
+      889,
+      48,
+      80
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      3
+    ]
+  },
+  "tree_oak_4_autumn": {
+    "rect": [
+      561,
+      889,
+      48,
+      96
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      4
+    ]
+  },
+  "tree_birch_2_autumn": {
+    "rect": [
+      611,
+      889,
+      48,
+      64
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      2
+    ]
+  },
+  "tree_birch_3_autumn": {
+    "rect": [
+      661,
+      889,
+      48,
+      80
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      3
+    ]
+  },
+  "tree_birch_4_autumn": {
+    "rect": [
+      711,
+      889,
+      48,
+      96
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      4
+    ]
+  },
+  "tree_pine_2_autumn": {
+    "rect": [
+      761,
+      889,
+      48,
+      64
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      2
+    ]
+  },
+  "tree_pine_3_autumn": {
+    "rect": [
+      811,
+      889,
+      48,
+      80
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      3
+    ]
+  },
+  "tree_pine_4_autumn": {
+    "rect": [
+      861,
+      889,
+      48,
+      96
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      4
+    ]
+  },
+  "tile_grass0_winter": {
+    "rect": [
+      911,
+      889,
+      16,
+      16
+    ]
+  },
+  "tile_grass1_winter": {
+    "rect": [
+      929,
+      889,
+      16,
+      16
+    ]
+  },
+  "tile_grass2_winter": {
+    "rect": [
+      947,
+      889,
+      16,
+      16
+    ]
+  },
+  "tile_grass3_winter": {
+    "rect": [
+      965,
+      889,
+      16,
+      16
+    ]
+  },
+  "tile_flowerbed0_winter": {
+    "rect": [
+      983,
+      889,
+      16,
+      16
+    ]
+  },
+  "tile_flowerbed1_winter": {
+    "rect": [
+      1001,
+      889,
+      16,
+      16
+    ]
+  },
+  "bush0_winter": {
+    "rect": [
+      1,
+      987,
+      32,
+      24
+    ]
+  },
+  "bush1_winter": {
+    "rect": [
+      35,
+      987,
+      32,
+      24
+    ]
+  },
+  "bush2_winter": {
+    "rect": [
+      69,
+      987,
+      32,
+      24
+    ]
+  },
+  "tree_oak_2_winter": {
+    "rect": [
+      103,
+      987,
+      48,
+      64
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      2
+    ]
+  },
+  "tree_oak_3_winter": {
+    "rect": [
+      153,
+      987,
+      48,
+      80
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      3
+    ]
+  },
+  "tree_oak_4_winter": {
+    "rect": [
+      203,
+      987,
+      48,
+      96
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      4
+    ]
+  },
+  "tree_birch_2_winter": {
+    "rect": [
+      253,
+      987,
+      48,
+      64
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      2
+    ]
+  },
+  "tree_birch_3_winter": {
+    "rect": [
+      303,
+      987,
+      48,
+      80
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      3
+    ]
+  },
+  "tree_birch_4_winter": {
+    "rect": [
+      353,
+      987,
+      48,
+      96
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      4
+    ]
+  },
+  "tree_pine_2_winter": {
+    "rect": [
+      403,
+      987,
+      48,
+      64
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      2
+    ]
+  },
+  "tree_pine_3_winter": {
+    "rect": [
+      453,
+      987,
+      48,
+      80
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      3
+    ]
+  },
+  "tree_pine_4_winter": {
+    "rect": [
+      503,
+      987,
+      48,
+      96
+    ],
+    "trunk_tiles": [
+      1,
+      2
+    ],
+    "canopy_tiles": [
+      3,
+      4
+    ]
+  },
+  "tile_roof_snow": {
+    "rect": [
+      553,
+      987,
+      16,
+      16
+    ]
+  },
+  "tile_town_iron_mask0": {
+    "rect": [
+      571,
+      987,
+      16,
+      16
+    ]
+  },
+  "tile_town_iron_mask1": {
+    "rect": [
+      589,
+      987,
+      16,
+      16
+    ]
+  },
+  "tile_town_iron_mask2": {
+    "rect": [
+      607,
+      987,
+      16,
+      16
+    ]
+  },
+  "tile_town_iron_mask3": {
+    "rect": [
+      625,
+      987,
+      16,
+      16
+    ]
+  },
+  "tile_town_iron_mask4": {
+    "rect": [
+      643,
+      987,
+      16,
+      16
+    ]
+  },
+  "tile_town_iron_mask5": {
+    "rect": [
+      661,
+      987,
+      16,
+      16
+    ]
+  },
+  "tile_town_iron_mask6": {
+    "rect": [
+      679,
+      987,
+      16,
+      16
+    ]
+  },
+  "tile_town_iron_mask7": {
+    "rect": [
+      697,
+      987,
+      16,
+      16
+    ]
+  },
+  "tile_town_iron_mask8": {
+    "rect": [
+      715,
+      987,
+      16,
+      16
+    ]
+  },
+  "tile_town_iron_mask9": {
+    "rect": [
+      733,
+      987,
+      16,
+      16
+    ]
+  },
+  "tile_town_iron_mask10": {
+    "rect": [
+      751,
+      987,
+      16,
+      16
+    ]
+  },
+  "tile_town_iron_mask11": {
+    "rect": [
+      769,
+      987,
+      16,
+      16
+    ]
+  },
+  "tile_town_iron_mask12": {
+    "rect": [
+      787,
+      987,
+      16,
+      16
+    ]
+  },
+  "tile_town_iron_mask13": {
+    "rect": [
+      805,
+      987,
+      16,
+      16
+    ]
+  },
+  "tile_town_iron_mask14": {
+    "rect": [
+      823,
+      987,
+      16,
+      16
+    ]
+  },
+  "tile_town_iron_mask15": {
+    "rect": [
+      841,
+      987,
+      16,
+      16
+    ]
+  },
+  "tile_town_iron_gate": {
+    "rect": [
+      859,
+      987,
+      16,
+      16
+    ]
+  },
+  "tile_town_wood_mask0": {
+    "rect": [
+      877,
+      987,
+      16,
+      16
+    ]
+  },
+  "tile_town_wood_mask1": {
+    "rect": [
+      895,
+      987,
+      16,
+      16
+    ]
+  },
+  "tile_town_wood_mask2": {
+    "rect": [
+      913,
+      987,
+      16,
+      16
+    ]
+  },
+  "tile_town_wood_mask3": {
+    "rect": [
+      931,
+      987,
+      16,
+      16
+    ]
+  },
+  "tile_town_wood_mask4": {
+    "rect": [
+      949,
+      987,
+      16,
+      16
+    ]
+  },
+  "tile_town_wood_mask5": {
+    "rect": [
+      967,
+      987,
+      16,
+      16
+    ]
+  },
+  "tile_town_wood_mask6": {
+    "rect": [
+      985,
+      987,
+      16,
+      16
+    ]
+  },
+  "tile_town_wood_mask7": {
+    "rect": [
+      1003,
+      987,
+      16,
+      16
+    ]
+  },
+  "tile_town_wood_mask8": {
+    "rect": [
+      1,
+      1085,
+      16,
+      16
+    ]
+  },
+  "tile_town_wood_mask9": {
+    "rect": [
       19,
-      729,
+      1085,
+      16,
+      16
+    ]
+  },
+  "tile_town_wood_mask10": {
+    "rect": [
+      37,
+      1085,
+      16,
+      16
+    ]
+  },
+  "tile_town_wood_mask11": {
+    "rect": [
+      55,
+      1085,
+      16,
+      16
+    ]
+  },
+  "tile_town_wood_mask12": {
+    "rect": [
+      73,
+      1085,
+      16,
+      16
+    ]
+  },
+  "tile_town_wood_mask13": {
+    "rect": [
+      91,
+      1085,
+      16,
+      16
+    ]
+  },
+  "tile_town_wood_mask14": {
+    "rect": [
+      109,
+      1085,
+      16,
+      16
+    ]
+  },
+  "tile_town_wood_mask15": {
+    "rect": [
+      127,
+      1085,
+      16,
+      16
+    ]
+  },
+  "tile_town_wood_gate": {
+    "rect": [
+      145,
+      1085,
+      16,
+      16
+    ]
+  },
+  "wall_house_mask0": {
+    "rect": [
+      163,
+      1085,
+      16,
+      32
+    ]
+  },
+  "wall_house_mask1": {
+    "rect": [
+      181,
+      1085,
+      16,
+      32
+    ]
+  },
+  "wall_house_mask2": {
+    "rect": [
+      199,
+      1085,
+      16,
+      32
+    ]
+  },
+  "wall_house_mask3": {
+    "rect": [
+      217,
+      1085,
+      16,
+      32
+    ]
+  },
+  "wall_house_mask4": {
+    "rect": [
+      235,
+      1085,
+      16,
+      32
+    ]
+  },
+  "wall_house_mask5": {
+    "rect": [
+      253,
+      1085,
+      16,
+      32
+    ]
+  },
+  "wall_house_mask6": {
+    "rect": [
+      271,
+      1085,
+      16,
+      32
+    ]
+  },
+  "wall_house_mask7": {
+    "rect": [
+      289,
+      1085,
+      16,
+      32
+    ]
+  },
+  "wall_house_mask8": {
+    "rect": [
+      307,
+      1085,
+      16,
+      32
+    ]
+  },
+  "wall_house_mask9": {
+    "rect": [
+      325,
+      1085,
+      16,
+      32
+    ]
+  },
+  "wall_house_mask10": {
+    "rect": [
+      343,
+      1085,
+      16,
+      32
+    ]
+  },
+  "wall_house_mask11": {
+    "rect": [
+      361,
+      1085,
+      16,
+      32
+    ]
+  },
+  "wall_house_mask12": {
+    "rect": [
+      379,
+      1085,
+      16,
+      32
+    ]
+  },
+  "wall_house_mask13": {
+    "rect": [
+      397,
+      1085,
+      16,
+      32
+    ]
+  },
+  "wall_house_mask14": {
+    "rect": [
+      415,
+      1085,
+      16,
+      32
+    ]
+  },
+  "wall_house_mask15": {
+    "rect": [
+      433,
+      1085,
+      16,
+      32
+    ]
+  },
+  "bulletin_board": {
+    "rect": [
+      451,
+      1085,
+      48,
+      48
+    ]
+  },
+  "woodpile": {
+    "rect": [
+      501,
+      1085,
+      32,
+      24
+    ]
+  },
+  "actor_woodcutter_down0": {
+    "rect": [
+      535,
+      1085,
+      16,
+      32
+    ]
+  },
+  "actor_woodcutter_down1": {
+    "rect": [
+      553,
+      1085,
+      16,
+      32
+    ]
+  },
+  "actor_woodcutter_down2": {
+    "rect": [
+      571,
+      1085,
+      16,
+      32
+    ]
+  },
+  "actor_woodcutter_up0": {
+    "rect": [
+      589,
+      1085,
+      16,
+      32
+    ]
+  },
+  "actor_woodcutter_up1": {
+    "rect": [
+      607,
+      1085,
+      16,
+      32
+    ]
+  },
+  "actor_woodcutter_up2": {
+    "rect": [
+      625,
+      1085,
+      16,
+      32
+    ]
+  },
+  "actor_woodcutter_left0": {
+    "rect": [
+      643,
+      1085,
+      16,
+      32
+    ]
+  },
+  "actor_woodcutter_left1": {
+    "rect": [
+      661,
+      1085,
+      16,
+      32
+    ]
+  },
+  "actor_woodcutter_left2": {
+    "rect": [
+      679,
+      1085,
+      16,
+      32
+    ]
+  },
+  "actor_woodcutter_right0": {
+    "rect": [
+      697,
+      1085,
+      16,
+      32
+    ]
+  },
+  "actor_woodcutter_right1": {
+    "rect": [
+      715,
+      1085,
+      16,
+      32
+    ]
+  },
+  "actor_woodcutter_right2": {
+    "rect": [
+      733,
+      1085,
+      16,
+      32
+    ]
+  },
+  "actor_woodcutter_sleep0": {
+    "rect": [
+      751,
+      1085,
       16,
       32
     ]
   },
   "crop_soil": {
     "rect": [
-      37,
-      729,
+      769,
+      1085,
       16,
       16
     ]
   },
   "crop_tilled": {
     "rect": [
-      55,
-      729,
+      787,
+      1085,
       16,
       16
     ]
   },
   "crop_wet": {
     "rect": [
-      73,
-      729,
+      805,
+      1085,
       16,
       16
     ]
   },
   "crop_sprout": {
     "rect": [
-      91,
-      729,
+      823,
+      1085,
       16,
       16
     ]
   },
   "crop_turnip": {
     "rect": [
-      109,
-      729,
+      841,
+      1085,
       16,
       16
     ]
   },
   "crop_bulb": {
     "rect": [
-      127,
-      729,
+      859,
+      1085,
       16,
       16
     ]
   },
   "crop_sprout_wet": {
     "rect": [
-      145,
-      729,
+      877,
+      1085,
       16,
       16
     ]
   },
   "crop_turnip_wet": {
     "rect": [
-      163,
-      729,
+      895,
+      1085,
       16,
       16
     ]
   },
   "crop_bulb_wet": {
     "rect": [
-      181,
-      729,
+      913,
+      1085,
       16,
       16
     ]

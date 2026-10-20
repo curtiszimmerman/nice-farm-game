@@ -98,7 +98,11 @@ static func cover(c: CanvasItem,item: Dictionary) -> void:
 static func tree_id(data: Dictionary) -> String:
 	var rows=clampi(roundi((data.size-0.8)*4)+2,2,4)
 	var species="oak" if data.warm else "birch" if posmod(data.cell.x+data.cell.y,5)==0 else "pine"
-	return "tree_%s_%d" % [species,rows]
+	return seasonal("tree_%s_%d" % [species,rows],data.get("season","spring"))
+
+static func seasonal(id: String,season: String) -> String:
+	load_atlas()
+	return id+"_"+season if season!="spring" and catalog.has(id+"_"+season) else id
 
 static func tree(c: CanvasItem,data: Dictionary) -> void:
 	var id=tree_id(data)
@@ -149,9 +153,10 @@ static func building(c: CanvasItem,b: Dictionary) -> void:
 			if y==0 and x==0: component="roof_left"
 			if y==0 and x==columns-1: component="roof_right"
 			tile(c,component,Vector2i(x,y-rows-2),roof_tint(b.roof))
+			if b.get("season")=="winter": tile(c,"roof_snow",Vector2i(x,y-rows-2))
 	tile(c,"chimney",Vector2i(maxi(1,columns-2),-rows-3))
 	for x in ([1] if b.kind=="store" else [1,columns-2]):
-		if x!=door: tile(c,"flowerbed",Vector2i(x,0))
+		if x!=door: sprite(c,seasonal("tile_flowerbed0",b.get("season","spring")),Grid.origin(Vector2i(x,0)))
 	for x in [door-1,door+1]:
 		if x>=0 and x<columns: tile(c,"light",Vector2i(x,-2))
 	if b.kind=="hall": tile(c,"civic_emblem",Vector2i(door,-rows-1))
@@ -189,7 +194,9 @@ static func outdoors(w: Node2D) -> void:
 		for x in range(w.SQUARE.position.x-1,w.SQUARE.end.x+1):
 			var cell=Vector2i(x,y)
 			if not w.solid_cells.has(cell): tile(w,"paving"+str(posmod(x+y,2)),cell)
-	for cell in w.Neighbors.FLOWERS: tile(w,"flowerbed"+str(posmod(cell.x+cell.y,2)),cell)
+	for cell in w.Neighbors.FLOWERS+w.garden_cells.keys(): sprite(w,seasonal("tile_flowerbed"+str(posmod(cell.x+cell.y,2)),w.state.season_name()),Grid.origin(cell))
+	for cell in w.yard_fences: tile(w,"town_"+w.yard_fences[cell]+"_mask"+str(w.TownPaths.fence_mask(w,cell)),cell)
+	for cell in w.yard_gates: tile(w,"town_"+w.yard_gates[cell]+"_gate",cell)
 	for x in range(w.JETTY_CELLS.position.x,w.JETTY_CELLS.end.x): tile(w,"jetty",Vector2i(x,w.JETTY_CELLS.position.y))
 	for cell in w.fence_cells: tile(w,"fence_mask"+str(w.fence_mask(cell)),cell)
 	for cell in w.gate_cells: tile(w,"gate_h_open",cell)
@@ -220,6 +227,9 @@ static func interior(room: Node2D) -> void:
 		furniture(room,item)
 	room.draw_set_transform(Vector2.ZERO)
 	tile(room,"metal" if room.building.id=="ship" else "jetty",room.layout.exit)
+	for cell in room.layout.get("private_doors",[]):
+		tile(room,"plaster_door_top",cell+Vector2i.UP)
+		tile(room,"plaster_door_bottom",cell)
 
 static func crops(w: Node2D,c: CanvasItem) -> void:
 	for i in range(w.state.plots.size()):

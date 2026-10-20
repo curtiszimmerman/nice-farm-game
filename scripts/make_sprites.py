@@ -629,13 +629,17 @@ def main():
             p.box(15, 7, 2, 12, "4e753f"); p.oval(10, 9, 5, 3, "89a553"); p.oval(21, 6, 5, 3, "a4b867")
     from town_sprites16 import sprites
     from make_sprites16 import Pixels as SmallPixels
-    for name, small in sprites(SmallPixels).items():
+    from calendar_sprites16 import sprites as calendar_sprites, write_font
+    additions = dict(sprites(SmallPixels), **calendar_sprites(SmallPixels))
+    write_font(ROOT / "src/native/art/ui", SmallPixels)
+    for name, small in additions.items():
         if name.startswith("tile_mill_sails"): name = name.removeprefix("tile_")
         image = Pixels(small.w * 2, small.h * 2)
         for yy in range(small.h):
             for xx in range(small.w):
                 image.box(xx * 2, yy * 2, 2, 2, small.get(xx, yy))
-        add(name, image)
+        metadata = ASSETS.get(name.rsplit("_",1)[0], (None, {}))[1] if name.startswith("tree_") else {}
+        add(name, image, **metadata)
     width, x, y, row = 2048, 1, 1, 0
     manifest = {}
     for name, (image, metadata) in ASSETS.items():

@@ -20,6 +20,15 @@ func run() -> void:
 		for task in ["sofa","bed","guest_bed","radio"]: game.state.house_tasks[task]=true
 		home=game.ui.quest_lines().filter(func(q):return q.id=="restore_farmhouse")[0]
 		check(home.tasks[0].done and not home.tasks[1].done,"cover completion is tracked separately from light repairs")
+	game.ui.render_quests()
+	var header=game.ui.quest_rows.get_child(0)
+	var collapsed_count=game.ui.quest_rows.get_child_count()
+	header.pressed.emit()
+	check(is_instance_valid(header) and header.is_queued_for_deletion(),"clicked quest header survives its signal until deferred deletion")
+	check(game.ui.quest_rows.get_child_count()==collapsed_count+1,"clicking a quest expands its description and checklist")
+	game.ui.quest_rows.get_child(0).pressed.emit()
+	check(game.ui.quest_rows.get_child_count()==collapsed_count,"clicking the expanded quest collapses it again")
+	await process_frame
 	check(game.ui.has_method("quest_pulse"),"new quests pulse the crew-log background")
 	if game.ui.has_method("quest_pulse"):
 		check(game.ui.quest_pulse(1.35)<game.ui.quest_pulse(1.7) and game.ui.quest_pulse(1.7)>0.9 and game.ui.quest_pulse(2.0)<0.45,"quest pulse rises with acceleration and falls rapidly into a long tail")

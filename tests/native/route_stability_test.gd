@@ -14,19 +14,29 @@ func run() -> void:
 	game.state.met_mayor=true
 	var w=game.outdoors
 	var moss=w.villagers.moss
-	moss.position=game.Grid.center(Vector2i(31,45))
+	var start=Vector2i.ZERO
+	for cell in w.road_cells:
+		var straight=true
+		for x in range(9):
+			if not w.road_cells.has(cell+Vector2i(x,0)) or w.blocked(game.Grid.center(cell+Vector2i(x,0))): straight=false
+		if straight:
+			start=cell
+			break
+	check(start!=Vector2i.ZERO,"the connected road network provides a clear straight route for the movement regression")
+	var destination=start+Vector2i(8,0)
+	moss.position=game.Grid.center(start)
 	w.routes.erase("moss")
-	w.story_destinations.moss={"cell":Vector2i(46,45),"sleeping":false,"room":""}
+	w.story_destinations.moss={"cell":destination,"sleeping":false,"room":""}
 	var reversals=0
 	var clear=true
 	for i in range(200):
-		game.state.player_position=game.Grid.center(Vector2i(30+i%20,47))
+		game.state.player_position=game.Grid.center(start+Vector2i(i%20,2))
 		var previous=moss.position
 		w.update_villagers(0.04)
 		if moss.position.x<previous.x-0.01: reversals+=1
 		if w.blocked(moss.position): clear=false
 	check(clear and reversals==0,"a moving player does not make Moss reverse repeatedly between path tiles")
-	check(moss.position.distance_to(game.Grid.center(Vector2i(46,45)))<1,"Moss finishes his route while the player keeps changing cells")
+	check(moss.position.distance_to(game.Grid.center(destination))<1,"Moss finishes his route while the player keeps changing cells")
 	game.enter_building("hall")
 	var room=game.world
 	var actor=room.villagers.mayor

@@ -9,7 +9,8 @@ const PEOPLE=[
 	{"id":"miller_wife","name":"Mara Bell","role":"MILLWRIGHT","cell":Vector2i(99,31),"coat":"618398","hair":"a8754d","skin":"d2a17f"},
 	{"id":"miller_daughter","name":"Nessa Bell","role":"RADIO ENTHUSIAST","cell":Vector2i(98,31),"coat":"8f7098","hair":"594536","skin":"bc9479"},
 	{"id":"barkeep","name":"Rafe Fen","role":"KEEPER OF THE WAYWARD WREN","cell":Vector2i(69,38),"coat":"846652","hair":"65503b","skin":"bd8e6c"},
-	{"id":"baker","name":"Corin Hale","role":"BAKER","cell":Vector2i(75,65),"coat":"d8cdb0","hair":"a46843","skin":"d2aa83"}
+	{"id":"baker","name":"Corin Hale","role":"BAKER","cell":Vector2i(75,65),"coat":"d8cdb0","hair":"a46843","skin":"d2aa83"},
+	{"id":"woodcutter","name":"Rowan","role":"FOREST WOODCUTTER","cell":Vector2i(29,79),"coat":"59764d","hair":"8d4e36","skin":"b98b67"}
 ]
 const BUILDINGS=[
 	{"cell":Vector2i(100,42),"tiles":Vector2i(7,5),"roof":"9d6c4b","kind":"reed_farm"},
@@ -17,11 +18,12 @@ const BUILDINGS=[
 	{"cell":Vector2i(96,27),"tiles":Vector2i(6,4),"roof":"8e6659","kind":"mill_home"},
 	{"cell":Vector2i(76,43),"tiles":Vector2i(6,5),"roof":"686879","kind":"smithy"},
 	{"cell":Vector2i(66,33),"tiles":Vector2i(7,5),"roof":"965d51","kind":"tavern"},
-	{"cell":Vector2i(72,61),"tiles":Vector2i(6,4),"roof":"b68a58","kind":"bakery"}
+	{"cell":Vector2i(72,61),"tiles":Vector2i(6,4),"roof":"b68a58","kind":"bakery"},
+	{"cell":Vector2i(27,75),"tiles":Vector2i(4,4),"roof":"78644d","kind":"cabin","resident":"woodcutter"}
 ]
 const FIELDS=[Rect2i(99,50,5,6),Rect2i(106,50,5,6)]
 const BENCHES=[Vector2i(59,44),Vector2i(62,44)]
-const FLOWERS=[Vector2i(58,46),Vector2i(58,47),Vector2i(65,46),Vector2i(65,47),Vector2i(60,50),Vector2i(62,50)]
+const FLOWERS=[Vector2i(58,46),Vector2i(58,47),Vector2i(65,46),Vector2i(65,47),Vector2i(62,50)]
 const ROUTES=[
 	[Vector2i(69,38),Vector2i(64,38),Vector2i(64,44)],
 	[Vector2i(79,48),Vector2i(79,50),Vector2i(72,50),Vector2i(72,57)],
@@ -30,8 +32,9 @@ const ROUTES=[
 	[Vector2i(90,30),Vector2i(94,30),Vector2i(94,33),Vector2i(99,33),Vector2i(99,31)],
 	[Vector2i(85,39),Vector2i(97,39),Vector2i(97,48),Vector2i(103,48),Vector2i(103,47)]
 ]
-const NAMES={"reed_farm":"Reed family farm","windmill":"Bell's windmill","mill_home":"Bell family home","smithy":"Dain's smithy","tavern":"The Wayward Wren","bakery":"Corin's bakery"}
+const NAMES={"reed_farm":"Reed family farm","windmill":"Bell's windmill","mill_home":"Bell family home","smithy":"Dain's smithy","tavern":"The Wayward Wren","bakery":"Corin's bakery","woodcutter":"Rowan's cabin"}
 const STORIES={
+	"woodcutter":"Rowan|My mother taught me these woods. I'd like somebody else's daughter to know them too.",
 	"farmer_mother":"Elin Reed|Grafting trees is mostly persuading two stubborn things to get along. Jory says that's how we met. We brought a handful of cuttings when the river took our old orchard. Corin kept them alive in his warm back room that first winter. These trees have quite a few people to thank.",
 	"farmer_father":"Jory Reed|The river changed its mind one spring and planted itself in our house. Elin saved the cuttings; Pip saved a jar of seeds. We came here with wet boots and those two treasures. Moss helped us turn this eastern soil. Now I send flour money to Tomas and vegetables to Corin. Seems fair to keep things moving.",
 	"farmer_son":"Pip Reed|I label all my seed jars now. Last time I didn't, we grew squash in the flower pots. Mum says that still counts as an experiment. Nessa lets me listen to faraway stations sometimes. Do you think they grow the same things on the other side of the sea?",
@@ -42,9 +45,24 @@ const STORIES={
 	"barkeep":"Rafe Fen|Welcome to the Wayward Wren. Tomas and I meant to see the whole world when we were young. He got as far as the mill; I got as far as this bar. Plenty of the world comes through here, though. Corin brings the morning bread and stays to hear who's arrived. Save him a chair and he'll introduce you to half the valley.",
 	"baker":"Corin Hale|You're just in time. Well, I say that to everyone, but there's usually something warm. Tomas brings the flour, the Reeds bring whatever's plentiful, Moss brings opinions about the weather, and Rafe brings my baskets back eventually. I started baking after my hearing began to go. People will tell you their whole lives while waiting for a loaf. Pull up a stool."
 }
+const WORKPLACES={"smith":"smithy","miller":"windmill","miller_wife":"windmill","miller_daughter":"radio","barkeep":"tavern","baker":"bakery"}
+const OFF_DUTY={
+	"farmer_mother":"Lovely to have a moment away from the fields. Pip has been trying to persuade me that three seed jars count as suitable supper-table decoration. You can guess how that's going.",
+	"farmer_father":"Elin's got the orchard in hand, so I can spare a little time for town. Corin's promised to save us a loaf. You'd think after all these years I'd know when to arrive before he sells out.",
+	"farmer_son":"I'm off duty. That's what Dad calls it when he comes into town, so I thought I'd try. Have you seen Nessa? I found a seed that looks just like a tiny radio valve.",
+	"smith":"No hammering for a little while. My shoulders have earned a walk.",
+	"miller":"Rafe still owes me a rematch at draughts. He says the last board was uneven. Funny how it only tilts when he's losing.",
+	"miller_wife":"I used to spend all my spare hours watching the river from the barge. Now a quiet walk and a visit to the bakery suit me nicely. Tomas says I can hear a bad gear from here. He's not entirely wrong.",
+	"miller_daughter":"No receiver under my arm for once. Finch says a good radio operator occasionally has to talk to people in the same room. I'm practising.",
+	"barkeep":"Corin claims I'm his best customer. I suspect he tells everyone that. Tomas and I used to spend our pocket money here before either of us had the sense to save any. Still not sure we've learned.",
+	"baker":"A whole stretch of time when nobody needs me to check an oven. Feels odd, doesn't it? Rafe has a stool waiting, and Tomas will have some story about the mill. Come along if you've nothing pressing."
+}
 
 static func talk(game: Node2D,id: String) -> bool:
 	if not STORIES.has(id): return false
 	var story=STORIES[id].split("|",true,1)
-	game.dialog(story[0],PEOPLE.filter(func(p):return p.id==id)[0].role,story[1])
+	var working=game.current_room==WORKPLACES.get(id,"unused")
+	if id.begins_with("farmer_"): working=game.world==game.outdoors and game.state.player_position.x>95*32
+	var text=story[1] if working else OFF_DUTY.get(id,story[1])
+	game.dialog(story[0],PEOPLE.filter(func(p):return p.id==id)[0].role,text)
 	return true

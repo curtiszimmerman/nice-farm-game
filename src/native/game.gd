@@ -267,6 +267,7 @@ func _move(dt: float) -> void:
 		try_player_step(Vector2(0,step.y))
 
 func try_player_step(delta: Vector2) -> bool:
+	if world is Interior and world.player_blocked(state.player_position+delta): return false
 	if world is Cave:
 		if world.blocked(state.player_position+delta): return false
 		state.player_position+=delta
@@ -560,6 +561,9 @@ func interact() -> void:
 			enter_building(nearest.door)
 			return
 		match nearest.id:
+			"private_door": dialog("A private door","THE WAYWARD WREN","Rafe's living quarters are beyond the bar. Best to leave him his privacy.")
+			"smith_pickaxe": talk("smith")
+			"bulletin_board": bulletin_board()
 			"uncover_sofa","uncover_guest_bed","living_light","bathroom_light":
 				tidy_farmhouse(nearest.id.trim_prefix("uncover_"))
 			"chest","cabinet","ship_storage","cave_barrel": open_storage(nearest.id)
@@ -732,15 +736,28 @@ func cooking() -> void:
 
 func talk(id: String) -> void:
 	begin_conversation([id],id in ["veteran","finch","vale"] or (id=="moss" and not state.invited))
-	if preload("res://neighbors.gd").talk(self,id): return
+	if id not in ["smith","woodcutter"] and preload("res://neighbors.gd").talk(self,id): return
 	match id:
+		"smith":
+			var at_work=current_room=="smithy"
+			dialog("Dain Rusk","BLACKSMITH","Mind the hot scale. I've a spare pickaxe on that bench. You're welcome to it; good steel ought to be used." if at_work else "Good to stretch the shoulders after a day at the forge. Need a tool? Come see me in the smithy; there's a spare pickaxe I can let you have.",[
+				["May I have the spare pickaxe?",func():
+					if current_room=="smithy": offer_tool("pickaxe","Dain Rusk")
+					else: dialog("Dain Rusk","AT THE SMITHY","It's on my bench. Come by when I'm working and we'll get you fitted out.")],
+				["What sort of work do you do?",func(): dialog("Dain Rusk","IRON & HONEST WEAR",preload("res://neighbors.gd").STORIES.smith.split("|",true,1)[1])],
+				["See you around.",func(): pass]])
+		"woodcutter":
+			dialog("Rowan","FOREST WOODCUTTER","Mind the shavings if you're coming in. I've a spare axe, if you're after firewood. Oren's knees aren't what they used to be; he shouldn't be swinging one at all." if current_room=="woodcutter" else "Hello there. Leave the little saplings, won't you? The older trees give us all the wood we need. If you're looking for an axe, I've a spare you can keep.",[
+				["I'd appreciate an axe.",func(): offer_tool("axe","Rowan")],
+				["How do you choose which trees to cut?",func(): dialog("Rowan","A FOREST THAT LASTS","Look up first. Then look at the roots. I mark the old and crowded trees and leave the rest room to grow. My mother taught me these woods. I'd like somebody else's daughter to know them too.")],
+				["I'll be careful. Thank you.",func(): pass]])
 		"keeper":
 			var choices=[]
 			if not state.firewood_given:
 				choices.append(["I can chop some wood for you." if not state.firewood_requested else "I've brought your firewood.",func():
 					if not state.firewood_requested:
-						if state.accept_firewood_task(): dialog("Oren","A FAVOR FOR THE KEEPER","Bless you. Six pieces will keep the stove going nicely. Take my spare axe; you can keep it. Three good blows for the smaller trees. Keep your toes out of the way.")
-						else: dialog("Oren","A FAVOR FOR THE KEEPER","You look rather loaded down. Make a little room and I'll find you an axe.")
+						if state.accept_firewood_task(): dialog("Oren","A FAVOR FOR THE KEEPER","Bless you. Six pieces will keep the stove going nicely. Rowan, the woodcutter down in the southern woods, can help you find an axe. I'll have the kettle on when you get back.")
+						else: dialog("Oren","A FAVOR FOR THE KEEPER","You've already done more than enough. Thank you for seeing to the stove.")
 					elif state.deliver_firewood(): dialog("Oren","A WARM LIGHT","Ah, that's the stuff. Thank you. Take twenty-five crowns for your trouble, and come warm your hands any time. The kettle's seldom cold.")
 					else: dialog("Oren","A FAVOR FOR THE KEEPER","Six pieces, when you've a moment. No need to strip the whole forest on my account.")
 					save_visit()])
@@ -757,7 +774,7 @@ func talk(id: String) -> void:
 			else: dialog("Mayor Alder","BRIAR GLEN","Good to see you out and about. Most days I'm at the town hall, with a break in the square at noon.")
 		"assistant":
 			if state.mayor_available(): mayor()
-			else: dialog("Neral","MAYOR'S ASSISTANT · DARK ELF","Settling in, are you? Good. If you happen to remember anything else about that light on the mountain, my desk's at the town hall. I'm rather good at listening.")
+			else: dialog("Neral","MAYOR'S ASSISTANT · DARK ELF","If you remember anything else about the light on the mountain, do let me know. We keep records for a reason." if current_room=="hall" else "Moss speaks well of you. I'd like very much to see him proved right. This town has given a good deal to the people who come here; it's worth looking after.")
 		"moss":
 			if not state.invited:
 				dialog("Moss","AT THE FOOT OF THE MOUNTAIN TRAIL","Hold on there! What was that flash and crashing sound up on the mountain? Looked as though someone cast quite a spell. Are you travelers?",[
@@ -773,7 +790,7 @@ func talk(id: String) -> void:
 			else: dialog("Moss","NEIGHBOR · SOUTH FARM","Settling in, then? Tools and seeds are in that chest outside. Keep the ground watered and you'll have turnips in three days. Tavi'll buy anything you don't eat. He claims mine are the sweetest in the village. Of course, he says that to everyone." if state.met_mayor else "Go on inside. I'll bring Alder and Neral back shortly. Make yourselves comfortable and see what needs tidying.")
 		"tavi":
 			conversation_steps=0
-			dialog("Tavi","TRAVELING MERCHANT","Hello again! Need anything for the garden? Or have you brought me something good? I'm off to Veyr for my sister's festival next month. Help me travel with a lighter cart, eh?",[
+			dialog("Tavi","TRAVELING MERCHANT","Hello again! Need anything for the garden? Or have you brought me something good? I'm off to Veyr for my sister's festival next month. Help me travel with a lighter cart, eh?" if current_room=="store" else "A little fresh air before I go back to the shop. My sister says I should learn to leave work at work. Sensible advice, but I've never been terribly good at it. What can I do for you?",[
 				["Sell produce · %d crowns" % state.sale_value(),func():
 					if state.sell(): save_visit(); toast("Sold. Locally grown, very far from home.")
 					else: toast("Bring turnips or silverfin to sell.")
@@ -792,6 +809,7 @@ func talk(id: String) -> void:
 					if state.money>=15 and state.can_carry("health_elixir"): state.money-=15; state.health_elixir+=1; save_visit()
 					else: toast("You need 15 crowns and room in your satchel.")
 					talk("tavi")],
+				["Where can I get tools?",tool_directions],
 				["Just passing through.",func(): pass]])
 			ui.modal.get_child(1).position.y=125
 		"iona":
@@ -800,7 +818,7 @@ func talk(id: String) -> void:
 			else:
 				dialog("Iona","MAGIC OF BRIAR GLEN","You'll find our deities gentler than the ones near the Veyr border. Mostly they want things to grow. I can show you Wildgrowth, if you like. Water a seed first, then give it a little encouragement. Fifteen mana, and no fee for the lesson. For something more adventurous, bring me a Cave Moth Chrysalis from deep underground, or a Golden Sparkfire Bloom. Mind you, that flower only opens while the sun is rising. Walk past at noon and you'd never give it a second glance.",[
 					["Learn the basics" if not state.magic_learned else "Practice Wildgrowth",func(): state.magic_learned=true; save_visit(); toast("Wildgrowth learned. Assign it yourself under Actions → Spells and skills.",7)]])
-		"finch": dialog("Finch","RADIO CLUB SECRETARY","Come in, come in. Mind that cable. Last week we picked up a dance band from Veyr, clear as anything. Governments can argue all they like; the air doesn't stop at a checkpoint.",[["What's on the air today?",radio],["I'll come back sometime.",func(): pass]])
+		"finch": dialog("Finch","RADIO CLUB SECRETARY","Come in, come in. Mind that cable. Last week we picked up a dance band from Veyr, clear as anything. Governments can argue all they like; the air doesn't stop at a checkpoint." if current_room=="radio" else "Good to give my eyes a rest from the wiring. Nessa's coming along nicely with that receiver. Her mother will have river weather reports in the kitchen before long.",[["What's on the air today?",radio],["I'll come back sometime.",func(): pass]])
 		"vale":
 			if not state.briefing_complete: show_briefing(); return
 			if state.delivered: dialog("Chief Vale","CHIEF ENGINEER · SECURE CREW LINK","Give your commlink a try. Hear that? Much better than shouting down a mountain. The cloak's holding, too. "+("Thanks for seeing to supper. I'll try to earn it before the day's out." if state.crew_fed_day==state.day else "I meant to stop for breakfast, but the locker was empty. If you find something to cook, save me a helping?"))
@@ -818,6 +836,32 @@ func buy_cookware(id: String) -> void:
 	toast("%s purchased. Recipe unlocked at your farmhouse stove." % ui.Items.CATALOG[id].name if state.buy_utensil(id) else "Already purchased, or you need 20 crowns.")
 	save_visit()
 	talk("tavi")
+
+func offer_tool(id: String,person: String) -> void:
+	var flag="woodcutter_axe_given" if id=="axe" else "smith_pickaxe_given"
+	var response="You've already got the one I set aside for you. Take good care of it."
+	if not state.get(flag):
+		if state.accept_tool(id):
+			save_visit()
+			response="There you are. A useful tool, and yours to keep. Mind your footing, and give yourself a rest when your arms get tired."
+		else: response="You're carrying rather a lot. Make a little room and come back for it."
+	dialog(person,"A TOOL TO GET STARTED",response)
+
+func tool_directions() -> void:
+	dialog("Tavi","ASK A LOCAL","For tools, I know just the people. What are you after?",[
+		["Where can I get an axe?",func(): dialog("Tavi","ROWAN'S CABIN","Rowan, the woodcutter, lives in the southern woods, west of Bram's cabin. Follow the faint woodland path. Ask her about a spare axe.")],
+		["Where can I get a sword?",func(): dialog("Tavi","BRAM'S CABIN","Bram served in Aldermere's army. His log cabin's down south, away from the town roads. He may have an old blade you're welcome to.")],
+		["Where can I get a pickaxe?",func(): dialog("Tavi","DAIN'S SMITHY","Dain Rusk keeps the smithy east of the square. There's a spare pickaxe on his workbench. He's generous with people who mean to use their tools.")],
+		["Back to shopping",func(): talk("tavi")]])
+
+func bulletin_board() -> void:
+	panel("Local postings","BRIAR GLEN NOTICE BOARD","Handwritten notices overlap on a weathered board. Someone has pinned a fresh request beside a flour-dusted visiting card.",[
+		["Job: firewood for the lighthouse",func():
+			state.accept_firewood_task()
+			save_visit()
+			panel("Keep the lighthouse warm","OREN · SIX FIREWOOD · 25 CROWNS","Bring Oren six pieces of firewood at the western lighthouse. Rowan in the southern woods can help with an axe. Payment on delivery.")],
+		["Notice: a warm loaf and local news",func(): panel("Corin's bakery","FRESH BREAD & GOOD COMPANY","Visitors welcome. Bring your news, your questions, or simply yourself. The bakery is southeast of the square.")],
+		["Notice: tools for newcomers",func(): panel("Dain Rusk's smithy","A SPARE PICKAXE","Ask Dain in the smithy about his spare pickaxe. Good iron is meant to work, not gather dust.")]])
 
 func mayor() -> void:
 	if current_room=="home" and state.welcome_phase=="waiting":
@@ -952,7 +996,7 @@ func journal() -> void:
 
 func map_notes() -> void:
 	var wizard="↑ Iona's tower in the northern mountains · she rises at noon" if state.welcome_phase=="complete" else "↑ Northern cliffs"
-	panel("Around Briar Glen","ALDERMERE · LOCAL DIRECTIONS","↖ Hidden ship & Chief Vale\n↑ Radio Club & Finch\n← Western shore, stone jetty & Oren's lighthouse\n→ Town square, town hall & Tavi's cart\n%s\n↙ Pond & fishing dock\n↓ Faint woodland path to Bram's cabin\n↘ Copper cave · bring a pickaxe\n\nTavi keeps the cart 08:00–20:00, with lunch at 12:30.\nFaint paths lead from the farm to the coast and southern woods." % wizard)
+	panel("Around Briar Glen","ALDERMERE · LOCAL DIRECTIONS","NW Hidden ship & Chief Vale\nN Radio Club & Finch\nW Western shore, stone jetty & Oren's lighthouse\nE Town square, town hall & Tavi's grocery store\n%s\nSW Pond & fishing dock\nS Woodland paths to Bram and Rowan\nSE Copper cave · ask Dain for a pickaxe\n\nTavi opens the grocery 08:00–20:00, with lunch at 12:30.\nFaint paths lead from the farm to the coast and southern woods." % wizard)
 
 func settings() -> void:
 	if not started: return

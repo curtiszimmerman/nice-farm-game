@@ -61,7 +61,7 @@ func run() -> void:
 	check(game.state.season_name()=="spring" and game.state.calendar_year()==2,"development calendar wraps seasons into a new year")
 	game.close_window()
 	game.ui.update()
-	check(game.ui.date.text=="SPRING 01","calendar displays the day within its season")
+	check(game.ui.date.text=="01" and game.ui.season_word.text=="SPRING","calendar displays the day beside its separate season label")
 	await game.sound.shutdown()
 	game.queue_free()
 	await process_frame

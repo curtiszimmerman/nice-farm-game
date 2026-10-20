@@ -13,7 +13,7 @@ func run() -> void:
 	preload("fixture.gd").explore(game,true)
 	var s=game.state
 	var w=game.outdoors
-	check(s.accept_firewood_task() and s.axe==1 and s.quick_slots.all(func(id): return id==""),"Oren lends an axe without assigning a quick slot")
+	check(s.accept_firewood_task() and s.axe==0 and s.accept_tool("axe") and s.quick_slots.all(func(id): return id==""),"Oren's job uses Rowan's axe without assigning a quick slot")
 	s.select_inventory("axe")
 	var energy=s.energy
 	for i in range(2):

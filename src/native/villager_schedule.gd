@@ -3,13 +3,13 @@ extends RefCounted
 # Each stop gives the departure time, destination tile, and whether it is bedtime.
 const ROUTINES = {
 	"moss":[[0,26,58,true],[360,26,58,false,"moss"],[420,25,59,false],[720,26,58,false,"moss"],[810,31,61,false],[1080,26,58,false,"moss"],[1320,26,58,true]],
-	"tavi":[[0,67,51,true],[390,67,51,false],[405,63,48,false],[440,60,45,false],[460,64,46,false],[750,63,48,false],[780,64,46,false],[1200,60,48,false],[1245,63,45,false],[1290,67,51,false],[1320,67,51,true]],
+	"tavi":[[0,71,54,true],[390,71,54,false,"tavi"],[435,60,45,false],[480,72,45,false,"store"],[750,63,48,false],[780,72,45,false,"store"],[1200,60,48,false],[1245,63,45,false],[1290,71,54,false,"tavi"],[1320,71,54,true]],
 	"iona":[[0,65,14,false],[180,61,15,false],[300,61,15,true],[720,61,15,false],[810,65,14,false],[900,60,45,false],[1020,32,47,false],[1170,63,48,false],[1230,61,15,false]],
-	"finch":[[0,60,54,true],[390,60,54,false,"finch"],[420,60,48,false],[480,54,38,false,"radio"],[720,60,45,false],[780,54,38,false,"radio"],[1050,63,48,false],[1170,60,54,false,"finch"],[1350,60,54,true]],
-	"mayor":[[0,61,42,true],[420,61,42,false,"mayor"],[480,54,46,false,"hall"],[720,60,45,false],[780,54,46,false,"hall"],[1050,63,48,false],[1200,61,42,false,"mayor"],[1380,61,42,true]],
+	"finch":[[0,61,59,true],[390,61,59,false,"finch"],[420,60,48,false],[480,54,38,false,"radio"],[720,60,45,false],[780,54,38,false,"radio"],[1050,63,48,false],[1170,61,59,false,"finch"],[1350,61,59,true]],
+	"mayor":[[0,61,39,true],[420,61,39,false,"mayor"],[480,54,46,false,"hall"],[720,60,45,false],[780,54,46,false,"hall"],[1050,63,48,false],[1200,61,39,false,"mayor"],[1380,61,39,true]],
 	"vale":[[0,11,14,false]],
-	"veteran":[[0,42,80,true],[390,42,80,false,"veteran"],[480,43,82,false],[720,42,80,false,"veteran"],[840,39,81,false],[1080,42,80,false,"veteran"],[1320,42,80,true]],
-	"assistant":[[0,72,56,true],[420,72,56,false,"assistant"],[480,54,46,false,"hall"],[720,63,48,false],[780,54,46,false,"hall"],[1080,72,56,false,"assistant"],[1350,72,56,true]],
+	"veteran":[[0,42,80,true],[390,42,80,false,"veteran"],[480,42,83,false],[720,42,80,false,"veteran"],[840,39,81,false],[1080,42,80,false,"veteran"],[1320,42,80,true]],
+	"assistant":[[0,84,58,true],[420,84,58,false,"assistant"],[480,54,46,false,"hall"],[720,63,48,false],[780,54,46,false,"hall"],[1080,84,58,false,"assistant"],[1350,84,58,true]],
 	"keeper":[[0,-24,51,true],[390,-24,51,false,"keeper"],[690,-19,53,false],[780,-24,51,false,"keeper"],[1080,-21,51,false],[1200,-24,51,false,"keeper"],[1380,-24,51,true]],
 	"farmer_mother":[[0,103,47,true,"reed_farm"],[390,103,47,false,"reed_farm"],[450,99,52,false],[720,103,47,false,"reed_farm"],[810,108,54,false],[1080,60,48,false],[1170,103,47,false,"reed_farm"],[1320,103,47,true,"reed_farm"]],
 	"farmer_father":[[0,103,47,true,"reed_farm"],[360,103,47,false,"reed_farm"],[420,102,54,false],[720,103,47,false,"reed_farm"],[780,107,51,false],[1080,75,65,false,"bakery"],[1170,103,47,false,"reed_farm"],[1350,103,47,true,"reed_farm"]],
@@ -19,7 +19,8 @@ const ROUTINES = {
 	"miller_wife":[[0,99,31,true,"mill_home"],[390,99,31,false,"mill_home"],[480,90,29,false,"windmill"],[750,60,45,false],[810,90,29,false,"windmill"],[1110,99,31,false,"mill_home"],[1320,99,31,true,"mill_home"]],
 	"miller_daughter":[[0,99,31,true,"mill_home"],[420,99,31,false,"mill_home"],[480,90,29,false,"windmill"],[720,99,31,false,"mill_home"],[810,54,38,false,"radio"],[1080,99,31,false,"mill_home"],[1320,99,31,true,"mill_home"]],
 	"barkeep":[[0,69,38,true,"tavern"],[480,69,38,false,"tavern"],[570,75,65,false,"bakery"],[630,69,38,false,"tavern"],[1380,69,38,true,"tavern"]],
-	"baker":[[0,75,65,true,"bakery"],[300,75,65,false,"bakery"],[720,60,48,false],[780,75,65,false,"bakery"],[1110,69,38,false,"tavern"],[1230,75,65,false,"bakery"],[1320,75,65,true,"bakery"]]
+	"baker":[[0,75,65,true,"bakery"],[300,75,65,false,"bakery"],[720,60,48,false],[780,75,65,false,"bakery"],[1110,69,38,false,"tavern"],[1230,75,65,false,"bakery"],[1320,75,65,true,"bakery"]],
+	"woodcutter":[[0,29,79,true],[390,29,79,false,"woodcutter"],[450,32,82,false],[720,29,79,false,"woodcutter"],[810,25,82,false],[1080,29,79,false,"woodcutter"],[1320,29,79,true]]
 }
 
 static func home_stop(id: String) -> Dictionary:
@@ -36,7 +37,7 @@ static func stop(id: String,minute: float) -> Dictionary:
 		if minute>=entry[0]: chosen=entry
 	var stop={"cell":Vector2i(chosen[1],chosen[2]),"sleeping":chosen[3],"room":chosen[4] if chosen.size()>4 else id if chosen[3] else ""}
 	if id=="moss" and ((minute>=420 and minute<720) or (minute>=810 and minute<1080)):
-		stop.cell=[Vector2i(25,59),Vector2i(27,61),Vector2i(31,61),Vector2i(29,64),Vector2i(25,63)][int(minute/30)%5]
+		stop.cell=[Vector2i(25,62),Vector2i(27,64),Vector2i(31,64),Vector2i(29,67),Vector2i(25,66)][int(minute/30)%5]
 	if id in ["farmer_mother","farmer_father","farmer_son"] and stop.room=="" and stop.cell.x>95 and minute<1110:
 		var rounds={"farmer_mother":[Vector2i(99,51),Vector2i(101,53),Vector2i(103,55)],"farmer_father":[Vector2i(107,51),Vector2i(109,53),Vector2i(110,55)],"farmer_son":[Vector2i(104,50),Vector2i(105,53),Vector2i(104,56)]}
 		stop.cell=rounds[id][int(minute/30)%3]

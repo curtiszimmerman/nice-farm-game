@@ -1,6 +1,6 @@
 # Pixel artwork
 
-The default artwork is Rustic 16-pixel artwork (option 3): an original RGBA PNG atlas, drawn at 16 pixels per tile and enlarged with nearest-neighbor filtering. Its 558 sprites include revised lighthouse components and weathered jetty edges, fountain spray frames, benches, trade signs, mill sails, workshop equipment and nine additional residents. `scripts/town_sprites16.py` supplies the new 16-pixel artwork to both generators. The 32-pixel modular pack remains selectable under Settings → Artwork. All assets and build outputs stay in the project.
+The default artwork is Rustic 16-pixel artwork (option 3): an original RGBA PNG atlas, drawn at 16 pixels per tile and enlarged with nearest-neighbor filtering. Its 723 sprites include seasonal foliage and snow, weekday rings, seasons, two moon phase sets, connected wooden and iron fences, tall house walls, mill equipment and residents. `scripts/town_sprites16.py` and `scripts/calendar_sprites16.py` supply artwork to both generators. The latter also generates the bitmap UI font under `src/native/art/ui/`. The 32-pixel modular pack remains selectable under Settings → Artwork. All assets and build outputs stay in the project.
 
 The previous artwork is preserved as option 1. Its source snapshot is [original-art.tar](../src/native/art/option1/original-art.tar), from commit `9527b38`. The original renderers remain available under Settings → Artwork. Switching options redraws the retained scenery and changes the inventory icons; the choice currently lasts for the session.
 

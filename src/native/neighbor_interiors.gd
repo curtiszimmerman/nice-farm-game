@@ -1,8 +1,14 @@
 extends RefCounted
 
 static func layout(id: String) -> Dictionary:
+	if id=="tavern": return tavern()
+	if id=="woodcutter": return woodcutter()
 	if id in ["reed_farm","mill_home"]:
 		var family=family_home(id=="reed_farm")
+		var beds=family.furniture.filter(func(item):return item[0]=="bed")
+		family.furniture.erase(beds[1])
+		family.beds={"farmer_mother":0,"farmer_father":0,"farmer_son":1} if id=="reed_farm" else {"miller":0,"miller_wife":0,"miller_daughter":1}
+		family.bed_offsets={"farmer_mother":-16,"farmer_father":16,"miller":-16,"miller_wife":16}
 		if id=="reed_farm":
 			family.areas[3][1]=Rect2i(1,6,7,4)
 			family.areas.append(["mudroom",Rect2i(1,11,7,3)])
@@ -12,13 +18,14 @@ static func layout(id: String) -> Dictionary:
 				if item[0]=="rug": item[1]=Rect2i(2,7,4,2)
 			family.furniture.append(["tools",Rect2i(6,11,1,2)])
 		return family
-	if id=="windmill": return {"size":Vector2i(12,12),"areas":[["grinding",Rect2i(1,1,10,6)],["packing",Rect2i(1,8,6,3)],["bathroom",Rect2i(8,8,3,3)]],"doors":[["grinding","packing",Vector2i(6,7)],["bathroom","packing",Vector2i(7,9)]],"entry":Vector2i(6,10),"exit":Vector2i(6,11),"furniture":[["machine",Rect2i(4,2,3,3)],["flour",Rect2i(1,1,2,1)],["flour",Rect2i(9,4,2,1)],["table",Rect2i(1,8,3,1)],["tools",Rect2i(5,9,1,2)],["toilet",Rect2i(8,8,1,1)],["sink",Rect2i(10,8,1,1)]],"sites":[],"work":[Vector2i(3,3),Vector2i(8,4),Vector2i(4,9)]}
+	if id=="windmill": return {"size":Vector2i(12,12),"areas":[["grinding",Rect2i(1,1,10,6)],["packing",Rect2i(1,8,6,3)],["bathroom",Rect2i(8,8,3,3)]],"doors":[["grinding","packing",Vector2i(6,7)],["bathroom","packing",Vector2i(7,9)]],"entry":Vector2i(6,10),"exit":Vector2i(6,11),"furniture":[["millstone",Rect2i(4,2,3,3)],["mill_gears",Rect2i(8,1,2,2)],["flour",Rect2i(1,1,2,1)],["flour",Rect2i(9,4,2,1)],["table",Rect2i(1,8,3,1)],["tools",Rect2i(5,9,1,2)],["toilet",Rect2i(8,8,1,1)],["sink",Rect2i(10,8,1,1)]],"sites":[],"work":[Vector2i(3,3),Vector2i(8,4),Vector2i(4,9)]}
 	if id not in ["smithy","tavern","bakery"]: return {}
 	var width={"smithy":16,"tavern":19,"bakery":17}[id]
 	var depth={"smithy":14,"tavern":15,"bakery":13}[id]
 	var plan={"size":Vector2i(width,depth),"areas":[["bedroom",Rect2i(1,1,5,4)],["hall",Rect2i(7,1,1,depth-2)],["bathroom",Rect2i(9,1,width-10,3)],["living",Rect2i(1,6,5,depth-7)],[id,Rect2i(9,5,width-10,depth-6)]],"doors":[["bedroom","hall",Vector2i(6,3)],["bathroom","hall",Vector2i(8,2)],["living","hall",Vector2i(6,8)],[id,"hall",Vector2i(8,9)]],"entry":Vector2i(7,depth-2),"exit":Vector2i(7,depth-1),"furniture":[["bed",Rect2i(1,1,2,3)],["bookshelf",Rect2i(4,1,2,1)],["kitchen",Rect2i(1,6,4,1)],["radio",Rect2i(5,depth-2,1,1)],["sofa",Rect2i(1,depth-3,3,1)],["toilet",Rect2i(9,1,1,1)],["sink",Rect2i(11,1,1,1)],["bath",Rect2i(width-2,1,1,2)]],"sites":[["radio",Vector2i(4,depth-2)]],"work":[]}
 	match id:
 		"smithy":
+			plan.sites.append(["smith_pickaxe",Vector2i(12,12)])
 			plan.furniture.append_array([["forge",Rect2i(10,5,3,2)],["anvil",Rect2i(11,9,1,1)],["tools",Rect2i(14,7,1,2)],["table",Rect2i(9,12,3,1)]])
 			plan.work=[Vector2i(10,9),Vector2i(12,7),Vector2i(13,10)]
 		"tavern":
@@ -43,6 +50,12 @@ static func layout(id: String) -> Dictionary:
 			plan.furniture.append_array([["oven",Rect2i(9,6,2,2)],["table",Rect2i(12,7,3,1)],["flour",Rect2i(13,6,2,1)],["table",Rect2i(9,10,1,1)],["chair",Rect2i(10,10,1,1)],["bookshelf",Rect2i(15,9,1,2)]])
 			plan.work=[Vector2i(11,6),Vector2i(13,8),Vector2i(12,10)]
 	return plan
+
+static func tavern() -> Dictionary:
+	return {"size":Vector2i(19,15),"areas":[["bedroom",Rect2i(1,1,5,4)],["hall",Rect2i(7,1,1,5)],["kitchen",Rect2i(9,1,4,3)],["bathroom",Rect2i(15,1,3,3)],["back_hall",Rect2i(9,5,9,1)],["taproom",Rect2i(1,7,17,7)]],"doors":[["bedroom","hall",Vector2i(6,3)],["hall","back_hall",Vector2i(8,5)],["kitchen","back_hall",Vector2i(10,4)],["bathroom","back_hall",Vector2i(16,4)],["hall","taproom",Vector2i(7,6)]],"private_doors":[Vector2i(7,6)],"entry":Vector2i(9,13),"exit":Vector2i(9,14),"furniture":[["bed",Rect2i(1,1,2,3)],["sofa",Rect2i(3,4,3,1)],["kitchen",Rect2i(9,1,4,1)],["table",Rect2i(9,3,2,1)],["toilet",Rect2i(15,1,1,1)],["sink",Rect2i(17,1,1,1)],["bath",Rect2i(17,2,1,2)],["counter",Rect2i(4,8,7,1)],["barrels",Rect2i(1,7,2,1)],["table",Rect2i(2,11,2,1)],["chair",Rect2i(1,11,1,1)],["chair",Rect2i(4,11,1,1)],["table",Rect2i(13,11,2,1)],["chair",Rect2i(12,11,1,1)],["chair",Rect2i(15,11,1,1)],["table",Rect2i(15,8,2,1)],["chair",Rect2i(14,8,1,1)],["chair",Rect2i(17,8,1,1)],["radio",Rect2i(17,13,1,1)]],"sites":[["radio",Vector2i(16,13)],["private_door",Vector2i(7,7)]],"work":[Vector2i(6,7),Vector2i(8,7),Vector2i(10,7)]}
+
+static func woodcutter() -> Dictionary:
+	return {"size":Vector2i(12,13),"areas":[["bedroom",Rect2i(1,1,4,4)],["hall",Rect2i(6,1,1,11)],["bathroom",Rect2i(8,1,3,3)],["living",Rect2i(1,6,4,6)],["workshop",Rect2i(8,5,3,7)]],"doors":[["bedroom","hall",Vector2i(5,3)],["bathroom","hall",Vector2i(7,2)],["living","hall",Vector2i(5,9)],["workshop","hall",Vector2i(7,8)]],"entry":Vector2i(6,11),"exit":Vector2i(6,12),"furniture":[["bed",Rect2i(1,1,2,3)],["tools",Rect2i(8,5,1,2)],["table",Rect2i(8,9,2,1)],["cabinet",Rect2i(8,11,2,1)],["sofa",Rect2i(1,6,3,1)],["kitchen",Rect2i(1,10,3,1)],["radio",Rect2i(4,8,1,1)],["toilet",Rect2i(8,1,1,1)],["sink",Rect2i(10,1,1,1)],["bath",Rect2i(10,2,1,2)]],"sites":[["radio",Vector2i(3,8)]],"work":[Vector2i(9,7),Vector2i(3,8)]}
 
 static func family_home(farm: bool) -> Dictionary:
 	var h=15 if farm else 14

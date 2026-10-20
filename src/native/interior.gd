@@ -31,8 +31,11 @@ class Display extends Node2D:
 class Wall extends Node2D:
 	var room: Node2D
 	var front=false
+	var mask=0
 	func _draw() -> void:
-		if Art.option==2: Art.sprite(self,"tile_"+Art.interior_wall(room),Vector2(0,-32)); return
+		if Art.option==2:
+			Art.sprite(self,"tile_metal_wall" if room.building.id=="ship" else "wall_house_mask"+str(mask),Vector2(0,-64),Vector2(32,64))
+			return
 		room.r(self,0,-40,32,40,"3e554e")
 		if front:
 			room.r(self,0,-29,32,27,"75877a")
@@ -63,12 +66,14 @@ func _ready() -> void:
 		var wall=Wall.new()
 		wall.room=self
 		wall.front=floor_cells.has(cell+Vector2i.DOWN)
+		for pair in [[Vector2i.LEFT,1],[Vector2i.RIGHT,2],[Vector2i.UP,4],[Vector2i.DOWN,8]]:
+			if solid_cells.has(cell+pair[0]): wall.mask|=pair[1]
 		wall.position=Grid.origin(cell)+Vector2(0,32)
 		add_child(wall)
 	for item in layout.furniture: add_furniture(item[0],item[1],item[0] not in ["rug","art"])
 	add_site("exit",layout.exit,"Leave "+room_name())
 	for site in layout.sites:
-		add_site(site[0],site[1],{"bed":"Rest in the bedroom","radio":"Listen to the radio","shop":"Browse Tavi's provisions","cabinet":"Open kitchen cabinet","stove":"Cook at the stove","ship_storage":"Open crew supply locker","diagnostics":"Inspect damaged machinery","uncover_sofa":"Remove sofa cover","uncover_guest_bed":"Remove guest bed cover","living_light":"Replace living-room bulb","bathroom_light":"Replace bathroom bulb"}[site[0]])
+		add_site(site[0],site[1],{"bed":"Rest in the bedroom","radio":"Listen to the radio","shop":"Browse Tavi's provisions","cabinet":"Open kitchen cabinet","stove":"Cook at the stove","ship_storage":"Open crew supply locker","diagnostics":"Inspect damaged machinery","uncover_sofa":"Remove sofa cover","uncover_guest_bed":"Remove guest bed cover","living_light":"Replace living-room bulb","bathroom_light":"Replace bathroom bulb","smith_pickaxe":"Ask about Dain's spare pickaxe","private_door":"Rafe's private quarters"}[site[0]])
 	crops=Node2D.new()
 	add_child(crops)
 	player=_prop("player",state.player_position,{"coat":"6f9793","hair":"5c5045","skin":"d0a981","id":"player"})
@@ -113,7 +118,7 @@ func bed_position(resident: String="") -> Vector2:
 	var beds=furnishings.filter(func(item):return item.kind=="bed")
 	var index=int(layout.get("beds",{}).get(resident,0))
 	for item in beds.slice(index,index+1):
-		if item.kind=="bed": return Grid.origin(item.bounds.position)+Vector2(item.bounds.size.x*16,item.bounds.size.y*32-8)
+		if item.kind=="bed": return Grid.origin(item.bounds.position)+Vector2(item.bounds.size.x*16+layout.get("bed_offsets",{}).get(resident,0),item.bounds.size.y*32-8)
 	return entry_position()
 
 func room_name() -> String:
@@ -133,6 +138,13 @@ func room_name() -> String:
 func blocked(p: Vector2) -> bool:
 	var cell=Grid.world_to_cell(p)
 	return not Rect2i(Vector2i.ZERO,ROOM_CELLS).has_point(cell) or solid_cells.has(cell)
+
+func player_blocked(p: Vector2) -> bool:
+	return blocked(p) or Grid.world_to_cell(p) in layout.get("private_doors",[])
+
+func wall_can_fade(wall: Wall) -> bool:
+	var cell=Grid.world_to_cell(wall.position)-Vector2i.DOWN
+	return floor_cells.get(cell+Vector2i.UP,"") in ["hall","back_hall","doorway"]
 
 func target_plot() -> int: return -1
 func in_water(_p: Vector2) -> bool: return false
@@ -254,8 +266,9 @@ func refresh() -> void:
 			child.modulate=Color("929b94") if dim else Color.WHITE
 		if child is Furniture or child is Wall:
 			var width=32.0 if child is Wall else child.item.bounds.size.x*32.0
-			var height=40.0 if child is Wall else child.item.bounds.size.y*32.0+30
+			var height=64.0 if child is Wall else child.item.bounds.size.y*32.0+30
 			var covers=state.player_position.y<child.position.y and Rect2(child.position-Vector2(0,height),Vector2(width,height)).grow(8).has_point(state.player_position-Vector2(0,20))
+			if child is Wall: covers=covers and wall_can_fade(child) and floor_cells.get(Grid.world_to_cell(state.player_position),"") in ["hall","back_hall","doorway"]
 			child.modulate.a=0.3 if covers and not player.data.sleeping else 1.0
 
 func bed_height() -> float:
@@ -487,6 +500,8 @@ func paint_cover(c: CanvasItem,item: Dictionary) -> void:
 	for i in range(6): r(c,5+posmod(i*13,int(w)-10),-h+posmod(i*7,int(h)-4),2,1,"7d887a")
 
 func paint_effects(c: CanvasItem) -> void:
+	if building.id=="smithy" and not state.smith_pickaxe_given:
+		Art.sprite(c,"item_pickaxe",Grid.origin(Vector2i(11,12))-Vector2(0,24),Vector2(24,24))
 	if Art.option==2: Art.indoor_effects(self,c); return
 	if building.id=="home":
 		for task in ["living_light","bathroom_light"]:

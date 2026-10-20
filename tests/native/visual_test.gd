@@ -199,7 +199,7 @@ func run() -> void:
 	game.state.player_position=game.world.site_position("radio")+Vector2(32,0)
 	await capture("interior-radio-club")
 	game.leave_building()
-	for id in ["moss","finch","tavi","mayor","assistant","veteran","iona","store","hall","reed_farm","windmill","mill_home","smithy","tavern","bakery"]:
+	for id in ["moss","finch","tavi","mayor","assistant","veteran","iona","store","hall","reed_farm","windmill","mill_home","smithy","tavern","bakery","woodcutter"]:
 		game.enter_building(id)
 		game.state.player_position=game.world.entry_position()
 		await capture("interior-"+id)
@@ -234,6 +234,7 @@ func run() -> void:
 	await capture("oren-firewood-offer")
 	game.ui.modal_box.get_child(3).pressed.emit()
 	while game.window_open: game.ui.modal_box.get_child(3).pressed.emit()
+	game.state.accept_tool("axe")
 	await drag_inventory_item("axe",7)
 	await capture("inventory-dragged-axe")
 	game.close_window()
@@ -244,6 +245,25 @@ func run() -> void:
 	game.close_window()
 	game.control_settings()
 	await capture("control-bindings")
+	game.close_window()
+	game.leave_building()
+	game.state.player_position=game.Grid.center(Vector2i(63,48))
+	for day in [1,29,57,85]:
+		game.state.day=day
+		game.state.minute=600
+		await capture("season-"+game.state.season_name())
+	game.state.day=57
+	game.state.minute=0
+	await capture("calendar-both-full")
+	game.state.day=113
+	await capture("calendar-both-new")
+	game.ui.quest_opened.restore_farmhouse=true
+	game.ui.quest_opened.crew_supplies=true
+	if not game.ui.log_expanded: game.ui.toggle_log()
+	game.ui.update()
+	await capture("quest-line-rollouts")
+	game.bulletin_board()
+	await capture("bulletin-postings")
 	game.close_window()
 	game.sound_settings()
 	await capture("sound-settings")

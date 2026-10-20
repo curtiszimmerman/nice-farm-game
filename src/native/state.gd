@@ -47,6 +47,8 @@ var axe=0
 var wood=0
 var firewood_requested=false
 var firewood_given=false
+var woodcutter_axe_given=false
+var smith_pickaxe_given=false
 var felled_trees: Array=[]
 var water=0
 var pot=0
@@ -116,9 +118,15 @@ func total() -> float:
 
 func accept_firewood_task() -> bool:
 	if firewood_given: return false
-	if axe<1 and not can_carry("axe"): return false
 	firewood_requested=true
-	axe=1
+	return true
+
+func accept_tool(id: String) -> bool:
+	if id not in ["axe","pickaxe"]: return false
+	var flag="woodcutter_axe_given" if id=="axe" else "smith_pickaxe_given"
+	if get(flag) or not can_carry(id): return false
+	set(id,int(get(id))+1)
+	set(flag,true)
 	return true
 
 func deliver_firewood() -> bool:
@@ -430,7 +438,7 @@ func meet_mayor() -> bool:
 func to_dict() -> Dictionary:
 	var supplies={}
 	for id in EXTRA_ITEMS: supplies[id]=get(id)
-	return {"version": 9, "auxiliary_selection":auxiliary_selection,"world_seed":world_seed,"inventory_selection":inventory_selection,"firewood_requested":firewood_requested,"firewood_given":firewood_given,"felled_trees":felled_trees.duplicate(),"day": day, "minute": minute, "money": money,"magic_learned":magic_learned,
+	return {"version": 10,"woodcutter_axe_given":woodcutter_axe_given,"smith_pickaxe_given":smith_pickaxe_given,"auxiliary_selection":auxiliary_selection,"world_seed":world_seed,"inventory_selection":inventory_selection,"firewood_requested":firewood_requested,"firewood_given":firewood_given,"felled_trees":felled_trees.duplicate(),"day": day, "minute": minute, "money": money,"magic_learned":magic_learned,
 		"cave_seed":cave_seed,"cave_broken":cave_broken.duplicate(),"cave_defeated":cave_defeated.duplicate(),"cave_chrysalis_taken":cave_chrysalis_taken,"sparkfire_picked_day":sparkfire_picked_day,"cave_barrel":cave_barrel.duplicate(true),
 		"ship_departed":ship_departed,"welcome_phase":welcome_phase,"welcome_elapsed":welcome_elapsed,
 		"intro_complete":intro_complete,"briefing_complete":briefing_complete,"mayor_due":mayor_due,"house_tasks":house_tasks.duplicate(),
@@ -445,13 +453,15 @@ func to_dict() -> Dictionary:
 		"plots": plots.duplicate(true)}
 
 func restore(data: Variant) -> bool:
-	if not data is Dictionary or data.get("version") != 9:
+	if not data is Dictionary or data.get("version") != 10:
 		return false
 	if not _number(data.get("world_seed")) or data.world_seed<1 or data.world_seed>2147483646 or data.world_seed!=floor(data.world_seed): return false
 	for field in ["inventory_selection","auxiliary_selection"]:
 		if not data.get(field) is String: return false
 		if data[field]!="" and not Items.CATALOG.has(data[field]) and not Skills.CATALOG.has(data[field]): return false
 	if not data.get("firewood_requested") is bool or not data.get("firewood_given") is bool or (data.firewood_given and not data.firewood_requested): return false
+	for field in ["woodcutter_axe_given","smith_pickaxe_given"]:
+		if not data.get(field) is bool: return false
 	if not data.get("felled_trees") is Array: return false
 	for cell in data.felled_trees:
 		if not cell is String: return false
@@ -508,7 +518,7 @@ func restore(data: Variant) -> bool:
 		var quantity=data.supplies[id] if id in EXTRA_ITEMS else data[id]
 		if quantity>0: occupied+=1
 	if occupied>INVENTORY_SLOTS: return false
-	if not data.get("location") in ["","home","moss","finch","mayor","tavi","iona","radio","store","hall","veteran","assistant","ship","cave","keeper","reed_farm","windmill","mill_home","smithy","tavern","bakery"]: return false
+	if not data.get("location") in ["","home","moss","finch","mayor","tavi","iona","radio","store","hall","veteran","assistant","ship","cave","keeper","reed_farm","windmill","mill_home","smithy","tavern","bakery","woodcutter"]: return false
 	if not data.get("chest") is Array or data.chest.size()!=18 or not data.get("abandoned_day") is Dictionary: return false
 	for stack in data.chest:
 		if not stack is Dictionary: return false
@@ -554,6 +564,8 @@ func restore(data: Variant) -> bool:
 	world_seed=int(data.world_seed)
 	firewood_requested=data.firewood_requested
 	firewood_given=data.firewood_given
+	woodcutter_axe_given=data.woodcutter_axe_given
+	smith_pickaxe_given=data.smith_pickaxe_given
 	felled_trees=data.felled_trees.duplicate()
 	cabinet=data.cabinet.duplicate(true)
 	ship_storage=data.ship_storage.duplicate(true)

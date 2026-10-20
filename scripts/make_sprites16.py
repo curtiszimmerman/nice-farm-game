@@ -2161,9 +2161,13 @@ def main():
     sizes.update({("kitchen",4,1),("kitchen",5,1),("kitchen",6,1),("table",6,1),("rug",4,2)})
     for kind, w, h in sorted(sizes): furniture(kind, w, h)
     from town_sprites16 import sprites
-    for name, image in sprites(Pixels).items():
+    from calendar_sprites16 import sprites as calendar_sprites, write_font
+    additions = dict(sprites(Pixels), **calendar_sprites(Pixels))
+    write_font(ROOT / "src/native/art/ui", Pixels)
+    for name, image in additions.items():
         if name.startswith("tile_mill_sails"): name = name.removeprefix("tile_")
-        add(name, image)
+        metadata = ASSETS.get(name.rsplit("_",1)[0], (None, {}))[1] if name.startswith("tree_") else {}
+        add(name, image, **metadata)
     for name in ("soil", "tilled", "wet", "sprout", "turnip", "bulb", "sprout_wet", "turnip_wet", "bulb_wet"): crop(name)
     missing = [k for k in list(baseline) + EXTRA_IDS if k not in ASSETS]
     if missing: raise SystemExit("Missing sprites: " + ", ".join(missing))

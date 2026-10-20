@@ -61,6 +61,8 @@ var region: Label
 var clock: Label
 var date: Label
 var calendar_details: Label
+var calendar_ring: Control
+var season_word: Label
 var objective: Label
 var next_task: Label
 var hint: Label
@@ -75,10 +77,11 @@ var health_bar: ProgressBar
 var health_label: Label
 var modal: Control
 var modal_box: VBoxContainer
+var modal_scroll: ScrollContainer
 var title_screen: Control
 var action_meter: Control
 var action_label: Label
-var serif: SystemFont
+var serif: Font
 
 class RhythmGauge extends Control:
 	var value = 0.0
@@ -88,26 +91,34 @@ class RhythmGauge extends Control:
 		draw_rect(Rect2(size.x*value/100.0-2,-4,4,size.y+8),Color("f5edd2"))
 
 func _ready() -> void:
-	serif = SystemFont.new()
-	serif.font_names = PackedStringArray(["DejaVu Serif","Liberation Serif"])
+	serif = preload("res://pixel_ui.gd").font()
 	root = Control.new()
+	root.texture_filter=CanvasItem.TEXTURE_FILTER_NEAREST
+	root.theme=Theme.new()
+	root.theme.default_font=serif
+	root.theme.default_font_size=20
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(root)
 	_label("FIRST LANDING / NATIVE PLAYABLE STUDY",Vector2(32,23),11,GOLD)
 	place = _label("Briar Glen",Vector2(30,42),32,CREAM,true)
 	region = _label("The old south farm",Vector2(33,88),13,MUTED)
-	date = _label("SPRING 01",Vector2(1075,28),13,CREAM)
-	date.size.x = 170
-	date.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	clock = _label("08:00",Vector2(1075,45),33,CREAM,true)
-	clock.size.x = 170
-	clock.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	var moons = _label("Waxing moons · year one",Vector2(1020,96),12,MUTED)
+	calendar_ring=preload("res://calendar.gd").new()
+	calendar_ring.state=game.state
+	calendar_ring.position=Vector2(1010,8)
+	calendar_ring.size=Vector2(220,250)
+	root.add_child(calendar_ring)
+	season_word=_label("SPRING",Vector2(1118,125),10,GOLD)
+	date = _label("01",Vector2(1118,139),24,CREAM)
+	date.size.x = 40
+	clock = _label("08:00",Vector2(1055,225),27,CREAM,true)
+	clock.size.x = 130
+	clock.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var moons = _label("Root · year one",Vector2(1020,210),10,MUTED)
 	calendar_details = moons
 	moons.size.x = 225
-	moons.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	log_panel = _panel(Vector2(970,250),Vector2(280,330),Color("182d2bf5"))
+	moons.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	log_panel = _panel(Vector2(970,270),Vector2(280,310),Color("182d2bf5"))
 	log_toggle=Button.new()
 	log_toggle.text="▾ CREW LOG"
 	log_toggle.position=Vector2(8,5)
@@ -121,7 +132,7 @@ func _ready() -> void:
 	next_task = _label("",Vector2(14,175),11,GOLD,false,log_panel)
 	quest_scroll=ScrollContainer.new()
 	quest_scroll.position=Vector2(12,50)
-	quest_scroll.size=Vector2(256,266)
+	quest_scroll.size=Vector2(256,246)
 	log_panel.add_child(quest_scroll)
 	quest_rows=VBoxContainer.new()
 	quest_rows.size_flags_horizontal=Control.SIZE_EXPAND_FILL
@@ -244,7 +255,7 @@ func _label(text: String,pos: Vector2,font_size: int,color: Color,book = false,p
 	var label = Label.new()
 	label.text = text
 	label.position = pos
-	label.add_theme_font_size_override("font_size",font_size)
+	label.add_theme_font_size_override("font_size",20 if font_size>=13 and font_size<20 else font_size)
 	label.add_theme_color_override("font_color",color)
 	label.add_theme_color_override("font_shadow_color",Color("102523aa"))
 	label.add_theme_constant_override("shadow_offset_y",2)
@@ -256,9 +267,10 @@ func _label(text: String,pos: Vector2,font_size: int,color: Color,book = false,p
 func style(fill: Color,border = Color("8d9a7666")) -> StyleBoxFlat:
 	var box = StyleBoxFlat.new()
 	box.bg_color = fill
+	box.anti_aliasing=false
 	box.border_color = border
-	box.set_border_width_all(1)
-	box.set_corner_radius_all(3)
+	box.set_border_width_all(2)
+	box.set_corner_radius_all(0)
 	box.content_margin_left = 17
 	box.content_margin_right = 17
 	box.content_margin_top = 10
@@ -350,7 +362,11 @@ func open_modal(title: String,eyebrow: String,body: String,choices: Array,wide =
 	modal.add_child(panel)
 	modal_box = VBoxContainer.new()
 	modal_box.add_theme_constant_override("separation",13)
-	panel.add_child(modal_box)
+	modal_scroll=ScrollContainer.new()
+	modal_scroll.horizontal_scroll_mode=ScrollContainer.SCROLL_MODE_DISABLED
+	panel.add_child(modal_scroll)
+	modal_scroll.add_child(modal_box)
+	modal_box.size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	var subtitle = Label.new()
 	subtitle.text = eyebrow
 	subtitle.add_theme_color_override("font_color",GOLD)
@@ -368,13 +384,13 @@ func open_modal(title: String,eyebrow: String,body: String,choices: Array,wide =
 	text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	text.add_theme_color_override("font_color",MUTED)
 	text.add_theme_font_override("font",serif)
-	text.add_theme_font_size_override("font_size",16)
+	text.add_theme_font_size_override("font_size",20)
 	modal_box.add_child(text)
 	for option in choices:
 		var b = Button.new()
 		b.text = option[0]
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		b.add_theme_font_size_override("font_size",14)
+		b.add_theme_font_size_override("font_size",20)
 		_button_style(b)
 		var action = option[1]
 		b.pressed.connect(func(): game.choose_dialogue(action))
@@ -531,7 +547,8 @@ func decorate_action_slot(button: Button,key: String) -> void:
 	bubble.bg_color=Color("40544b")
 	bubble.border_color=GOLD
 	bubble.set_border_width_all(1)
-	bubble.set_corner_radius_all(5)
+	bubble.set_corner_radius_all(2)
+	bubble.anti_aliasing=false
 	bubble.content_margin_left=3
 	bubble.content_margin_right=3
 	bubble.content_margin_top=1
@@ -658,7 +675,7 @@ func toggle_log() -> void:
 	log_expanded=not log_expanded
 	for child in log_panel.get_children():
 		if child!=log_toggle: child.visible=log_expanded and child not in [objective,next_task]
-	log_panel.size.y=330 if log_expanded else 55
+	log_panel.size.y=310 if log_expanded else 55
 	log_toggle.text=("▾" if log_expanded else "▸")+" CREW LOG"
 
 func quest_lines() -> Array:
@@ -676,12 +693,14 @@ func render_quests() -> void:
 	var signature=hash(lines)^hash(quest_opened)
 	if signature==quest_signature: return
 	quest_signature=signature
-	for child in quest_rows.get_children(): child.free()
+	for child in quest_rows.get_children():
+		quest_rows.remove_child(child)
+		child.queue_free()
 	for quest in lines:
 		var header=Button.new()
 		header.text=("▾ " if quest_opened.get(quest.id,false) else "▸ ")+quest.title
 		header.alignment=HORIZONTAL_ALIGNMENT_LEFT
-		header.add_theme_font_size_override("font_size",12)
+		header.add_theme_font_size_override("font_size",20)
 		_button_style(header)
 		header.pressed.connect(func(): quest_opened[quest.id]=not quest_opened.get(quest.id,false); render_quests())
 		quest_rows.add_child(header)
@@ -693,7 +712,7 @@ func render_quests() -> void:
 		description.text=quest.description
 		description.custom_minimum_size.x=230
 		description.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
-		description.add_theme_font_size_override("font_size",13)
+		description.add_theme_font_size_override("font_size",20)
 		description.add_theme_color_override("font_color",MUTED)
 		content.add_child(description)
 		for task in quest.tasks:
@@ -701,7 +720,7 @@ func render_quests() -> void:
 			row.text=("✓ " if task.done else "○ ")+task.text
 			row.custom_minimum_size.x=230
 			row.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
-			row.add_theme_font_size_override("font_size",12)
+			row.add_theme_font_size_override("font_size",20)
 			row.add_theme_color_override("font_color",GOLD if task.done else CREAM)
 			content.add_child(row)
 
@@ -712,6 +731,9 @@ func quest_pulse(time: float) -> float:
 
 func _process(dt: float) -> void:
 	if game==null or quick_tray==null: return
+	if is_instance_valid(modal) and modal_box!=null:
+		var panel=modal.get_child(1)
+		panel.size.y=clampf(modal_box.get_combined_minimum_size().y+24,80,690-panel.position.y)
 	pulse_time+=dt
 	var glow=quest_pulse(pulse_time) if quest_unread else 0.0
 	log_toggle.modulate=Color.WHITE.lerp(Color("fff2a1"),0.2+glow*0.3) if quest_unread else Color.WHITE
@@ -751,8 +773,11 @@ func update() -> void:
 		button.get_node("KeyBadge").get_child(0).text=OS.get_keycode_string(game.controls.keys["slot"+str(i+1)])
 		_button_style(button,i==s.selected_slot,true)
 	clock.text = "%02d:%02d" % [int(s.minute/60.0),int(s.minute)%60]
-	date.text = "%s %02d" % [s.season_name().to_upper(),s.season_day()]
-	calendar_details.text = "Waxing moons · year %d" % s.calendar_year()
+	calendar_ring.state=s
+	calendar_ring.refresh()
+	season_word.text=s.season_name().to_upper()
+	date.text = "%02d" % s.season_day()
+	calendar_details.text = "%s · year %d" % [preload("res://calendar.gd").DAYS[preload("res://calendar.gd").weekday(s.day)],s.calendar_year()]
 	purse.text = str(s.money)
 	health_label.text="HP  %d" % ceili(s.health)
 	health_bar.value=s.health

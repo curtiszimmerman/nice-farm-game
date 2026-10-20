@@ -6,13 +6,14 @@ const Schedule = preload("res://villager_schedule.gd")
 const Coast=preload("res://coast.gd")
 const Bodies=preload("res://npc_bodies.gd")
 const Neighbors=preload("res://neighbors.gd")
+const TownPaths=preload("res://town_paths.gd")
 const SQUARE = Rect2i(59,44,6,6)
 const SIZE = Grid.WORLD_SIZE
 const FARM_CELL = Vector2i(9,48)
 const OUTCROP_CELLS = Rect2i(90,69,9,5)
 const COPPER_CELLS = Rect2i(90,74,9,1)
 const MINE_RIDGE = Rect2i(97,65,3,4)
-const MOSS_FIELDS = Rect2i(25,60,6,4)
+const MOSS_FIELDS = Rect2i(25,63,6,4)
 const VETERAN_GARDEN = Rect2i(46,79,3,3)
 const DECORATIVE_FIELDS = [MOSS_FIELDS,VETERAN_GARDEN]
 const SHIP_CELL = Vector2i(11,12)
@@ -23,7 +24,7 @@ const MOSS_ENCOUNTER_CELL=Vector2i(13,30)
 const FARMHOUSE_APPROACH=[Vector2i(13,29),Vector2i(13,32),Vector2i(15,32),Vector2i(15,34),Vector2i(18,34),Vector2i(18,45),Vector2i(13,45)]
 const POND_CELL = Vector2i(17,67)
 const JETTY_CELLS = Rect2i(19,67,4,1)
-const CART_CELLS = Rect2i(65,45,3,1)
+const CART_CELLS = Rect2i(76,40,3,1)
 const LAMP_CELLS = [Vector2i(58,43),Vector2i(64,50),Vector2i(20,42)]
 const PEOPLE = [
 	{"id":"moss","name":"Moss","role":"YOUR NEIGHBOR","cell":MOSS_ENCOUNTER_CELL,"coat":"a7834d","hair":"d6cb9c","skin":"d4a776","hat":true},
@@ -39,15 +40,15 @@ const PEOPLE = [
 const BUILDINGS = [
 	{"cell":Vector2i(10,39),"tiles":Vector2i(7,5),"roof":"a65e50","kind":"home"},
 	{"cell":Vector2i(52,34),"tiles":Vector2i(5,4),"roof":"5b8990","kind":"radio"},
-	{"cell":Vector2i(65,40),"tiles":Vector2i(5,4),"roof":"ad7956","kind":"store"},
+	{"cell":Vector2i(69,41),"tiles":Vector2i(6,4),"roof":"ad7956","kind":"store"},
 	{"cell":Vector2i(50,41),"tiles":Vector2i(7,5),"roof":"818a60","kind":"hall"},
-	{"cell":Vector2i(59,39),"tiles":Vector2i(5,3),"roof":"8c6856","kind":"cottage","resident":"mayor"},
-	{"cell":Vector2i(65,48),"tiles":Vector2i(5,3),"roof":"a87858","kind":"cottage","resident":"tavi"},
-	{"cell":Vector2i(58,51),"tiles":Vector2i(5,3),"roof":"65858b","kind":"cottage","resident":"finch"},
+	{"cell":Vector2i(59,36),"tiles":Vector2i(5,3),"roof":"8c6856","kind":"cottage","resident":"mayor"},
+	{"cell":Vector2i(69,51),"tiles":Vector2i(5,3),"roof":"a87858","kind":"cottage","resident":"tavi"},
+	{"cell":Vector2i(59,56),"tiles":Vector2i(5,3),"roof":"65858b","kind":"cottage","resident":"finch"},
 	{"cell":Vector2i(60,12),"tiles":Vector2i(3,3),"roof":"68658f","kind":"tower","resident":"iona","visual_height":192},
 	{"cell":Vector2i(24,55),"tiles":Vector2i(5,3),"roof":"8c6856","kind":"cottage","resident":"moss"},
 	{"cell":Vector2i(40,76),"tiles":Vector2i(5,4),"roof":"70685a","kind":"cabin","resident":"veteran"},
-	{"cell":Vector2i(70,53),"tiles":Vector2i(4,3),"roof":"6c7885","kind":"cottage","resident":"assistant"},
+	{"cell":Vector2i(82,55),"tiles":Vector2i(4,3),"roof":"6c7885","kind":"cottage","resident":"assistant"},
 	{"cell":Vector2i(-25,48),"tiles":Vector2i(3,3),"roof":"656b75","kind":"lighthouse","resident":"keeper","visual_height":256}
 ]
 const SITES = [
@@ -89,6 +90,10 @@ var buildings: Array = []
 var sites: Array = []
 var road_segments: Array = []
 var road_cells: Dictionary = {}
+var paved_cells: Dictionary={}
+var yard_fences: Dictionary={}
+var yard_gates: Dictionary={}
+var garden_cells: Dictionary={}
 var water_cells: Dictionary = {}
 var mountain_cells: Dictionary = {}
 var solid_cells: Dictionary = {}
@@ -99,6 +104,7 @@ var trees: Array = []
 var bushes: Array=[]
 var terrain: ImageTexture
 var west_terrain: ImageTexture
+var rendered_season=""
 var road_mask: Image
 var night_tint: CanvasModulate
 var state: RefCounted
@@ -129,11 +135,12 @@ class Prop extends Node2D:
 		elif kind == "crops": owner_world.paint_crops(self)
 		elif kind == "effects": owner_world.paint_effects(self)
 		elif kind == "sparkfire": owner_world.paint_sparkfire(self,data.get("bloom",false))
-		elif kind == "bush": Art.sprite(self,"bush"+str(data.variant),Vector2(-32,-42))
+		elif kind == "bush": Art.sprite(self,Art.seasonal("bush"+str(data.variant),data.get("season","spring")),Vector2(-32,-42))
 		elif kind == "stump": Art.sprite(self,"stump",Vector2(-16,-16))
 		elif kind == "bench": Art.sprite(self,"bench",Vector2(0,-48))
 		elif kind == "fountain": Art.sprite(self,"fountain"+str(int(owner_world.elapsed*6)%4),Vector2(0,-80))
 		elif kind == "mill_sails": Art.sprite(self,"mill_sails"+str(int(owner_world.elapsed*2)%4),Vector2(-48,-48))
+		elif kind == "bulletin_board": Art.sprite(self,"bulletin_board",Vector2(-16,-96))
 
 func _ready() -> void:
 	y_sort_enabled = true
@@ -183,6 +190,7 @@ func _ready() -> void:
 	effects.z_index = 5
 	_prop("sparkfire",site_position("sparkfire"),{"bloom":false})
 	_prop("fountain",Grid.origin(SQUARE.position+Vector2i(2,4)),{"frame":-1})
+	_prop("bulletin_board",Grid.origin(Vector2i(60,51)),{})
 	for cell in Neighbors.BENCHES: _prop("bench",Grid.origin(cell+Vector2i.DOWN),{})
 	for b in buildings:
 		if b.kind=="windmill":
@@ -214,7 +222,7 @@ func chop_tree(cell: Vector2i) -> bool:
 
 func rebuild_visit(new_state: RefCounted) -> void:
 	for child in get_children(): child.free()
-	for field in [people,villagers,routes,buildings,sites,road_segments,road_cells,water_cells,mountain_cells,solid_cells,reserved_cells,fence_cells,gate_cells,trees,bushes,particles,story_destinations,conversation_holds,indoor_departures,tree_damage]: field.clear()
+	for field in [people,villagers,routes,buildings,sites,road_segments,road_cells,paved_cells,yard_fences,yard_gates,garden_cells,water_cells,mountain_cells,solid_cells,reserved_cells,fence_cells,gate_cells,trees,bushes,particles,story_destinations,conversation_holds,indoor_departures,tree_damage]: field.clear()
 	scenery_layer=null
 	moving_layer=null
 	crop_signature=0
@@ -282,6 +290,9 @@ func _build_layout() -> void:
 	_claim(Rect2i(Grid.world_to_cell(site_position("sign")),Vector2i.ONE),"sign")
 	_claim(Rect2i(Grid.world_to_cell(site_position("radio")),Vector2i.ONE),"radio")
 	_claim(Rect2i(SQUARE.position+Vector2i(2,3),Vector2i(2,1)),"fountain")
+	_claim(Rect2i(60,50,2,1),"bulletin board")
+	var board_position=Grid.center(Vector2i(61,51))
+	sites.append({"id":"bulletin_board","cell":Vector2i(61,51),"x":board_position.x,"y":board_position.y,"label":"Read local postings"})
 	for cell in Neighbors.FLOWERS: _claim(Rect2i(cell,Vector2i.ONE),"flowerbed")
 	for cell in Neighbors.BENCHES:
 		_claim(Rect2i(cell,Vector2i(2,1)),"bench")
@@ -316,13 +327,8 @@ func _build_layout() -> void:
 		gate_cells.append(Vector2i(14,y))
 	for y in range(FARM_CELL.y-1,FARM_CELL.y+5): fence_cells.append(Vector2i(FARM_CELL.x-1,y))
 	for cell in fence_cells: _claim(Rect2i(cell,Vector2i.ONE),"fence")
-	for route in ROAD_ROUTES+Neighbors.ROUTES:
-		for i in range(route.size()-1):
-			var a=route[i]
-			var b=route[i+1]
-			road_segments.append([Grid.center(a),Grid.center(b),Grid.TILE_SIZE*0.5])
-			for y in range(mini(a.y,b.y),maxi(a.y,b.y)+1):
-				for x in range(mini(a.x,b.x),maxi(a.x,b.x)+1): road_cells[Vector2i(x,y)]=true
+	TownPaths.yards(self)
+	TownPaths.build(self)
 	var approach=FARMHOUSE_APPROACH
 	for i in range(approach.size()-1): road_segments.append([Grid.center(approach[i]),Grid.center(approach[i+1]),7.0])
 	for path in Coast.PATHS:
@@ -383,6 +389,11 @@ func update_villagers(dt: float,snap: bool=false) -> void:
 			stop={"cell":Grid.SPAWN_CELL+offset,"sleeping":false,"room":"home" if state.location=="home" and state.total()>=visit-8 else ""}
 		if state.abandoned_day.get(id,0)==state.day: stop=Schedule.home_stop(id)
 		if story_destinations.has(id): stop=story_destinations[id]
+		elif stop.get("room","")!="":
+			for building in buildings:
+				if building.id==stop.room:
+					stop.cell=building.cell+Vector2i(int(building.tiles.x/2),building.tiles.y)
+					break
 		var actor: Node2D=villagers[id]
 		var previous=actor.position
 		var target=Grid.center(stop.cell)
@@ -412,6 +423,7 @@ func _prop(kind: String, pos: Vector2, data: Dictionary) -> Prop:
 		moving_layer.y_sort_enabled=true
 		add_child(moving_layer)
 	var p = Prop.new()
+	data.season=state.season_name()
 	p.owner_world = self
 	p.kind = kind
 	p.data = data
@@ -420,6 +432,14 @@ func _prop(kind: String, pos: Vector2, data: Dictionary) -> Prop:
 	return p
 
 func refresh() -> void:
+	var season=state.season_name()
+	if rendered_season!=season:
+		rendered_season=season
+		_build_terrain()
+		for child in scenery_layer.get_children():
+			if child is Prop:
+				child.data.season=season
+				child.queue_redraw()
 	var daylight=smoothstep(330.0,420.0,state.minute)*(1.0-smoothstep(1110.0,1200.0,state.minute))
 	night_tint.color=Color(0.32,0.42,0.92).lerp(Color.WHITE,daylight)
 	var ripe_mask=0
@@ -548,6 +568,7 @@ func coastal_fishing(p: Vector2) -> Dictionary:
 	return Coast.fishing_site(self,p)
 
 func _clearing(p: Vector2) -> bool:
+	if Grid.rect(CART_CELLS.position-Vector2i.ONE,CART_CELLS.size+Vector2i(2,2)).has_point(p): return true
 	if Grid.rect(JETTY_CELLS.position,JETTY_CELLS.size).grow(64).has_point(p): return true
 	if Grid.rect(FARM_CELL-Vector2i(2,5),Vector2i(15,14)).has_point(p) or Grid.rect(SQUARE.position-Vector2i(5,6),Vector2i(18,17)).has_point(p) or Rect2(Grid.center(SHIP_CELL)-Vector2(120,100),Vector2(240,230)).has_point(p) or Grid.rect(OUTCROP_CELLS.position,OUTCROP_CELLS.size).grow(100).has_point(p): return true
 	for b in buildings:
@@ -557,6 +578,7 @@ func _clearing(p: Vector2) -> bool:
 	return in_water(p)
 
 func _build_terrain() -> void:
+	rendered_season=state.season_name()
 	var image = Image.create(int(SIZE.x),int(SIZE.y),false,Image.FORMAT_RGBA8)
 	image.fill(Color("748c53"))
 	var random = RandomNumberGenerator.new()
@@ -566,9 +588,12 @@ func _build_terrain() -> void:
 	if Art.option==2:
 		Art.load_atlas()
 		for y in range(Grid.MAP_SIZE.y):
-			for x in range(Grid.MAP_SIZE.x): image.blit_rect(Art.tile_image("grass"+str(random.randi_range(0,3))),Rect2i(0,0,32,32),Vector2i(x,y)*32)
+			for x in range(Grid.MAP_SIZE.x): image.blit_rect(Art.tile_image(Art.seasonal("tile_grass"+str(random.randi_range(0,3)),state.season_name()).trim_prefix("tile_")),Rect2i(0,0,32,32),Vector2i(x,y)*32)
 	_paint_grounding(image,random)
 	_paint_roads(image,random)
+	for cell in paved_cells:
+		if cell.x<0 or solid_cells.has(cell): continue
+		image.blit_rect(Art.tile_image("paving"+str(posmod(cell.x+cell.y,2))),Rect2i(0,0,32,32),cell*32)
 	_paint_water(image)
 	var decorated_cells={}
 	for i in range(8400):
@@ -643,6 +668,7 @@ func _paint_roads(image: Image,random: RandomNumberGenerator) -> void:
 		for y in range(int(bounds.position.y/2.0)*2,int(bounds.end.y)+2,2):
 			for x in range(int(bounds.position.x/2.0)*2,int(bounds.end.x)+2,2):
 				var p=Vector2(x+1,y+1)
+				if solid_cells.has(Grid.world_to_cell(p)): continue
 				var distance=p.distance_to(Geometry2D.get_closest_point_to_segment(p,segment[0],segment[1]))
 				var roughness=sin(x*0.071)*1.5+sin(y*0.113)*1.3
 				var core=maxf(2.0,segment[2]-3.0+roughness)

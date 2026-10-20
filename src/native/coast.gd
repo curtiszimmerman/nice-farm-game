@@ -8,8 +8,9 @@ const PLATFORM=Rect2i(-26,48,7,7)
 const LIGHTHOUSE=Rect2i(-25,48,3,3)
 const TIP=Rect2i(-26,51,3,4)
 const PATHS=[
-	[Vector2i(13,45),Vector2i(7,45),Vector2i(7,50),Vector2i(2,50),Vector2i(2,52),Vector2i(0,52)],
-	[Vector2i(21,53),Vector2i(23,53),Vector2i(23,71),Vector2i(33,71),Vector2i(33,81),Vector2i(42,81)]
+	[Vector2i(13,45),Vector2i(14,45),Vector2i(14,54),Vector2i(7,54),Vector2i(7,50),Vector2i(2,50),Vector2i(2,52),Vector2i(0,52)],
+	[Vector2i(21,53),Vector2i(21,61),Vector2i(23,61),Vector2i(23,71),Vector2i(33,71),Vector2i(33,83),Vector2i(42,83),Vector2i(42,81)],
+	[Vector2i(33,83),Vector2i(29,83),Vector2i(29,80)]
 ]
 
 static func shoreline(row: int,seed_value: int) -> int:
@@ -46,7 +47,7 @@ static func build_texture(world: Node2D) -> ImageTexture:
 	for y in range(Grid.MAP_SIZE.y):
 		var shore=shoreline(y,world.state.world_seed)
 		for x in range(shore,0):
-			var tile=Art.tile_image("grass"+str(rng.randi_range(0,3))).duplicate()
+			var tile=Art.tile_image(Art.seasonal("tile_grass"+str(rng.randi_range(0,3)),world.state.season_name()).trim_prefix("tile_")).duplicate()
 			if x-shore<2:
 				for py in range(32):
 					for px in range(32): tile.set_pixel(px,py,tile.get_pixel(px,py).lerp(Color("c6b48d"),0.8 if x==shore else 0.38))
