@@ -8,8 +8,7 @@ static func explore(game: Node2D,meet_moss: bool=false) -> void:
 	game.state.welcome_phase="complete"
 	game.state.player_position=game.Grid.center(game.Grid.SPAWN_CELL)
 	if meet_moss:
-		game.talk("moss")
-		while game.window_open: game.ui.modal_box.get_child(3).pressed.emit()
+		game.state.invite_mayor()
 	game.world.refresh()
 
 static func tools(state: RefCounted) -> void:
@@ -19,3 +18,13 @@ static func tools(state: RefCounted) -> void:
 	state.selected_slot=1
 	state.refill_water()
 	state.selected_slot=0
+
+static func finish_welcome(game: Node2D) -> void:
+	while game.state.welcome_phase=="escorting": game._process(0.1)
+	game.state.storage_transfer("cabinet",0)
+	for task in game.state.house_tasks: game.tidy_farmhouse(task)
+	game._process(8)
+	while game.state.welcome_phase!="complete":
+		if game.window_open: game.ui.modal_box.get_child(3).pressed.emit()
+		else: game._process(0.25)
+	game.leave_building()

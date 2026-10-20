@@ -31,6 +31,7 @@ func run() -> void:
 	check(game.window_open and game.ui.modal_box.get_child(1).text=="Moss","proximity opens neighbor conversation")
 	for i in range(3): game.ui.modal_box.get_child(3).pressed.emit()
 	check(game.state.invited and not game.window_open,"dialogue choice records the same-day appointment")
+	preload("fixture.gd").finish_welcome(game)
 	game.state.player_position=game.world.plot_position(0)+Vector2.UP*game.world.Grid.TILE_SIZE
 	for slot in [0,3,1]:
 		game.select_quick_slot(slot)
@@ -75,6 +76,7 @@ func run() -> void:
 	game.interact()
 	check(game.state.get(caught)==1 and game.activity=="","fishing timing rewards the hooked species")
 	game.state.day=2
+	game.state.met_mayor=false
 	game.state.minute=719
 	game.state.mayor_due=2160
 	game.state.player_position=game.world.site_position("bed")+Vector2(0,32)

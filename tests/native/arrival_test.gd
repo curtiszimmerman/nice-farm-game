@@ -39,6 +39,7 @@ func run() -> void:
 	check(game.window_open and game.ui.modal_box.get_child(1).text=="Moss","the descent introduces Moss behind the farmhouse")
 	while game.window_open: game.ui.modal_box.get_child(3).pressed.emit()
 	check(game.state.invited and game.state.mayor_due-game.state.total()==120,"Moss leaves to fetch the mayor for a visit two hours later")
+	while game.state.welcome_phase=="escorting": game._process(0.1)
 	game.journal()
 	check("Wait inside" in game.ui.modal_box.get_child(2).text and not "Tomorrow" in game.ui.modal_box.get_child(2).text,"field notes explain the required first visit")
 	game.close_window()

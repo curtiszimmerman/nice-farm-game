@@ -22,6 +22,7 @@ var objective: Label
 var next_task: Label
 var hint: Label
 var message: Label
+var message_panel: PanelContainer
 var vitality: Label
 var attunement: Label
 var purse: Label
@@ -110,9 +111,21 @@ func _ready() -> void:
 	hint = _label("",Vector2(340,559),15,CREAM,true)
 	hint.size.x = 600
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	message = _label("",Vector2(340,117),16,CREAM,true)
-	message.size = Vector2(600,70)
+	message_panel=PanelContainer.new()
+	message_panel.position=Vector2(320,112)
+	message_panel.size=Vector2(640,76)
+	var border=style(Color("172d30f5"),GOLD)
+	border.content_margin_left=20
+	border.content_margin_right=20
+	border.content_margin_top=14
+	border.content_margin_bottom=14
+	message_panel.add_theme_stylebox_override("panel",border)
+	message_panel.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	root.add_child(message_panel)
+	message = _label("",Vector2.ZERO,18,CREAM,true,message_panel)
+	message.custom_minimum_size=Vector2(600,45)
 	message.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	message.vertical_alignment=VERTICAL_ALIGNMENT_CENTER
 	message.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	action_meter = RhythmGauge.new()
 	action_meter.position = Vector2(500,516)
@@ -404,6 +417,8 @@ func toggle_log() -> void:
 	log_toggle.text=("▾" if log_expanded else "▸")+" CREW LOG"
 
 func update() -> void:
+	game.state.clear_empty_slots()
+	message_panel.visible=not message.text.is_empty()
 	var s = game.state
 	for i in range(8):
 		var id: String=s.quick_slots[i]

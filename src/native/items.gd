@@ -1,5 +1,7 @@
 extends RefCounted
 
+const Art=preload("res://art.gd")
+
 const FOOD={"turnips":{"health":8,"energy":12,"mana":0},"fish":{"health":5,"energy":8,"mana":0},"star_bulbs":{"health":0,"energy":0,"mana":15},"health_elixir":{"health":25,"energy":0,"mana":0},"fish_sticks":{"health":12,"energy":20,"mana":0},"fish_stew":{"health":20,"energy":30,"mana":15},"rations":{"health":0,"energy":15,"mana":0},"moon_pike":{"health":7,"energy":10,"mana":0},"sea_sprat":{"health":4,"energy":6,"mana":0},"blue_mackerel":{"health":5,"energy":8,"mana":0},"storm_eel":{"health":8,"energy":12,"mana":0}}
 const FISH={"fish":{"habitat":"pond","hard":false,"price":10,"color":"9dbcc0"},"moon_pike":{"habitat":"pond","hard":true,"price":35,"color":"a8ad7b"},"sea_sprat":{"habitat":"ocean","hard":false,"price":12,"color":"c1c7b2"},"blue_mackerel":{"habitat":"ocean","hard":false,"price":16,"color":"729ab6"},"storm_eel":{"habitat":"ocean","hard":true,"price":50,"color":"a58bb6"}}
 
@@ -13,8 +15,8 @@ const CATALOG={
 	"blue_mackerel":{"name":"Blue mackerel","description":"A striped coastal fish. Easy to catch; suitable for cooking.","action":"Cooking ingredient · sell for 16 crowns"},
 	"storm_eel":{"name":"Storm eel","description":"An erratic, valuable ocean catch. Difficult to land; suitable for cooking.","action":"Cooking ingredient · sell for 50 crowns"},
 	"light_bulbs":{"name":"Light bulb","description":"A replacement bulb for the farmhouse bathroom or living room.","action":"Use at a broken light fixture"},
-	"pot":{"name":"Cooking pot","description":"Unlocks fish stew at your farmhouse stove.","action":"Cooking equipment"},
-	"pan":{"name":"Frying pan","description":"Unlocks fish sticks at your farmhouse stove.","action":"Cooking equipment"},
+	"pot":{"name":"Cooking pot","description":"Keep in your satchel or kitchen cabinet to cook fish stew at the oven.","action":"Cooking equipment"},
+	"pan":{"name":"Frying pan","description":"Keep in your satchel or kitchen cabinet to cook fish sticks at the oven.","action":"Cooking equipment"},
 	"fish_sticks":{"name":"Fish sticks","description":"Crisp pan-fried fish. A cooked meal for you or Vale.","action":"Eat"},
 	"fish_stew":{"name":"Fish stew","description":"Fish, moon turnip and star bulb in a warm broth.","action":"Eat"},
 	"health_elixir":{"name":"Elixir of health","description":"Restores 25 health.","action":"Drink"},
@@ -33,6 +35,14 @@ const CATALOG={
 static var textures: Dictionary={}
 
 static func icon(id: String) -> Texture2D:
+	if Art.option==2:
+		var key="sprite_"+id
+		if not textures.has(key):
+			var texture=AtlasTexture.new()
+			texture.region=Art.region("item_"+id)
+			texture.atlas=Art.atlas
+			textures[key]=texture
+		return textures[key]
 	if textures.has(id): return textures[id]
 	var image=Image.create(24,24,false,Image.FORMAT_RGBA8)
 	image.fill(Color.TRANSPARENT)

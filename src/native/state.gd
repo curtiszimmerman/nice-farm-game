@@ -128,7 +128,13 @@ func take_crew_meal() -> bool:
 func ripe(index: int) -> bool:
 	return index >= 0 and index < plots.size() and plots[index].planted >= 0.0 and plots[index].watered and total() - plots[index].planted+plots[index].growth >= CROP_MINUTES
 
-func active_item() -> String: return quick_slots[selected_slot]
+func clear_empty_slots() -> void:
+	for i in range(quick_slots.size()):
+		if quick_slots[i]!="" and quick_slots[i]!="wildgrowth" and int(get(quick_slots[i]))<1: quick_slots[i]=""
+
+func active_item() -> String:
+	clear_empty_slots()
+	return quick_slots[selected_slot]
 
 func assign_slot(index: int,id: String) -> bool:
 	if id=="wildgrowth" and not magic_learned: return false
@@ -176,6 +182,7 @@ func tend(index: int) -> String:
 		if int(get(selected_seed)) == 0:
 			return "Out of seeds. Tavi sells more at the town market."
 		set(selected_seed,int(get(selected_seed))-1)
+		clear_empty_slots()
 		p.crop="star_bulbs" if selected_seed=="star_seeds" else "turnips"
 		p.planted = total()
 		return "%s planted. A little water next." % Items.CATALOG[p.crop].name
@@ -205,6 +212,7 @@ func sell() -> bool:
 	turnips = 0
 	for id in Items.FISH: set(id,0)
 	star_bulbs=0
+	clear_empty_slots()
 	return true
 
 func sale_value() -> int:
@@ -231,6 +239,7 @@ func consume(id: String) -> bool:
 	var food=Items.FOOD[id]
 	if (health>=100 or food.health==0) and (energy>=100 or food.energy==0) and (mana>=60 or food.mana==0): return false
 	set(id,int(get(id))-1)
+	clear_empty_slots()
 	health=minf(100,health+food.health)
 	energy=minf(100,energy+food.energy)
 	mana=minf(60,mana+food.mana)
@@ -272,6 +281,7 @@ func storage_transfer(storage_name: String,index: int,carried_id: String="",quan
 		elif not stored.is_empty(): set(stored.id,int(get(stored.id))+int(stored.count))
 		storage[index]={"id":carried_id,"count":amount}
 	if equipped!="" and int(get(equipped))==0: equipped=""
+	clear_empty_slots()
 	if storage_name=="ship_storage" and crew_fed_day<day and take_crew_meal():
 		crew_fed_day=day
 		crew_hungry_days=maxi(0,crew_hungry_days-1)
@@ -292,6 +302,7 @@ func tidy_house(task: String) -> bool:
 		if light_bulbs<1: return false
 		light_bulbs-=1
 	house_tasks[task]=true
+	clear_empty_slots()
 	return true
 
 func buy_utensil(id: String) -> bool:
@@ -315,7 +326,7 @@ func ingredient_ids(id: String) -> Array:
 func cook(id: String) -> bool:
 	if not RECIPES.has(id): return false
 	var recipe=RECIPES[id]
-	if recipe.utensil not in purchased_utensils: return false
+	if ingredient_count(recipe.utensil)<1: return false
 	for ingredient in recipe.ingredients:
 		if ingredient_count(ingredient)<recipe.ingredients[ingredient]: return false
 	var slots=carried_slots()+(1 if int(get(id))==0 else 0)
@@ -342,6 +353,7 @@ func cook(id: String) -> bool:
 			remaining-=take
 			if stack.count==0: stack.clear()
 	set(id,int(get(id))+1)
+	clear_empty_slots()
 	return true
 
 func invite_mayor() -> void:
@@ -400,7 +412,7 @@ func restore(data: Variant) -> bool:
 	if not data.get("cave_barrel") is Array or data.cave_barrel.size()!=4: return false
 	for stack in data.cave_barrel:
 		if not valid_stack(stack): return false
-	if not data.get("ship_departed") is bool or data.get("welcome_phase") not in ["unvisited","waiting","meeting","departing","moss_lesson","complete"] or not _number(data.get("welcome_elapsed")) or data.welcome_elapsed<0: return false
+	if not data.get("ship_departed") is bool or data.get("welcome_phase") not in ["unvisited","escorting","waiting","meeting","departing","moss_lesson","complete"] or not _number(data.get("welcome_elapsed")) or data.welcome_elapsed<0: return false
 	if not data.get("intro_complete") is bool or not data.get("briefing_complete") is bool or not _number(data.get("mayor_due")) or data.mayor_due< -1: return false
 	if not data.get("house_tasks") is Dictionary or data.house_tasks.size()!=house_tasks.size(): return false
 	for task in house_tasks:

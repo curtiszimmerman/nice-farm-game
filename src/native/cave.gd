@@ -179,6 +179,13 @@ func collect_chrysalis() -> bool:
 	return true
 
 func _draw() -> void:
+	if Art.option==2:
+		draw_rect(Rect2(-400,-400,ROOM_SIZE.x+800,ROOM_SIZE.y+800),Color("20282e"))
+		for cell in floor_cells: Art.tile(self,"cave"+str(posmod(cell.x+cell.y,4)),cell)
+		for cell in solid_cells:
+			if solid_cells[cell]=="wall" and floor_cells.has(cell+Vector2i.DOWN): Art.tile(self,"cliff8",cell)
+		Art.tile(self,"jetty",layout.exit)
+		return
 	r(self,-400,-400,ROOM_SIZE.x+800,ROOM_SIZE.y+800,"20282e")
 	for y in range(ROOM_CELLS.y):
 		for x in range(ROOM_CELLS.x):
@@ -198,6 +205,10 @@ func _draw() -> void:
 	for i in range(4): r(self,exit.x+3,exit.y+i*7,26,2,"c0bca0")
 
 func paint_effects(c: CanvasItem) -> void:
+	if Art.option==2:
+		Art.particles(self,c)
+		if swing_cooldown>.15: Art.sprite(c,"spark"+str(int(elapsed*30)%6),state.player_position-Vector2(8,25))
+		return
 	for p in particles:
 		var color=Color(p.color)
 		color.a=minf(1,p.life)
@@ -211,6 +222,11 @@ func paint_effects(c: CanvasItem) -> void:
 		c.draw_polyline(points,Color("ebd7a4aa"),2)
 
 func paint_object(c: CanvasItem,info: Dictionary) -> void:
+	if Art.option==2:
+		var id="copper" if info.kind=="rock" and info.ore else "rock" if info.kind=="rock" else "rat"+str(int(elapsed*6)%3) if info.kind=="rat" else info.kind
+		var size=Art.region(id).size
+		Art.sprite(c,id,Vector2(-size.x/2,-size.y+8))
+		return
 	match info.kind:
 		"rock":
 			oval(c,0,8,16,8,"28353b88")

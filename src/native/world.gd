@@ -1,10 +1,11 @@
 extends Node2D
 
 const Grid = preload("res://grid.gd")
+const Art = preload("res://art.gd")
 const Schedule = preload("res://villager_schedule.gd")
 const SQUARE = Rect2i(59,44,6,6)
 const SIZE = Grid.WORLD_SIZE
-const FARM_CELL = Vector2i(9,46)
+const FARM_CELL = Vector2i(9,48)
 const OUTCROP_CELLS = Rect2i(90,69,9,5)
 const COPPER_CELLS = Rect2i(90,74,9,1)
 const MINE_RIDGE = Rect2i(97,65,3,4)
@@ -15,7 +16,7 @@ const SHIP_CELL = Vector2i(11,12)
 const SHIP_MOUNTAIN=Rect2i(4,5,18,24)
 const DESCENT_AREAS=[Rect2i(8,9,7,7),Rect2i(11,15,2,5),Rect2i(11,18,6,2),Rect2i(15,18,2,6),Rect2i(13,22,4,2),Rect2i(13,22,2,6),Rect2i(13,28,1,1)]
 const DESCENT_EXIT=Vector2i(13,28)
-const MOSS_ENCOUNTER_CELL=Vector2i(18,41)
+const MOSS_ENCOUNTER_CELL=Vector2i(13,30)
 const POND_CELL = Vector2i(17,67)
 const JETTY_CELLS = Rect2i(20,65,3,1)
 const CART_CELLS = Rect2i(65,45,3,1)
@@ -31,7 +32,7 @@ const PEOPLE = [
 	{"id":"assistant","name":"Neral","role":"MAYOR'S ASSISTANT · DARK ELF","cell":Vector2i(54,46),"coat":"61758a","hair":"c7cbcd","skin":"65566d","elf":true}
 ]
 const BUILDINGS = [
-	{"cell":Vector2i(10,37),"tiles":Vector2i(7,5),"roof":"a65e50","kind":"home"},
+	{"cell":Vector2i(10,39),"tiles":Vector2i(7,5),"roof":"a65e50","kind":"home"},
 	{"cell":Vector2i(52,34),"tiles":Vector2i(5,4),"roof":"5b8990","kind":"radio"},
 	{"cell":Vector2i(65,40),"tiles":Vector2i(5,4),"roof":"ad7956","kind":"store"},
 	{"cell":Vector2i(52,42),"tiles":Vector2i(5,4),"roof":"818a60","kind":"hall"},
@@ -45,8 +46,8 @@ const BUILDINGS = [
 ]
 const SITES = [
 	{"id":"ship_entry","cell":Vector2i(11,14),"door":"ship","label":"Enter cloaked ship"},
-	{"id":"bed","cell":Vector2i(13,42),"label":"Rest at the farmhouse"},
-	{"id":"chest","cell":Vector2i(17,42),"label":"Open farmhouse chest"},
+	{"id":"bed","cell":Vector2i(13,44),"label":"Rest at the farmhouse"},
+	{"id":"chest","cell":Vector2i(17,44),"label":"Open farmhouse chest"},
 	{"id":"pond","cell":Vector2i(21,65),"label":"Fish from the jetty"},
 	{"id":"ore","cell":Vector2i(94,74),"door":"cave","label":"Enter copper cave"},
 	{"id":"sparkfire","cell":Vector2i(58,16),"label":"Inspect woodland plant"},
@@ -54,8 +55,8 @@ const SITES = [
 	{"id":"radio","cell":Vector2i(55,39),"label":"Listen to the radio"}
 ]
 const ROAD_ROUTES = [
-	[Vector2i(13,42),Vector2i(14,42),Vector2i(14,53)],
-	[Vector2i(14,43),Vector2i(50,43),Vector2i(50,46),Vector2i(59,46)],
+	[Vector2i(13,44),Vector2i(14,44),Vector2i(14,53)],
+	[Vector2i(14,45),Vector2i(50,45),Vector2i(50,46),Vector2i(59,46)],
 	[Vector2i(57,40),Vector2i(57,57),Vector2i(87,57),Vector2i(87,74),Vector2i(94,74)],
 	[Vector2i(21,53),Vector2i(57,53)],
 	[Vector2i(21,53),Vector2i(21,65)],
@@ -86,6 +87,7 @@ var solid_cells: Dictionary = {}
 var reserved_cells: Dictionary = {}
 var fence_cells: Array[Vector2i] = []
 var trees: Array = []
+var bushes: Array=[]
 var terrain: ImageTexture
 var road_mask: Image
 var night_tint: CanvasModulate
@@ -116,6 +118,7 @@ class Prop extends Node2D:
 		elif kind == "crops": owner_world.paint_crops(self)
 		elif kind == "effects": owner_world.paint_effects(self)
 		elif kind == "sparkfire": owner_world.paint_sparkfire(self,data.get("bloom",false))
+		elif kind == "bush": Art.sprite(self,"bush"+str(data.variant),Vector2(-32,-42))
 
 func _ready() -> void:
 	y_sort_enabled = true
@@ -123,6 +126,18 @@ func _ready() -> void:
 	add_child(night_tint)
 	_build_layout()
 	_build_terrain()
+	for cell in [Vector2i(8,29),Vector2i(10,29),Vector2i(16,29),Vector2i(18,29),Vector2i(7,31),Vector2i(19,32)]:
+		if solid_cells.has(cell): continue
+		reserved_cells[cell]=true
+		bushes.append(cell)
+		_prop("bush",Grid.center(cell),{"variant":posmod(cell.x+cell.y,4)})
+	for y in range(24,37):
+		for x in range(4,28):
+			var cell=Vector2i(x,y)
+			if solid_cells.has(cell) or reserved_cells.has(cell) or posmod(x*17+y*11,4)!=0: continue
+			reserved_cells[cell]=true
+			bushes.append(cell)
+			_prop("bush",Grid.center(cell),{"variant":posmod(x+y,4)})
 	var random = RandomNumberGenerator.new()
 	random.seed = 41
 	for i in range(1800):
@@ -167,7 +182,7 @@ func _build_layout() -> void:
 				var cell=Vector2i(x,y)
 				solid_cells.erase(cell)
 				reserved_cells[cell]=true
-	for y in range(29,44):
+	for y in range(29,46):
 		for x in range(8,20): reserved_cells[Vector2i(x,y)]=true
 	for item in PEOPLE:
 		var p=item.duplicate(true)
@@ -201,7 +216,7 @@ func _build_layout() -> void:
 	_claim(OUTCROP_CELLS,"rock")
 	_claim(MINE_RIDGE,"rock")
 	_claim(CART_CELLS,"cart")
-	_claim(Rect2i(Vector2i(17,42),Vector2i.ONE),"chest")
+	_claim(Rect2i(Vector2i(17,44),Vector2i.ONE),"chest")
 	for cell in LAMP_CELLS: _claim(Rect2i(cell,Vector2i.ONE),"lamp")
 	_claim(Rect2i(Grid.world_to_cell(site_position("sign")),Vector2i.ONE),"sign")
 	_claim(Rect2i(Grid.world_to_cell(site_position("radio")),Vector2i.ONE),"radio")
@@ -336,7 +351,7 @@ func _prop(kind: String, pos: Vector2, data: Dictionary) -> Prop:
 	p.kind = kind
 	p.data = data
 	p.position = pos
-	(scenery_layer if kind in ["tree","building"] else moving_layer).add_child(p)
+	(scenery_layer if kind in ["tree","building","bush"] else moving_layer).add_child(p)
 	return p
 
 func refresh() -> void:
@@ -365,6 +380,8 @@ func prop_hides_player(prop: Prop) -> bool:
 	if state.player_position.y>=prop.position.y: return false
 	var bounds: Rect2
 	if prop.kind=="tree":
+		if Art.option==2:
+			return Rect2(prop.position+Vector2(-48,-Art.region(Art.tree_id(prop.data)).size.y),Vector2(96,Art.region(Art.tree_id(prop.data)).size.y)).has_point(state.player_position-Vector2(0,20))
 		var scale_factor=prop.data.size
 		bounds=Rect2(prop.position+Vector2(-34,-92)*scale_factor,Vector2(68,94)*scale_factor)
 	elif prop.kind=="building":
@@ -446,12 +463,16 @@ func _clearing(p: Vector2) -> bool:
 	return in_water(p)
 
 func _build_terrain() -> void:
-	var image = Image.create(int(SIZE.x),int(SIZE.y),false,Image.FORMAT_RGB8)
+	var image = Image.create(int(SIZE.x),int(SIZE.y),false,Image.FORMAT_RGBA8)
 	image.fill(Color("748c53"))
 	var random = RandomNumberGenerator.new()
 	random.seed = 73
 	var colors = [Color("7a9258"),Color("6f884f"),Color("83975d"),Color("81965a")]
 	for i in range(180000): image.fill_rect(Rect2i(random.randi_range(0,int(SIZE.x)-5),random.randi_range(0,int(SIZE.y)-3),random.randi_range(2,5),2),colors[i%4])
+	if Art.option==2:
+		Art.load_atlas()
+		for y in range(Grid.MAP_SIZE.y):
+			for x in range(Grid.MAP_SIZE.x): image.blit_rect(Art.pixels,Rect2i(Art.region("tile_grass"+str(posmod(x*3+y,4)))),Vector2i(x,y)*32)
 	_paint_grounding(image,random)
 	_paint_roads(image,random)
 	_paint_water(image)
@@ -553,6 +574,9 @@ func oval(c: CanvasItem, x: float,y: float,rx: float,ry: float,color: String) ->
 	c.draw_colored_polygon(points,Color(color))
 
 func _draw() -> void:
+	if Art.option==2:
+		if terrain: Art.outdoors(self)
+		return
 	# Raised terrain and paths share their boundaries with the solid-cell map.
 	if not terrain: return
 	draw_texture(terrain,Vector2.ZERO)
@@ -763,6 +787,7 @@ func paint_rock_mass(c: CanvasItem,base: Vector2,w: int,h: int,seed_value: int) 
 		r(c,base.x+x+2,base.y-8,3,5,"899b70")
 
 func paint_tree(c: CanvasItem, data: Dictionary) -> void:
+	if Art.option==2: Art.tree(c,data); return
 	var s = data.size
 	oval(c,7,6,28*s,10*s,"263d3450")
 	r(c,-5*s,-38*s,11*s,40*s,"6d6547")
@@ -783,6 +808,7 @@ func paint_tree(c: CanvasItem, data: Dictionary) -> void:
 	r(c,8*s,-46*s,5*s,3*s,"779453")
 
 func paint_building(c: CanvasItem, b: Dictionary) -> void:
+	if Art.option==2: Art.building(c,b); return
 	var w = b.w
 	var h = b.get("visual_height",b.h)
 	var y = -h
@@ -894,6 +920,7 @@ func paint_building(c: CanvasItem, b: Dictionary) -> void:
 		c.draw_string(ThemeDB.fallback_font,Vector2(50,-92),"PROVISIONS",HORIZONTAL_ALIGNMENT_LEFT,-1,9,Color("e9d7ad"))
 
 func paint_person(c: CanvasItem, p: Dictionary, step: float, direction: String) -> void:
+	if Art.option==2: Art.person(c,p,step,direction); return
 	if p.get("sleeping",false):
 		var pillow_y=-float(p.get("bed_height",64))+20
 		# The body runs down the mattress beneath its blanket.
@@ -946,6 +973,7 @@ func paint_person(c: CanvasItem, p: Dictionary, step: float, direction: String) 
 			r(c,12,-5,3,8,"796448")
 
 func paint_sparkfire(c: CanvasItem,bloom: bool) -> void:
+	if Art.option==2: Art.sprite(c,"sparkfire_bloom" if bloom else "sparkfire",Vector2(-16,-42)); return
 	oval(c,0,1,12,5,"465c4355")
 	r(c,-1,-18,3,20,"526d43")
 	for p in [Vector2(-7,-10),Vector2(7,-6),Vector2(-4,-3)]:
@@ -957,6 +985,7 @@ func paint_sparkfire(c: CanvasItem,bloom: bool) -> void:
 		oval(c,0,-20,4,4,"fff0a3")
 
 func paint_crops(c: CanvasItem) -> void:
+	if Art.option==2: Art.crops(self,c); return
 	for i in range(20):
 		var p = state.plots[i]
 		var pos = plot_position(i)
@@ -986,6 +1015,7 @@ func paint_crops(c: CanvasItem) -> void:
 			if p.watered: r(c,x+9,y+7,2,2,"8aa8a2")
 
 func paint_effects(c: CanvasItem) -> void:
+	if Art.option==2: Art.effects(self,c); return
 	for p in people:
 		if not villagers[p.id].visible: continue
 		var pos = villagers[p.id].position

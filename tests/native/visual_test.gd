@@ -7,7 +7,7 @@ func _initialize() -> void:
 	call_deferred("run")
 
 func capture(label: String) -> void:
-	game.ui.message.text=""
+	if label!="status-banner": game.ui.message.text=""
 	if game.state.welcome_phase not in ["meeting","departing","moss_lesson"]: game.world.update_villagers(0.0,true)
 	game.nearest=game.world.find_nearest()
 	game.world.refresh()
@@ -28,7 +28,7 @@ func run() -> void:
 	root.add_child(game)
 	game.set_process(false)
 	game.opening.set_process(false)
-	for shot in [[2.0,"opening-space"],[6.0,"opening-bridge"],[11.0,"opening-attack"],[23.6,"opening-whiteout"],[26.5,"opening-aftermath"]]:
+	for shot in [[2.0,"opening-space"],[6.0,"opening-bridge"],[11.0,"opening-attack"],[18.5,"opening-enemy-explodes"],[23.6,"opening-whiteout"],[26.5,"opening-aftermath"]]:
 		game.opening.elapsed=shot[0]
 		game.opening.view.queue_redraw()
 		await capture(shot[1])
@@ -42,6 +42,7 @@ func run() -> void:
 	game._process(0)
 	await capture("moss-first-meeting")
 	while game.window_open: game.ui.modal_box.get_child(3).pressed.emit()
+	while game.state.welcome_phase=="escorting": game._process(0.1)
 	game.enter_building("home")
 	await capture("welcome-waiting")
 	game.state.storage_transfer("cabinet",0)
@@ -63,6 +64,8 @@ func run() -> void:
 	game.world.elapsed=2.0
 	game.ui.message.text=""
 	await capture("farm")
+	game.toast("Watering can filled. Ready for the garden.")
+	await capture("status-banner")
 	game.ui.show_title()
 	await capture("title")
 	game.ui.title_screen.queue_free()

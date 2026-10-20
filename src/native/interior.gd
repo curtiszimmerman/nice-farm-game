@@ -32,6 +32,7 @@ class Wall extends Node2D:
 	var room: Node2D
 	var front=false
 	func _draw() -> void:
+		if Art.option==2: Art.sprite(self,"tile_wall",Vector2(0,-32)); return
 		room.r(self,0,-40,32,40,"3e554e")
 		if front:
 			room.r(self,0,-29,32,27,"75877a")
@@ -213,6 +214,7 @@ func bed_height() -> float:
 	return 64.0
 
 func _draw() -> void:
+	if Art.option==2: Art.interior(self); return
 	r(self,-400,-250,ROOM_SIZE.x+800,ROOM_SIZE.y+500,"263732")
 	for cell in floor_cells:
 		var p=Grid.origin(cell)
@@ -248,6 +250,7 @@ func _draw() -> void:
 		r(self,p.x,p.y+11,28,2,"e3d4ab")
 
 func paint_furniture(c: CanvasItem,item: Dictionary) -> void:
+	if Art.option==2: Art.furniture(c,item); return
 	var w=item.bounds.size.x*32
 	var h=item.bounds.size.y*32
 	if item.kind not in ["rug","art"]:
@@ -394,6 +397,10 @@ func paint_furniture(c: CanvasItem,item: Dictionary) -> void:
 			r(c,w-10,-h-18,8,h+14,"344751")
 
 func paint_display(c: CanvasItem,item: Dictionary) -> void:
+	if Art.option==2:
+		var glitch=fmod(elapsed+item.bounds.position.x*1.7,11)<0.45
+		Art.sprite(c,"display_"+item.kind+str(4 if glitch else int(elapsed*2)%4),Vector2(8,-item.bounds.size.y*32-13),Vector2(maxi(16,item.bounds.size.x*32-20),24))
+		return
 	var w=item.bounds.size.x*32
 	var h=item.bounds.size.y*32
 	match item.kind:
@@ -418,6 +425,7 @@ func paint_display(c: CanvasItem,item: Dictionary) -> void:
 				poly(c,[Vector2(6,-h+12),Vector2(w-15,-h+25),Vector2(12,-7)],"28383e")
 
 func paint_cover(c: CanvasItem,item: Dictionary) -> void:
+	if Art.option==2: Art.cover(c,item); return
 	var w=item.bounds.size.x*32.0
 	var h=item.bounds.size.y*32.0
 	var lift=31 if item.kind=="radio" else 17 if item.kind=="sofa" else 8
@@ -429,6 +437,7 @@ func paint_cover(c: CanvasItem,item: Dictionary) -> void:
 	for i in range(6): r(c,5+posmod(i*13,int(w)-10),-h+posmod(i*7,int(h)-4),2,1,"7d887a")
 
 func paint_effects(c: CanvasItem) -> void:
+	if Art.option==2: Art.indoor_effects(self,c); return
 	if building.id=="home":
 		for task in ["living_light","bathroom_light"]:
 			var p=site_position(task)-Vector2(0,40)

@@ -114,6 +114,16 @@ Rendering uses explicit static scenery and moving-object nodes with recursive y 
 
 All house geometries are individually authored. Reachability checks cover interaction points, NPC work cells, and circulation with bathroom doors closed. A failed route check found blocked doorways behind beds, shelves and dining chairs; furniture positions were corrected instead of weakening the checks. The southern ocean and dock are removed; unused coastal fish remain catalog entries pending approved geography.
 
+## Modular sprites and guided arrival
+
+Z explicitly requested replacing the vector-like composition with actual pixel sprites while preserving option 1. The pre-change art source was archived from 9527b38 before edits in `src/native/art/option1/original-art.tar`. Its renderers remain selectable. Option 2 uses a generated RGBA PNG atlas and JSON regions, loaded once through `art.gd`. `scripts/make_sprites.py` writes only inside the project and uses no external packages. The image-generation tool was not used because its default output path conflicts with Z's no-writes-outside-project rule. Native geometry, collision and retained draw lists remain intact.
+
+Moss now waits at (13,30), below the trail exit, instead of teleporting beside the captain. The farmhouse, front landing, chest, roads and fields move two tiles south. The saved `escorting` welcome phase follows an actual path into the farmhouse with control/time held; it then joins the existing cleanup gate. No save migration was added. The intro now exchanges fire, destroys the attacker and preserves the crew's forced landing; Vale's signal warning precedes the captain's cloak priority.
+
+Empty carried stacks clear their quick-slot references on use, transfer, selling, cooking and interface refresh. Cookware must be physically carried or in the kitchen cabinet, and cooking opens only at the oven. A regression caught selected food taking priority over the oven; oven interaction now opens its menu without consuming the ingredient. Purchase history no longer grants cooking access by itself. Notifications have a bordered, opaque panel.
+
+An early atlas import check exposed an RGB/RGBA blit mismatch, corrected by giving the retained terrain texture the atlas's RGBA format. Native art checks also account for JSON numeric values loading as floats when validating tree dimensions. Asset tests verify PNG bounds, exact tile dimensions, tree contracts and the original-art archive. Full native visual runs inspect both the new sprite work and the preserved render option.
+
 ## Next discussion
 
 Play and critique the slice before expanding it. Decide the next milestone, combat controls and feel, art direction, calendar/lunar rules, and the first actual networked cooperative interaction. Do not mistake placeholder content for approved final story or mechanics.
