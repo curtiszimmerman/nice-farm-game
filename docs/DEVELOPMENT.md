@@ -158,6 +158,20 @@ Outdoor decoration, coastline, grass and interior flooring use the saved world s
 
 Final verification passed 676 native checks, four Python asset checks, startup smoke and the native visual/audio run with clean logs. This includes a real mouse drag from inventory into quick slot 8. Screenshots cover the new paths, shore, jetty, lighthouse rooms and Oren's dialogue. The launcher's preexisting executable-bit change remains uncommitted.
 
+## Two action assignments and town neighbors
+
+Work branch: `wip/actions-and-town-neighbors`. Z requested NPC activation over doors, solid pushable villagers, primary/auxiliary assignments, drag support for learned abilities, equipment silhouette slots, remappable controls, single-player pause by default, compact menu submenus, clear hotbar icons and charges, new coastal/town pixel art, and nine residents with six buildings.
+
+State schema 9 stores the auxiliary assignment separately; primary selection retains the carried/quick-slot model. Skills have their own catalog and availability checks and consume no inventory slots. Empty equipment positions reserve nine armor/accessory slots without inventing armor items. Controls live separately in internal/controls.cfg; duplicate keys swap. All menus and dialogue default to pause_mode=all in the single-player slice. Existing saves remain protected and no migration is added.
+
+NPC bodies take activation priority, can be pushed into clear space, and replan around the player on their way back to schedule stops. Conversations prevent pushing the speaker. The captain walks aside from the farmhouse doorway during visitor arrival so the locked welcome cannot deadlock. Flowerbed and bench placement regressions caught blocked shop access and scheduled town stops; these were corrected. The fountain blocks only its basin row, with sprite spray animation on the moving layer.
+
+The Reed family lives on the eastern farm; the Bell family has a northeastern windmill and separate home. Dain Rusk works at the smithy; Rafe Fen runs the Wayward Wren; Corin Hale bakes and connects the families socially. Nessa visits the Radio Club in afternoons. Shared households use assigned beds. New interiors have private bathrooms and separate furnishing/work areas, including a Reed mudroom, tavern pantry, and bakery bedroom on the opposite side from the smith's. Compactness checks retain the original area bound for existing buildings and budget additional room for shared households and businesses.
+
+The bounded background artwork pass finished at reported cost $1.4232048 with a $2 cap. The first attempt used stale isolated credentials; copying the current credential file into the project-local configuration allowed the retry. All writable paths stayed local. Public prompts, replies and tool traffic are exported in internal/claude-review/town; private reasoning is omitted. New source art is scripts/town_sprites16.py, registered into both packs; each atlas now has 557 sprites. The 32-pixel pack enlarges these new 16-pixel components with nearest-neighbor pixels. The existing launcher executable-bit change remains uncommitted.
+
+Final atlases contain 558 sprites after adding the farmhouse mudroom rug size. Verification passed 806 native checks, four Python asset checks, startup smoke, and the complete native visual/audio run with pristine logs. Real mouse drags assign an axe to slot 8 and Wildgrowth to the auxiliary slot while preserving the primary item. Rebinding tests perform real farm work with the new key, reject the former key and round-trip the settings file. Both atlas rebuilds are deterministic. Screenshots include the character inventory, remapping menu, all new exteriors/interiors, revised lighthouse/jetty, animated plaza and NPC workplaces.
+
 ## Next discussion
 
 Play and critique the slice before expanding it. Decide the next milestone, combat controls and feel, art direction, calendar/lunar rules, and the first actual networked cooperative interaction. Do not mistake placeholder content for approved final story or mechanics.

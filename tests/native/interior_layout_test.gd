@@ -25,7 +25,11 @@ func run() -> void:
 	for b in game.outdoors.buildings:
 		game.enter_building(b.id)
 		var room=game.world
-		if room.ROOM_CELLS.x*room.ROOM_CELLS.y>210: compact=false
+		var beds=room.furnishings.filter(func(item):return item.kind=="bed").size()
+		var budget=210+maxi(0,beds-1)*32
+		if b.id in ["smithy","bakery"]: budget=240
+		if b.id=="tavern": budget=300
+		if room.ROOM_CELLS.x*room.ROOM_CELLS.y>budget: compact=false
 		var shape=JSON.stringify(room.layout)
 		shapes[shape]=true
 		var geometry=[]

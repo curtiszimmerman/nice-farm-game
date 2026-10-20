@@ -7,13 +7,15 @@ var prefix=""
 func _initialize() -> void:
 	call_deferred("run")
 
-func drag_inventory_item(id: String,index: int) -> void:
+func drag_inventory_item(id: String,index: int,channel: String="") -> void:
 	game.inventory()
 	await process_frame
-	var slots=game.ui.inventory_slots.filter(func(slot): return slot.get_meta("item_id","")==id)
+	var sources=game.ui.skill_buttons if game.state.Skills.CATALOG.has(id) else game.ui.inventory_slots
+	var slots=sources.filter(func(slot): return slot.get_meta("item_id","")==id)
 	assert(not slots.is_empty(),"Drag source must be carried")
 	var start: Vector2=slots[0].get_global_rect().get_center()
-	var end: Vector2=game.ui.quick_buttons[index].get_global_rect().get_center()
+	var target=game.ui.quick_buttons[index] if channel=="" else game.ui.active_button if channel=="primary" else game.ui.auxiliary_button
+	var end: Vector2=target.get_global_rect().get_center()
 	var down=InputEventMouseButton.new()
 	down.button_index=MOUSE_BUTTON_LEFT
 	down.pressed=true
@@ -34,8 +36,8 @@ func drag_inventory_item(id: String,index: int) -> void:
 	up.position=end
 	Input.parse_input_event(up)
 	await process_frame
-	assert(game.state.quick_slots[index]==id,"A real GUI drag must assign its destination slot")
-	print("NATIVE DRAG PASSED: ",id," to slot ",index+1)
+	assert((game.state.quick_slots[index] if channel=="" else game.state.active_item(channel))==id,"A real GUI drag must assign its destination slot")
+	print("NATIVE DRAG PASSED: ",id," to ",str(index+1) if channel=="" else channel)
 
 func capture(label: String) -> void:
 	if label!="status-banner": game.ui.message.text=""
@@ -197,7 +199,7 @@ func run() -> void:
 	game.state.player_position=game.world.site_position("radio")+Vector2(32,0)
 	await capture("interior-radio-club")
 	game.leave_building()
-	for id in ["moss","finch","tavi","mayor","assistant","veteran","iona","store","hall"]:
+	for id in ["moss","finch","tavi","mayor","assistant","veteran","iona","store","hall","reed_farm","windmill","mill_home","smithy","tavern","bakery"]:
 		game.enter_building(id)
 		game.state.player_position=game.world.entry_position()
 		await capture("interior-"+id)
@@ -205,6 +207,9 @@ func run() -> void:
 	game.enter_building("store")
 	game.leave_building()
 	await capture("store-exit")
+	for point in [["east-farm",Vector2i(104,48)],["east-fields",Vector2i(104,53)],["windmill",Vector2i(90,30)],["mill-family-home",Vector2i(99,32)],["smithy",Vector2i(79,49)],["tavern",Vector2i(69,39)],["bakery",Vector2i(75,66)]]:
+		game.state.player_position=game.Grid.center(point[1])
+		await capture(point[0])
 	game.state.player_position=game.world.Grid.center(game.world.MOSS_FIELDS.position+Vector2i(3,2))
 	await capture("moss-fields")
 	game.state.player_position=game.world.Grid.center(Vector2i(42,81))
@@ -231,6 +236,14 @@ func run() -> void:
 	while game.window_open: game.ui.modal_box.get_child(3).pressed.emit()
 	await drag_inventory_item("axe",7)
 	await capture("inventory-dragged-axe")
+	game.close_window()
+	var primary=game.state.active_item("primary")
+	await drag_inventory_item("wildgrowth",-1,"aux")
+	assert(game.state.active_item("primary")==primary,"Dragging an auxiliary spell must preserve the primary item")
+	await capture("inventory-two-actions")
+	game.close_window()
+	game.control_settings()
+	await capture("control-bindings")
 	game.close_window()
 	game.sound_settings()
 	await capture("sound-settings")

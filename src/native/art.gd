@@ -107,6 +107,9 @@ static func tree(c: CanvasItem,data: Dictionary) -> void:
 static func person(c: CanvasItem,p: Dictionary,step: float,direction: String) -> void:
 	var frame=0 if absf(step)<0.3 else 1 if step>0 else 2
 	var id=p.get("id","player")
+	if p.get("seated",false):
+		sprite(c,"actor_%s_down0" % id,Vector2(0,-68),Vector2(32,48))
+		return
 	if p.get("sleeping",false):
 		sprite(c,"actor_%s_sleep0" % id,Vector2(-16,-float(p.get("bed_height",64))+4))
 	else: sprite(c,"actor_%s_%s%d" % [id,direction,frame],Vector2(-16,-60))
@@ -125,8 +128,9 @@ static func building(c: CanvasItem,b: Dictionary) -> void:
 		return
 	var columns=int(b.w/32)
 	var rows=maxi(2,int(b.h/32)-2)
+	if b.kind=="windmill": rows=5
 	if b.kind=="tower": rows=4
-	var variant="log" if b.kind=="cabin" else "stone" if b.kind in ["tower","hall"] else "shop" if b.kind=="store" else "plaster"
+	var variant="log" if b.kind in ["cabin","reed_farm"] else "stone" if b.kind in ["tower","hall","smithy"] else "shop" if b.kind in ["store","bakery","tavern"] else "plaster"
 	var door=int(columns/2)
 	for y in range(rows):
 		for x in range(columns):
@@ -146,11 +150,12 @@ static func building(c: CanvasItem,b: Dictionary) -> void:
 			if y==0 and x==columns-1: component="roof_right"
 			tile(c,component,Vector2i(x,y-rows-2),roof_tint(b.roof))
 	tile(c,"chimney",Vector2i(maxi(1,columns-2),-rows-3))
-	for x in [1,columns-2]:
+	for x in ([1] if b.kind=="store" else [1,columns-2]):
 		if x!=door: tile(c,"flowerbed",Vector2i(x,0))
 	for x in [door-1,door+1]:
 		if x>=0 and x<columns: tile(c,"light",Vector2i(x,-2))
 	if b.kind=="hall": tile(c,"civic_emblem",Vector2i(door,-rows-1))
+	if b.kind in ["smithy","bakery","tavern"]: tile(c,b.kind+"_sign",Vector2i(maxi(0,door-1),-2))
 
 static func roof_tint(value: String) -> Color:
 	return Color(value).lerp(Color.WHITE,0.65)
@@ -180,11 +185,15 @@ static func outdoors(w: Node2D) -> void:
 	tile(w,"cave_arch_right",Vector2i(95,72))
 	for y in range(w.SQUARE.position.y,w.SQUARE.end.y):
 		for x in range(w.SQUARE.position.x,w.SQUARE.end.x): tile(w,"paving"+str(posmod(x+y,4)),Vector2i(x,y))
-	sprite(w,"fountain",Grid.origin(w.SQUARE.position+Vector2i(2,2))+Vector2(0,-16))
+	for y in range(w.SQUARE.position.y-1,w.SQUARE.end.y+1):
+		for x in range(w.SQUARE.position.x-1,w.SQUARE.end.x+1):
+			var cell=Vector2i(x,y)
+			if not w.solid_cells.has(cell): tile(w,"paving"+str(posmod(x+y,2)),cell)
+	for cell in w.Neighbors.FLOWERS: tile(w,"flowerbed"+str(posmod(cell.x+cell.y,2)),cell)
 	for x in range(w.JETTY_CELLS.position.x,w.JETTY_CELLS.end.x): tile(w,"jetty",Vector2i(x,w.JETTY_CELLS.position.y))
 	for cell in w.fence_cells: tile(w,"fence_mask"+str(w.fence_mask(cell)),cell)
 	for cell in w.gate_cells: tile(w,"gate_h_open",cell)
-	for garden in w.DECORATIVE_FIELDS:
+	for garden in w.DECORATIVE_FIELDS+w.Neighbors.FIELDS:
 		for y in range(garden.position.y,garden.end.y):
 			for x in range(garden.position.x,garden.end.x): sprite(w,"crop_turnip" if (x+y)%3 else "crop_sprout",Grid.origin(Vector2i(x,y)))
 	sprite(w,"chest",w.site_position("chest")-Vector2(16,40))

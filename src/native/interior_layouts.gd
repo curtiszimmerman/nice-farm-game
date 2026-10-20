@@ -2,6 +2,8 @@ extends RefCounted
 
 # Rooms leave a tile for partition walls. Bathrooms open only onto a hall.
 static func for_building(id: String) -> Dictionary:
+	var neighbor=preload("res://neighbor_interiors.gd").layout(id)
+	if not neighbor.is_empty(): return neighbor
 	var plan: Dictionary
 	match id:
 		"home":

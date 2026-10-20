@@ -2999,9 +2999,25 @@
       72
     ]
   },
-  "furniture_machine_2x2": {
+  "furniture_kitchen_5x1": {
     "rect": [
       1387,
+      842,
+      168,
+      72
+    ]
+  },
+  "furniture_kitchen_6x1": {
+    "rect": [
+      1557,
+      842,
+      200,
+      72
+    ]
+  },
+  "furniture_machine_2x2": {
+    "rect": [
+      1759,
       842,
       72,
       104
@@ -3009,55 +3025,63 @@
   },
   "furniture_machine_3x2": {
     "rect": [
-      1461,
+      1833,
       842,
       104,
       104
     ]
   },
+  "furniture_machine_3x3": {
+    "rect": [
+      1939,
+      842,
+      104,
+      136
+    ]
+  },
   "furniture_plant_1x1": {
     "rect": [
-      1567,
-      842,
+      1,
+      980,
       40,
       72
     ]
   },
   "furniture_radio_1x1": {
     "rect": [
-      1609,
-      842,
+      43,
+      980,
       40,
       72
     ]
   },
   "cover_1x1": {
     "rect": [
-      1651,
-      842,
+      85,
+      980,
       40,
       72
     ]
   },
   "furniture_radio_3x1": {
     "rect": [
-      1693,
-      842,
+      127,
+      980,
       104,
       72
     ]
   },
   "cover_3x1": {
     "rect": [
-      1799,
-      842,
+      233,
+      980,
       104,
       72
     ]
   },
   "furniture_radio_6x1": {
     "rect": [
-      1,
+      339,
       980,
       200,
       72
@@ -3065,7 +3089,7 @@
   },
   "cover_6x1": {
     "rect": [
-      203,
+      541,
       980,
       200,
       72
@@ -3073,7 +3097,7 @@
   },
   "furniture_reactor_3x3": {
     "rect": [
-      405,
+      743,
       980,
       104,
       136
@@ -3081,23 +3105,47 @@
   },
   "furniture_rug_2x3": {
     "rect": [
-      511,
+      849,
       980,
       72,
       136
     ]
   },
+  "furniture_rug_2x4": {
+    "rect": [
+      923,
+      980,
+      72,
+      168
+    ]
+  },
   "furniture_rug_3x3": {
     "rect": [
-      585,
+      997,
       980,
       104,
       136
     ]
   },
+  "furniture_rug_3x4": {
+    "rect": [
+      1103,
+      980,
+      104,
+      168
+    ]
+  },
+  "furniture_rug_4x2": {
+    "rect": [
+      1209,
+      980,
+      136,
+      104
+    ]
+  },
   "furniture_rug_4x3": {
     "rect": [
-      691,
+      1347,
       980,
       136,
       136
@@ -3105,7 +3153,7 @@
   },
   "furniture_rug_5x3": {
     "rect": [
-      829,
+      1485,
       980,
       168,
       136
@@ -3113,7 +3161,7 @@
   },
   "furniture_rug_6x3": {
     "rect": [
-      999,
+      1655,
       980,
       200,
       136
@@ -3121,7 +3169,7 @@
   },
   "furniture_seed_tray_2x1": {
     "rect": [
-      1201,
+      1857,
       980,
       72,
       72
@@ -3129,7 +3177,7 @@
   },
   "furniture_sink_1x1": {
     "rect": [
-      1275,
+      1931,
       980,
       40,
       72
@@ -3137,7 +3185,7 @@
   },
   "furniture_sofa_2x1": {
     "rect": [
-      1317,
+      1973,
       980,
       72,
       72
@@ -3145,55 +3193,55 @@
   },
   "cover_2x1": {
     "rect": [
-      1391,
-      980,
+      1,
+      1150,
       72,
       72
     ]
   },
   "furniture_sofa_3x1": {
     "rect": [
-      1465,
-      980,
+      75,
+      1150,
       104,
       72
     ]
   },
   "furniture_stock_1x2": {
     "rect": [
-      1571,
-      980,
+      181,
+      1150,
       40,
       104
     ]
   },
   "furniture_stock_1x4": {
     "rect": [
-      1613,
-      980,
+      223,
+      1150,
       40,
       168
     ]
   },
   "furniture_stock_3x1": {
     "rect": [
-      1655,
-      980,
+      265,
+      1150,
       104,
       72
     ]
   },
   "furniture_stock_8x1": {
     "rect": [
-      1761,
-      980,
+      371,
+      1150,
       264,
       72
     ]
   },
   "furniture_table_1x1": {
     "rect": [
-      1,
+      637,
       1150,
       40,
       72
@@ -3201,7 +3249,7 @@
   },
   "furniture_table_2x1": {
     "rect": [
-      43,
+      679,
       1150,
       72,
       72
@@ -3209,7 +3257,7 @@
   },
   "furniture_table_3x1": {
     "rect": [
-      117,
+      753,
       1150,
       104,
       72
@@ -3217,7 +3265,7 @@
   },
   "furniture_table_4x1": {
     "rect": [
-      223,
+      859,
       1150,
       136,
       72
@@ -3225,15 +3273,23 @@
   },
   "furniture_table_5x2": {
     "rect": [
-      361,
+      997,
       1150,
       168,
       104
     ]
   },
+  "furniture_table_6x1": {
+    "rect": [
+      1167,
+      1150,
+      200,
+      72
+    ]
+  },
   "furniture_telescope_1x1": {
     "rect": [
-      531,
+      1369,
       1150,
       40,
       72
@@ -3241,7 +3297,7 @@
   },
   "furniture_toilet_1x1": {
     "rect": [
-      573,
+      1411,
       1150,
       40,
       72
@@ -3249,7 +3305,7 @@
   },
   "furniture_tools_1x2": {
     "rect": [
-      615,
+      1453,
       1150,
       40,
       104
@@ -3257,7 +3313,7 @@
   },
   "furniture_tools_2x1": {
     "rect": [
-      657,
+      1495,
       1150,
       72,
       72
@@ -3265,7 +3321,7 @@
   },
   "crop_soil": {
     "rect": [
-      731,
+      1569,
       1150,
       32,
       32
@@ -3273,7 +3329,7 @@
   },
   "crop_tilled": {
     "rect": [
-      765,
+      1603,
       1150,
       32,
       32
@@ -3281,7 +3337,7 @@
   },
   "crop_wet": {
     "rect": [
-      799,
+      1637,
       1150,
       32,
       32
@@ -3289,7 +3345,7 @@
   },
   "crop_sprout": {
     "rect": [
-      833,
+      1671,
       1150,
       32,
       32
@@ -3297,7 +3353,7 @@
   },
   "crop_turnip": {
     "rect": [
-      867,
+      1705,
       1150,
       32,
       32
@@ -3305,7 +3361,7 @@
   },
   "crop_bulb": {
     "rect": [
-      901,
+      1739,
       1150,
       32,
       32
@@ -3313,7 +3369,7 @@
   },
   "crop_sprout_wet": {
     "rect": [
-      935,
+      1773,
       1150,
       32,
       32
@@ -3321,7 +3377,7 @@
   },
   "crop_turnip_wet": {
     "rect": [
-      969,
+      1807,
       1150,
       32,
       32
@@ -3329,10 +3385,1154 @@
   },
   "crop_bulb_wet": {
     "rect": [
-      1003,
+      1841,
       1150,
       32,
       32
+    ]
+  },
+  "tile_stone_jetty_edge_n": {
+    "rect": [
+      1875,
+      1150,
+      32,
+      32
+    ]
+  },
+  "tile_stone_jetty_edge_e": {
+    "rect": [
+      1909,
+      1150,
+      32,
+      32
+    ]
+  },
+  "tile_stone_jetty_edge_s": {
+    "rect": [
+      1943,
+      1150,
+      32,
+      32
+    ]
+  },
+  "tile_stone_jetty_edge_w": {
+    "rect": [
+      1977,
+      1150,
+      32,
+      32
+    ]
+  },
+  "tile_smithy_sign": {
+    "rect": [
+      2011,
+      1150,
+      32,
+      32
+    ]
+  },
+  "tile_bakery_sign": {
+    "rect": [
+      1,
+      1320,
+      32,
+      32
+    ]
+  },
+  "tile_tavern_sign": {
+    "rect": [
+      35,
+      1320,
+      32,
+      32
+    ]
+  },
+  "tile_windmill_wall": {
+    "rect": [
+      69,
+      1320,
+      32,
+      32
+    ]
+  },
+  "mill_sails0": {
+    "rect": [
+      103,
+      1320,
+      96,
+      96
+    ]
+  },
+  "mill_sails1": {
+    "rect": [
+      201,
+      1320,
+      96,
+      96
+    ]
+  },
+  "mill_sails2": {
+    "rect": [
+      299,
+      1320,
+      96,
+      96
+    ]
+  },
+  "mill_sails3": {
+    "rect": [
+      397,
+      1320,
+      96,
+      96
+    ]
+  },
+  "tile_flowerbed0": {
+    "rect": [
+      495,
+      1320,
+      32,
+      32
+    ]
+  },
+  "tile_flowerbed1": {
+    "rect": [
+      529,
+      1320,
+      32,
+      32
+    ]
+  },
+  "bench": {
+    "rect": [
+      563,
+      1320,
+      64,
+      48
+    ]
+  },
+  "fountain0": {
+    "rect": [
+      629,
+      1320,
+      64,
+      80
+    ]
+  },
+  "fountain1": {
+    "rect": [
+      695,
+      1320,
+      64,
+      80
+    ]
+  },
+  "fountain2": {
+    "rect": [
+      761,
+      1320,
+      64,
+      80
+    ]
+  },
+  "fountain3": {
+    "rect": [
+      827,
+      1320,
+      64,
+      80
+    ]
+  },
+  "furniture_forge_3x2": {
+    "rect": [
+      893,
+      1320,
+      96,
+      80
+    ]
+  },
+  "furniture_anvil_1x1": {
+    "rect": [
+      991,
+      1320,
+      32,
+      48
+    ]
+  },
+  "furniture_oven_2x2": {
+    "rect": [
+      1025,
+      1320,
+      64,
+      80
+    ]
+  },
+  "furniture_barrels_2x1": {
+    "rect": [
+      1091,
+      1320,
+      64,
+      48
+    ]
+  },
+  "furniture_flour_2x1": {
+    "rect": [
+      1157,
+      1320,
+      64,
+      48
+    ]
+  },
+  "item_wildgrowth": {
+    "rect": [
+      1223,
+      1320,
+      32,
+      32
+    ]
+  },
+  "item_sit": {
+    "rect": [
+      1257,
+      1320,
+      32,
+      32
+    ]
+  },
+  "actor_farmer_mother_down0": {
+    "rect": [
+      1291,
+      1320,
+      32,
+      64
+    ]
+  },
+  "actor_farmer_mother_down1": {
+    "rect": [
+      1325,
+      1320,
+      32,
+      64
+    ]
+  },
+  "actor_farmer_mother_down2": {
+    "rect": [
+      1359,
+      1320,
+      32,
+      64
+    ]
+  },
+  "actor_farmer_mother_up0": {
+    "rect": [
+      1393,
+      1320,
+      32,
+      64
+    ]
+  },
+  "actor_farmer_mother_up1": {
+    "rect": [
+      1427,
+      1320,
+      32,
+      64
+    ]
+  },
+  "actor_farmer_mother_up2": {
+    "rect": [
+      1461,
+      1320,
+      32,
+      64
+    ]
+  },
+  "actor_farmer_mother_left0": {
+    "rect": [
+      1495,
+      1320,
+      32,
+      64
+    ]
+  },
+  "actor_farmer_mother_left1": {
+    "rect": [
+      1529,
+      1320,
+      32,
+      64
+    ]
+  },
+  "actor_farmer_mother_left2": {
+    "rect": [
+      1563,
+      1320,
+      32,
+      64
+    ]
+  },
+  "actor_farmer_mother_right0": {
+    "rect": [
+      1597,
+      1320,
+      32,
+      64
+    ]
+  },
+  "actor_farmer_mother_right1": {
+    "rect": [
+      1631,
+      1320,
+      32,
+      64
+    ]
+  },
+  "actor_farmer_mother_right2": {
+    "rect": [
+      1665,
+      1320,
+      32,
+      64
+    ]
+  },
+  "actor_farmer_mother_sleep0": {
+    "rect": [
+      1699,
+      1320,
+      32,
+      64
+    ]
+  },
+  "actor_farmer_father_down0": {
+    "rect": [
+      1733,
+      1320,
+      32,
+      64
+    ]
+  },
+  "actor_farmer_father_down1": {
+    "rect": [
+      1767,
+      1320,
+      32,
+      64
+    ]
+  },
+  "actor_farmer_father_down2": {
+    "rect": [
+      1801,
+      1320,
+      32,
+      64
+    ]
+  },
+  "actor_farmer_father_up0": {
+    "rect": [
+      1835,
+      1320,
+      32,
+      64
+    ]
+  },
+  "actor_farmer_father_up1": {
+    "rect": [
+      1869,
+      1320,
+      32,
+      64
+    ]
+  },
+  "actor_farmer_father_up2": {
+    "rect": [
+      1903,
+      1320,
+      32,
+      64
+    ]
+  },
+  "actor_farmer_father_left0": {
+    "rect": [
+      1937,
+      1320,
+      32,
+      64
+    ]
+  },
+  "actor_farmer_father_left1": {
+    "rect": [
+      1971,
+      1320,
+      32,
+      64
+    ]
+  },
+  "actor_farmer_father_left2": {
+    "rect": [
+      2005,
+      1320,
+      32,
+      64
+    ]
+  },
+  "actor_farmer_father_right0": {
+    "rect": [
+      1,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_farmer_father_right1": {
+    "rect": [
+      35,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_farmer_father_right2": {
+    "rect": [
+      69,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_farmer_father_sleep0": {
+    "rect": [
+      103,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_farmer_son_down0": {
+    "rect": [
+      137,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_farmer_son_down1": {
+    "rect": [
+      171,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_farmer_son_down2": {
+    "rect": [
+      205,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_farmer_son_up0": {
+    "rect": [
+      239,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_farmer_son_up1": {
+    "rect": [
+      273,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_farmer_son_up2": {
+    "rect": [
+      307,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_farmer_son_left0": {
+    "rect": [
+      341,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_farmer_son_left1": {
+    "rect": [
+      375,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_farmer_son_left2": {
+    "rect": [
+      409,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_farmer_son_right0": {
+    "rect": [
+      443,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_farmer_son_right1": {
+    "rect": [
+      477,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_farmer_son_right2": {
+    "rect": [
+      511,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_farmer_son_sleep0": {
+    "rect": [
+      545,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_smith_down0": {
+    "rect": [
+      579,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_smith_down1": {
+    "rect": [
+      613,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_smith_down2": {
+    "rect": [
+      647,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_smith_up0": {
+    "rect": [
+      681,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_smith_up1": {
+    "rect": [
+      715,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_smith_up2": {
+    "rect": [
+      749,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_smith_left0": {
+    "rect": [
+      783,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_smith_left1": {
+    "rect": [
+      817,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_smith_left2": {
+    "rect": [
+      851,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_smith_right0": {
+    "rect": [
+      885,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_smith_right1": {
+    "rect": [
+      919,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_smith_right2": {
+    "rect": [
+      953,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_smith_sleep0": {
+    "rect": [
+      987,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_miller_down0": {
+    "rect": [
+      1021,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_miller_down1": {
+    "rect": [
+      1055,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_miller_down2": {
+    "rect": [
+      1089,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_miller_up0": {
+    "rect": [
+      1123,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_miller_up1": {
+    "rect": [
+      1157,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_miller_up2": {
+    "rect": [
+      1191,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_miller_left0": {
+    "rect": [
+      1225,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_miller_left1": {
+    "rect": [
+      1259,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_miller_left2": {
+    "rect": [
+      1293,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_miller_right0": {
+    "rect": [
+      1327,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_miller_right1": {
+    "rect": [
+      1361,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_miller_right2": {
+    "rect": [
+      1395,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_miller_sleep0": {
+    "rect": [
+      1429,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_miller_wife_down0": {
+    "rect": [
+      1463,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_miller_wife_down1": {
+    "rect": [
+      1497,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_miller_wife_down2": {
+    "rect": [
+      1531,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_miller_wife_up0": {
+    "rect": [
+      1565,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_miller_wife_up1": {
+    "rect": [
+      1599,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_miller_wife_up2": {
+    "rect": [
+      1633,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_miller_wife_left0": {
+    "rect": [
+      1667,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_miller_wife_left1": {
+    "rect": [
+      1701,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_miller_wife_left2": {
+    "rect": [
+      1735,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_miller_wife_right0": {
+    "rect": [
+      1769,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_miller_wife_right1": {
+    "rect": [
+      1803,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_miller_wife_right2": {
+    "rect": [
+      1837,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_miller_wife_sleep0": {
+    "rect": [
+      1871,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_miller_daughter_down0": {
+    "rect": [
+      1905,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_miller_daughter_down1": {
+    "rect": [
+      1939,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_miller_daughter_down2": {
+    "rect": [
+      1973,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_miller_daughter_up0": {
+    "rect": [
+      2007,
+      1418,
+      32,
+      64
+    ]
+  },
+  "actor_miller_daughter_up1": {
+    "rect": [
+      1,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_miller_daughter_up2": {
+    "rect": [
+      35,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_miller_daughter_left0": {
+    "rect": [
+      69,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_miller_daughter_left1": {
+    "rect": [
+      103,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_miller_daughter_left2": {
+    "rect": [
+      137,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_miller_daughter_right0": {
+    "rect": [
+      171,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_miller_daughter_right1": {
+    "rect": [
+      205,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_miller_daughter_right2": {
+    "rect": [
+      239,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_miller_daughter_sleep0": {
+    "rect": [
+      273,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_barkeep_down0": {
+    "rect": [
+      307,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_barkeep_down1": {
+    "rect": [
+      341,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_barkeep_down2": {
+    "rect": [
+      375,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_barkeep_up0": {
+    "rect": [
+      409,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_barkeep_up1": {
+    "rect": [
+      443,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_barkeep_up2": {
+    "rect": [
+      477,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_barkeep_left0": {
+    "rect": [
+      511,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_barkeep_left1": {
+    "rect": [
+      545,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_barkeep_left2": {
+    "rect": [
+      579,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_barkeep_right0": {
+    "rect": [
+      613,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_barkeep_right1": {
+    "rect": [
+      647,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_barkeep_right2": {
+    "rect": [
+      681,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_barkeep_sleep0": {
+    "rect": [
+      715,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_baker_down0": {
+    "rect": [
+      749,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_baker_down1": {
+    "rect": [
+      783,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_baker_down2": {
+    "rect": [
+      817,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_baker_up0": {
+    "rect": [
+      851,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_baker_up1": {
+    "rect": [
+      885,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_baker_up2": {
+    "rect": [
+      919,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_baker_left0": {
+    "rect": [
+      953,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_baker_left1": {
+    "rect": [
+      987,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_baker_left2": {
+    "rect": [
+      1021,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_baker_right0": {
+    "rect": [
+      1055,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_baker_right1": {
+    "rect": [
+      1089,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_baker_right2": {
+    "rect": [
+      1123,
+      1484,
+      32,
+      64
+    ]
+  },
+  "actor_baker_sleep0": {
+    "rect": [
+      1157,
+      1484,
+      32,
+      64
     ]
   }
 }

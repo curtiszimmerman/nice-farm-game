@@ -2152,13 +2152,18 @@ def main():
     argparse.ArgumentParser(description=__doc__).parse_args()
     terrain(); buildings(); coastal_sprites(); vegetation(); props(); actors(); effects_and_ships()
     for name in item_names(): item_icon(name)
-    source = (ROOT / "src/native/interior_layouts.gd").read_text()
+    source = (ROOT / "src/native/interior_layouts.gd").read_text() + (ROOT / "src/native/neighbor_interiors.gd").read_text()
     sizes = {(kind, int(w), int(h)) for kind, w, h in re.findall(r'\["(\w+)",Rect2i\([^,]+,[^,]+,(\d+),(\d+)\)\]', source) if kind in FURNITURE_KINDS and (kind != "kitchen" or h == "1")}
     baseline = json.loads((ROOT / "src/native/art/option2/sprites.json").read_text())
     for key in baseline:
         m = re.fullmatch(r"furniture_(\w+)_(\d+)x(\d+)", key)
         if m: sizes.add((m.group(1), int(m.group(2)), int(m.group(3))))
+    sizes.update({("kitchen",4,1),("kitchen",5,1),("kitchen",6,1),("table",6,1),("rug",4,2)})
     for kind, w, h in sorted(sizes): furniture(kind, w, h)
+    from town_sprites16 import sprites
+    for name, image in sprites(Pixels).items():
+        if name.startswith("tile_mill_sails"): name = name.removeprefix("tile_")
+        add(name, image)
     for name in ("soil", "tilled", "wet", "sprout", "turnip", "bulb", "sprout_wet", "turnip_wet", "bulb_wet"): crop(name)
     missing = [k for k in list(baseline) + EXTRA_IDS if k not in ASSETS]
     if missing: raise SystemExit("Missing sprites: " + ", ".join(missing))

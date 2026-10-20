@@ -4,6 +4,8 @@ const Grid = preload("res://grid.gd")
 const Art = preload("res://art.gd")
 const Schedule = preload("res://villager_schedule.gd")
 const Coast=preload("res://coast.gd")
+const Bodies=preload("res://npc_bodies.gd")
+const Neighbors=preload("res://neighbors.gd")
 const SQUARE = Rect2i(59,44,6,6)
 const SIZE = Grid.WORLD_SIZE
 const FARM_CELL = Vector2i(9,48)
@@ -129,6 +131,9 @@ class Prop extends Node2D:
 		elif kind == "sparkfire": owner_world.paint_sparkfire(self,data.get("bloom",false))
 		elif kind == "bush": Art.sprite(self,"bush"+str(data.variant),Vector2(-32,-42))
 		elif kind == "stump": Art.sprite(self,"stump",Vector2(-16,-16))
+		elif kind == "bench": Art.sprite(self,"bench",Vector2(0,-48))
+		elif kind == "fountain": Art.sprite(self,"fountain"+str(int(owner_world.elapsed*6)%4),Vector2(0,-80))
+		elif kind == "mill_sails": Art.sprite(self,"mill_sails"+str(int(owner_world.elapsed*2)%4),Vector2(-48,-48))
 
 func _ready() -> void:
 	y_sort_enabled = true
@@ -177,6 +182,12 @@ func _ready() -> void:
 	var effects = _prop("effects",Vector2.ZERO,{})
 	effects.z_index = 5
 	_prop("sparkfire",site_position("sparkfire"),{"bloom":false})
+	_prop("fountain",Grid.origin(SQUARE.position+Vector2i(2,4)),{"frame":-1})
+	for cell in Neighbors.BENCHES: _prop("bench",Grid.origin(cell+Vector2i.DOWN),{})
+	for b in buildings:
+		if b.kind=="windmill":
+			var sails=_prop("mill_sails",Vector2(b.x+b.w/2,b.y+b.h-112),{"frame":-1})
+			sails.z_index=3
 
 func _claim(footprint: Rect2i,kind: String) -> void:
 	for y in range(footprint.position.y,footprint.end.y):
@@ -230,14 +241,14 @@ func _build_layout() -> void:
 				reserved_cells[cell]=true
 	for y in range(29,46):
 		for x in range(8,20): reserved_cells[Vector2i(x,y)]=true
-	for item in PEOPLE:
+	for item in PEOPLE+Neighbors.PEOPLE:
 		var p=item.duplicate(true)
 		var pos=Grid.center(p.cell)
 		p.x=pos.x
 		p.y=pos.y
 		people.append(p)
 		reserved_cells[p.cell]=true
-	for item in BUILDINGS:
+	for item in BUILDINGS+Neighbors.BUILDINGS:
 		var b=item.duplicate(true)
 		b.id=b.get("resident",b.kind)
 		var bounds=Grid.rect(b.cell,b.tiles)
@@ -252,6 +263,9 @@ func _build_layout() -> void:
 		var name={"home":"farmhouse","hall":"town hall","assistant":"Neral's home","keeper":"Oren's lighthouse"}.get(b.id,b.id.capitalize())
 		sites.append({"id":"door_"+b.id,"cell":door_cell,"x":door_pos.x,"y":door_pos.y,"door":b.id,"label":"Enter "+name})
 		reserved_cells[door_cell]=true
+		for x in ([1] if b.kind=="store" else [1,b.tiles.x-2]):
+			if x!=int(b.tiles.x/2) and b.kind not in ["tower","lighthouse","windmill"]:
+				_claim(Rect2i(b.cell+Vector2i(x,b.tiles.y),Vector2i.ONE),"flowerbed")
 	for item in SITES:
 		var p=item.duplicate(true)
 		var pos=Grid.center(p.cell)
@@ -267,7 +281,12 @@ func _build_layout() -> void:
 	for cell in LAMP_CELLS: _claim(Rect2i(cell,Vector2i.ONE),"lamp")
 	_claim(Rect2i(Grid.world_to_cell(site_position("sign")),Vector2i.ONE),"sign")
 	_claim(Rect2i(Grid.world_to_cell(site_position("radio")),Vector2i.ONE),"radio")
-	_claim(Rect2i(SQUARE.position+Vector2i(2,2),Vector2i(2,2)),"fountain")
+	_claim(Rect2i(SQUARE.position+Vector2i(2,3),Vector2i(2,1)),"fountain")
+	for cell in Neighbors.FLOWERS: _claim(Rect2i(cell,Vector2i.ONE),"flowerbed")
+	for cell in Neighbors.BENCHES:
+		_claim(Rect2i(cell,Vector2i(2,1)),"bench")
+		var p=Grid.center(cell+Vector2i.DOWN)
+		sites.append({"id":"bench_%d_%d" % [cell.x,cell.y],"cell":cell+Vector2i.DOWN,"x":p.x,"y":p.y,"label":"Sit on the bench"})
 	for x in range(50,77):
 		var front=8+roundi(sin(x*0.23)*2.0+sin(x*0.57))
 		if x in range(58,66): front=mini(front,9)
@@ -288,7 +307,7 @@ func _build_layout() -> void:
 		for x in range(SQUARE.position.x,SQUARE.end.x): reserved_cells[Vector2i(x,y)]=true
 	for routine in Schedule.ROUTINES.values():
 		for stop in routine: reserved_cells[Vector2i(stop[1],stop[2])]=true
-	for field in DECORATIVE_FIELDS:
+	for field in DECORATIVE_FIELDS+Neighbors.FIELDS:
 		for y in range(field.position.y-1,field.end.y+1):
 			for x in range(field.position.x-1,field.end.x+1): reserved_cells[Vector2i(x,y)]=true
 	for y in [FARM_CELL.y-2,FARM_CELL.y+5]:
@@ -297,7 +316,7 @@ func _build_layout() -> void:
 		gate_cells.append(Vector2i(14,y))
 	for y in range(FARM_CELL.y-1,FARM_CELL.y+5): fence_cells.append(Vector2i(FARM_CELL.x-1,y))
 	for cell in fence_cells: _claim(Rect2i(cell,Vector2i.ONE),"fence")
-	for route in ROAD_ROUTES:
+	for route in ROAD_ROUTES+Neighbors.ROUTES:
 		for i in range(route.size()-1):
 			var a=route[i]
 			var b=route[i+1]
@@ -327,7 +346,7 @@ func exit_position(building: Dictionary) -> Vector2:
 		if not blocked(Grid.center(cell)): return Grid.center(cell)
 	return Grid.center(Grid.SPAWN_CELL)
 
-func _route(start: Vector2i,goal: Vector2i) -> Array:
+func _route(start: Vector2i,goal: Vector2i,avoid_player: bool=false) -> Array:
 	var frontier: Array=[goal]
 	var parents={goal:goal}
 	var cursor=0
@@ -337,6 +356,7 @@ func _route(start: Vector2i,goal: Vector2i) -> Array:
 		for offset in [Vector2i.UP,Vector2i.RIGHT,Vector2i.DOWN,Vector2i.LEFT]:
 			var next: Vector2i=cell+offset
 			if parents.has(next) or blocked(Grid.center(next)): continue
+			if avoid_player and next!=start and state.location==(get("building").id if get("building")!=null else "") and Grid.center(next).distance_to(state.player_position)<Bodies.RADIUS: continue
 			parents[next]=cell
 			frontier.append(next)
 	var path: Array=[]
@@ -369,18 +389,21 @@ func update_villagers(dt: float,snap: bool=false) -> void:
 		if snap:
 			actor.position=target
 			routes.erase(id)
-		elif not routes.has(id) or routes[id].target!=target:
+		elif not routes.has(id) or routes[id].target!=target or routes[id].get("player_cell")!=Grid.world_to_cell(state.player_position):
 			# Finish the current tile before turning toward a new appointment.
 			var cell=Grid.world_to_cell(actor.position)
-			var path=_route(cell,stop.cell)
+			var path=_route(cell,stop.cell,true)
 			if actor.position.distance_to(Grid.center(cell))>0.1: path.push_front(Grid.center(cell))
-			routes[id]={"target":target,"path":path}
+			routes[id]={"target":target,"path":path,"player_cell":Grid.world_to_cell(state.player_position)}
 		if routes.has(id):
 			var remaining=dt*(180.0 if story_destinations.has(id) else 96.0 if id in ["moss","mayor","assistant"] and state.invited and not state.met_mayor else 56.0)
 			var path: Array=routes[id].path
 			while remaining>0 and not path.is_empty():
 				var distance=actor.position.distance_to(path[0])
-				actor.position=actor.position.move_toward(path[0],remaining)
+				actor.position=Bodies.step(self,actor,path[0],remaining)
+				if actor.position==previous and distance>0:
+					routes.erase(id)
+					break
 				remaining-=distance
 				if actor.position.distance_to(path[0])<0.01: path.pop_front()
 				else: break
@@ -409,7 +432,7 @@ func _prop(kind: String, pos: Vector2, data: Dictionary) -> Prop:
 	p.kind = kind
 	p.data = data
 	p.position = pos
-	(scenery_layer if kind in ["tree","building","bush","stump"] else moving_layer).add_child(p)
+	(scenery_layer if kind in ["tree","building","bush","stump","bench"] else moving_layer).add_child(p)
 	return p
 
 func refresh() -> void:
@@ -426,7 +449,10 @@ func refresh() -> void:
 	player.queue_redraw()
 	for child in scenery_layer.get_children()+moving_layer.get_children():
 		if child is Prop:
-			if child.kind == "effects": child.queue_redraw()
+			if child.kind in ["fountain","mill_sails"]:
+				var frame=int(elapsed*(6 if child.kind=="fountain" else 2))%4
+				if child.data.frame!=frame: child.data.frame=frame; child.queue_redraw()
+			elif child.kind == "effects": child.queue_redraw()
 			elif child.kind=="sparkfire":
 				var bloom=state.minute>=330 and state.minute<420 and state.sparkfire_picked_day!=state.day
 				if child.data.bloom!=bloom: child.data.bloom=bloom; child.queue_redraw()
@@ -487,6 +513,12 @@ func blocked(p: Vector2) -> bool:
 	return not Grid.PLAYABLE_CELLS.has_point(cell) or solid_cells.has(cell)
 
 func find_nearest() -> Dictionary:
+	var person=Bodies.nearby(self)
+	if not person.is_empty():
+		for site in sites:
+			if site.has("door") and state.player_position.distance_to(Grid.center(site.cell))<55 and villagers[person.id].position.distance_to(Grid.center(site.cell))<Bodies.RADIUS+3:
+				nearest=person
+				return person
 	if state.active_item()=="axe":
 		var cell=Grid.world_to_cell(state.player_position)+{"up":Vector2i.UP,"down":Vector2i.DOWN,"left":Vector2i.LEFT,"right":Vector2i.RIGHT}[facing]
 		if trees.any(func(tree): return tree.cell==cell): return {"type":"tree","cell":cell,"label":"Chop tree · axe"}

@@ -109,12 +109,15 @@ func add_furniture(kind: String,bounds: Rect2i,solid: bool=true) -> void:
 
 func entry_position() -> Vector2: return Grid.center(layout.entry)
 
-func bed_position() -> Vector2:
-	for item in furnishings:
+func bed_position(resident: String="") -> Vector2:
+	var beds=furnishings.filter(func(item):return item.kind=="bed")
+	var index=int(layout.get("beds",{}).get(resident,0))
+	for item in beds.slice(index,index+1):
 		if item.kind=="bed": return Grid.origin(item.bounds.position)+Vector2(item.bounds.size.x*16,item.bounds.size.y*32-8)
 	return entry_position()
 
 func room_name() -> String:
+	if Neighbors.NAMES.has(building.id): return Neighbors.NAMES[building.id]
 	match building.id:
 		"ship": return "Cloaked ship · engineering & bunks"
 		"home": return "Your farmhouse"
@@ -145,13 +148,19 @@ func prepare_departures() -> void:
 func walk_actor(id: String,cell: Vector2i,dt: float,speed: float=45) -> bool:
 	var actor=villagers[id]
 	var target=Grid.center(cell)
-	if not routes.has(id) or routes[id].target!=target: routes[id]={"target":target,"path":_route(Grid.world_to_cell(actor.position),cell)}
+	var player_cell=Grid.world_to_cell(state.player_position)
+	if not routes.has(id) or routes[id].target!=target or routes[id].get("player_cell")!=player_cell:
+		routes[id]={"target":target,"path":_route(Grid.world_to_cell(actor.position),cell,true),"player_cell":player_cell}
 	var path: Array=routes[id].path
 	var remaining=dt*speed
 	var previous: Vector2=actor.position
 	while remaining>0 and not path.is_empty():
 		var distance=actor.position.distance_to(path[0])
-		actor.position=actor.position.move_toward(path[0],remaining)
+		var previous_step=actor.position
+		actor.position=Bodies.step(self,actor,path[0],remaining)
+		if actor.position==previous_step and distance>0:
+			routes.erase(id)
+			break
 		remaining-=distance
 		if actor.position.distance_to(path[0])<0.1: path.pop_front()
 	var motion: Vector2=actor.position-previous
@@ -161,10 +170,11 @@ func walk_actor(id: String,cell: Vector2i,dt: float,speed: float=45) -> bool:
 	return actor.position.distance_to(target)<1
 
 func step_out_of_bed(actor: Node2D,dt: float) -> bool:
-	if not blocked(actor.position) or actor.position.distance_to(bed_position())>40: return false
+	var bed=bed_position(actor.data.id)
+	if not blocked(actor.position) or actor.position.distance_to(bed)>40: return false
 	actor.data.sleeping=false
 	actor.data.walking=true
-	actor.position=actor.position.move_toward(Grid.center(Grid.world_to_cell(bed_position())+Vector2i.DOWN),dt*45)
+	actor.position=actor.position.move_toward(Grid.center(Grid.world_to_cell(bed)+Vector2i.DOWN),dt*45)
 	actor.queue_redraw()
 	return true
 
@@ -196,18 +206,21 @@ func update_villagers(dt: float,snap: bool=false) -> void:
 		actor.rotation=0.0
 		actor.z_index=0
 		if sleeping:
-			if snap: actor.position=bed_position()
-			elif actor.position.distance_to(bed_position())<35:
-				actor.position=actor.position.move_toward(bed_position(),dt*45)
+			var bed=bed_position(id)
+			if snap: actor.position=bed
+			elif actor.position.distance_to(bed)<35:
+				actor.position=actor.position.move_toward(bed,dt*45)
 				actor.data.walking=true
-			else: walk_actor(id,Grid.world_to_cell(bed_position())+Vector2i.DOWN,dt)
-			actor.data.sleeping=actor.position.distance_to(bed_position())<1
+			else: walk_actor(id,Grid.world_to_cell(bed)+Vector2i.DOWN,dt)
+			actor.data.sleeping=actor.position.distance_to(bed)<1
 			actor.z_index=2 if actor.data.sleeping else 0
 			actor.data.bed_height=bed_height()
 			actor.queue_redraw()
 			continue
 		if not snap and step_out_of_bed(actor,dt): continue
 		var cell: Vector2i=layout.work[int(state.minute/25)%layout.work.size()]
+		if layout.work.size()>1 and id in Neighbors.STORIES:
+			cell=layout.work[(int(state.minute/25)+Neighbors.STORIES.keys().find(id))%layout.work.size()]
 		if building.id=="hall":
 			cell=[Vector2i(14,9),Vector2i(14,10)][int(state.minute/35)%2] if id=="mayor" else [Vector2i(6,3),Vector2i(6,4),Vector2i(2,3)][int(state.minute/30)%3]
 		var target=Grid.center(cell)
@@ -216,6 +229,11 @@ func update_villagers(dt: float,snap: bool=false) -> void:
 		actor.queue_redraw()
 
 func find_nearest() -> Dictionary:
+	var person=preload("res://npc_bodies.gd").nearby(self)
+	if not person.is_empty():
+		if state.player_position.distance_to(site_position("exit"))<55 and villagers[person.id].position.distance_to(site_position("exit"))<Bodies.RADIUS+3:
+			nearest=person
+			return person
 	var best={}
 	var distance=55.0
 	for id in villagers:

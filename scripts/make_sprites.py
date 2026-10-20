@@ -614,9 +614,10 @@ def coastal_sprites():
 def main():
     argparse.ArgumentParser(description=__doc__).parse_args()
     terrain(); buildings(); coastal_sprites(); trees_and_bushes(); props(); actors(); effects_and_ships(); item_icons()
-    source = (ROOT / "src/native/interior_layouts.gd").read_text()
+    source = (ROOT / "src/native/interior_layouts.gd").read_text() + (ROOT / "src/native/neighbor_interiors.gd").read_text()
     kinds = {"rug", "bed", "sofa", "table", "chair", "desk", "counter", "bookshelf", "stock", "cabinet", "crates", "tools", "seed_tray", "kitchen", "bath", "sink", "toilet", "reactor", "machine", "console", "radio", "art", "telescope", "plant"}
     sizes = {(kind, int(w), int(h)) for kind, w, h in re.findall(r'\["(\w+)",Rect2i\([^,]+,[^,]+,(\d+),(\d+)\)\]', source) if kind in kinds and (kind != "kitchen" or h == "1")}
+    sizes.update({("kitchen",4,1),("kitchen",5,1),("kitchen",6,1),("table",6,1),("rug",4,2)})
     for kind, w, h in sorted(sizes): furniture(kind, w, h)
     for crop in ["soil", "tilled", "wet", "sprout", "turnip", "bulb", "sprout_wet", "turnip_wet", "bulb_wet"]:
         p = add("crop_" + crop, Pixels(32, 32))
@@ -626,6 +627,15 @@ def main():
         if crop in ["sprout", "turnip", "bulb"]:
             p.oval(16, 18, 7 if crop != "sprout" else 3, 5, "e3d5b2" if crop == "turnip" else "e8d784" if crop == "bulb" else "79a05b")
             p.box(15, 7, 2, 12, "4e753f"); p.oval(10, 9, 5, 3, "89a553"); p.oval(21, 6, 5, 3, "a4b867")
+    from town_sprites16 import sprites
+    from make_sprites16 import Pixels as SmallPixels
+    for name, small in sprites(SmallPixels).items():
+        if name.startswith("tile_mill_sails"): name = name.removeprefix("tile_")
+        image = Pixels(small.w * 2, small.h * 2)
+        for yy in range(small.h):
+            for xx in range(small.w):
+                image.box(xx * 2, yy * 2, 2, 2, small.get(xx, yy))
+        add(name, image)
     width, x, y, row = 2048, 1, 1, 0
     manifest = {}
     for name, (image, metadata) in ASSETS.items():

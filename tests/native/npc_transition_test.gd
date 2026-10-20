@@ -15,6 +15,7 @@ func run() -> void:
 	game.state.minute=600
 	game.outdoors.update_villagers(0,true)
 	game.enter_building("hall")
+	game.state.player_position=game.Grid.center(Vector2i(8,11))
 	var room=game.world
 	var mayor=room.villagers.mayor
 	var previous=mayor.position

@@ -34,14 +34,22 @@ The project-local launcher is `scripts/play.sh`. It starts the pinned Godot exec
 | Space during ordinary play | Pause / resume the world |
 | 1–8 | Select quick slot |
 | E | Enter/leave buildings, talk, tend soil, gather, fish, or rest |
-| Q | Wildgrowth, when its quick slot is selected |
+| Q / right mouse | Use the auxiliary item, spell or skill |
 | I | Satchel |
 | J | Crew notes and objectives |
 | M | Local directions |
-| Escape | Close a window / settings |
+| Escape | Close a window / game menu |
 | F11 | Fullscreen / windowed |
 
-The bottom Actions button groups inventory, spells, notes, map and settings. Health, energy and mana sit left of the eight quick slots. This tray fades when it covers the avatar. The crew log starts collapsed under the clock and slowly pulses gold when a new quest arrives; click it to acknowledge the new quests. Status banners and interaction prompts have compact backgrounds. Music, ambience and spell effects have separate sliders under Actions → Settings → Sound. [Sound direction and current profiles](AUDIO.md).
+E / left mouse uses the primary assignment or nearby interaction. Q / right mouse uses the auxiliary assignment. Drag carried items or known spells/skills onto either active slot or any quick slot. Selecting a quick slot changes the primary assignment. Key bubbles sit above the icons; stack quantities and watering-can charges sit below. Spells occupy their own learned-ability list and never consume satchel slots. The inventory includes a character silhouette with head, chest, arms, hands, legs, feet, necklace and two ring slots, reserved for future equipment.
+
+Escape opens a short game menu with Controls, Settings, Development, Save and Quit submenus. Controls lets you rebind keys; conflicting bindings swap, and preferences are stored in `internal/controls.cfg`. Single-player menus and conversations pause the entire world by default. Settings retains the other clock policies for deliberate selection.
+
+The bottom Actions button groups inventory, spells, notes, map and settings. Health, energy and mana sit left of the two active slots and eight quick slots. This tray fades when it covers the avatar. The crew log starts collapsed under the clock and slowly pulses gold when a new quest arrives; click it to acknowledge the new quests. Status banners and interaction prompts have compact backgrounds. Music, ambience and spell effects have separate sliders under Game menu → Settings → Sound. [Sound direction and current profiles](AUDIO.md).
+
+People take priority over nearby doorways. Walking against an NPC pushes them if the ground behind them is clear; they route around you to return to work. A conversation holds its speakers in place. Solid flowerbeds leave clear door approaches. The town fountain has an animated spray and only its base blocks walking; select Sit or interact at a bench for a seat.
+
+East of town, Elin, Jory and Pip Reed tend two fields beside their family farmhouse. Northeast, Tomas and Mara Bell work at their windmill; their daughter Nessa joins the radio club in the afternoon. Dain Rusk works at his smithy. Rafe Fen runs the Wayward Wren beside the square, and his childhood friend Tomas visits in the evening. Corin Hale's bakery connects the farmers, millers, Moss and Rafe through bread and conversation. Each new building has its own furnished interior; family members sleep in assigned beds.
 
 ## A good first visit
 
@@ -71,7 +79,7 @@ Night shifts the world into a blue moonlit palette while interface colors stay r
 
 The mainland occupies 120 × 90 tiles; a 28-tile extension west adds the coast and lighthouse, for a total extent of 148 × 90. The farmhouse lies west of town, the hidden ship northwest, the wizard's tower far north, and copper caves southeast. Faint paths lead west to the jetty and south around the pond to Bram's cabin. The stone town hall has a civic banner; Alder and his assistant Neral work there and sleep in separate homes. Briar Glen belongs to Aldermere; Veyr lies across the politically troubled border.
 
-Each visit has saved seeds for its natural scenery and caves. Grass variants, tree and bush placement, interior floor variation, room sizes, branching passages and deposits vary while doors, plots, paths and key landmarks remain usable. Mining or felling a tree does not move the remaining resources on reload. The current save schema is version 8; older unsupported saves are preserved rather than automatically migrated.
+Each visit has saved seeds for its natural scenery and caves. Grass variants, tree and bush placement, interior floor variation, room sizes, branching passages and deposits vary while doors, plots, paths and key landmarks remain usable. Mining or felling a tree does not move the remaining resources on reload. The current save schema is version 9; older unsupported saves are preserved rather than automatically migrated.
 
 The map is populated on a shared invisible 32-pixel tile grid, including buildings, trees, resources, roads, and farm plots. Walking stays smooth between tiles. Objects occupy whole-tile collision footprints; the round tower uses a square base independent of its drawing height. Farm gates and the fishing jetty remain walkable. [World grid details](WORLD_GRID.md).
 

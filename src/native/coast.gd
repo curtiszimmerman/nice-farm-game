@@ -68,4 +68,8 @@ static func build_texture(world: Node2D) -> ImageTexture:
 
 static func draw(world: Node2D) -> void:
 	if world.west_terrain!=null: world.draw_texture(world.west_terrain,Vector2(MIN_X*32,0))
-	for cell in dock_cells(): Art.tile(world,"stone_jetty",cell)
+	var cells=dock_cells()
+	for cell in cells:
+		Art.tile(world,"stone_jetty",cell)
+		for edge in [[Vector2i.UP,"n"],[Vector2i.RIGHT,"e"],[Vector2i.DOWN,"s"],[Vector2i.LEFT,"w"]]:
+			if not cells.has(cell+edge[0]) and is_ocean(cell+edge[0],world.state.world_seed): Art.tile(world,"stone_jetty_edge_"+edge[1],cell)

@@ -35,17 +35,21 @@ func run() -> void:
 	w.update_villagers(0.1)
 	check(w.villagers.tavi.position.distance_to(start)>0 and w.villagers.tavi.position.distance_to(start)<10,"villagers walk toward their next stop")
 	var clear=true
+	var blocked_actors={}
 	for i in range(500):
 		w.update_villagers(0.1)
 		for actor in w.villagers.values():
-			if w.blocked(actor.position): clear=false
+			if w.blocked(actor.position): clear=false; blocked_actors[actor.data.id]=w.Grid.world_to_cell(actor.position)
+	if not clear: print("Blocked residents: ",blocked_actors)
 	check(clear,"villager routes avoid buildings, water, and fences")
 	check(w.villagers.tavi.position.distance_to(lunch)<1,"Tavi reaches the lunch stop")
 	var reachable=true
 	for id in w.Schedule.ROUTINES:
 		for stop in w.Schedule.ROUTINES[id]:
 			var cell=Vector2i(stop[1],stop[2])
-			if w.blocked(w.Grid.center(cell)) or w._route(w.Grid.SPAWN_CELL,cell).is_empty(): reachable=false
+			if w.blocked(w.Grid.center(cell)) or w._route(w.Grid.SPAWN_CELL,cell).is_empty():
+				print("Unreachable schedule: ",id," / ",cell," / ",w.solid_cells.get(cell))
+				reachable=false
 	check(reachable,"every scheduled destination is walkable and connected to the farm")
 	game.state.minute=540
 	w.update_villagers(0.0,true)
