@@ -296,7 +296,8 @@ func add_volume_slider(title: String,value: float,on_changed: Callable) -> void:
 
 func open_inventory() -> void:
 	open_modal("Your satchel","SUPPLIES & EQUIPMENT","Hover over an item for details. Select an item to use it.",[["Close satchel",func(): pass]],true)
-	modal_box.get_child(2).text="Right-click food to Eat or Drink. Click an item to assign it to a quick slot.\nSelected slot: %d · Water: %d/20" % [game.state.selected_slot+1,game.state.water]
+	var water=game.state.water
+	modal_box.get_child(2).text="Right-click food to Eat or Drink. Click an item to assign it to a quick slot.\nSelected slot: %d · Water: %s" % [game.state.selected_slot+1,"Empty" if water==0 else "Low" if water==1 else "%d/20" % water]
 	modal.get_child(1).position.y=55
 	inventory_slots.clear()
 	var grid=GridContainer.new()
@@ -306,7 +307,7 @@ func open_inventory() -> void:
 	modal_box.add_child(grid)
 	modal_box.move_child(grid,3)
 	var stacks=game.inventory_stacks()
-	for i in range(18):
+	for i in range(game.State.INVENTORY_SLOTS):
 		var stack: Dictionary=stacks[i] if i<stacks.size() else {}
 		var slot=item_slot(stack,84)
 		grid.add_child(slot)
@@ -338,7 +339,7 @@ func item_slot(stack: Dictionary,pixels: int) -> Button:
 	picture.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	slot.add_child(picture)
 	var count=Label.new()
-	count.text=str(stack.count)
+	count.text=str(stack.count) if stack.count>1 else ""
 	count.position=Vector2(pixels-28,pixels-26)
 	count.add_theme_color_override("font_color",CREAM)
 	count.mouse_filter=Control.MOUSE_FILTER_IGNORE
@@ -363,12 +364,12 @@ func open_chest(selected: String) -> void:
 		var column=VBoxContainer.new()
 		row.add_child(column)
 		var label=Label.new()
-		label.text="CARRIED · 18 SLOTS" if side==0 else "STORAGE · %d SLOTS" % storage.size()
+		label.text="CARRIED · 12 SLOTS" if side==0 else "STORAGE · %d SLOTS" % storage.size()
 		column.add_child(label)
 		var grid=GridContainer.new()
 		grid.columns=6
 		column.add_child(grid)
-		for i in range(18 if side==0 else storage.size()):
+		for i in range(game.State.INVENTORY_SLOTS if side==0 else storage.size()):
 			var stack: Dictionary=(carried[i] if i<carried.size() else {}) if side==0 else storage[i]
 			var button=item_slot(stack,68)
 			grid.add_child(button)
@@ -409,8 +410,8 @@ func update() -> void:
 		var button: Button=quick_buttons[i]
 		button.text=str(i+1)
 		button.icon=Items.icon(id) if Items.CATALOG.has(id) else null
-		button.tooltip_text="Empty slot" if id=="" else "Wildgrowth · 15 mana" if id=="wildgrowth" else Items.CATALOG[id].name+" · "+str(s.get(id))
-		if id=="watering_can": button.text+="\n%d/20" % s.water
+		button.tooltip_text="Empty slot" if id=="" else "Wildgrowth · 15 mana" if id=="wildgrowth" else Items.CATALOG[id].name+(" · "+str(s.get(id)) if s.get(id)>1 else "")
+		if id=="watering_can": button.text+="\n"+("Empty" if s.water==0 else "Low" if s.water==1 else "%d/20" % s.water)
 		if id=="wildgrowth": button.text+="\n✦"
 		_button_style(button,i==s.selected_slot,true)
 	clock.text = "%02d:%02d" % [int(s.minute/60.0),int(s.minute)%60]
@@ -430,8 +431,13 @@ func update() -> void:
 	elif game.world.Grid.rect(game.world.OUTCROP_CELLS.position,game.world.OUTCROP_CELLS.size).grow(200).has_point(p): region.text="Copper foothills"
 	if game.world!=game.outdoors: region.text=game.world.room_name()
 	place.text = "A quiet signal" if region.text=="The hidden clearing" else "Briar Glen"
-	objective.text = "Find Moss at the farm gate. We need somewhere to stay." if not s.invited else "The mayor is waiting at your farmhouse. Head home when you're ready." if not s.met_mayor and s.total()>=2160 else "Meet the mayor at your farmhouse tomorrow at noon. Until then, settle in." if not s.met_mayor else "A home, a little soil, a place in the world. Take your time."
+	objective.text = "Follow the mountain path to the back of the farmhouse. Find out who lives here." if not s.invited else "The mayor's party is waiting at the farmhouse." if not s.met_mayor and s.mayor_available() else "Moss is fetching the mayor. They return two hours after you spoke. Tidy the farmhouse while you wait." if not s.met_mayor else "A home, a little soil, a place in the world. Keep the farmhouse clean and work the garden."
 	next_task.text = "○ Tend your first moon turnip" if s.harvested==0 else "○ Chief Vale needs 3 copper" if not s.delivered else "✓ Crew link restored"
+	if s.invited:
+		for task in s.house_tasks:
+			if not s.house_tasks[task]:
+				next_task.text="○ "+{"sofa":"Remove the sofa cover","bed":"Uncover your bed","guest_bed":"Uncover the guest bed","radio":"Uncover the radio","living_light":"Replace the living-room bulb","bathroom_light":"Replace the bathroom bulb"}[task]
+				break
 	if s.crew_fed_day<s.day: next_task.text="○ Vale needs a cooked meal in the ship locker"
 	hint.text = "" if game.window_open else "RESTING · E to get up" if game.resting>0 else "E · "+game.nearest.get("label","") if not game.nearest.is_empty() else ""
 	if game.activity=="mining": hint.text = "Gathering copper…"

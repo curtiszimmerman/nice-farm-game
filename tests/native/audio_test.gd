@@ -75,7 +75,8 @@ func run() -> void:
 	game.testing=true
 	root.add_child(game)
 	game.set_process(false)
-	for i in range(3): game.state.chest_transfer(i)
+	preload("fixture.gd").explore(game)
+	preload("fixture.gd").tools(game.state)
 	await process_frame
 	game.state.player_position=game.world.plot_position(0)+Vector2.UP*game.world.Grid.TILE_SIZE
 	for slot in [0,3,1]:

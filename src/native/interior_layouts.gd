@@ -7,7 +7,7 @@ static func for_building(id: String) -> Dictionary:
 		"home":
 			plan=_open_house(14,true)
 			plan.furniture.append(["cabinet",Rect2i(10,8,2,1)])
-			plan.sites.append_array([["cabinet",Vector2i(10,9)],["stove",Vector2i(8,8)]])
+			plan.sites.append_array([["cabinet",Vector2i(10,9)],["stove",Vector2i(8,8)],["uncover_sofa",Vector2i(2,9)],["uncover_guest_bed",Vector2i(5,3)],["living_light",Vector2i(6,11)],["bathroom_light",Vector2i(10,3)]])
 		"ship": plan=_ship()
 		"finch":
 			plan=_open_house(12,false)

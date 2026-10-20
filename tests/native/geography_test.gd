@@ -11,6 +11,7 @@ func run() -> void:
 	game.testing=true
 	root.add_child(game)
 	game.set_process(false)
+	preload("fixture.gd").explore(game)
 	var w=game.world
 	check(w.Grid.MAP_SIZE.x*w.Grid.MAP_SIZE.y>=60*45*4,"map provides four times the previous area")
 	var tower={}

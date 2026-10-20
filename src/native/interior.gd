@@ -12,7 +12,9 @@ var furnishings: Array=[]
 class Furniture extends Node2D:
 	var room: Node2D
 	var item: Dictionary
-	func _draw() -> void: room.paint_furniture(self,item)
+	func _draw() -> void:
+		room.paint_furniture(self,item)
+		if item.has("task") and not room.state.house_tasks[item.task]: room.paint_cover(self,item)
 
 class Wall extends Node2D:
 	var room: Node2D
@@ -53,7 +55,7 @@ func _ready() -> void:
 	for item in layout.furniture: add_furniture(item[0],item[1],item[0] not in ["rug","art"])
 	add_site("exit",layout.exit,"Leave "+room_name())
 	for site in layout.sites:
-		add_site(site[0],site[1],{"bed":"Rest in the bedroom","radio":"Listen to the radio","shop":"Browse Tavi's provisions","cabinet":"Open kitchen cabinet","stove":"Cook at the stove","ship_storage":"Open crew supply locker","diagnostics":"Inspect damaged machinery"}[site[0]])
+		add_site(site[0],site[1],{"bed":"Rest in the bedroom","radio":"Listen to the radio","shop":"Browse Tavi's provisions","cabinet":"Open kitchen cabinet","stove":"Cook at the stove","ship_storage":"Open crew supply locker","diagnostics":"Inspect damaged machinery","uncover_sofa":"Remove sofa cover","uncover_guest_bed":"Remove guest bed cover","living_light":"Replace living-room bulb","bathroom_light":"Replace bathroom bulb"}[site[0]])
 	crops=Node2D.new()
 	add_child(crops)
 	player=_prop("player",state.player_position,{"coat":"6f9793","hair":"5c5045","skin":"d0a981","id":"player"})
@@ -70,6 +72,8 @@ func add_site(id: String,cell: Vector2i,label: String) -> void:
 
 func add_furniture(kind: String,bounds: Rect2i,solid: bool=true) -> void:
 	var data={"kind":kind,"bounds":bounds}
+	if building.id=="home" and kind in ["bed","sofa","radio"]:
+		data.task="guest_bed" if kind=="bed" and bounds.position.x==4 else kind
 	furnishings.append(data)
 	if kind=="rug": return
 	if solid:
@@ -166,7 +170,11 @@ func refresh() -> void:
 	night_tint.color=Color("b3c9d0") if building.id=="ship" else Color("d5c4ae") if state.minute<360 or state.minute>1200 else Color.WHITE
 	for child in get_children():
 		if child is Prop and child.kind=="effects": child.queue_redraw()
-		if building.id=="ship" and child is Furniture: child.queue_redraw()
+		if building.id in ["ship","home"] and child is Furniture: child.queue_redraw()
+		if building.id=="home" and child is Furniture:
+			var cell: Vector2i=child.item.bounds.position
+			var dim=(cell.y>=7 and not state.house_tasks.living_light) or (cell.x>=9 and cell.y<4 and not state.house_tasks.bathroom_light)
+			child.modulate=Color("929b94") if dim else Color.WHITE
 		if child is Furniture or child is Wall:
 			var width=32.0 if child is Wall else child.item.bounds.size.x*32.0
 			var height=40.0 if child is Wall else child.item.bounds.size.y*32.0+30
@@ -192,6 +200,10 @@ func _draw() -> void:
 		r(self,p.x+1,p.y+2,30,1,"b99b6d")
 		r(self,p.x+14,p.y+3,1,26,"876e50")
 		if floor_cells[cell] in ["bathroom","kitchen"]: r(self,p.x+1,p.y+1,30,30,"abb7a4" if (cell.x+cell.y)%2 else "c2c7ae")
+		if building.id=="home":
+			if (cell.y>=7 and not state.house_tasks.living_light) or (floor_cells[cell]=="bathroom" and not state.house_tasks.bathroom_light): r(self,p.x,p.y,32,32,"17232a55")
+			if not state.house_tasks.sofa and posmod(cell.x*13+cell.y*7,5)==0:
+				for i in range(4): r(self,p.x+4+i*5,p.y+posmod(i*7+cell.y,25),3,1,"c3bba077")
 	for item in furnishings:
 		if item.kind!="rug": continue
 		draw_set_transform(Grid.origin(item.bounds.position+Vector2i(0,item.bounds.size.y)))
@@ -373,7 +385,26 @@ func paint_furniture(c: CanvasItem,item: Dictionary) -> void:
 					r(c,x,-h+1,3,4,"d4b37a" if sin(elapsed+float(x))>0.3 else "5a756c")
 				poly(c,[Vector2(6,-h+12),Vector2(w-15,-h+25),Vector2(12,-7)],"28383e")
 
+func paint_cover(c: CanvasItem,item: Dictionary) -> void:
+	var w=item.bounds.size.x*32.0
+	var h=item.bounds.size.y*32.0
+	var lift=31 if item.kind=="radio" else 17 if item.kind=="sofa" else 8
+	poly(c,[Vector2(0,-h-lift),Vector2(w-5,-h-lift+2),Vector2(w+2,-3),Vector2(w-5,1),Vector2(5,-2),Vector2(-3,1)],"b2af96")
+	poly(c,[Vector2(w-12,-h-lift+3),Vector2(w-4,-h-lift+4),Vector2(w+2,-3),Vector2(w-10,-2)],"858d7e")
+	for x in range(8,int(w)-5,17):
+		c.draw_line(Vector2(x,-h-lift+7),Vector2(x+4,-5),Color("929a87"),2)
+		c.draw_line(Vector2(x+3,-h-lift+6),Vector2(x+7,-6),Color("c5bea0"),1)
+	for i in range(6): r(c,5+posmod(i*13,int(w)-10),-h+posmod(i*7,int(h)-4),2,1,"7d887a")
+
 func paint_effects(c: CanvasItem) -> void:
+	if building.id=="home":
+		for task in ["living_light","bathroom_light"]:
+			var p=site_position(task)-Vector2(0,40)
+			var working=state.house_tasks[task]
+			r(c,p.x-1,p.y-12,2,12,"525c53")
+			if working: oval(c,p.x,p.y+2,18,11,"e7d39833")
+			oval(c,p.x,p.y,4,6,"ead9a2" if working else "737c76")
+			if not working: r(c,p.x-2,p.y-1,5,2,"384b46")
 	if building.id=="ship":
 		for origin in [Vector2(135,90),Vector2(265,145),Vector2(385,210)]:
 			c.draw_polyline(PackedVector2Array([origin-Vector2(14,60),origin-Vector2(5,35),origin+Vector2(-11,-15),origin]),Color("172a35"),3)

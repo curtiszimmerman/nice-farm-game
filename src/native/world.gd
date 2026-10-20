@@ -11,17 +11,19 @@ const MINE_RIDGE = Rect2i(97,65,3,4)
 const MOSS_FIELDS = Rect2i(25,60,6,4)
 const VETERAN_GARDEN = Rect2i(46,79,3,3)
 const DECORATIVE_FIELDS = [MOSS_FIELDS,VETERAN_GARDEN]
-const SHIP_CELL = Vector2i(6,6)
+const SHIP_CELL = Vector2i(11,12)
+const SHIP_MOUNTAIN=Rect2i(4,5,18,31)
+const DESCENT_AREAS=[Rect2i(8,9,7,7),Rect2i(11,15,2,8),Rect2i(11,21,6,2),Rect2i(15,21,2,8),Rect2i(13,27,4,2),Rect2i(13,27,2,8),Rect2i(13,35,1,1)]
 const POND_CELL = Vector2i(17,67)
 const JETTY_CELLS = Rect2i(20,65,3,1)
 const CART_CELLS = Rect2i(65,45,3,1)
 const LAMP_CELLS = [Vector2i(58,43),Vector2i(64,50),Vector2i(20,42)]
 const PEOPLE = [
-	{"id":"moss","name":"Moss","role":"YOUR NEIGHBOR","cell":Vector2i(20,43),"coat":"a7834d","hair":"d6cb9c","skin":"d4a776","hat":true},
+	{"id":"moss","name":"Moss","role":"YOUR NEIGHBOR","cell":Vector2i(13,36),"coat":"a7834d","hair":"d6cb9c","skin":"d4a776","hat":true},
 	{"id":"tavi","name":"Tavi","role":"TRAVELING MERCHANT","cell":Vector2i(64,46),"coat":"aa7262","hair":"bd996b","skin":"c0a070","cat":true},
 	{"id":"iona","name":"Iona","role":"FIELD MAGICIAN","cell":Vector2i(61,15),"coat":"8885ad","hair":"e3d7bd","skin":"ae856c"},
 	{"id":"finch","name":"Finch","role":"RADIO CLUB SECRETARY","cell":Vector2i(54,38),"coat":"6d96a0","hair":"765842","skin":"d3ab88"},
-	{"id":"vale","name":"Chief Vale","role":"CHIEF ENGINEER","cell":Vector2i(6,8),"coat":"8b9baf","hair":"b5a68e","skin":"a97959"},
+	{"id":"vale","name":"Chief Vale","role":"CHIEF ENGINEER","cell":Vector2i(11,14),"coat":"8b9baf","hair":"b5a68e","skin":"a97959"},
 	{"id":"mayor","name":"Mayor Alder","role":"MAYOR","cell":Vector2i(61,42),"coat":"657b70","hair":"c2c4b0","skin":"d0a181"},
 	{"id":"veteran","name":"Bram","role":"RETIRED ARMY","cell":Vector2i(43,82),"coat":"777a60","hair":"b9b6a3","skin":"b08f77"},
 	{"id":"assistant","name":"Neral","role":"MAYOR'S ASSISTANT · DARK ELF","cell":Vector2i(54,46),"coat":"61758a","hair":"c7cbcd","skin":"65566d","elf":true}
@@ -40,7 +42,8 @@ const BUILDINGS = [
 	{"cell":Vector2i(70,53),"tiles":Vector2i(4,3),"roof":"6c7885","kind":"cottage","resident":"assistant"}
 ]
 const SITES = [
-	{"id":"ship_entry","cell":Vector2i(6,7),"door":"ship","label":"Enter cloaked ship"},
+	{"id":"ship_entry","cell":Vector2i(11,14),"door":"ship","label":"Enter cloaked ship"},
+	{"id":"farmhouse_rear","cell":Vector2i(13,36),"door":"home","label":"Enter farmhouse rear door"},
 	{"id":"bed","cell":Vector2i(13,42),"label":"Rest at the farmhouse"},
 	{"id":"chest","cell":Vector2i(17,42),"label":"Open farmhouse chest"},
 	{"id":"pond","cell":Vector2i(21,65),"label":"Fish from the jetty"},
@@ -199,6 +202,14 @@ func _build_layout() -> void:
 			var cell=Vector2i(x,y)
 			mountain_cells[cell]=true
 			_claim(Rect2i(cell,Vector2i.ONE),"mountain")
+	for y in range(SHIP_MOUNTAIN.position.y,SHIP_MOUNTAIN.end.y):
+		for x in range(SHIP_MOUNTAIN.position.x,SHIP_MOUNTAIN.end.x):
+			var cell=Vector2i(x,y)
+			if DESCENT_AREAS.any(func(area): return area.has_point(cell)):
+				reserved_cells[cell]=true
+			else:
+				mountain_cells[cell]=true
+				_claim(Rect2i(cell,Vector2i.ONE),"mountain")
 	for y in range(SQUARE.position.y,SQUARE.end.y):
 		for x in range(SQUARE.position.x,SQUARE.end.x): reserved_cells[Vector2i(x,y)]=true
 	for routine in Schedule.ROUTINES.values():
@@ -257,10 +268,13 @@ func update_villagers(dt: float,snap: bool=false) -> void:
 			continue
 		var stop=Schedule.stop(id,state.minute)
 		if id=="vale": stop.room="ship"
-		if id=="moss" and not state.invited: stop={"cell":Vector2i(20,43),"sleeping":false,"room":""}
-		if id in ["moss","mayor","assistant"] and state.invited and not state.met_mayor and state.day>state.invitation_day and state.minute>=(570 if id=="moss" else 480) and state.minute<960:
+		if id=="moss" and not state.invited: stop={"cell":Vector2i(13,36),"sleeping":false,"room":""}
+		var visit=state.mayor_visit_start()
+		if visit>=0 and state.total()>=visit+240: visit+=1440
+		if id=="moss" and state.invited and not state.met_mayor and state.total()<state.mayor_due-60: stop={"cell":Vector2i(54,46),"sleeping":false,"room":"hall"}
+		if id in ["moss","mayor","assistant"] and state.invited and not state.met_mayor and visit>=0 and state.total()>=visit-60 and state.total()<visit+240:
 			var offset={"moss":Vector2i(3,0),"mayor":Vector2i(1,0),"assistant":Vector2i(2,1)}[id]
-			stop={"cell":Grid.SPAWN_CELL+offset,"sleeping":false,"room":"home" if state.location=="home" and state.minute>=600 else ""}
+			stop={"cell":Grid.SPAWN_CELL+offset,"sleeping":false,"room":"home" if state.location=="home" and state.total()>=visit-8 else ""}
 		if state.abandoned_day.get(id,0)==state.day: stop=Schedule.home_stop(id)
 		var actor: Node2D=villagers[id]
 		var previous=actor.position
@@ -275,7 +289,7 @@ func update_villagers(dt: float,snap: bool=false) -> void:
 			if actor.position.distance_to(Grid.center(cell))>0.1: path.push_front(Grid.center(cell))
 			routes[id]={"target":target,"path":path}
 		if routes.has(id):
-			var remaining=dt*56.0
+			var remaining=dt*(96.0 if id in ["moss","mayor","assistant"] and state.invited and not state.met_mayor else 56.0)
 			var path: Array=routes[id].path
 			while remaining>0 and not path.is_empty():
 				var distance=actor.position.distance_to(path[0])
@@ -628,6 +642,31 @@ func rock_surface(c: CanvasItem,p: Vector2,w: int,h: int,seed_value: int,edge: b
 		c.draw_polyline(PackedVector2Array([p+Vector2(8,2),p+Vector2(14,13),p+Vector2(10,24)]),Color("52685e"),1)
 
 func paint_cliffs(c: CanvasItem) -> void:
+	for y in range(SHIP_MOUNTAIN.position.y,SHIP_MOUNTAIN.end.y):
+		for x in range(SHIP_MOUNTAIN.position.x,SHIP_MOUNTAIN.end.x):
+			var cell=Vector2i(x,y)
+			var p=Grid.origin(cell)
+			if not mountain_cells.has(cell):
+				r(c,p.x,p.y,32,32,"9a987d")
+				for i in range(4): r(c,p.x+posmod(x*11+i*17,29),p.y+posmod(y*13+i*7,29),3,2,"b6b299")
+				if x==13 and y>=29:
+					for yy in [5,16,27]: r(c,p.x+2,p.y+yy,28,2,"6d776b")
+				continue
+			r(c,p.x,p.y,32,32,"748275")
+			for i in range(3):
+				var px=p.x+posmod(x*17+y*7+i*13,25)
+				var py=p.y+posmod(y*19+x*11+i*7,28)
+				r(c,px,py,3+i*2,2,"84917d" if i%2 else "627366")
+			if sin(x*0.7+y*0.43)>0.55:
+				var offset=int(sin(x*0.4+y)*6)
+				r(c,p.x,p.y+14+offset,32,2,"89947e")
+				r(c,p.x+2,p.y+17+offset,28,1,"5f7265")
+			if not mountain_cells.has(cell+Vector2i.LEFT): r(c,p.x,p.y,5,32,"a0a98f")
+			if not mountain_cells.has(cell+Vector2i.RIGHT): r(c,p.x+26,p.y,6,32,"4e6659")
+			if not mountain_cells.has(cell+Vector2i.DOWN):
+				r(c,p.x,p.y+12,32,20,"526858")
+				r(c,p.x,p.y+12,32,3,"a2aa8e")
+				for yy in [19,26]: r(c,p.x,p.y+yy,32,2,"788773")
 	# Continuous strata follow one eroded ridge rather than repeating a wall tile.
 	var random=RandomNumberGenerator.new()
 	random.seed=93

@@ -7,7 +7,7 @@ const ROUTINES = {
 	"iona":[[0,65,14,false],[180,61,15,false],[300,61,15,true],[720,61,15,false],[810,65,14,false],[900,60,45,false],[1020,32,47,false],[1170,63,48,false],[1230,61,15,false]],
 	"finch":[[0,60,54,true],[390,60,54,false,"finch"],[420,60,48,false],[480,54,38,false,"radio"],[720,60,45,false],[780,54,38,false,"radio"],[1050,63,48,false],[1170,60,54,false,"finch"],[1350,60,54,true]],
 	"mayor":[[0,61,42,true],[420,61,42,false,"mayor"],[480,54,46,false,"hall"],[720,60,45,false],[780,54,46,false,"hall"],[1050,63,48,false],[1200,61,42,false,"mayor"],[1380,61,42,true]],
-	"vale":[[0,6,8,false]],
+	"vale":[[0,11,14,false]],
 	"veteran":[[0,42,80,true],[390,42,80,false,"veteran"],[480,43,82,false],[720,42,80,false,"veteran"],[840,39,81,false],[1080,42,80,false,"veteran"],[1320,42,80,true]],
 	"assistant":[[0,72,56,true],[420,72,56,false,"assistant"],[480,54,46,false,"hall"],[720,63,48,false],[780,54,46,false,"hall"],[1080,72,56,false,"assistant"],[1350,72,56,true]]
 }
@@ -18,7 +18,7 @@ static func home_stop(id: String) -> Dictionary:
 		if entry[3]:
 			home=entry
 			break
-	return {"cell":Vector2i(home[1],home[2]),"sleeping":true,"room":id}
+	return {"cell":Vector2i(home[1],home[2]),"sleeping":true,"room":"ship" if id=="vale" else id}
 
 static func stop(id: String,minute: float) -> Dictionary:
 	var chosen=ROUTINES[id][0]

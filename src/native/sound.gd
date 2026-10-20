@@ -1,6 +1,8 @@
 extends Node
 
-const TRACKS = ["music","birds","crickets","drips","wildgrowth","ship"]
+const TRACKS = ["music","birds","crickets","drips","wildgrowth","ship","crash"]
+var crash: AudioStreamPlayer
+var cinematic=false
 var ship: AudioStreamPlayer
 var ship_weight=0.0
 var testing = false
@@ -20,7 +22,7 @@ var current_mix = {"birds":0.0,"crickets":0.0,"drips":0.0}
 func _ready() -> void:
 	for name in TRACKS:
 		var stream=AudioStreamWAV.load_from_file("res://audio/"+name+".wav")
-		if name!="wildgrowth":
+		if name not in ["wildgrowth","crash"]:
 			stream.loop_mode=AudioStreamWAV.LOOP_FORWARD
 			stream.loop_end=stream.data.size()/2
 		streams[name]=stream
@@ -29,6 +31,7 @@ func _ready() -> void:
 	crickets=_player("crickets")
 	drips=_player("drips")
 	ship=_player("ship")
+	crash=_player("crash")
 	spell=_player("wildgrowth")
 	spell.max_polyphony=4
 	if not testing: load_preferences()
@@ -62,12 +65,17 @@ func _db(value: float) -> float:
 	return linear_to_db(value) if value>0.0001 else -80.0
 
 func _apply_volumes() -> void:
-	music.volume_db=_db(music_level*(1.0-ship_weight))
-	ship.volume_db=_db(ambience_level*ship_weight)
-	birds.volume_db=_db(ambience_level*current_mix.birds)
-	crickets.volume_db=_db(ambience_level*current_mix.crickets)
-	drips.volume_db=_db(ambience_level*current_mix.drips)
+	music.volume_db=_db(music_level*(1.0-ship_weight) if not cinematic else 0.0)
+	ship.volume_db=_db(ambience_level*ship_weight if not cinematic else 0.0)
+	crash.volume_db=_db(effects_level)
+	birds.volume_db=_db(ambience_level*current_mix.birds if not cinematic else 0.0)
+	crickets.volume_db=_db(ambience_level*current_mix.crickets if not cinematic else 0.0)
+	drips.volume_db=_db(ambience_level*current_mix.drips if not cinematic else 0.0)
 	spell.volume_db=_db(effects_level)
+
+func set_cinematic(value: bool) -> void:
+	cinematic=value
+	_apply_volumes()
 
 func start() -> void:
 	if active: return
@@ -76,7 +84,7 @@ func start() -> void:
 
 func stop() -> void:
 	active=false
-	for player in [music,birds,crickets,drips,ship,spell]: player.stop()
+	for player in [music,birds,crickets,drips,ship,spell,crash]: player.stop()
 
 func shutdown() -> void:
 	# Playback can be queued until the next frame, including a just-cast spell.

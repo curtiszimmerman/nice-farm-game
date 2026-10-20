@@ -1,0 +1,72 @@
+extends SceneTree
+const Game=preload("res://game.gd")
+var failed=false
+func check(value: bool,label: String) -> void:
+	if value: print("PASS: "+label)
+	else: failed=true; push_error("FAIL: "+label)
+func _initialize() -> void: call_deferred("run")
+func run() -> void:
+	var game=Game.new()
+	game.testing=true
+	root.add_child(game)
+	game.set_process(false)
+	check(game.current_room=="ship" and game.opening!=null,"a new captain begins inside the ship with the animated introduction")
+	var now=game.state.total()
+	game._process(5)
+	check(game.state.total()==now,"the opening animation does not advance the planet clock")
+	var opening=game.opening
+	check(opening.scene_at(2)=="space" and opening.scene_at(6)=="bridge" and opening.scene_at(11)=="space","the attack cuts between ship exterior and intact bridge")
+	opening._process(24.2)
+	check(game.sound.crash.playing,"impact triggers the dedicated crash sound")
+	opening.finish()
+	check(game.state.intro_complete and game.window_open and game.ui.modal_box.get_child(2).text=="Status report?","the white fade leads to the captain's status-report dialogue")
+	var lines=[]
+	while game.window_open:
+		lines.append(game.ui.modal_box.get_child(2).text)
+		game.ui.modal_box.get_child(3).pressed.emit()
+	check(game.state.briefing_complete and lines.any(func(line): return "gravitic power sink" in line) and lines.any(func(line): return "Three pieces of copper" in line),"the briefing explains cloak power supplies and the commlink repair")
+	game.leave_building()
+	var w=game.world
+	var start=w.Grid.world_to_cell(game.state.player_position)
+	var route=w._route(start,Vector2i(13,36))
+	check(not route.is_empty(),"the ship's mountain descent reaches the farmhouse rear")
+	var choke=Vector2i(13,35)
+	w.solid_cells[choke]="test blocked descent"
+	check(w._route(start,w.Grid.SPAWN_CELL).is_empty(),"blocking the sole mountain descent cuts off every way to town")
+	w.solid_cells.erase(choke)
+	game.state.player_position=w.Grid.center(Vector2i(13,36))
+	game._process(0.01)
+	check(game.window_open and game.ui.modal_box.get_child(1).text=="Moss","the descent introduces Moss behind the farmhouse")
+	while game.window_open: game.ui.modal_box.get_child(3).pressed.emit()
+	check(game.state.invited and game.state.mayor_due-game.state.total()==120,"Moss leaves to fetch the mayor for a visit two hours later")
+	game.enter_building("home")
+	check(game.world.furnishings.any(func(item): return item.get("task","")=="sofa"),"the abandoned farmhouse has covered furniture")
+	game.state.player_position=game.world.site_position("living_light")
+	game.interact()
+	check(not game.state.house_tasks.living_light,"a broken light needs a replacement bulb")
+	game.state.player_position=game.world.site_position("cabinet")
+	game.interact()
+	game.ui.chest_slots[0].pressed.emit()
+	game.ui.quantity_control.value=2
+	game.ui.modal_box.get_child(4).pressed.emit()
+	game.close_window()
+	for site in ["living_light","bathroom_light","uncover_sofa","bed","uncover_guest_bed","radio"]:
+		game.state.player_position=game.world.site_position(site)
+		game.interact()
+	check(game.state.house_tasks.values().all(func(done): return done) and game.state.light_bulbs==0,"E uncovers each furnishing and installs cabinet bulbs in both rooms")
+	var saved=game.State.new()
+	check(saved.restore(game.state.to_dict()) and saved.house_tasks.values().all(func(done): return done),"opening progress and farmhouse repairs survive saving")
+	for i in range(41): game._process(1)
+	check(game.window_open and game.conversation_members.size()==3,"Moss returns with Alder and Neral that same day")
+	check(["moss","mayor","assistant"].all(func(id): return game.world.villagers[id].visible),"all visitors physically reach the farmhouse before the welcome conversation")
+	while game.window_open: game.ui.modal_box.get_child(3).pressed.emit()
+	check(game.state.met_mayor,"agreeing to keep the farmhouse clean completes the welcome")
+	game.sound.update_context(720,"farm","spring",0,10)
+	game.reset_confirmation()
+	game.ui.modal_box.get_child(3).pressed.emit()
+	check(game.current_room=="ship" and game.opening!=null and not game.state.intro_complete,"starting a fresh visit replays the arrival inside the ship")
+	check(game.sound.birds.volume_db<-79,"the opening silences wildlife left over from a previous visit")
+	await game.sound.shutdown()
+	game.queue_free()
+	await process_frame
+	quit(1 if failed else 0)

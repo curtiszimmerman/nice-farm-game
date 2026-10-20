@@ -12,6 +12,10 @@ func run() -> void:
 	s.tend(0)
 	check(not s.plots[0].tilled and s.energy==100,"tilling requires a carried hoe")
 	for i in range(3): s.chest_transfer(i)
+	s.chest_transfer(3)
+	s.quick_slots[1]="watering_can"
+	s.selected_slot=1
+	s.refill_water()
 	check(s.hoe==1 and s.watering_can==1 and s.sickle==1,"tools can be taken from the chest")
 	s.tend(0)
 	s.tend(0)
@@ -26,7 +30,7 @@ func run() -> void:
 	s.tend(0)
 	check(s.ripe(0) and s.harvested==0,"harvesting requires a carried sickle")
 	s=State.new()
-	for i in range(3): s.chest_transfer(i)
+	preload("fixture.gd").tools(s)
 	s.seeds=80
 	for cycle in range(2):
 		for i in range(20):
@@ -52,11 +56,11 @@ func run() -> void:
 	game.testing=true
 	root.add_child(game)
 	game.set_process(false)
+	preload("fixture.gd").explore(game)
 	game.state.player_position=game.world.site_position("chest")+Vector2(0,32)
 	game.interact()
 	check(game.window_open and game.ui.chest_slots.size()==18,"E opens the farmhouse chest's eighteen slots")
 	game.ui.chest_slots[0].pressed.emit()
-	game.ui.modal_box.get_child(4).pressed.emit()
 	check(game.state.hoe==1,"the real chest interface withdraws a tool")
 	game.close_window()
 	game.enter_building("moss")

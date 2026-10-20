@@ -11,6 +11,7 @@ The tone is playful and comfortable. Music and environmental sound are separate 
 - Cave/mine interiors: the same dripping-water profile at every time of day, with outdoor wildlife excluded.
 - Wildgrowth: a brief rustle and rising four-note flourish, played only on successful casting. It is currently the only castable spell.
 - Ship engineering: a separate sixteen-second low machinery hum with quiet paired console beeps. Entering the ship fades out music and wildlife and brings in this ambience; its volume follows the ambience slider.
+- Opening impact: a separate 3.6-second crashing/rumbling effect during the white fade. The opening silences music and environmental layers, including when replayed through a confirmed new visit; its crash follows the effects volume.
 
 The music, ambience, and spell effects each have a volume slider under Settings → Sound. Zero mutes that layer. Preferences persist at `internal/audio.cfg`, independently of the gameplay save. Audio begins when entering the game, not at the title screen.
 
@@ -28,7 +29,7 @@ Original WAV files live in `src/native/audio/`. Their reproducible source is `sc
 python3 scripts/make_audio.py
 ```
 
-Use `--only music`, `--only birds`, `--only crickets`, `--only drips`, `--only wildgrowth`, or `--only ship` for one asset. No packages or external recordings are required. Composition and sound quality remain subject to play feedback.
+Use `--only music`, `--only birds`, `--only crickets`, `--only drips`, `--only wildgrowth`, `--only ship`, or `--only crash` for one asset. No packages or external recordings are required. Composition and sound quality remain subject to play feedback.
 
 The audio controller is `src/native/sound.gd`. The world supplies environmental context; the game triggers spell sounds. A new spell needs its own sound and a successful-cast trigger. The controller does not substitute Wildgrowth for unknown spells.
 

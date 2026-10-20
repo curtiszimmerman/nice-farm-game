@@ -27,10 +27,26 @@ func run() -> void:
 	game.testing=true
 	root.add_child(game)
 	game.set_process(false)
+	game.opening.set_process(false)
+	for shot in [[2.0,"opening-space"],[6.0,"opening-bridge"],[11.0,"opening-attack"],[23.6,"opening-whiteout"],[26.5,"opening-aftermath"]]:
+		game.opening.elapsed=shot[0]
+		game.opening.view.queue_redraw()
+		await capture(shot[1])
+	game.opening.finish()
+	await capture("opening-status-report")
+	while game.window_open: game.ui.modal_box.get_child(3).pressed.emit()
+	game.leave_building()
+	game.state.player_position=game.world.Grid.center(Vector2i(13,28))
+	await capture("mountain-descent")
+	game.state.player_position=game.world.Grid.center(Vector2i(13,36))
+	game._process(0)
+	await capture("moss-first-meeting")
+	while game.window_open: game.ui.modal_box.get_child(3).pressed.emit()
+	game.state.player_position=game.world.Grid.center(game.world.Grid.SPAWN_CELL)
 	game.open_chest()
 	await capture("chest")
 	game.close_window()
-	for i in range(3): game.state.chest_transfer(i)
+	preload("fixture.gd").tools(game.state)
 	game.world.elapsed=2.0
 	game.ui.message.text=""
 	await capture("farm")
@@ -98,6 +114,10 @@ func run() -> void:
 	game.interact()
 	game.state.player_position=game.world.Grid.center(Vector2i(10,9))
 	await capture("interior-kitchen-bath")
+	game.state.storage_transfer("cabinet",0,"",2)
+	for task in game.state.house_tasks: game.state.tidy_house(task)
+	game.world.queue_redraw()
+	await capture("interior-tidied")
 	game.leave_building()
 	game.enter_building("ship")
 	game.state.player_position=game.world.Grid.center(Vector2i(8,4))

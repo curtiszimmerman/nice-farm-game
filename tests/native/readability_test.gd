@@ -21,7 +21,8 @@ func run() -> void:
 	game.testing=true
 	root.add_child(game)
 	game.set_process(false)
-	for i in range(3): game.state.chest_transfer(i)
+	preload("fixture.gd").explore(game)
+	preload("fixture.gd").tools(game.state)
 	var world=game.world
 	game.state.player_position=world.plot_position(6)
 	for pair in [["up",1],["down",11],["left",5],["right",7]]:

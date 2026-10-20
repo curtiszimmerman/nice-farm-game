@@ -20,6 +20,7 @@ func run() -> void:
 	game.testing=true
 	root.add_child(game)
 	game.set_process(false)
+	preload("fixture.gd").explore(game)
 	game.state.player_position=game.world.site_position("ore")+Vector2(0,80)
 	var event=InputEventKey.new()
 	event.physical_keycode=KEY_W

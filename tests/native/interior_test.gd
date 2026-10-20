@@ -11,6 +11,7 @@ func run() -> void:
 	game.testing=true
 	root.add_child(game)
 	game.set_process(false)
+	preload("fixture.gd").explore(game,true)
 	var outside=game.world
 	check(game.camera.zoom.is_equal_approx(Vector2.ONE*1.9125),"camera zoom reflects the latest 15 percent reduction")
 	var home=outside.buildings[0]
@@ -77,6 +78,7 @@ func run() -> void:
 	game.close_window()
 	game.state.day=2
 	game.state.minute=719
+	game.state.mayor_due=2160
 	game.state.met_mayor=false
 	game.enter_building("home")
 	game._process(0.5)

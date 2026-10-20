@@ -8,7 +8,7 @@ func check(value: bool,label: String) -> void:
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
 	var s=State.new()
-	for i in range(3): s.chest_transfer(i)
+	preload("fixture.gd").tools(s)
 	s.health=60
 	s.energy=50
 	s.mana=20
@@ -37,11 +37,12 @@ func run() -> void:
 	game.testing=true
 	root.add_child(game)
 	game.set_process(false)
+	preload("fixture.gd").explore(game)
 	game.state.turnips=2
 	game.state.health=50
 	game.state.energy=50
 	game.inventory()
-	check(game.ui.inventory_slots.size()==18,"satchel displays a grid of inventory slots")
+	check(game.ui.inventory_slots.size()==12,"satchel displays twelve inventory slots")
 	var slot=null
 	for button in game.ui.inventory_slots:
 		if button.get_meta("item_id","")=="turnips": slot=button

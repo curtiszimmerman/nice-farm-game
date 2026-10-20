@@ -21,15 +21,16 @@ func run() -> void:
 	game.testing=true
 	root.add_child(game)
 	game.set_process(false)
-	for i in range(3): game.state.chest_transfer(i)
+	preload("fixture.gd").explore(game)
+	preload("fixture.gd").tools(game.state)
 	check(game.started and game.world.player!=null and game.ui.root!=null,"native world and interface initialize")
 	check(game.world.crops.z_index>=0,"garden is drawn above terrain")
 	check(game.ui.energy_bar.size.y==4 and game.ui.mana_bar.size.y==4,"resource bars preserve compact layout")
 	game.state.player_position=game.world.villagers.moss.position+Vector2(0,20)
 	game.interact()
 	check(game.window_open and game.ui.modal_box.get_child(1).text=="Moss","proximity opens neighbor conversation")
-	game.ui.modal_box.get_child(3).pressed.emit()
-	check(game.state.invited and not game.window_open,"dialogue choice records appointment")
+	for i in range(3): game.ui.modal_box.get_child(3).pressed.emit()
+	check(game.state.invited and not game.window_open,"dialogue choice records the same-day appointment")
 	game.state.player_position=game.world.plot_position(0)+Vector2.UP*game.world.Grid.TILE_SIZE
 	for slot in [0,3,1]:
 		game.select_quick_slot(slot)
@@ -64,6 +65,7 @@ func run() -> void:
 	check(game.state.fish==1 and game.activity=="","fishing timing rewards a successful catch")
 	game.state.day=2
 	game.state.minute=719
+	game.state.mayor_due=2160
 	game.state.player_position=game.world.site_position("bed")+Vector2(0,32)
 	game._process(0.5)
 	check(not game.state.met_mayor and game.window_open,"mayor arrives at farmhouse when continuous clock reaches noon")

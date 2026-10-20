@@ -10,6 +10,7 @@ func run() -> void:
 	game.testing=true
 	root.add_child(game)
 	game.set_process(false)
+	preload("fixture.gd").explore(game)
 	game.state.met_mayor=true
 	game.talk("tavi")
 	var position=game.outdoors.villagers.tavi.position
@@ -27,8 +28,9 @@ func run() -> void:
 	game.state.met_mayor=false
 	game.state.day=2
 	game.state.minute=600
+	game.state.mayor_due=2040
 	game.outdoors.update_villagers(0,true)
-	check(["moss","mayor","assistant"].all(func(id): return game.outdoors.villagers[id].position.distance_to(game.outdoors.site_position("bed"))<170),"Moss Alder and his assistant wait at the farm around ten")
+	check(["moss","mayor","assistant"].all(func(id): return game.outdoors.villagers[id].position.distance_to(game.outdoors.site_position("bed"))<170),"Moss Alder and his assistant wait at the arranged visit time")
 	game.state.minute=720
 	game.state.player_position=game.outdoors.site_position("bed")+Vector2(0,32)
 	game.mayor()

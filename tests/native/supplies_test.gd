@@ -8,11 +8,11 @@ func _initialize() -> void:
 	var s=State.new()
 	s.chest_transfer(0,"",1)
 	s.seeds=10
-	s.chest_transfer(3,"seeds",4)
-	check(s.seeds==6 and s.chest[3].count==4,"deposit only the selected quantity")
-	s.chest_transfer(3,"",2)
-	check(s.seeds==8 and s.chest[3].count==2,"withdraw only the selected quantity")
-	check(not s.chest_transfer(3,"",9),"reject quantities above the available stack")
+	s.chest_transfer(4,"seeds",4)
+	check(s.seeds==6 and s.chest[4].count==4,"deposit only the selected quantity")
+	s.chest_transfer(4,"",2)
+	check(s.seeds==8 and s.chest[4].count==2,"withdraw only the selected quantity")
+	check(not s.chest_transfer(4,"",9),"reject quantities above the available stack")
 	s.quick_slots[0]="watering_can"
 	s.farm(0)
 	check(not s.plots[0].tilled,"a carried hoe cannot till unless selected")

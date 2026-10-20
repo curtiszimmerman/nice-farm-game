@@ -3,6 +3,7 @@ extends RefCounted
 const FOOD={"turnips":{"health":8,"energy":12,"mana":0},"fish":{"health":5,"energy":8,"mana":0},"star_bulbs":{"health":0,"energy":0,"mana":15},"health_elixir":{"health":25,"energy":0,"mana":0},"fish_sticks":{"health":12,"energy":20,"mana":0},"fish_stew":{"health":20,"energy":30,"mana":15},"rations":{"health":0,"energy":15,"mana":0}}
 
 const CATALOG={
+	"light_bulbs":{"name":"Light bulb","description":"A replacement bulb for the farmhouse bathroom or living room.","action":"Use at a broken light fixture"},
 	"pot":{"name":"Cooking pot","description":"Unlocks fish stew at your farmhouse stove.","action":"Cooking equipment"},
 	"pan":{"name":"Frying pan","description":"Unlocks fish sticks at your farmhouse stove.","action":"Cooking equipment"},
 	"fish_sticks":{"name":"Fish sticks","description":"Pan-fried silverfin. A cooked meal for you or Vale.","action":"Eat"},
@@ -30,6 +31,9 @@ static func icon(id: String) -> Texture2D:
 		for x in range(24):
 			var color=Color.TRANSPARENT
 			match id:
+				"light_bulbs":
+					if Vector2(x-12,y-10).length()<6: color=Color("e9deb0") if x<13 else Color("c5b67e")
+					if x in range(9,16) and y in range(14,21): color=Color("819499") if y%2 else Color("afbbb7")
 				"pot","pan","fish_stew":
 					if pow((x-12)/8.0,2)+pow((y-14)/6.0,2)<1: color=Color("66808a") if y>13 else Color("b7c4be")
 					if id=="fish_stew" and pow((x-12)/6.0,2)+pow((y-12)/3.0,2)<1: color=Color("c09c65")

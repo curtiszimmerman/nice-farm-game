@@ -26,7 +26,8 @@ func run() -> void:
 	game.testing=true
 	root.add_child(game)
 	game.set_process(false)
-	for i in range(3): game.state.chest_transfer(i)
+	preload("fixture.gd").explore(game,true)
+	preload("fixture.gd").tools(game.state)
 	game.testing=false
 	game.state.money=91
 	game.state.invited=true
@@ -44,6 +45,9 @@ func run() -> void:
 	game._load_visit()
 	check(game.state.money==105,"second save survives a fresh state load")
 	game.enter_building("home")
+	if game.window_open:
+		while game.window_open: game.ui.modal_box.get_child(3).pressed.emit()
+		game.enter_building("home")
 	var standing=game.state.player_position
 	game.begin_rest(240)
 	game.save_visit()

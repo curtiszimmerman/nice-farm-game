@@ -186,12 +186,25 @@ def ship():
     return track
 
 
+def crash():
+    track = buffer(3.6)
+    random = Random(410)
+    low = 0.0
+    for i in range(len(track)):
+        t = i / RATE
+        low += (random.uniform(-1, 1) - low) * .08
+        impact = exp(-t * 3) + .55 * exp(-abs(t - .55) * 8) + .3 * exp(-abs(t - 1.2) * 7)
+        envelope = min(1, t * 80) * exp(-t * .8)
+        track[i] = (low * impact * .8 + sin(TAU * (42 * t - 2 * t * t)) * .22 + sin(TAU * 63 * t) * .12) * envelope
+    return track
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--only", choices=["music", "birds", "crickets", "drips", "wildgrowth", "ship"], help="Rebuild one sound instead of all assets.")
+    parser.add_argument("--only", choices=["music", "birds", "crickets", "drips", "wildgrowth", "ship", "crash"], help="Rebuild one sound instead of all assets.")
     args = parser.parse_args()
     OUTPUT.mkdir(parents=True, exist_ok=True)
-    for name, build in {"music": music, "birds": birds, "crickets": crickets, "drips": drips, "wildgrowth": wildgrowth, "ship": ship}.items():
+    for name, build in {"music": music, "birds": birds, "crickets": crickets, "drips": drips, "wildgrowth": wildgrowth, "ship": ship, "crash": crash}.items():
         if args.only is None or args.only == name:
             write(name, build())
 

@@ -14,7 +14,7 @@ func check(condition: bool, description: String) -> void:
 
 func _initialize() -> void:
 	var s = State.new()
-	for i in range(3): s.chest_transfer(i)
+	preload("fixture.gd").tools(s)
 	s.tend(0)
 	s.tend(0)
 	check(s.seeds == 7 and not s.ripe(0), "planting spends a seed and requires water")
@@ -59,15 +59,14 @@ func _initialize() -> void:
 	s.energy = 100.0
 	check(s.mine() and s.copper == 1 and s.energy == 95.0, "safe mining costs energy")
 	check(not s.meet_mayor(), "mayor cannot meet before invitation")
-	s.invited = true
-	s.day = maxi(s.day,2)
-	s.crew_fed_day=1
-	s.minute = 719.0
-	check(not s.meet_mayor(), "appointment does not trigger before noon")
-	s.minute = 720.0
-	check(s.meet_mayor() and not s.meet_mayor(), "appointment triggers once at noon")
+	s.invite_mayor()
+	s.advance(119)
+	check(not s.meet_mayor(), "appointment does not trigger before Moss's two-hour round trip")
+	s.advance(1)
+	check(s.meet_mayor() and not s.meet_mayor(), "appointment triggers once when the mayor returns")
 	var late = State.new()
 	late.invited = true
+	late.mayor_due=720
 	late.day = 3
 	late.minute=720
 	check(late.meet_mayor(), "missed appointment remains recoverable")

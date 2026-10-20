@@ -11,6 +11,7 @@ func run() -> void:
 	game.testing=true
 	root.add_child(game)
 	game.set_process(false)
+	preload("fixture.gd").explore(game,true)
 	game.enter_building("home")
 	var room=game.world
 	game.state.energy=10

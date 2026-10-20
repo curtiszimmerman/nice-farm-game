@@ -12,6 +12,7 @@ func run() -> void:
 	game.testing=true
 	root.add_child(game)
 	game.set_process(false)
+	preload("fixture.gd").explore(game)
 	var w=game.world
 	game.state.minute=540
 	w.update_villagers(0.0,true)
@@ -61,6 +62,7 @@ func run() -> void:
 	game.state.invited=true
 	game.state.day=2
 	game.state.minute=720
+	game.state.mayor_due=2160
 	w.update_villagers(0.0,true)
 	check(w.villagers.mayor.position==w.Grid.center(w.Grid.SPAWN_CELL+Vector2i(1,0)),"the mayor keeps the farmhouse appointment")
 	game.state.minute=0

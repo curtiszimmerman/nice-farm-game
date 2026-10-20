@@ -12,6 +12,7 @@ func run() -> void:
 	game.testing=true
 	root.add_child(game)
 	game.set_process(false)
+	preload("fixture.gd").explore(game)
 	var w=game.world
 	var tower={}
 	for b in w.buildings:

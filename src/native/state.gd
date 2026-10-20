@@ -18,7 +18,7 @@ func calendar_year() -> int:
 var day = 1
 var minute = 480.0
 var money = 24
-var seeds = 8
+var seeds = 0
 var turnips = 0
 var fish = 0
 var copper = 0
@@ -31,9 +31,9 @@ var sickle = 0
 var chest: Array=[]
 var cabinet: Array=[]
 var ship_storage: Array=[]
-var quick_slots: Array=["hoe","watering_can","sickle","seeds","rusty_sword","wildgrowth","",""]
+var quick_slots: Array=["","","","","","","",""]
 var selected_slot=0
-var water=20
+var water=0
 var pot=0
 var pan=0
 var fish_sticks=0
@@ -43,7 +43,13 @@ var rations=0
 var crew_fed_day=1
 var crew_hungry_days=0
 var purchased_utensils: Array=[]
-const EXTRA_ITEMS=["pot","pan","fish_sticks","fish_stew","health_elixir","rations"]
+var light_bulbs=0
+var intro_complete=false
+var briefing_complete=false
+var mayor_due=-1.0
+var house_tasks={"sofa":false,"bed":false,"guest_bed":false,"radio":false,"living_light":false,"bathroom_light":false}
+const INVENTORY_SLOTS=12
+const EXTRA_ITEMS=["pot","pan","fish_sticks","fish_stew","health_elixir","rations","light_bulbs"]
 const CROP_MINUTES=4320.0
 const RECIPES={"fish_sticks":{"utensil":"pan","ingredients":{"fish":1}},"fish_stew":{"utensil":"pot","ingredients":{"turnips":1,"star_bulbs":1,"fish":1}}}
 var invitation_day=1
@@ -51,7 +57,7 @@ var abandoned_day: Dictionary={}
 var equipped = ""
 var health = 100.0
 var selected_seed = "seeds"
-var location = ""
+var location = "ship"
 var outdoor_position = Grid.center(Grid.SPAWN_CELL)
 var harvested = 0
 var mana = 60.0
@@ -60,15 +66,17 @@ var invited = false
 var met_mayor = false
 var delivered = false
 var pause_mode = "none"
-var player_position = Grid.center(Grid.SPAWN_CELL)
+var player_position = Grid.center(Vector2i(7,12))
 var plots: Array = []
 
 func _init() -> void:
 	chest=[{"id":"hoe","count":1},{"id":"watering_can","count":1},{"id":"sickle","count":1}]
+	chest.append({"id":"seeds","count":8})
 	while chest.size()<18: chest.append({})
 	for i in range(12):
 		cabinet.append({})
 		ship_storage.append({"id":"rations","count":6} if i==0 else {})
+	cabinet[0]={"id":"light_bulbs","count":2}
 	for i in range(20):
 		plots.append({"tilled": false, "planted": -1.0, "watered": false,"crop":"turnips","growth":0.0})
 
@@ -132,6 +140,7 @@ func tend(index: int) -> String:
 	if tool=="watering_can" and water<1: return "Empty watering can. Refill it at the pond."
 	if energy<cost: return "Too tired. Sleep in your own bed or eat something restorative."
 	if ripe(index):
+		if not can_carry(p.crop): return "Your satchel is full. Make room before harvesting."
 		energy-=cost
 		p.planted = -1.0
 		p.growth=0.0
@@ -178,14 +187,14 @@ func sell() -> bool:
 	return true
 
 func buy_seeds() -> bool:
-	if money < 10:
+	if money < 10 or not can_carry("seeds"):
 		return false
 	money -= 10
 	seeds += 5
 	return true
 
 func mine() -> bool:
-	if energy < 5.0:
+	if energy < 5.0 or not can_carry("copper"):
 		return false
 	energy -= 5.0
 	copper += 1
@@ -202,7 +211,7 @@ func consume(id: String) -> bool:
 	return true
 
 func accept_sword() -> bool:
-	if has_sword(): return false
+	if has_sword() or not can_carry("rusty_sword"): return false
 	rusty_sword=1
 	return true
 
@@ -220,6 +229,11 @@ func storage_transfer(storage_name: String,index: int,carried_id: String="",quan
 	var available=int(stored.get("count",0)) if carried_id=="" else int(get(carried_id))
 	var amount=available if quantity==-1 else quantity
 	if amount<1 or amount>available: return false
+	var incoming=stored.get("id","")
+	var slots=carried_slots()
+	if incoming!="" and int(get(incoming))==0: slots+=1
+	if carried_id!="" and amount==available: slots-=1
+	if slots>INVENTORY_SLOTS: return false
 	if carried_id=="":
 		if stored.is_empty(): return false
 		set(stored.id,int(get(stored.id))+amount)
@@ -237,8 +251,25 @@ func storage_transfer(storage_name: String,index: int,carried_id: String="",quan
 		crew_hungry_days=maxi(0,crew_hungry_days-1)
 	return true
 
+func carried_slots() -> int:
+	var count=0
+	for id in Items.CATALOG:
+		if int(get(id))>0: count+=1
+	return count
+
+func can_carry(id: String) -> bool:
+	return Items.CATALOG.has(id) and (int(get(id))>0 or carried_slots()<INVENTORY_SLOTS)
+
+func tidy_house(task: String) -> bool:
+	if not house_tasks.has(task) or house_tasks[task]: return false
+	if task.ends_with("light"):
+		if light_bulbs<1: return false
+		light_bulbs-=1
+	house_tasks[task]=true
+	return true
+
 func buy_utensil(id: String) -> bool:
-	if id not in ["pot","pan"] or money<20 or id in purchased_utensils: return false
+	if id not in ["pot","pan"] or money<20 or id in purchased_utensils or not can_carry(id): return false
 	money-=20
 	set(id,1)
 	purchased_utensils.append(id)
@@ -256,6 +287,10 @@ func cook(id: String) -> bool:
 	if recipe.utensil not in purchased_utensils: return false
 	for ingredient in recipe.ingredients:
 		if ingredient_count(ingredient)<recipe.ingredients[ingredient]: return false
+	var slots=carried_slots()+(1 if int(get(id))==0 else 0)
+	for ingredient in recipe.ingredients:
+		if int(get(ingredient))>0 and int(get(ingredient))<=recipe.ingredients[ingredient]: slots-=1
+	if slots>INVENTORY_SLOTS: return false
 	for ingredient in recipe.ingredients:
 		var remaining=int(recipe.ingredients[ingredient])
 		var carried=mini(remaining,int(get(ingredient)))
@@ -274,12 +309,18 @@ func cook(id: String) -> bool:
 func invite_mayor() -> void:
 	invited=true
 	invitation_day=day
+	mayor_due=total()+120.0
+
+func mayor_visit_start() -> float:
+	if mayor_due<0: return -1.0
+	return mayor_due+floor(maxf(0,total()-mayor_due)/1440.0)*1440.0
 
 func mayor_available() -> bool:
-	return invited and not met_mayor and day>invitation_day and minute>=720 and minute<960 and abandoned_day.get("mayor",0)!=day
+	var start=mayor_visit_start()
+	return invited and not met_mayor and start>=0 and total()>=start and total()<start+240 and abandoned_day.get("mayor",0)!=day
 
 func buy_star_seeds() -> bool:
-	if money<12: return false
+	if money<12 or not can_carry("star_seeds"): return false
 	money-=12
 	star_seeds+=3
 	return true
@@ -293,7 +334,8 @@ func meet_mayor() -> bool:
 func to_dict() -> Dictionary:
 	var supplies={}
 	for id in EXTRA_ITEMS: supplies[id]=get(id)
-	return {"version": 4, "day": day, "minute": minute, "money": money,
+	return {"version": 5, "day": day, "minute": minute, "money": money,
+		"intro_complete":intro_complete,"briefing_complete":briefing_complete,"mayor_due":mayor_due,"house_tasks":house_tasks.duplicate(),
 		"supplies":supplies,"cabinet":cabinet.duplicate(true),"ship_storage":ship_storage.duplicate(true),"water":water,"quick_slots":quick_slots.duplicate(),"selected_slot":selected_slot,"crew_fed_day":crew_fed_day,"crew_hungry_days":crew_hungry_days,"purchased_utensils":purchased_utensils.duplicate(),
 		"hoe":hoe,"watering_can":watering_can,"sickle":sickle,"chest":chest.duplicate(true),"invitation_day":invitation_day,"abandoned_day":abandoned_day.duplicate(),
 		"health":health,"star_seeds":star_seeds,"star_bulbs":star_bulbs,"rusty_sword":rusty_sword,"equipped":equipped,"selected_seed":selected_seed,
@@ -305,8 +347,12 @@ func to_dict() -> Dictionary:
 		"plots": plots.duplicate(true)}
 
 func restore(data: Variant) -> bool:
-	if not data is Dictionary or data.get("version") != 4:
+	if not data is Dictionary or data.get("version") != 5:
 		return false
+	if not data.get("intro_complete") is bool or not data.get("briefing_complete") is bool or not _number(data.get("mayor_due")) or data.mayor_due< -1: return false
+	if not data.get("house_tasks") is Dictionary or data.house_tasks.size()!=house_tasks.size(): return false
+	for task in house_tasks:
+		if not data.house_tasks.get(task) is bool: return false
 	if not data.get("supplies") is Dictionary: return false
 	if not data.get("purchased_utensils") is Array: return false
 	for id in data.purchased_utensils:
@@ -334,6 +380,11 @@ func restore(data: Variant) -> bool:
 	if data.health<0 or data.health>100 or data.rusty_sword>1: return false
 	if data.invitation_day>data.day: return false
 	if data.crew_fed_day>data.day: return false
+	var occupied=0
+	for id in Items.CATALOG:
+		var quantity=data.supplies[id] if id in EXTRA_ITEMS else data[id]
+		if quantity>0: occupied+=1
+	if occupied>INVENTORY_SLOTS: return false
 	if not data.get("location") in ["","home","moss","finch","mayor","tavi","iona","radio","store","hall","veteran","assistant","ship"]: return false
 	if not data.get("chest") is Array or data.chest.size()!=18 or not data.get("abandoned_day") is Dictionary: return false
 	for stack in data.chest:
@@ -377,6 +428,10 @@ func restore(data: Variant) -> bool:
 	cabinet=data.cabinet.duplicate(true)
 	ship_storage=data.ship_storage.duplicate(true)
 	purchased_utensils=data.purchased_utensils.duplicate()
+	intro_complete=data.intro_complete
+	briefing_complete=data.briefing_complete
+	mayor_due=data.mayor_due
+	house_tasks=data.house_tasks.duplicate()
 	return true
 
 func valid_stack(stack: Variant) -> bool:

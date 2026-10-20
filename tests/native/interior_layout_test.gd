@@ -10,6 +10,7 @@ func run() -> void:
 	game.testing=true
 	root.add_child(game)
 	game.set_process(false)
+	preload("fixture.gd").explore(game,true)
 	check(game.camera.zoom.is_equal_approx(Vector2.ONE*1.9125),"zoom reduces the previous setting by another 15 percent")
 	game.enter_building("store")
 	game.leave_building()
@@ -35,7 +36,7 @@ func run() -> void:
 		for cell in room.floor_cells:
 			if room.floor_cells[cell]=="bathroom": room.solid_cells[cell]="closed bathroom"
 		for site in room.sites:
-			if site.id=="exit": continue
+			if site.id=="exit" or room.floor_cells.get(site.cell)=="bathroom": continue
 			if room._route(room.Grid.world_to_cell(room.entry_position()),site.cell).is_empty(): routes_clear=false
 		game.leave_building()
 		if game.world.blocked(game.state.player_position): exits_clear=false
