@@ -5,6 +5,7 @@ static func explore(game: Node2D,meet_moss: bool=false) -> void:
 	while not game.state.briefing_complete:
 		game.ui.modal_box.get_child(3).pressed.emit()
 	game.leave_building()
+	game.state.welcome_phase="complete"
 	game.state.player_position=game.Grid.center(game.Grid.SPAWN_CELL)
 	if meet_moss:
 		game.talk("moss")

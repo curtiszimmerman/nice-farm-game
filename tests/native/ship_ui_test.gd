@@ -35,6 +35,11 @@ func run() -> void:
 	var kinds={}
 	for item in game.world.furnishings: kinds[item.kind]=true
 	check(kinds.has("reactor") and kinds.has("console") and kinds.has("bed"),"ship contains engineering machines displays and crew bunks")
+	var separated=true
+	for item in game.world.furnishings:
+		if item.kind in ["bed","cabinet"] and item.bounds.end.y>6: separated=false
+		if item.kind in ["reactor","machine","console"] and item.bounds.position.y<7: separated=false
+	check(separated,"bunks and supplies occupy the upper rear while broken machinery stays in front")
 	check(game.world.villagers.vale.visible,"Vale works inside the damaged ship")
 	check(game.world.audio_context(Vector2.ZERO).environment=="ship","ship requests engineering ambience")
 	game.sound.update_context(720,"ship","spring",0,10)

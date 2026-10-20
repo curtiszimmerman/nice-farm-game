@@ -40,7 +40,7 @@ func run() -> void:
 		s.advance(4320)
 		for i in range(20): s.tend(i)
 		if cycle==0: s.water=20
-	check(s.energy==0 and s.harvested==20 and s.total()==9120,"doubled farming costs exhaust energy during the second full-field harvest")
+	check(s.energy==0 and s.harvested==20 and s.total()==9180,"doubled farming costs exhaust energy during the second full-field harvest")
 	var before=s.plots.duplicate(true)
 	s.tend(1)
 	s.tend(1)

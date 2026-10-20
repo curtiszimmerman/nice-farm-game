@@ -53,12 +53,12 @@ func run() -> void:
 	game.state.player_position=game.outdoors.site_position("bed")
 	game._process(0.1)
 	check(not game.window_open,"an abandoned introduction does not immediately restart at the farm")
-	game.state.invited=false
-	game.state.abandoned_day.erase("moss")
-	game.talk("moss")
+	game.state.invited=true
+	game.state.abandoned_day.erase("veteran")
+	game.talk("veteran")
 	game.state.player_position+=Vector2(300,0)
 	game._process(0.1)
-	check(game.state.abandoned_day.get("moss")==game.state.day,"leaving the first box of a multi-part conversation sends its speaker home")
+	check(game.state.abandoned_day.get("veteran")==game.state.day,"leaving the first box of an optional multi-part conversation sends its speaker home")
 	game.state.day=3
 	game.state.minute=960
 	game.outdoors.update_villagers(0,true)

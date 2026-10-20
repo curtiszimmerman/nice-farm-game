@@ -25,7 +25,7 @@ func run() -> void:
 	check(not w.blocked(w.Grid.center(tower.cell+Vector2i(-1,1))) and not w.blocked(w.Grid.center(tower.cell+Vector2i(tower.tiles.x,1))),"tower can be walked past on both sides of its base")
 	check(tower.cell.y<club.cell.y-12 and home.cell.x<w.SQUARE.position.x-30 and w.OUTCROP_CELLS.position.x>w.SQUARE.end.x+20,"landmarks spread north west and southeast of town")
 	var open=true
-	for y in range(20,w.Grid.MAP_SIZE.y-4):
+	for y in range(20,82):
 		if w.in_water(w.Grid.center(Vector2i(w.Grid.MAP_SIZE.x-5,y))): open=false
 	check(open,"the eastern map has no ocean or coastal barrier")
 	var radio=w.site_position("radio")

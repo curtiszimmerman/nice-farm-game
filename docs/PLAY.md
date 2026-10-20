@@ -4,7 +4,9 @@ Somewhere, the Sun Still Rises is a small native Godot game. It runs directly on
 
 ## Playing
 
-New visits open with an animated ship attack: exterior shots, the intact bridge, evasive orders and Vale's emergency landing. A white fade and crash lead into the damaged ship. Complete the captain's status-report conversation with Vale, then follow the single mountain descent to the back of the farmhouse. Moss asks who you are; explain that you are travelers seeking somewhere to stay. He offers the abandoned farmhouse while he fetches Mayor Alder and Neral, returning two game hours later that same day.
+New visits open at 09:00 on Spring 01 with an animated ship attack, emergency landing and Vale's status report. Time remains halted until you first leave the ship. Bunks and supplies are in the upper rear; damaged machinery is in front. Follow the single mountain descent and longer meadow approach. Coming around either side of the farmhouse forces an on-screen meeting with Moss. He asks about the mountain flash and crash, wonders about spellcasting and asks if you are travelers. The captain reacts with surprise and asks about lodging. Moss offers the abandoned farmhouse while he fetches Alder and Neral; this dialogue also holds time.
+
+Your first entry into the farmhouse begins a required welcome sequence. You can look around while waiting, but cannot leave. All three visitors appear inside, and their meeting cannot be dismissed. After the final choice, the captain waits while the entire group walks out. Only then do movement and the normal clock resume. The opening reaches the farmhouse in mid-morning, without running the clock through the introductory dialogue.
 
 The farmhouse initially has dusty covers on the sofa, both beds and radio. Press E at each furnishing to remove its cover. Take the two spare bulbs from the kitchen cabinet, then press E at the broken living-room and bathroom lights. The crew log tracks the remaining jobs. Alder offers permission to stay if you promise to keep the house clean, and suggests working the garden to support yourselves.
 
@@ -37,12 +39,22 @@ The bottom Actions button groups inventory, spells, notes, map and settings. Hea
 
 ## A good first visit
 
-1. Complete the ship's opening and briefing, then follow the mountain path to Moss behind the farmhouse. He will return with the mayor in two hours. Uncover the furniture and replace the lights while waiting.
+1. Complete the ship briefing, leave the ship and follow the mountain path around the farmhouse to Moss. Enter the house to receive the mayor and Neral. Uncover furniture or look around while waiting; the first visit holds time and prevents leaving until all visitors have departed.
 2. Take the seeds, hoe, watering can and sickle from the chest outside the farmhouse. Assign them to quick slots yourself. Face the adjacent garden square and select the appropriate slot before pressing E. Tilling costs 2 energy, watering 1, harvesting 1. The can starts empty and holds twenty charges; select it and press E at the pond jetty to refill. Select another slot to fish. Energy restores through food or rest in a farmhouse bed or ship bunk.
 3. Follow the lane east into town. Meet Tavi at the market cart and sell your turnips. Iona and Finch have things to say, too.
-4. Follow the south lane west to fish from the pond jetty. E casts; E again reels in while the meter is between 35 and 70. Misses cost no bait.
+4. Fish from the pond jetty or southern ocean dock. E casts; E again reels in while the meter is between 35 and 70. Hard fish have a faster, erratic gauge. Casts vary their opening positions. Misses cost no bait. Arm the watering can and activate at reachable pond borders to fill it; seawater cannot refill it.
 5. Find the quiet copper seam southeast of town. Bring three copper to Chief Vale inside the cloaked ship northwest of your farm.
-6. Stay near the farmhouse, or rest until Moss's return using the bed. Moss, Alder and Neral arrive two hours after the first agreement and wait four hours; an unfinished conversation holds them in place until completed or abandoned.
+6. After the welcome, keep the house clean and work the garden. Ordinary conversations follow your chosen time policy. Tavi keeps selling after closing while his dialogue stays open.
+
+| Water | Fish | Difficulty | Sale value |
+| --- | --- | --- | --- |
+| Pond | Silverfin | Easy | 10 crowns |
+| Pond | Moon pike | Hard | 35 crowns |
+| Ocean dock | Sea sprat | Easy | 12 crowns |
+| Ocean dock | Blue mackerel | Easy | 16 crowns |
+| Ocean dock | Storm eel | Hard | 50 crowns |
+
+All five fish can be eaten, sold or used in fish sticks and stew. Cooking draws any fish species from your satchel and connected kitchen cabinet.
 
 The clock runs through midnight and conversations by default. One real second is three game minutes; a full ordinary day is eight real minutes. Rest speeds up the continuous clock. Crops mature three game days after watering. Wildgrowth can mature a watered crop immediately for 15 mana. There is no hard day transition or mandatory bedtime.
 

@@ -16,11 +16,15 @@ func calendar_year() -> int:
 	return int((day-1)/float(DEVELOPMENT_SEASON_DAYS*4))+1
 
 var day = 1
-var minute = 480.0
+var minute = 540.0
 var money = 24
 var seeds = 0
 var turnips = 0
 var fish = 0
+var moon_pike=0
+var sea_sprat=0
+var blue_mackerel=0
+var storm_eel=0
 var copper = 0
 var star_seeds = 0
 var star_bulbs = 0
@@ -46,10 +50,13 @@ var purchased_utensils: Array=[]
 var light_bulbs=0
 var intro_complete=false
 var briefing_complete=false
+var ship_departed=false
+var welcome_phase="unvisited"
+var welcome_elapsed=0.0
 var mayor_due=-1.0
 var house_tasks={"sofa":false,"bed":false,"guest_bed":false,"radio":false,"living_light":false,"bathroom_light":false}
 const INVENTORY_SLOTS=12
-const EXTRA_ITEMS=["pot","pan","fish_sticks","fish_stew","health_elixir","rations","light_bulbs"]
+const EXTRA_ITEMS=["pot","pan","fish_sticks","fish_stew","health_elixir","rations","light_bulbs","moon_pike","sea_sprat","blue_mackerel","storm_eel"]
 const CROP_MINUTES=4320.0
 const RECIPES={"fish_sticks":{"utensil":"pan","ingredients":{"fish":1}},"fish_stew":{"utensil":"pot","ingredients":{"turnips":1,"star_bulbs":1,"fish":1}}}
 var invitation_day=1
@@ -178,13 +185,18 @@ func grow(index: int) -> bool:
 	return true
 
 func sell() -> bool:
-	if turnips == 0 and fish == 0 and star_bulbs == 0:
-		return false
-	money += turnips * 8 + fish * 10 + star_bulbs*12
+	var earned=sale_value()
+	if earned==0: return false
+	money+=earned
 	turnips = 0
-	fish = 0
+	for id in Items.FISH: set(id,0)
 	star_bulbs=0
 	return true
+
+func sale_value() -> int:
+	var earned=turnips*8+star_bulbs*12
+	for id in Items.FISH: earned+=int(get(id))*Items.FISH[id].price
+	return earned
 
 func buy_seeds() -> bool:
 	if money < 10 or not can_carry("seeds"):
@@ -276,10 +288,15 @@ func buy_utensil(id: String) -> bool:
 	return true
 
 func ingredient_count(id: String) -> int:
-	var count=int(get(id))
-	for stack in cabinet:
-		if stack.get("id","")==id: count+=stack.count
+	var count=0
+	for candidate in ingredient_ids(id):
+		count+=int(get(candidate))
+		for stack in cabinet:
+			if stack.get("id","")==candidate: count+=stack.count
 	return count
+
+func ingredient_ids(id: String) -> Array:
+	return Items.FISH.keys() if id=="fish" else [id]
 
 func cook(id: String) -> bool:
 	if not RECIPES.has(id): return false
@@ -288,17 +305,24 @@ func cook(id: String) -> bool:
 	for ingredient in recipe.ingredients:
 		if ingredient_count(ingredient)<recipe.ingredients[ingredient]: return false
 	var slots=carried_slots()+(1 if int(get(id))==0 else 0)
+	var used={}
 	for ingredient in recipe.ingredients:
-		if int(get(ingredient))>0 and int(get(ingredient))<=recipe.ingredients[ingredient]: slots-=1
+		var remaining=int(recipe.ingredients[ingredient])
+		for candidate in ingredient_ids(ingredient):
+			var amount=mini(remaining,int(get(candidate)))
+			used[candidate]=amount
+			remaining-=amount
+			if amount>0 and amount==int(get(candidate)): slots-=1
 	if slots>INVENTORY_SLOTS: return false
 	for ingredient in recipe.ingredients:
 		var remaining=int(recipe.ingredients[ingredient])
-		var carried=mini(remaining,int(get(ingredient)))
-		set(ingredient,int(get(ingredient))-carried)
-		remaining-=carried
+		for candidate in ingredient_ids(ingredient):
+			var carried=int(used.get(candidate,0))
+			set(candidate,int(get(candidate))-carried)
+			remaining-=carried
 		for stack in cabinet:
 			if remaining==0: break
-			if stack.get("id","")!=ingredient: continue
+			if stack.get("id","") not in ingredient_ids(ingredient): continue
 			var take=mini(remaining,int(stack.count))
 			stack.count-=take
 			remaining-=take
@@ -334,7 +358,8 @@ func meet_mayor() -> bool:
 func to_dict() -> Dictionary:
 	var supplies={}
 	for id in EXTRA_ITEMS: supplies[id]=get(id)
-	return {"version": 5, "day": day, "minute": minute, "money": money,
+	return {"version": 6, "day": day, "minute": minute, "money": money,
+		"ship_departed":ship_departed,"welcome_phase":welcome_phase,"welcome_elapsed":welcome_elapsed,
 		"intro_complete":intro_complete,"briefing_complete":briefing_complete,"mayor_due":mayor_due,"house_tasks":house_tasks.duplicate(),
 		"supplies":supplies,"cabinet":cabinet.duplicate(true),"ship_storage":ship_storage.duplicate(true),"water":water,"quick_slots":quick_slots.duplicate(),"selected_slot":selected_slot,"crew_fed_day":crew_fed_day,"crew_hungry_days":crew_hungry_days,"purchased_utensils":purchased_utensils.duplicate(),
 		"hoe":hoe,"watering_can":watering_can,"sickle":sickle,"chest":chest.duplicate(true),"invitation_day":invitation_day,"abandoned_day":abandoned_day.duplicate(),
@@ -347,8 +372,9 @@ func to_dict() -> Dictionary:
 		"plots": plots.duplicate(true)}
 
 func restore(data: Variant) -> bool:
-	if not data is Dictionary or data.get("version") != 5:
+	if not data is Dictionary or data.get("version") != 6:
 		return false
+	if not data.get("ship_departed") is bool or data.get("welcome_phase") not in ["unvisited","waiting","meeting","departing","complete"] or not _number(data.get("welcome_elapsed")) or data.welcome_elapsed<0: return false
 	if not data.get("intro_complete") is bool or not data.get("briefing_complete") is bool or not _number(data.get("mayor_due")) or data.mayor_due< -1: return false
 	if not data.get("house_tasks") is Dictionary or data.house_tasks.size()!=house_tasks.size(): return false
 	for task in house_tasks:
@@ -430,6 +456,9 @@ func restore(data: Variant) -> bool:
 	purchased_utensils=data.purchased_utensils.duplicate()
 	intro_complete=data.intro_complete
 	briefing_complete=data.briefing_complete
+	ship_departed=data.ship_departed
+	welcome_phase=data.welcome_phase
+	welcome_elapsed=data.welcome_elapsed
 	mayor_due=data.mayor_due
 	house_tasks=data.house_tasks.duplicate()
 	return true

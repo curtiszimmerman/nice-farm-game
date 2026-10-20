@@ -50,9 +50,15 @@ var conversation_sequence=false
 var conversation_steps=0
 var conversation_location=""
 var conversation_anchor=Vector2.ZERO
+const WELCOME_MEMBERS=["mayor","moss","assistant"]
+var departure_paths: Dictionary={}
+var fishing_species="fish"
+var fishing_phase=0.0
+var fishing_rng=RandomNumberGenerator.new()
 
 func _ready() -> void:
 	Engine.max_fps = 60
+	fishing_rng.randomize()
 	get_tree().auto_accept_quit = false
 	testing = testing or OS.get_cmdline_user_args().has("--smoke-test")
 	if not testing: _load_visit()
@@ -94,6 +100,8 @@ func begin() -> void:
 		opening.game=self
 		add_child(opening)
 	elif not state.briefing_complete: show_briefing()
+	elif state.welcome_phase=="meeting": mayor()
+	elif state.welcome_phase=="departing": place_welcome_party()
 	else: toast("WASD to walk. E to interact. Follow the mountain path down.",6)
 	if saving_disabled: toast("An unreadable save was preserved. This visit will not overwrite it.",8.0)
 
@@ -122,7 +130,13 @@ func _process(dt: float) -> void:
 	if not started: return
 	if opening!=null: return
 	if not conversation_members.is_empty() and (state.location!=conversation_location or state.player_position.distance_to(conversation_anchor)>160): close_window()
-	var frozen = window_open and state.pause_mode=="all"
+	if state.welcome_phase=="waiting":
+		state.welcome_elapsed+=dt
+		if state.welcome_elapsed>=8:
+			if window_open: close_window()
+			mayor()
+	var staged=clock_held()
+	var frozen = (window_open and state.pause_mode=="all") or staged
 	if not frozen:
 		var minutes = dt*3.0
 		if resting>0.0 and not window_open:
@@ -144,12 +158,26 @@ func _process(dt: float) -> void:
 			p.pos += p.velocity*dt
 			p.velocity.y += 15.0*dt
 		world.particles = world.particles.filter(func(p): return p.life>0.0)
-	else: world.moving=false
+	else:
+		world.moving=false
+		if state.welcome_phase=="departing": update_welcome_departure(dt)
+		elif staged and state.welcome_phase!="meeting":
+			_move(dt)
+			_update_activity(dt)
 	nearest = world.find_nearest()
-	if world==outdoors and not state.invited and state.briefing_complete and state.abandoned_day.get("moss",0)!=state.day and state.player_position.distance_to(Grid.center(Vector2i(13,36)))<65 and not window_open:
+	var at_farm_side=Rect2i(8,38,11,6).has_point(Grid.world_to_cell(state.player_position))
+	if world==outdoors and not state.invited and state.briefing_complete and at_farm_side and not window_open:
+		state.abandoned_day.erase("moss")
+		outdoors.villagers.moss.data.sleeping=false
+		for direction in [Vector2i.DOWN,Vector2i.UP,Vector2i.RIGHT,Vector2i.LEFT]:
+			var nearby=state.player_position+Vector2(direction)*32
+			if not outdoors.blocked(nearby):
+				outdoors.villagers.moss.position=nearby
+				break
+		outdoors.villagers.moss.visible=true
 		talk("moss")
 	var at_farm=current_room=="home" or (world==outdoors and state.player_position.distance_to(world.site_position("bed"))<110)
-	if at_farm and state.mayor_available() and not window_open and activity.is_empty():
+	if at_farm and state.welcome_phase=="complete" and state.mayor_available() and not window_open and activity.is_empty():
 		mayor()
 	save_elapsed += dt
 	if save_elapsed>12.0:
@@ -162,8 +190,12 @@ func _process(dt: float) -> void:
 	camera.position = state.player_position.round()+Vector2(20,-5)
 	ui.update()
 
+func clock_held() -> bool:
+	return not state.ship_departed or state.welcome_phase in ["waiting","meeting","departing"] or ("moss" in conversation_members and not state.invited)
+
 func _move(dt: float) -> void:
 	world.moving = false
+	if state.welcome_phase in ["meeting","departing"]: return
 	if resting>0.0 or not activity.is_empty() or window_open: return
 	var direction = Vector2(
 		float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT))-float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT)),
@@ -189,7 +221,8 @@ func enter_building(id: String) -> void:
 		if b.id==id: building=b; break
 	if id=="ship": building={"id":"ship","cell":World.SHIP_CELL+Vector2i(-1,0),"tiles":Vector2i(2,2)}
 	if id=="home" and not state.invited and state.briefing_complete:
-		talk("moss")
+		if outdoors.villagers.moss.position.distance_to(state.player_position)<75: talk("moss")
+		else: toast("A farmer is coming around the side of the house.")
 		return
 	if building.is_empty(): return
 	return_position=outdoors.exit_position(building)
@@ -207,6 +240,9 @@ func enter_building(id: String) -> void:
 	state.location=id
 	state.outdoor_position=return_position
 	state.player_position=world.entry_position()
+	if id=="home" and state.welcome_phase=="unvisited":
+		state.welcome_phase="waiting"
+		state.welcome_elapsed=0
 	activity=""
 	resting=0
 	world.update_villagers(0.0,true)
@@ -222,9 +258,13 @@ func enter_building(id: String) -> void:
 
 func leave_building() -> void:
 	if world==outdoors: return
+	if current_room=="home" and state.welcome_phase in ["waiting","meeting","departing"]:
+		toast("Wait for Moss and the mayor's party to finish their visit.")
+		return
 	if current_room=="ship" and not state.briefing_complete:
 		show_briefing()
 		return
+	if current_room=="ship": state.ship_departed=true
 	world.visible=false
 	world=outdoors
 	world.visible=true
@@ -246,6 +286,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		return
 	if not started: return
 	if opening!=null: return
+	if state.welcome_phase in ["meeting","departing"] or ("moss" in conversation_members and not state.invited): return
 	match event.physical_keycode:
 		KEY_1,KEY_2,KEY_3,KEY_4,KEY_5,KEY_6,KEY_7,KEY_8:
 			select_quick_slot(event.physical_keycode-KEY_1)
@@ -301,6 +342,7 @@ func burst(pos: Vector2,color = "a5d8c5",count = 20) -> void:
 		world.particles.append({"pos":pos,"velocity":Vector2(cos(angle)*randf_range(10,35),sin(angle)*25-20),"life":randf_range(1,2),"color":color})
 
 func close_window(preserve_conversation: bool=false) -> void:
+	if not preserve_conversation and (state.welcome_phase in ["meeting","departing"] or ("moss" in conversation_members and not state.invited)): return
 	window_open = false
 	if not preserve_conversation: end_conversation(conversation_sequence)
 	sound.save_preferences()
@@ -336,8 +378,10 @@ func dialog(title: String,role: String,text: String,choices: Array = []) -> void
 	window_open = true
 	if choices.is_empty(): choices=[["See you around.",func(): pass]]
 	ui.open_modal(title,role,text,choices)
+	if state.welcome_phase=="meeting" or ("moss" in conversation_members and not state.invited): ui.modal.get_child(1).position.y=35
 
 func panel(title: String,eyebrow: String,text: String,choices: Array = []) -> void:
+	if state.welcome_phase in ["meeting","departing"] or ("moss" in conversation_members and not state.invited): return
 	window_open = true
 	if choices.is_empty(): choices=[["Back to the morning",func(): pass]]
 	ui.open_modal(title,eyebrow,text,choices,true)
@@ -355,6 +399,10 @@ func interact() -> void:
 	if not activity.is_empty(): return
 	if ui.Items.FOOD.has(state.active_item()):
 		toast("Used %s." % ui.Items.CATALOG[state.active_item()].name if state.consume(state.active_item()) else "Nothing to restore, or none carried.")
+		save_visit()
+		return
+	if world==outdoors and state.active_item()=="watering_can" and world.at_pond_edge(state.player_position):
+		toast("Watering can filled · 20 / 20" if state.refill_water() else "Take your watering can from storage first.")
 		save_visit()
 		return
 	nearest=world.find_nearest()
@@ -386,14 +434,13 @@ func interact() -> void:
 			"bed":
 				if current_room=="home" and not state.house_tasks.bed: tidy_farmhouse("bed")
 				else: rest_options()
-			"pond":
+			"pond","ocean":
 				if state.active_item()=="watering_can":
+					if nearest.id=="ocean": toast("Use fresh water from the pond to fill your can."); return
 					toast("Watering can filled · 20 / 20" if state.refill_water() else "Take your watering can from storage first.")
 					save_visit()
 					return
-				activity="fishing"
-				activity_time=0.0
-				toast("Line cast. E when the meter is between 35 and 70.")
+				start_fishing(nearest.id)
 			"ore":
 				if state.energy<5.0: toast("A little rest would help. There's a bed at the farm.")
 				else:
@@ -440,7 +487,21 @@ func _update_activity(dt: float) -> void:
 		toast("You reel in the line. The pond can wait.")
 
 func fishing_position() -> float:
-	return (sin(maxf(0.0,activity_time-1.2)*1.7)+1.0)*0.5
+	var time=maxf(0.0,activity_time-1.2)
+	if ui.Items.FISH[fishing_species].hard:
+		return clampf((sin(time*4.8+fishing_phase+sin(time*3.1+fishing_phase*0.7)*1.4)+sin(time*11.2+fishing_phase)*0.2+1.2)/2.4,0,1)
+	return (sin(time*1.7+fishing_phase)+1.0)*0.5
+
+func fish_pool(habitat: String) -> Array:
+	return ui.Items.FISH.keys().filter(func(id): return ui.Items.FISH[id].habitat==habitat)
+
+func start_fishing(habitat: String) -> void:
+	var pool=fish_pool(habitat)
+	fishing_species=pool[fishing_rng.randi_range(0,pool.size()-1)]
+	fishing_phase=fishing_rng.randf_range(0,TAU)
+	activity="fishing"
+	activity_time=0
+	toast("Line cast. %s pull on the line. Activate in the gold band." % ("Erratic" if ui.Items.FISH[fishing_species].hard else "Gentle"))
 
 func _finish_fishing() -> void:
 	if activity_time<1.2:
@@ -448,18 +509,19 @@ func _finish_fishing() -> void:
 		return
 	var marker=fishing_position()
 	if marker>0.35 and marker<0.7:
-		if not state.can_carry("fish"):
+		if not state.can_carry(fishing_species):
 			toast("Your satchel is full. Make room before catching fish.")
 			activity=""
 			return
-		state.fish+=1
+		state.set(fishing_species,int(state.get(fishing_species))+1)
 		burst(state.player_position-Vector2(0,10),"9ed6cf")
-		toast("+1 pond silverfin. Tavi will buy this.")
+		toast("Caught %s. Tavi will buy this." % ui.Items.CATALOG[fishing_species].name)
 		save_visit()
 	else: toast("It slipped away. No bait lost. Try again.")
 	activity=""
 
 func rest_options() -> void:
+	if clock_held(): toast("Wait until the opening welcome is finished before resting."); return
 	if current_room not in ["home","ship"]:
 		toast("This bed belongs to someone else. Rest in your own farmhouse bed.")
 		return
@@ -513,7 +575,10 @@ func cooking() -> void:
 	for id in State.RECIPES:
 		var recipe=State.RECIPES[id]
 		var details=[]
-		for ingredient in recipe.ingredients: details.append("%s %d/%d" % [ui.Items.CATALOG[ingredient].name,state.ingredient_count(ingredient),recipe.ingredients[ingredient]])
+		for ingredient in recipe.ingredients:
+			var available=state.ingredient_count(ingredient)
+			var label="Any fish" if ingredient=="fish" else ui.Items.CATALOG[ingredient].name
+			details.append("%s · %s" % [label,"missing" if available==0 else "ready" if available==1 else "%d available" % available])
 		var meal=id
 		choices.append(["Cook %s · %s · requires %s" % [ui.Items.CATALOG[id].name,", ".join(details),recipe.utensil],func():
 			toast("Cooked %s." % ui.Items.CATALOG[meal].name if state.cook(meal) else "Missing cookware or ingredients. Ingredients can be carried or in your kitchen cabinet.")
@@ -539,16 +604,16 @@ func talk(id: String) -> void:
 			else: dialog("Neral","MAYOR'S ASSISTANT · DARK ELF","I keep the town's appointments and records. Alder likes to arrive early. If Moss has arranged our visit, we'll be at your farm until four.")
 		"moss":
 			if not state.invited:
-				dialog("Moss","AT THE BACK OF THE OLD FARMHOUSE","Oh! Who are you folks? Didn't expect anyone coming down from the mountain.",[
-					["Introduce yourselves",func(): dialog("Captain","TRAVELERS","We're travelers looking for a place to stay for a while.",[
-						["Let Moss answer",func(): dialog("Moss","YOUR NEIGHBOR","This farmhouse is abandoned. I live down the road. You can stay here while I fetch the mayor; we'll be back in a couple of hours, today. It's a little run-down. There's clean bedding under those covers, and spare light bulbs in the kitchen cabinet.",[
-							["Thank you. We'll be here.",func(): state.invite_mayor(); save_visit(); toast("Moss will return with the mayor in two hours. Make yourselves at home.",7)]])]])]])
+				dialog("Moss","BESIDE THE OLD FARMHOUSE","Hold on there! What was that flash and crashing sound up on the mountain? Looked as though someone cast quite a spell. Are you travelers?",[
+					["Answer Moss",func(): dialog("Captain","TRAVELERS","A spell? Oh! Yes, we're travelers. Could you suggest somewhere we might stay for a while?",[
+						["Let Moss answer",func(): dialog("Moss","YOUR NEIGHBOR","There's no hotel here, but this farmhouse is abandoned. It can house you for a bit. I live down the road. Go on in while I fetch the mayor. There are clean beds under the covers, and spare bulbs in the kitchen cabinet.",[
+							["Thank you. We'll wait inside.",func(): state.invite_mayor(); save_visit(); toast("Moss is fetching the mayor. Go inside and look around.",7)]])]])]])
 			elif state.mayor_available(): mayor()
-			else: dialog("Moss","NEIGHBOR · SOUTH FARM","Settling in, then? The chest outside has seeds and tools. Select each tool in a quick slot to use it. Water crops, then give them three days. Tavi buys produce in town." if state.met_mayor else "I'm fetching the mayor. We'll be back a couple of hours after we spoke. Make yourselves comfortable and see what needs tidying.")
+			else: dialog("Moss","NEIGHBOR · SOUTH FARM","Settling in, then? The chest outside has seeds and tools. Select each tool in a quick slot to use it. Water crops, then give them three days. Tavi buys produce in town." if state.met_mayor else "Go on inside. I'll bring the mayor and Neral back shortly. Make yourselves comfortable and see what needs tidying.")
 		"tavi":
 			conversation_steps=0
 			dialog("Tavi","TRAVELING MERCHANT","Seeds, supper, a good road home. That's most of a life, isn't it? I'm heading across the border for my sister's festival next month. Until then, your turnips are very welcome here.",[
-				["Sell produce · %d crowns" % (state.turnips*8+state.fish*10+state.star_bulbs*12),func():
+				["Sell produce · %d crowns" % state.sale_value(),func():
 					if state.sell(): save_visit(); toast("Sold. Locally grown, very far from home.")
 					else: toast("Bring turnips or silverfin to sell.")
 					talk("tavi")],
@@ -589,17 +654,74 @@ func buy_cookware(id: String) -> void:
 	talk("tavi")
 
 func mayor() -> void:
-	if not state.mayor_available(): return
+	var first_visit=current_room=="home" and state.welcome_phase in ["waiting","meeting"]
+	if not first_visit and state.welcome_phase!="complete":
+		dialog("Mayor Alder","THE OLD FARMHOUSE","Let's talk inside the farmhouse, where everyone can join us.")
+		return
+	if not first_visit and not state.mayor_available(): return
+	if first_visit:
+		state.welcome_phase="meeting"
+		resting=0
+		activity=""
+		place_welcome_party()
 	begin_conversation(["mayor","assistant","moss"],true)
 	dialog("Mayor Alder","BRIAR GLEN · AT YOUR FARM","Moss tells me you're travelers looking for somewhere to stay. The farmhouse has stood empty for a while. You're welcome to stay if you promise to keep it clean.",[
 		["We can promise that.",func(): dialog("Neral","MAYOR'S ASSISTANT · DARK ELF","I'll record that the old farmhouse is occupied again. I'm Neral, the mayor's assistant. Let us know if anything needs attention.",[
 			["Thank you, Neral.",func(): dialog("Mayor Alder","BRIAR GLEN","You might work the garden to earn your keep and provide for yourselves. There are seeds and tools in the chest outside, and Tavi buys produce in the square. A little care will make this a home again.",[
-				["We'll keep the house clean and make a start in the garden.",func(): state.met_mayor=true; end_conversation(); save_visit(); toast("A home in Briar Glen. The rest can wait.",7.0); burst(state.player_position,"e7cf8e",30)]])]])]])
+				["We'll keep the house clean and make a start in the garden.",func():
+					state.met_mayor=true
+					end_conversation()
+					if first_visit:
+						state.welcome_phase="departing"
+						departure_paths.clear()
+					save_visit()
+					toast("A home in Briar Glen. The rest can wait.",7.0)
+					burst(state.player_position,"e7cf8e",30)]])]])]])
+
+func place_welcome_party() -> void:
+	if current_room!="home": return
+	state.player_position=Grid.center(Vector2i(6,12))
+	for i in range(WELCOME_MEMBERS.size()):
+		var id=WELCOME_MEMBERS[i]
+		var actor=world.villagers[id]
+		outdoors.villagers[id].data.room="home"
+		outdoors.villagers[id].data.sleeping=false
+		actor.visible=true
+		actor.data.sleeping=false
+		actor.position=Grid.center([Vector2i(7,11),Vector2i(5,11),Vector2i(9,11)][i])
+		actor.queue_redraw()
+
+func update_welcome_departure(dt: float) -> void:
+	var remaining=0
+	for id in WELCOME_MEMBERS:
+		var actor=world.villagers[id]
+		if not actor.visible: continue
+		if not departure_paths.has(id): departure_paths[id]=world._route(Grid.world_to_cell(actor.position),world.layout.exit)
+		var path: Array=departure_paths[id]
+		var distance=dt*65
+		while distance>0 and not path.is_empty():
+			var step=actor.position.distance_to(path[0])
+			actor.position=actor.position.move_toward(path[0],distance)
+			distance-=step
+			if actor.position.distance_to(path[0])<0.1: path.pop_front()
+		actor.data.walking=true
+		actor.queue_redraw()
+		if path.is_empty():
+			actor.visible=false
+			outdoors.villagers[id].data.room=""
+			outdoors.villagers[id].position=outdoors.site_position("bed")+Vector2(WELCOME_MEMBERS.find(id)*24,32)
+			outdoors.routes.erase(id)
+		else: remaining+=1
+	if remaining==0:
+		state.welcome_phase="complete"
+		save_visit()
+		toast("The visitors have left. The house is yours to settle into.",5)
 
 func radio() -> void:
 	dialog("Briar Glen Radio","LOCAL SERVICE · 1040","...a fair morning across the valley. The north road is open to travelers, with delays at the border crossing. Tonight: the Radio Club's spring music hour. And if anyone has borrowed Mrs. Bell's ladder, she would like it back.")
 
 func inventory() -> void:
+	if state.welcome_phase in ["meeting","departing"] or ("moss" in conversation_members and not state.invited): return
 	window_open=true
 	ui.open_inventory()
 
@@ -630,8 +752,7 @@ func item_options(id: String) -> void:
 func journal() -> void:
 	var visit="Speak with Moss behind the farmhouse to arrange the visit."
 	if state.invited:
-		var minute=fmod(state.mayor_due,1440)
-		visit="Mayor's visit: day %d, %02d:%02d, two hours after speaking with Moss." % [int(state.mayor_due/1440)+1,int(minute/60),int(minute)%60]
+		visit="The mayor's welcome is complete." if state.met_mayor else "Wait inside the farmhouse while Moss fetches Alder and Neral. The welcome sequence holds the clock."
 	panel("Captain's field notes","FIRST LANDING","%s Shelter · speak with Moss behind the farmhouse.\n\n%s %s\n\n%s Make the house a home · remove the furniture covers and replace both broken light bulbs. Spares are in the kitchen cabinet.\n\n%s Provide for ourselves · harvest a moon turnip; Tavi buys produce.\n\n%s Crew communications · bring Vale three copper from southeast of town. Keep food in the ship locker." % ["✓" if state.invited else "○","✓" if state.met_mayor else "○",visit,"✓" if state.house_tasks.values().all(func(done): return done) else "○","✓" if state.harvested>0 else "○","✓" if state.delivered else "○"])
 	ui.modal.get_child(1).position.y=55
 
@@ -665,6 +786,7 @@ func development_tools() -> void:
 
 func advance_development_time(minutes: float) -> void:
 	if not OS.is_debug_build(): return
+	if clock_held(): toast("The opening sequence is holding the clock."); return
 	resting=0.0
 	activity=""
 	state.advance(minutes)
@@ -686,6 +808,8 @@ func sound_settings() -> void:
 func reset_confirmation() -> void:
 	panel("Begin again?","YOUR SAVED VISIT","This replaces this prototype's save inside the project. The story and farm will start fresh.",[
 		["Yes, start a fresh landing",func():
+			state.welcome_phase="complete"
+			state.briefing_complete=true
 			if world!=outdoors: leave_building()
 			end_conversation()
 			state=State.new()

@@ -8,7 +8,7 @@ func _initialize() -> void:
 
 func capture(label: String) -> void:
 	game.ui.message.text=""
-	game.world.update_villagers(0.0,true)
+	if game.state.welcome_phase not in ["meeting","departing"]: game.world.update_villagers(0.0,true)
 	game.nearest=game.world.find_nearest()
 	game.world.refresh()
 	game.camera.position=game.state.player_position+Vector2(20,-5)
@@ -38,10 +38,19 @@ func run() -> void:
 	game.leave_building()
 	game.state.player_position=game.world.Grid.center(Vector2i(13,28))
 	await capture("mountain-descent")
-	game.state.player_position=game.world.Grid.center(Vector2i(13,36))
+	game.state.player_position=game.world.Grid.center(game.world.MOSS_ENCOUNTER_CELL)
 	game._process(0)
 	await capture("moss-first-meeting")
 	while game.window_open: game.ui.modal_box.get_child(3).pressed.emit()
+	game.enter_building("home")
+	await capture("welcome-waiting")
+	game._process(8)
+	await capture("welcome-party-inside")
+	while game.window_open: game.ui.modal_box.get_child(3).pressed.emit()
+	game._process(0.4)
+	await capture("welcome-departure")
+	while game.state.welcome_phase=="departing": game._process(0.25)
+	game.leave_building()
 	game.state.player_position=game.world.Grid.center(game.world.Grid.SPAWN_CELL)
 	game.open_chest()
 	await capture("chest")
@@ -93,6 +102,13 @@ func run() -> void:
 	await capture("radio-table")
 	game.state.player_position=game.world.site_position("pond")
 	await capture("dock")
+	game.state.player_position=game.world.site_position("ocean")
+	await capture("ocean-dock")
+	game.start_fishing("ocean")
+	game.fishing_species="storm_eel"
+	game.activity_time=3
+	await capture("ocean-fishing")
+	game.activity=""
 	game.state.player_position=game.world.Grid.center(game.world.SHIP_CELL)+Vector2(64,64)
 	await capture("ship")
 	game.state.turnips=4
@@ -120,9 +136,9 @@ func run() -> void:
 	await capture("interior-tidied")
 	game.leave_building()
 	game.enter_building("ship")
-	game.state.player_position=game.world.Grid.center(Vector2i(8,4))
+	game.state.player_position=game.world.Grid.center(Vector2i(8,10))
 	await capture("ship-engineering")
-	game.state.player_position=game.world.Grid.center(Vector2i(7,10))
+	game.state.player_position=game.world.Grid.center(Vector2i(7,3))
 	await capture("ship-bunks")
 	game.open_storage("ship_storage")
 	await capture("ship-storage")

@@ -406,15 +406,15 @@ func paint_effects(c: CanvasItem) -> void:
 			oval(c,p.x,p.y,4,6,"ead9a2" if working else "737c76")
 			if not working: r(c,p.x-2,p.y-1,5,2,"384b46")
 	if building.id=="ship":
-		for origin in [Vector2(135,90),Vector2(265,145),Vector2(385,210)]:
+		for origin in [Vector2(135,282),Vector2(265,337),Vector2(385,402)]:
 			c.draw_polyline(PackedVector2Array([origin-Vector2(14,60),origin-Vector2(5,35),origin+Vector2(-11,-15),origin]),Color("172a35"),3)
 			c.draw_polyline(PackedVector2Array([origin-Vector2(9,60),origin-Vector2(2,34),origin+Vector2(-6,-13),origin+Vector2(4,1)]),Color("aa7b54"),1)
 			if fmod(elapsed+origin.x*0.03,3.7)<0.16:
 				for i in range(5):
 					var angle=i*1.25+elapsed*7
 					c.draw_line(origin,origin+Vector2(cos(angle),sin(angle))*9,Color("edcf83"),1)
-		c.draw_string(ThemeDB.fallback_font,Vector2(38,122),"GRAVITIC SHEAR BUS",HORIZONTAL_ALIGNMENT_LEFT,-1,8,Color("b5bdb1"))
-		c.draw_string(ThemeDB.fallback_font,Vector2(162,122),"INERTIAL LATTICE",HORIZONTAL_ALIGNMENT_LEFT,-1,8,Color("b5bdb1"))
+		c.draw_string(ThemeDB.fallback_font,Vector2(38,314),"GRAVITIC SHEAR BUS",HORIZONTAL_ALIGNMENT_LEFT,-1,8,Color("b5bdb1"))
+		c.draw_string(ThemeDB.fallback_font,Vector2(162,314),"INERTIAL LATTICE",HORIZONTAL_ALIGNMENT_LEFT,-1,8,Color("b5bdb1"))
 	for actor in villagers.values():
 		if actor.visible and actor.position.distance_to(state.player_position)<100:
 			c.draw_string(ThemeDB.fallback_font,actor.position+Vector2(-25,-55),"z z z" if actor.data.get("sleeping",false) else actor.data.name,HORIZONTAL_ALIGNMENT_LEFT,-1,9,Color("e4d9b5"))

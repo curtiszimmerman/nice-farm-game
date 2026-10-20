@@ -264,7 +264,7 @@ func open_modal(title: String,eyebrow: String,body: String,choices: Array,wide =
 		b.pressed.connect(func(): game.choose_dialogue(action))
 		modal_box.add_child(b)
 	var footer = Label.new()
-	footer.text = "ESC closes · " + ("Time keeps moving" if game.state.pause_mode=="none" else "Calendar paused; world active" if game.state.pause_mode=="clock" else "World paused")
+	footer.text = "Story sequence holds time" if game.clock_held() else "ESC closes · " + ("Time keeps moving" if game.state.pause_mode=="none" else "Calendar paused; world active" if game.state.pause_mode=="clock" else "World paused")
 	footer.add_theme_font_size_override("font_size",10)
 	footer.add_theme_color_override("font_color",Color("94ad98"))
 	modal_box.add_child(footer)
@@ -428,10 +428,13 @@ func update() -> void:
 	region.text = "Briar Glen town" if game.world.Grid.rect(game.world.SQUARE.position,game.world.SQUARE.size).grow(350).has_point(p) else "The south meadow" if p.y>1850 else "The hidden clearing" if p.distance_to(game.world.Grid.center(game.world.SHIP_CELL))<220 else "The old south farm"
 	if game.world.Grid.rect(game.world.SQUARE.position,game.world.SQUARE.size).has_point(p): region.text="Briar Glen town square"
 	elif p.x>1500 and p.x<2500 and p.y<650: region.text="Wizard's tower · northern mountains"
+	elif game.world.SHIP_MOUNTAIN.has_point(game.world.Grid.world_to_cell(p)): region.text="Shipwreck ridge · mountain trail"
+	elif p.y>2550: region.text="South coast · ocean dock"
 	elif game.world.Grid.rect(game.world.OUTCROP_CELLS.position,game.world.OUTCROP_CELLS.size).grow(200).has_point(p): region.text="Copper foothills"
 	if game.world!=game.outdoors: region.text=game.world.room_name()
 	place.text = "A quiet signal" if region.text=="The hidden clearing" else "Briar Glen"
 	objective.text = "Follow the mountain path to the back of the farmhouse. Find out who lives here." if not s.invited else "The mayor's party is waiting at the farmhouse." if not s.met_mayor and s.mayor_available() else "Moss is fetching the mayor. They return two hours after you spoke. Tidy the farmhouse while you wait." if not s.met_mayor else "A home, a little soil, a place in the world. Keep the farmhouse clean and work the garden."
+	if s.invited and not s.met_mayor: objective.text="Wait inside while Moss fetches the mayor and Neral. The clock is held during this first visit."
 	next_task.text = "○ Tend your first moon turnip" if s.harvested==0 else "○ Chief Vale needs 3 copper" if not s.delivered else "✓ Crew link restored"
 	if s.invited:
 		for task in s.house_tasks:
@@ -447,5 +450,5 @@ func update() -> void:
 	if game.activity=="fishing":
 		action_meter.value = game.fishing_position()*100.0
 		action_meter.queue_redraw()
-		action_label.text = "Casting…" if game.activity_time<1.2 else "Gold band: 35–70 · E to reel"
+		action_label.text = "Casting…" if game.activity_time<1.2 else "%s · %s · E in gold band" % [Items.CATALOG[game.fishing_species].name,"Hard" if Items.FISH[game.fishing_species].hard else "Easy"]
 	elif game.resting>0: action_label.text = "The sun keeps its own company."

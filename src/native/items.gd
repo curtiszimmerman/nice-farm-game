@@ -1,12 +1,17 @@
 extends RefCounted
 
-const FOOD={"turnips":{"health":8,"energy":12,"mana":0},"fish":{"health":5,"energy":8,"mana":0},"star_bulbs":{"health":0,"energy":0,"mana":15},"health_elixir":{"health":25,"energy":0,"mana":0},"fish_sticks":{"health":12,"energy":20,"mana":0},"fish_stew":{"health":20,"energy":30,"mana":15},"rations":{"health":0,"energy":15,"mana":0}}
+const FOOD={"turnips":{"health":8,"energy":12,"mana":0},"fish":{"health":5,"energy":8,"mana":0},"star_bulbs":{"health":0,"energy":0,"mana":15},"health_elixir":{"health":25,"energy":0,"mana":0},"fish_sticks":{"health":12,"energy":20,"mana":0},"fish_stew":{"health":20,"energy":30,"mana":15},"rations":{"health":0,"energy":15,"mana":0},"moon_pike":{"health":7,"energy":10,"mana":0},"sea_sprat":{"health":4,"energy":6,"mana":0},"blue_mackerel":{"health":5,"energy":8,"mana":0},"storm_eel":{"health":8,"energy":12,"mana":0}}
+const FISH={"fish":{"habitat":"pond","hard":false,"price":10,"color":"9dbcc0"},"moon_pike":{"habitat":"pond","hard":true,"price":35,"color":"a8ad7b"},"sea_sprat":{"habitat":"ocean","hard":false,"price":12,"color":"c1c7b2"},"blue_mackerel":{"habitat":"ocean","hard":false,"price":16,"color":"729ab6"},"storm_eel":{"habitat":"ocean","hard":true,"price":50,"color":"a58bb6"}}
 
 const CATALOG={
+	"moon_pike":{"name":"Moon pike","description":"An elusive, valuable pond predator. Difficult to catch; suitable for cooking.","action":"Cooking ingredient · sell for 35 crowns"},
+	"sea_sprat":{"name":"Sea sprat","description":"A small, easy coastal catch. Suitable for cooking.","action":"Cooking ingredient · sell for 12 crowns"},
+	"blue_mackerel":{"name":"Blue mackerel","description":"A striped coastal fish. Easy to catch; suitable for cooking.","action":"Cooking ingredient · sell for 16 crowns"},
+	"storm_eel":{"name":"Storm eel","description":"An erratic, valuable ocean catch. Difficult to land; suitable for cooking.","action":"Cooking ingredient · sell for 50 crowns"},
 	"light_bulbs":{"name":"Light bulb","description":"A replacement bulb for the farmhouse bathroom or living room.","action":"Use at a broken light fixture"},
 	"pot":{"name":"Cooking pot","description":"Unlocks fish stew at your farmhouse stove.","action":"Cooking equipment"},
 	"pan":{"name":"Frying pan","description":"Unlocks fish sticks at your farmhouse stove.","action":"Cooking equipment"},
-	"fish_sticks":{"name":"Fish sticks","description":"Pan-fried silverfin. A cooked meal for you or Vale.","action":"Eat"},
+	"fish_sticks":{"name":"Fish sticks","description":"Crisp pan-fried fish. A cooked meal for you or Vale.","action":"Eat"},
 	"fish_stew":{"name":"Fish stew","description":"Fish, moon turnip and star bulb in a warm broth.","action":"Eat"},
 	"health_elixir":{"name":"Elixir of health","description":"Restores 25 health.","action":"Drink"},
 	"rations":{"name":"Starship ration","description":"Sealed crew food. Vale needs one ration or cooked meal daily.","action":"Eat"},
@@ -61,8 +66,8 @@ static func icon(id: String) -> Texture2D:
 					if x in range(10,14) and y in range(5,13): color=Color("769a63")
 					if y in range(5,8) and x in range(6,18): color=Color("95b57b")
 					if id=="star_bulbs" and ((abs(x-12)<2 and y in range(10,23)) or (abs(y-15)<2 and x in range(3,22))): color=Color("f8e7a3")
-				"fish":
-					if pow((x-11)/8.0,2)+pow((y-12)/4.5,2)<1: color=Color("9dbcc0") if y<12 else Color("6e929c")
+				"fish","moon_pike","sea_sprat","blue_mackerel","storm_eel":
+					if pow((x-11)/8.0,2)+pow((y-12)/4.5,2)<1: color=Color(FISH[id].color) if y<12 else Color(FISH[id].color).darkened(0.2)
 					if x>=17 and x<=22 and abs(y-12)<=x-17: color=Color("86a8ad")
 					if x==6 and y==11: color=Color("314d50")
 				"seeds","star_seeds":

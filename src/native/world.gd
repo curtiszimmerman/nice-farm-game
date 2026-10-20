@@ -12,14 +12,17 @@ const MOSS_FIELDS = Rect2i(25,60,6,4)
 const VETERAN_GARDEN = Rect2i(46,79,3,3)
 const DECORATIVE_FIELDS = [MOSS_FIELDS,VETERAN_GARDEN]
 const SHIP_CELL = Vector2i(11,12)
-const SHIP_MOUNTAIN=Rect2i(4,5,18,31)
-const DESCENT_AREAS=[Rect2i(8,9,7,7),Rect2i(11,15,2,8),Rect2i(11,21,6,2),Rect2i(15,21,2,8),Rect2i(13,27,4,2),Rect2i(13,27,2,8),Rect2i(13,35,1,1)]
+const SHIP_MOUNTAIN=Rect2i(4,5,18,24)
+const DESCENT_AREAS=[Rect2i(8,9,7,7),Rect2i(11,15,2,5),Rect2i(11,18,6,2),Rect2i(15,18,2,6),Rect2i(13,22,4,2),Rect2i(13,22,2,6),Rect2i(13,28,1,1)]
+const DESCENT_EXIT=Vector2i(13,28)
+const MOSS_ENCOUNTER_CELL=Vector2i(18,41)
 const POND_CELL = Vector2i(17,67)
 const JETTY_CELLS = Rect2i(20,65,3,1)
+const OCEAN_DOCK=Rect2i(74,82,2,5)
 const CART_CELLS = Rect2i(65,45,3,1)
 const LAMP_CELLS = [Vector2i(58,43),Vector2i(64,50),Vector2i(20,42)]
 const PEOPLE = [
-	{"id":"moss","name":"Moss","role":"YOUR NEIGHBOR","cell":Vector2i(13,36),"coat":"a7834d","hair":"d6cb9c","skin":"d4a776","hat":true},
+	{"id":"moss","name":"Moss","role":"YOUR NEIGHBOR","cell":MOSS_ENCOUNTER_CELL,"coat":"a7834d","hair":"d6cb9c","skin":"d4a776","hat":true},
 	{"id":"tavi","name":"Tavi","role":"TRAVELING MERCHANT","cell":Vector2i(64,46),"coat":"aa7262","hair":"bd996b","skin":"c0a070","cat":true},
 	{"id":"iona","name":"Iona","role":"FIELD MAGICIAN","cell":Vector2i(61,15),"coat":"8885ad","hair":"e3d7bd","skin":"ae856c"},
 	{"id":"finch","name":"Finch","role":"RADIO CLUB SECRETARY","cell":Vector2i(54,38),"coat":"6d96a0","hair":"765842","skin":"d3ab88"},
@@ -43,10 +46,10 @@ const BUILDINGS = [
 ]
 const SITES = [
 	{"id":"ship_entry","cell":Vector2i(11,14),"door":"ship","label":"Enter cloaked ship"},
-	{"id":"farmhouse_rear","cell":Vector2i(13,36),"door":"home","label":"Enter farmhouse rear door"},
 	{"id":"bed","cell":Vector2i(13,42),"label":"Rest at the farmhouse"},
 	{"id":"chest","cell":Vector2i(17,42),"label":"Open farmhouse chest"},
 	{"id":"pond","cell":Vector2i(21,65),"label":"Fish from the jetty"},
+	{"id":"ocean","cell":Vector2i(75,85),"label":"Fish from the ocean dock"},
 	{"id":"ore","cell":Vector2i(94,74),"label":"Gather copper"},
 	{"id":"sign","cell":Vector2i(30,42),"label":"Read the signpost"},
 	{"id":"radio","cell":Vector2i(55,39),"label":"Listen to the radio"}
@@ -149,14 +152,19 @@ func _build_layout() -> void:
 			var cell=Vector2i(x,y)
 			var p=Grid.center(cell)
 			var pond=(p-Grid.center(POND_CELL))/Vector2(160,160)
-			if p.x<96.0+sin(p.y/145.0)*22.0 or pond.length_squared()<1.0:
+			if p.x<96.0+sin(p.y/145.0)*22.0 or pond.length_squared()<1.0 or y>=84+roundi(sin(x*0.12)):
 				water_cells[cell]=true
 				solid_cells[cell]="water"
-	for y in range(JETTY_CELLS.position.y,JETTY_CELLS.end.y):
-		for x in range(JETTY_CELLS.position.x,JETTY_CELLS.end.x):
-			var cell=Vector2i(x,y)
-			solid_cells.erase(cell)
-			reserved_cells[cell]=true
+	for dock in [JETTY_CELLS,OCEAN_DOCK]:
+		for y in range(dock.position.y,dock.end.y):
+			for x in range(dock.position.x,dock.end.x):
+				var cell=Vector2i(x,y)
+				solid_cells.erase(cell)
+				reserved_cells[cell]=true
+	for y in range(78,84):
+		for x in range(73,77): reserved_cells[Vector2i(x,y)]=true
+	for y in range(29,44):
+		for x in range(8,20): reserved_cells[Vector2i(x,y)]=true
 	for item in PEOPLE:
 		var p=item.duplicate(true)
 		var pos=Grid.center(p.cell)
@@ -185,6 +193,7 @@ func _build_layout() -> void:
 		p.y=pos.y
 		if p.id=="ore": p.bounds=Grid.rect(COPPER_CELLS.position,COPPER_CELLS.size)
 		if p.id=="pond": p.bounds=Grid.rect(JETTY_CELLS.position,JETTY_CELLS.size)
+		if p.id=="ocean": p.bounds=Grid.rect(OCEAN_DOCK.position,OCEAN_DOCK.size)
 		sites.append(p)
 		reserved_cells[p.cell]=true
 	_claim(OUTCROP_CELLS,"rock")
@@ -205,6 +214,7 @@ func _build_layout() -> void:
 	for y in range(SHIP_MOUNTAIN.position.y,SHIP_MOUNTAIN.end.y):
 		for x in range(SHIP_MOUNTAIN.position.x,SHIP_MOUNTAIN.end.x):
 			var cell=Vector2i(x,y)
+			if not ship_mountain_cell(cell): continue
 			if DESCENT_AREAS.any(func(area): return area.has_point(cell)):
 				reserved_cells[cell]=true
 			else:
@@ -229,6 +239,8 @@ func _build_layout() -> void:
 			road_segments.append([Grid.center(a),Grid.center(b),Grid.TILE_SIZE*0.5])
 			for y in range(mini(a.y,b.y),maxi(a.y,b.y)+1):
 				for x in range(mini(a.x,b.x),maxi(a.x,b.x)+1): road_cells[Vector2i(x,y)]=true
+	var approach=[Vector2i(13,29),Vector2i(13,32),Vector2i(15,32),Vector2i(15,34),Vector2i(18,34),Vector2i(18,40)]
+	for i in range(approach.size()-1): road_segments.append([Grid.center(approach[i]),Grid.center(approach[i+1]),7.0])
 
 func site_position(id: String) -> Vector2:
 	for site in sites:
@@ -268,7 +280,7 @@ func update_villagers(dt: float,snap: bool=false) -> void:
 			continue
 		var stop=Schedule.stop(id,state.minute)
 		if id=="vale": stop.room="ship"
-		if id=="moss" and not state.invited: stop={"cell":Vector2i(13,36),"sleeping":false,"room":""}
+		if id=="moss" and not state.invited: stop={"cell":MOSS_ENCOUNTER_CELL,"sleeping":false,"room":""}
 		var visit=state.mayor_visit_start()
 		if visit>=0 and state.total()>=visit+240: visit+=1440
 		if id=="moss" and state.invited and not state.met_mayor and state.total()<state.mayor_due-60: stop={"cell":Vector2i(54,46),"sleeping":false,"room":"hall"}
@@ -359,7 +371,15 @@ func audio_context(player_position: Vector2) -> Dictionary:
 
 func in_water(p: Vector2) -> bool:
 	var cell=Grid.world_to_cell(p)
-	return water_cells.has(cell) and not JETTY_CELLS.has_point(cell)
+	return water_cells.has(cell) and not JETTY_CELLS.has_point(cell) and not OCEAN_DOCK.has_point(cell)
+
+func at_pond_edge(p: Vector2) -> bool:
+	var cell=Grid.world_to_cell(p)
+	if blocked(p): return false
+	for direction in [Vector2i.UP,Vector2i.DOWN,Vector2i.LEFT,Vector2i.RIGHT]:
+		var water=cell+direction
+		if water_cells.has(water) and Grid.center(water).distance_to(Grid.center(POND_CELL))<190: return true
+	return false
 
 func blocked(p: Vector2) -> bool:
 	var cell=Grid.world_to_cell(p)
@@ -540,6 +560,13 @@ func _draw() -> void:
 		r(self,x,-10,5,48,"776a4e")
 		r(self,x,-12,5,3,"d0bb87")
 	draw_set_transform(Vector2.ZERO)
+	for y in range(OCEAN_DOCK.position.y,OCEAN_DOCK.end.y):
+		var p=Grid.origin(Vector2i(OCEAN_DOCK.position.x,y))
+		r(self,p.x,p.y,64,32,"625d49")
+		for yy in range(0,32,8):
+			r(self,p.x+1,p.y+yy,62,6,"ac946b")
+			r(self,p.x+6,p.y+yy,1,2,"dbbe8a")
+		for x in [0,60]: r(self,p.x+x,p.y+4,4,9,"655b49")
 	for cell in fence_cells:
 		var p=Grid.origin(cell)
 		if cell.x==FARM_CELL.x-1 and cell.y not in [FARM_CELL.y-2,FARM_CELL.y+5]:
@@ -641,28 +668,39 @@ func rock_surface(c: CanvasItem,p: Vector2,w: int,h: int,seed_value: int,edge: b
 	if seed_value%3==0:
 		c.draw_polyline(PackedVector2Array([p+Vector2(8,2),p+Vector2(14,13),p+Vector2(10,24)]),Color("52685e"),1)
 
+func ship_mountain_cell(cell: Vector2i) -> bool:
+	var left=5+roundi(sin(cell.y*0.23)*1.7+(cell.y-5)*0.06)
+	var right=20+roundi(sin(cell.y*0.31)*1.4)
+	return SHIP_MOUNTAIN.has_point(cell) and cell.x>=left and cell.x<=right
+
 func paint_cliffs(c: CanvasItem) -> void:
 	for y in range(SHIP_MOUNTAIN.position.y,SHIP_MOUNTAIN.end.y):
 		for x in range(SHIP_MOUNTAIN.position.x,SHIP_MOUNTAIN.end.x):
 			var cell=Vector2i(x,y)
 			var p=Grid.origin(cell)
+			if not ship_mountain_cell(cell): continue
 			if not mountain_cells.has(cell):
 				r(c,p.x,p.y,32,32,"9a987d")
 				for i in range(4): r(c,p.x+posmod(x*11+i*17,29),p.y+posmod(y*13+i*7,29),3,2,"b6b299")
-				if x==13 and y>=29:
+				if x==13 and y>=24:
 					for yy in [5,16,27]: r(c,p.x+2,p.y+yy,28,2,"6d776b")
 				continue
 			r(c,p.x,p.y,32,32,"748275")
+			for dx in range(0,32,4):
+				var weather=sin((p.x+dx)*0.009)*sin(p.y*0.011)
+				r(c,p.x+dx,p.y,4,32,Color("778378").lightened(weather*0.07).to_html(false))
 			for i in range(3):
 				var px=p.x+posmod(x*17+y*7+i*13,25)
 				var py=p.y+posmod(y*19+x*11+i*7,28)
 				r(c,px,py,3+i*2,2,"84917d" if i%2 else "627366")
-			if sin(x*0.7+y*0.43)>0.55:
+			if sin(x*0.7+y*0.43)>0.87:
 				var offset=int(sin(x*0.4+y)*6)
 				r(c,p.x,p.y+14+offset,32,2,"89947e")
 				r(c,p.x+2,p.y+17+offset,28,1,"5f7265")
-			if not mountain_cells.has(cell+Vector2i.LEFT): r(c,p.x,p.y,5,32,"a0a98f")
-			if not mountain_cells.has(cell+Vector2i.RIGHT): r(c,p.x+26,p.y,6,32,"4e6659")
+			if not mountain_cells.has(cell+Vector2i.LEFT):
+				poly(c,[p+Vector2(0,0),p+Vector2(5,8),p+Vector2(3,24),p+Vector2(6,32),p+Vector2(0,32)],"a0a98f")
+			if not mountain_cells.has(cell+Vector2i.RIGHT):
+				poly(c,[p+Vector2(27,0),p+Vector2(25,15),p+Vector2(29,25),p+Vector2(26,32),p+Vector2(32,32),p+Vector2(32,0)],"4e6659")
 			if not mountain_cells.has(cell+Vector2i.DOWN):
 				r(c,p.x,p.y+12,32,20,"526858")
 				r(c,p.x,p.y+12,32,3,"a2aa8e")

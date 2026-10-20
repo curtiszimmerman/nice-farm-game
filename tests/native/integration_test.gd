@@ -61,8 +61,12 @@ func run() -> void:
 	game.state.player_position=game.world.site_position("pond")
 	game.interact()
 	game.activity_time=1.2
+	var caught=game.fishing_species
+	for i in range(1000):
+		game.activity_time=1.2+i*0.01
+		if game.fishing_position()>0.4 and game.fishing_position()<0.6: break
 	game.interact()
-	check(game.state.fish==1 and game.activity=="","fishing timing rewards a successful catch")
+	check(game.state.get(caught)==1 and game.activity=="","fishing timing rewards the hooked species")
 	game.state.day=2
 	game.state.minute=719
 	game.state.mayor_due=2160

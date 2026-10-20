@@ -51,13 +51,13 @@ static func _house(w: int,h: int) -> Dictionary:
 		"work":[Vector2i(7,ly),Vector2i(8,h-3),Vector2i(kx+1,7)]}
 
 static func _ship() -> Dictionary:
-	return {"size":Vector2i(15,14),"areas":[["engineering",Rect2i(1,1,13,6)],["crew",Rect2i(1,8,13,5)]],
-		"doors":[["engineering","crew",Vector2i(7,7)]],"entry":Vector2i(7,12),"exit":Vector2i(7,13),
-		"furniture":[["reactor",Rect2i(10,2,3,3)],["machine",Rect2i(1,4,3,2)],["machine",Rect2i(5,4,2,2)],
-		["console",Rect2i(2,1,2,1)],["console",Rect2i(5,1,2,1)],["console",Rect2i(8,1,2,1)],
-		["bed",Rect2i(1,9,2,3)],["bed",Rect2i(4,9,2,3)],["cabinet",Rect2i(10,9,3,1)],["table",Rect2i(10,11,2,1)]],
-		"sites":[["bed",Vector2i(3,12)],["ship_storage",Vector2i(11,10)],["diagnostics",Vector2i(8,4)]],
-		"work":[Vector2i(8,3),Vector2i(9,5),Vector2i(7,6)]}
+	return {"size":Vector2i(15,14),"areas":[["crew",Rect2i(1,1,13,5)],["engineering",Rect2i(1,7,13,6)]],
+		"doors":[["crew","engineering",Vector2i(7,6)]],"entry":Vector2i(7,12),"exit":Vector2i(7,13),
+		"furniture":[["reactor",Rect2i(10,8,3,3)],["machine",Rect2i(1,10,3,2)],["machine",Rect2i(5,10,2,2)],
+		["console",Rect2i(2,7,2,1)],["console",Rect2i(5,7,2,1)],["console",Rect2i(8,7,2,1)],
+		["bed",Rect2i(1,1,2,3)],["bed",Rect2i(4,1,2,3)],["cabinet",Rect2i(10,1,3,1)],["table",Rect2i(10,4,2,1)]],
+		"sites":[["bed",Vector2i(3,3)],["ship_storage",Vector2i(11,2)],["diagnostics",Vector2i(8,10)]],
+		"work":[Vector2i(8,9),Vector2i(9,11),Vector2i(7,10)]}
 
 static func _open_house(h: int,guest: bool) -> Dictionary:
 	var furniture=[
