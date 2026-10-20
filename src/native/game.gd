@@ -153,7 +153,7 @@ func _process(dt: float) -> void:
 	if not conversation_members.is_empty() and (state.location!=conversation_location or state.player_position.distance_to(conversation_anchor)>160): close_window()
 	if state.welcome_phase=="waiting":
 		state.welcome_elapsed=state.welcome_elapsed+dt if state.house_tasks.values().all(func(done): return done) else 0.0
-		if state.welcome_elapsed>=8:
+		if state.welcome_elapsed>=4:
 			if window_open: close_window()
 			mayor()
 	var staged=clock_held()
@@ -836,7 +836,7 @@ func mayor() -> void:
 		activity=""
 	begin_conversation(["mayor","assistant","moss"],true)
 	dialog("Mayor Alder","BRIAR GLEN · AT YOUR FARM","Well, look at that. The lamps are working again! Moss says you're travelers in need of a roof. It's been a long time since anyone called this place home. You're welcome to stay, so long as you look after it. Keep it clean, and we'll get along nicely.",[
-		["We can promise that.",func(): dialog("Neral","MAYOR'S ASSISTANT · DARK ELF","Neral. I look after the records, and occasionally Alder. Moss mentioned quite a flash on the mountain just before you appeared. An unusual morning to arrive on foot, wouldn't you say? ...Well. You'll be easy enough to find here if I have any more questions.",[
+		["We can promise that.",func(): dialog("Neral","MAYOR'S ASSISTANT · DARK ELF","Alder, a long stay? With matters as they stand with Veyr, oughtn't we find out a little more before handing over a house? We have their word that they're travelers, and a flash on the mountain. That's a rather thin introduction.",[
 			["Thank you, Neral.",func(): dialog("Mayor Alder","BRIAR GLEN","Now, Neral, let our guests catch their breath. There's a garden out there if you'd like to earn your keep. Moss left seeds and tools in the chest, and Tavi buys produce in the square. Good food on your table and a little money in your pocket. Not a bad place to begin.",[
 				["We'll keep the house clean and make a start in the garden.",func():
 					state.met_mayor=true

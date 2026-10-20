@@ -12,6 +12,10 @@ var log_toggle: Button
 var log_expanded=true
 var quest_unread=false
 var known_quests: Array=[]
+var quest_scroll: ScrollContainer
+var quest_rows: VBoxContainer
+var quest_opened: Dictionary={}
+var quest_signature=0
 var quick_tray: Panel
 var hint_panel: PanelContainer
 var pulse_time=0.0
@@ -103,19 +107,26 @@ func _ready() -> void:
 	calendar_details = moons
 	moons.size.x = 225
 	moons.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	log_panel = _panel(Vector2(990,128),Vector2(250,210),Color("182d2bba"))
+	log_panel = _panel(Vector2(970,250),Vector2(280,330),Color("182d2bf5"))
 	log_toggle=Button.new()
 	log_toggle.text="▾ CREW LOG"
 	log_toggle.position=Vector2(8,5)
-	log_toggle.size=Vector2(234,25)
+	log_toggle.size=Vector2(264,32)
 	_button_style(log_toggle)
 	log_toggle.pressed.connect(toggle_log)
 	log_panel.add_child(log_toggle)
-	_label("A place to begin",Vector2(14,54),20,CREAM,true,log_panel)
 	objective = _label("",Vector2(14,90),14,MUTED,false,log_panel)
 	objective.size = Vector2(220,80)
 	objective.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	next_task = _label("",Vector2(14,175),11,GOLD,false,log_panel)
+	quest_scroll=ScrollContainer.new()
+	quest_scroll.position=Vector2(12,50)
+	quest_scroll.size=Vector2(256,266)
+	log_panel.add_child(quest_scroll)
+	quest_rows=VBoxContainer.new()
+	quest_rows.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	quest_rows.add_theme_constant_override("separation",12)
+	quest_scroll.add_child(quest_rows)
 	toggle_log()
 	var tray = _panel(Vector2(140,602),Vector2(1000,88),Color("172b2bf5"))
 	quick_tray=tray
@@ -646,14 +657,67 @@ func toggle_log() -> void:
 	quest_unread=false
 	log_expanded=not log_expanded
 	for child in log_panel.get_children():
-		if child!=log_toggle: child.visible=log_expanded
-	log_panel.size.y=210 if log_expanded else 55
+		if child!=log_toggle: child.visible=log_expanded and child not in [objective,next_task]
+	log_panel.size.y=330 if log_expanded else 55
 	log_toggle.text=("▾" if log_expanded else "▸")+" CREW LOG"
+
+func quest_lines() -> Array:
+	var s=game.state
+	var lines=[{"id":"crew_supplies","title":"A quiet signal home","description":"Vale is keeping the cloak stable. Help him restore contact and keep the crew fed.","tasks":[{"text":"Bring Vale three copper","done":s.delivered},{"text":"Leave food in the ship locker","done":s.crew_fed_day>=s.day}]}]
+	if s.invited:
+		lines.append({"id":"restore_farmhouse","title":"A place to begin","description":"Make the abandoned farmhouse welcoming before Moss brings the mayor.","tasks":[{"text":"Remove the covers from the furniture","done":["sofa","bed","guest_bed","radio"].all(func(id):return s.house_tasks[id])},{"text":"Change the lightbulbs around the house","done":s.house_tasks.living_light and s.house_tasks.bathroom_light}]})
+	if s.met_mayor: lines.append({"id":"first_harvest","title":"Putting down roots","description":"Moss left tools and seeds. Work a small garden to provide for yourselves.","tasks":[{"text":"Harvest a moon turnip","done":s.harvested>0}]})
+	if s.welcome_phase=="complete": lines.append({"id":"meet_wizard","title":"Gentler magic","description":"Visit Iona at the northern tower after noon to learn local magic.","tasks":[{"text":"Learn Wildgrowth from Iona","done":s.magic_learned}]})
+	if s.firewood_requested: lines.append({"id":"keeper_firewood","title":"A warm western light","description":"Oren needs firewood for his lighthouse stove. Ask the forest woodcutter about an axe.","tasks":[{"text":"Bring Oren six firewood","done":s.firewood_given}]})
+	return lines
+
+func render_quests() -> void:
+	var lines=quest_lines()
+	var signature=hash(lines)^hash(quest_opened)
+	if signature==quest_signature: return
+	quest_signature=signature
+	for child in quest_rows.get_children(): child.free()
+	for quest in lines:
+		var header=Button.new()
+		header.text=("▾ " if quest_opened.get(quest.id,false) else "▸ ")+quest.title
+		header.alignment=HORIZONTAL_ALIGNMENT_LEFT
+		header.add_theme_font_size_override("font_size",12)
+		_button_style(header)
+		header.pressed.connect(func(): quest_opened[quest.id]=not quest_opened.get(quest.id,false); render_quests())
+		quest_rows.add_child(header)
+		if not quest_opened.get(quest.id,false): continue
+		var content=VBoxContainer.new()
+		content.add_theme_constant_override("separation",14)
+		quest_rows.add_child(content)
+		var description=Label.new()
+		description.text=quest.description
+		description.custom_minimum_size.x=230
+		description.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
+		description.add_theme_font_size_override("font_size",13)
+		description.add_theme_color_override("font_color",MUTED)
+		content.add_child(description)
+		for task in quest.tasks:
+			var row=Label.new()
+			row.text=("✓ " if task.done else "○ ")+task.text
+			row.custom_minimum_size.x=230
+			row.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
+			row.add_theme_font_size_override("font_size",12)
+			row.add_theme_color_override("font_color",GOLD if task.done else CREAM)
+			content.add_child(row)
+
+func quest_pulse(time: float) -> float:
+	var phase=fposmod(time,5.0)
+	if phase<=1.7: return pow(phase/1.7,5)
+	return 0.84*exp(-12*(phase-1.7))+0.16*exp(-0.7*(phase-1.7))
 
 func _process(dt: float) -> void:
 	if game==null or quick_tray==null: return
 	pulse_time+=dt
-	log_toggle.modulate=Color.WHITE.lerp(Color("ffd276"),0.45+0.4*sin(pulse_time*TAU/3.5)) if quest_unread else Color.WHITE
+	var glow=quest_pulse(pulse_time) if quest_unread else 0.0
+	log_toggle.modulate=Color.WHITE.lerp(Color("fff2a1"),0.2+glow*0.3) if quest_unread else Color.WHITE
+	var background: StyleBoxFlat=log_panel.get_theme_stylebox("panel")
+	background.bg_color=Color("182d2bf5").lerp(Color("ffcf18"),glow)
+	background.border_color=Color("8d9a7666").lerp(Color("fff181"),glow)
 	var screen=get_viewport().get_canvas_transform()*game.state.player_position
 	var avatar=Rect2(screen-Vector2(15,58)*game.camera.zoom,Vector2(30,64)*game.camera.zoom)
 	var obscured=quick_tray.get_global_rect().intersects(avatar)
@@ -674,15 +738,12 @@ func update() -> void:
 	auxiliary_button.get_node("KeyBadge").get_child(0).text=OS.get_keycode_string(game.controls.keys.aux)
 	for slot in inventory_slots:
 		if is_instance_valid(slot): _button_style(slot,slot.get_meta("item_id","")==active and active!="",true)
-	var quests=["crew_supplies"]
-	if s.invited: quests.append("restore_farmhouse")
-	if s.met_mayor: quests.append("first_harvest")
-	if s.welcome_phase=="complete": quests.append("meet_wizard")
-	if s.firewood_requested: quests.append("keeper_firewood")
-	for quest in quests:
-		if quest not in known_quests:
-			known_quests.append(quest)
+	for quest in quest_lines():
+		if quest.id not in known_quests:
+			known_quests.append(quest.id)
 			quest_unread=true
+			pulse_time=0
+	render_quests()
 	for i in range(8):
 		var id: String=s.quick_slots[i]
 		var button: Button=quick_buttons[i]

@@ -146,28 +146,7 @@ func prepare_departures() -> void:
 			outdoors.indoor_departures[id]=building.id
 
 func walk_actor(id: String,cell: Vector2i,dt: float,speed: float=45) -> bool:
-	var actor=villagers[id]
-	var target=Grid.center(cell)
-	var player_cell=Grid.world_to_cell(state.player_position)
-	if not routes.has(id) or routes[id].target!=target or routes[id].get("player_cell")!=player_cell:
-		routes[id]={"target":target,"path":_route(Grid.world_to_cell(actor.position),cell,true),"player_cell":player_cell}
-	var path: Array=routes[id].path
-	var remaining=dt*speed
-	var previous: Vector2=actor.position
-	while remaining>0 and not path.is_empty():
-		var distance=actor.position.distance_to(path[0])
-		var previous_step=actor.position
-		actor.position=Bodies.step(self,actor,path[0],remaining)
-		if actor.position==previous_step and distance>0:
-			routes.erase(id)
-			break
-		remaining-=distance
-		if actor.position.distance_to(path[0])<0.1: path.pop_front()
-	var motion: Vector2=actor.position-previous
-	actor.data.walking=motion.length()>0.01
-	if motion.length()>0.01: actor.data.direction=("right" if motion.x>0 else "left") if absf(motion.x)>absf(motion.y) else ("down" if motion.y>0 else "up")
-	actor.queue_redraw()
-	return actor.position.distance_to(target)<1
+	return Bodies.walk_to(self,id,cell,dt,speed)
 
 func step_out_of_bed(actor: Node2D,dt: float) -> bool:
 	var bed=bed_position(actor.data.id)

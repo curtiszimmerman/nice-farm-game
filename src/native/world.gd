@@ -389,24 +389,8 @@ func update_villagers(dt: float,snap: bool=false) -> void:
 		if snap:
 			actor.position=target
 			routes.erase(id)
-		elif not routes.has(id) or routes[id].target!=target or routes[id].get("player_cell")!=Grid.world_to_cell(state.player_position):
-			# Finish the current tile before turning toward a new appointment.
-			var cell=Grid.world_to_cell(actor.position)
-			var path=_route(cell,stop.cell,true)
-			if actor.position.distance_to(Grid.center(cell))>0.1: path.push_front(Grid.center(cell))
-			routes[id]={"target":target,"path":path,"player_cell":Grid.world_to_cell(state.player_position)}
-		if routes.has(id):
-			var remaining=dt*(180.0 if story_destinations.has(id) else 96.0 if id in ["moss","mayor","assistant"] and state.invited and not state.met_mayor else 56.0)
-			var path: Array=routes[id].path
-			while remaining>0 and not path.is_empty():
-				var distance=actor.position.distance_to(path[0])
-				actor.position=Bodies.step(self,actor,path[0],remaining)
-				if actor.position==previous and distance>0:
-					routes.erase(id)
-					break
-				remaining-=distance
-				if actor.position.distance_to(path[0])<0.01: path.pop_front()
-				else: break
+		else:
+			Bodies.walk_to(self,id,stop.cell,dt,180.0 if story_destinations.has(id) else 96.0 if id in ["moss","mayor","assistant"] and state.invited and not state.met_mayor else 56.0)
 		var arrived=actor.position.distance_to(target)<1
 		actor.data.room=stop.get("room","") if arrived else ""
 		actor.data.sleeping=stop.sleeping and arrived

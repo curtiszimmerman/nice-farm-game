@@ -37,6 +37,47 @@ static func player_step(world: Node2D,delta: Vector2,holds: Dictionary) -> bool:
 
 static func step(world: Node2D,actor: Node2D,target: Vector2,distance: float) -> Vector2:
 	var next=actor.position.move_toward(target,distance)
+	if world.blocked(next): return actor.position
 	if world.state.location!=(world.building.id if world.get("building")!=null else ""): return next
 	if next.distance_to(world.state.player_position)>=RADIUS: return next
 	return actor.position
+
+static func walk_to(world: Node2D,id: String,cell: Vector2i,dt: float,speed: float) -> bool:
+	var actor: Node2D=world.villagers[id]
+	var target=world.Grid.center(cell)
+	var player_cell=world.Grid.world_to_cell(world.state.player_position)
+	var route: Dictionary=world.routes.get(id,{})
+	var changed=route.is_empty() or route.target!=target
+	var retry=not route.is_empty() and route.path.is_empty() and route.get("blocked",false) and route.player_cell!=player_cell
+	if changed or retry:
+		var start=world.Grid.world_to_cell(actor.position)
+		var anchor=world.Grid.center(start)
+		if not route.is_empty() and not route.path.is_empty():
+			anchor=route.path[0]
+			start=world.Grid.world_to_cell(anchor)
+		var path: Array=world._route(start,cell,true)
+		if actor.position.distance_to(anchor)>0.1: path.push_front(anchor)
+		route={"target":target,"path":path,"player_cell":player_cell,"blocked":path.is_empty() and actor.position.distance_to(target)>1}
+		world.routes[id]=route
+	var previous=actor.position
+	var remaining=dt*speed
+	while remaining>0 and not route.path.is_empty():
+		var waypoint: Vector2=route.path[0]
+		var distance=actor.position.distance_to(waypoint)
+		var next=step(world,actor,waypoint,remaining)
+		if next==actor.position and distance>0.1:
+			var path: Array=world._route(world.Grid.world_to_cell(actor.position),cell,true)
+			# Replan once for an obstruction, then wait for it to move.
+			route.path=path
+			route.player_cell=player_cell
+			route.blocked=true
+			if not path.is_empty() and path[0]==waypoint: route.path=[]
+			break
+		actor.position=next
+		remaining-=distance
+		if actor.position.distance_to(waypoint)<0.1: route.path.pop_front()
+	var motion=actor.position-previous
+	actor.data.walking=motion.length()>0.01
+	if not motion.is_zero_approx(): actor.data.direction=("right" if motion.x>0 else "left") if absf(motion.x)>absf(motion.y) else ("down" if motion.y>0 else "up")
+	actor.queue_redraw()
+	return actor.position.distance_to(target)<1
