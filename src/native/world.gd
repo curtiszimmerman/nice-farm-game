@@ -17,6 +17,7 @@ const SHIP_MOUNTAIN=Rect2i(4,5,18,24)
 const DESCENT_AREAS=[Rect2i(8,9,7,7),Rect2i(11,15,2,5),Rect2i(11,18,6,2),Rect2i(15,18,2,6),Rect2i(13,22,4,2),Rect2i(13,22,2,6),Rect2i(13,28,1,1)]
 const DESCENT_EXIT=Vector2i(13,28)
 const MOSS_ENCOUNTER_CELL=Vector2i(13,30)
+const FARMHOUSE_APPROACH=[Vector2i(13,29),Vector2i(13,32),Vector2i(15,32),Vector2i(15,34),Vector2i(18,34),Vector2i(18,45),Vector2i(13,45)]
 const POND_CELL = Vector2i(17,67)
 const JETTY_CELLS = Rect2i(19,67,4,1)
 const CART_CELLS = Rect2i(65,45,3,1)
@@ -75,6 +76,7 @@ const ROAD_ROUTES = [
 
 var people: Array = []
 var conversation_holds: Dictionary={}
+var story_destinations: Dictionary={}
 var villagers: Dictionary = {}
 var routes: Dictionary = {}
 var buildings: Array = []
@@ -135,7 +137,7 @@ func _ready() -> void:
 	for y in range(24,37):
 		for x in range(4,28):
 			var cell=Vector2i(x,y)
-			if solid_cells.has(cell) or reserved_cells.has(cell) or posmod(x*17+y*11,4)!=0: continue
+			if solid_cells.has(cell) or reserved_cells.has(cell) or _clearing(Grid.center(cell)) or posmod(x*17+y*11,4)!=0: continue
 			reserved_cells[cell]=true
 			bushes.append(cell)
 			_prop("bush",Grid.center(cell),{"variant":posmod(x+y,4)})
@@ -258,13 +260,20 @@ func _build_layout() -> void:
 			road_segments.append([Grid.center(a),Grid.center(b),Grid.TILE_SIZE*0.5])
 			for y in range(mini(a.y,b.y),maxi(a.y,b.y)+1):
 				for x in range(mini(a.x,b.x),maxi(a.x,b.x)+1): road_cells[Vector2i(x,y)]=true
-	var approach=[Vector2i(13,29),Vector2i(13,32),Vector2i(15,32),Vector2i(15,34),Vector2i(18,34),Vector2i(18,40)]
+	var approach=FARMHOUSE_APPROACH
 	for i in range(approach.size()-1): road_segments.append([Grid.center(approach[i]),Grid.center(approach[i+1]),7.0])
 
 func site_position(id: String) -> Vector2:
 	for site in sites:
 		if site.id==id: return Grid.center(site.cell)
 	return Vector2.ZERO
+
+func farmhouse_approach(start: Vector2i) -> Array:
+	var path=[]
+	for cell in FARMHOUSE_APPROACH.slice(1):
+		path.append_array(_route(start,cell))
+		start=cell
+	return path
 
 func exit_position(building: Dictionary) -> Vector2:
 	var door=building.cell+Vector2i(int(building.tiles.x/2),building.tiles.y)
@@ -307,6 +316,7 @@ func update_villagers(dt: float,snap: bool=false) -> void:
 			var offset={"moss":Vector2i(3,0),"mayor":Vector2i(1,0),"assistant":Vector2i(2,1)}[id]
 			stop={"cell":Grid.SPAWN_CELL+offset,"sleeping":false,"room":"home" if state.location=="home" and state.total()>=visit-8 else ""}
 		if state.abandoned_day.get(id,0)==state.day: stop=Schedule.home_stop(id)
+		if story_destinations.has(id): stop=story_destinations[id]
 		var actor: Node2D=villagers[id]
 		var previous=actor.position
 		var target=Grid.center(stop.cell)
@@ -320,7 +330,7 @@ func update_villagers(dt: float,snap: bool=false) -> void:
 			if actor.position.distance_to(Grid.center(cell))>0.1: path.push_front(Grid.center(cell))
 			routes[id]={"target":target,"path":path}
 		if routes.has(id):
-			var remaining=dt*(96.0 if id in ["moss","mayor","assistant"] and state.invited and not state.met_mayor else 56.0)
+			var remaining=dt*(180.0 if story_destinations.has(id) else 96.0 if id in ["moss","mayor","assistant"] and state.invited and not state.met_mayor else 56.0)
 			var path: Array=routes[id].path
 			while remaining>0 and not path.is_empty():
 				var distance=actor.position.distance_to(path[0])

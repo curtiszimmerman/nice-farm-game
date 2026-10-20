@@ -48,8 +48,13 @@ func run() -> void:
 		if button.get_meta("item_id","")=="turnips": slot=button
 	check(slot!=null and slot.tooltip_text.contains("Moon turnip") and slot.get_child(0).texture!=null,"item slots show pictures and hover details")
 	slot.pressed.emit()
+	check(game.state.turnips==2 and game.state.active_item()=="turnips","left-clicking food selects it without consuming it")
+	var right_click=InputEventMouseButton.new()
+	right_click.button_index=MOUSE_BUTTON_RIGHT
+	right_click.pressed=true
+	slot.gui_input.emit(right_click)
 	game.ui.modal_box.get_child(3).pressed.emit()
-	check(game.state.turnips==1 and game.state.health==58 and game.window_open,"clicking food consumes one and refreshes the satchel")
+	check(game.state.turnips==1 and game.state.health==58 and game.window_open,"the right-click Eat action consumes one and refreshes the satchel")
 	await game.sound.shutdown()
 	game.queue_free()
 	await process_frame

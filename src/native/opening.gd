@@ -3,6 +3,9 @@ extends CanvasLayer
 const Art=preload("res://art.gd")
 
 const DURATION=28.0
+const CAPTION_TIMES=[0.0,3.0,4.5,9.0,12.5,18.0,21.0,24.0]
+var caption_step=0
+var stars: Array=[]
 var game: Node2D
 var elapsed=0.0
 var impact_played=false
@@ -21,6 +24,27 @@ func _ready() -> void:
 	add_child(view)
 	game.ui.root.visible=false
 	game.sound.set_cinematic(true)
+	var rng=RandomNumberGenerator.new()
+	rng.randomize()
+	for i in range(120): stars.append({"pos":Vector2(rng.randf_range(0,1280),rng.randf_range(0,570)),"speed":rng.randf_range(3,11),"size":rng.randi_range(1,2),"alpha":rng.randf_range(0.35,1)})
+
+func advance() -> void:
+	if finished or caption_step>=CAPTION_TIMES.size()-1: return
+	caption_step+=1
+	elapsed=CAPTION_TIMES[caption_step]
+	view.queue_redraw()
+
+func shots_at(time: float) -> Array:
+	var shots=[]
+	for friendly in [false,true]:
+		var first=9.25 if friendly else 3.4
+		var interval=2.15 if friendly else 1.85
+		for index in range(8):
+			var launch=first+index*interval
+			if launch>=17.1: break
+			var age=time-launch
+			if age>=0 and age<1.15: shots.append({"friendly":friendly,"progress":minf(1,age/0.82),"impact":maxf(0,age-0.82),"hit":age>=0.82,"index":index})
+	return shots
 
 func scene_at(time: float) -> String:
 	if time>=25: return "aftermath"
@@ -42,7 +66,8 @@ func caption_at(time: float) -> String:
 
 func _process(dt: float) -> void:
 	if finished: return
-	elapsed+=dt
+	if caption_step<CAPTION_TIMES.size()-1: elapsed=minf(elapsed+dt,CAPTION_TIMES[caption_step+1]-0.001)
+	else: elapsed+=dt
 	if elapsed>=24 and not impact_played:
 		impact_played=true
 		game.sound.crash.play()
@@ -81,25 +106,13 @@ func paint(c: CanvasItem) -> void:
 		c.draw_rect(Rect2(0,0,1280,720),Color(1,1,1,1-smoothstep(25,28,elapsed)))
 		return
 	w.r(c,0,0,1280,720,"090f20")
-	for i in range(100):
-		var x=fposmod(i*137.7-elapsed*(7+i%3),1280)
-		var y=fposmod(i*83.3,720)
-		w.r(c,x,y,2 if i%4 else 3,2,"adbec8" if i%3 else "667795")
+	paint_stars(c)
 	if scene=="space":
 		var center=Vector2(650+sin(elapsed*0.7)*25,340+sin(elapsed)*12)
 		ship(c,center,2.2)
 		if elapsed>=3 and elapsed<18:
 			ship(c,Vector2(160,170),1.25,true)
-			for i in range(3):
-				var t=fposmod(elapsed*1.8+i*0.31,1)
-				var point=Vector2(230,175).lerp(center,t)
-				c.draw_line(point,point+Vector2(42,16),Color("f0a3a0"),3)
-			if fmod(elapsed,0.8)<0.2:
-				w.oval(c,center.x-30,center.y-5,14,20,"efcf9c")
-				for i in range(5): w.oval(c,center.x-20-i*22,center.y+i*8,9+i*2,7+i,"776e6c")
-			if battle_at(elapsed).return_fire:
-				var shot=center.lerp(Vector2(160,170),fposmod(elapsed*1.6,1))
-				c.draw_line(shot,shot+Vector2(-45,-14),Color("8ad4df"),3)
+			paint_shots(c,center,Vector2(160,170))
 		if elapsed>=18 and elapsed<20: Art.sprite(c,"explosion"+str(clampi(int((elapsed-18)*3),0,5)),Vector2(64,74),Vector2(192,192))
 		if elapsed>=18:
 			w.oval(c,1130,620,350,310,"3e7278")
@@ -144,6 +157,7 @@ func paint(c: CanvasItem) -> void:
 	w.r(c,0,572,1280,148,"090f20")
 	var caption=caption_at(elapsed)
 	c.draw_multiline_string(ThemeDB.fallback_font,Vector2(115,626),caption,HORIZONTAL_ALIGNMENT_CENTER,1050,22,-1,Color("eee6cf"))
+	paint_continue_hint(c)
 	if elapsed>=23: c.draw_rect(Rect2(0,0,1280,720),Color(1,1,1,smoothstep(23,24,elapsed)))
 
 func paint_pixels(c: CanvasItem) -> void:
@@ -154,16 +168,14 @@ func paint_pixels(c: CanvasItem) -> void:
 	c.draw_rect(Rect2(0,0,1280,720),Color("090f20"))
 	if scene=="space":
 		if elapsed>=18: Art.sprite(c,"planet",Vector2(970,390),Vector2(540,540))
-		for i in range(100): Art.sprite(c,"particle",Vector2(fposmod(i*137.7-elapsed*(7+i%3),1280),fposmod(i*83.3,570)),Vector2(2,2),Color("b1c1c9"))
+		paint_stars(c)
 		var center=Vector2(690+sin(elapsed*.7)*25,335+sin(elapsed)*12)
 		Art.sprite(c,"ship_crew",center-Vector2(192,96),Vector2(384,192))
 		var enemy=Vector2(170,170)
 		var battle=battle_at(elapsed)
 		if battle.enemy_fire:
 			Art.sprite(c,"ship_enemy",enemy-Vector2(96,48))
-			for i in range(3): bolt(c,enemy,center,fposmod(elapsed*1.4+i*.33,1),false)
-		if battle.return_fire:
-			for i in range(2): bolt(c,center,enemy,fposmod(elapsed*1.6+i*.5,1),true)
+		paint_shots(c,center,enemy)
 		if battle.destroyed and elapsed<20:
 			Art.sprite(c,"explosion"+str(clampi(int((elapsed-18)*3),0,5)),enemy-Vector2(96,96),Vector2(192,192))
 		if elapsed>=18:
@@ -172,9 +184,25 @@ func paint_pixels(c: CanvasItem) -> void:
 	c.draw_rect(Rect2(0,0,1280,75),Color("090f20"))
 	c.draw_rect(Rect2(0,572,1280,148),Color("090f20"))
 	c.draw_multiline_string(ThemeDB.fallback_font,Vector2(115,626),caption_at(elapsed),HORIZONTAL_ALIGNMENT_CENTER,1050,22,-1,Color("eee6cf"))
+	paint_continue_hint(c)
 	if elapsed>=23: c.draw_rect(Rect2(0,0,1280,720),Color(1,1,1,smoothstep(23,24,elapsed)))
 
 func bolt(c: CanvasItem,start: Vector2,target: Vector2,t: float,friendly: bool) -> void:
 	c.draw_set_transform(start.lerp(target,t),(target-start).angle())
 	Art.sprite(c,"bolt_friendly" if friendly else "bolt_enemy",Vector2(-16,-4))
 	c.draw_set_transform(Vector2.ZERO)
+
+func paint_shots(c: CanvasItem,center: Vector2,enemy: Vector2) -> void:
+	for shot in shots_at(elapsed):
+		var start=center+Vector2(-110,-30) if shot.friendly else enemy+Vector2(75,5)
+		var target=enemy+Vector2(25,10-shot.index%3*12) if shot.friendly else center+Vector2(-65,shot.index%3*22-20)
+		if shot.hit: Art.sprite(c,"explosion"+str(clampi(int(shot.impact*18),0,5)),target-Vector2(18,18),Vector2(36,36))
+		else: bolt(c,start,target,shot.progress,shot.friendly)
+
+func paint_continue_hint(c: CanvasItem) -> void:
+	if caption_step<7: c.draw_string(ThemeDB.fallback_font,Vector2(440,690),"Click · E · Space to continue",HORIZONTAL_ALIGNMENT_CENTER,400,14,Color("acb9b5"))
+
+func paint_stars(c: CanvasItem) -> void:
+	for star in stars:
+		var point=Vector2(fposmod(star.pos.x-elapsed*star.speed,1280),star.pos.y)
+		Art.sprite(c,"particle",point,Vector2.ONE*star.size,Color(0.7,0.8,0.9,star.alpha))

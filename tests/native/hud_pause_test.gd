@@ -14,12 +14,12 @@ func run() -> void:
 	var pause_key=InputEventKey.new()
 	pause_key.pressed=true
 	pause_key.physical_keycode=KEY_SPACE
-	game._input(pause_key)
+	game.toggle_pause()
 	var intro_time=intro.elapsed
 	await process_frame
 	await process_frame
-	check(not intro.is_processing() and intro.elapsed==intro_time and game.ui.pause_shield.visible and game.ui.pause_badge.is_visible_in_tree(),"space pauses the opening with a visible indicator and blocks menu clicks")
-	game._input(pause_key)
+	check(not intro.is_processing() and intro.elapsed==intro_time and game.ui.pause_shield.visible and game.ui.pause_badge.is_visible_in_tree(),"a full pause freezes the opening with a visible indicator and blocks menu clicks")
+	game.toggle_pause()
 	preload("fixture.gd").explore(game,true)
 	game.ui.update()
 	check(not game.ui.log_expanded and not game.ui.objective.visible,"crew log starts collapsed")

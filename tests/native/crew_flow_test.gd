@@ -15,7 +15,7 @@ func run() -> void:
 	while game.window_open:
 		lines.append(game.ui.modal_box.get_child(2).text)
 		game.ui.modal_box.get_child(3).pressed.emit()
-	check(lines.any(func(line): return "reinforcements" in line.to_lower()),"Vale warns of the enemy's signal before the captain prioritizes the cloak")
+	check(lines.any(func(line): return "signal" in line.to_lower() and "looking" in line.to_lower()),"Vale warns of the enemy's signal before the captain prioritizes the cloak")
 	game.leave_building()
 	var moss=game.outdoors.villagers.moss
 	var waiting=moss.position

@@ -17,6 +17,30 @@ var hint_panel: PanelContainer
 var pulse_time=0.0
 var pause_shield: Control
 var pause_badge: PanelContainer
+var active_button: Button
+var dialogue_open=false
+
+class ItemButton extends Button:
+	var interface: CanvasLayer
+	var quick_index=-1
+	var inventory_source=false
+	func _get_drag_data(_position: Vector2) -> Variant:
+		if not inventory_source or not has_meta("item_id"): return null
+		var id: String=get_meta("item_id")
+		if int(interface.game.state.get(id))<1: return null
+		var preview=TextureRect.new()
+		preview.texture=Items.icon(id)
+		preview.custom_minimum_size=Vector2(40,40)
+		preview.texture_filter=CanvasItem.TEXTURE_FILTER_NEAREST
+		set_drag_preview(preview)
+		return {"type":"inventory_item","id":id}
+	func _can_drop_data(_position: Vector2,data: Variant) -> bool:
+		return quick_index>=0 and data is Dictionary and data.get("type")=="inventory_item" and Items.CATALOG.has(data.get("id")) and int(interface.game.state.get(data.id))>0
+	func _drop_data(position: Vector2,data: Variant) -> void:
+		if not _can_drop_data(position,data): return
+		interface.game.state.assign_slot(quick_index,data.id)
+		interface.game.save_visit()
+		interface.update()
 var quantity_control: SpinBox
 var game: Node2D
 var root: Control
@@ -93,10 +117,20 @@ func _ready() -> void:
 	energy_bar = _bar(Vector2(19,46),Vector2(132,4),Color("a5bb78"),tray)
 	attunement = _label("MANA  60",Vector2(19,53),10,MUTED,false,tray)
 	mana_bar = _bar(Vector2(19,69),Vector2(132,4),Color("90b9d2"),tray)
+	_label("ACTIVE",Vector2(166,4),9,GOLD,false,tray)
+	active_button=Button.new()
+	active_button.position=Vector2(162,20)
+	active_button.size=Vector2(54,57)
+	active_button.expand_icon=true
+	active_button.add_theme_constant_override("icon_max_width",28)
+	_button_style(active_button,true,true)
+	tray.add_child(active_button)
 	for i in range(8):
-		var b = Button.new()
-		b.position = Vector2(165+i*66,10)
-		b.size = Vector2(61,68)
+		var b = ItemButton.new()
+		b.interface=self
+		b.quick_index=i
+		b.position = Vector2(228+i*58,10)
+		b.size = Vector2(53,68)
 		b.expand_icon=true
 		b.add_theme_constant_override("icon_max_width",28)
 		b.add_theme_font_size_override("font_size",12)
@@ -263,6 +297,7 @@ func show_title() -> void:
 	start.grab_focus()
 
 func close_modal() -> void:
+	dialogue_open=false
 	if is_instance_valid(modal): modal.queue_free()
 	modal = null
 	modal_box = null
@@ -318,6 +353,14 @@ func open_modal(title: String,eyebrow: String,body: String,choices: Array,wide =
 	footer.add_theme_color_override("font_color",Color("94ad98"))
 	modal_box.add_child(footer)
 
+func advance_dialogue() -> bool:
+	if not dialogue_open: return false
+	if modal_box==null or not is_instance_valid(modal_box): return false
+	var choices=modal_box.get_children().filter(func(child): return child is Button and not child.disabled)
+	if choices.size()!=1: return false
+	choices[0].pressed.emit()
+	return true
+
 func add_volume_slider(title: String,value: float,on_changed: Callable) -> void:
 	var row=HBoxContainer.new()
 	row.add_theme_constant_override("separation",14)
@@ -344,10 +387,13 @@ func add_volume_slider(title: String,value: float,on_changed: Callable) -> void:
 	modal_box.move_child(row,modal_box.get_child_count()-4)
 
 func open_inventory() -> void:
+	# The quick bar remains a drop target while the satchel is open.
 	open_modal("Your satchel","SUPPLIES & EQUIPMENT","Hover over an item for details. Select an item to use it.",[["Close satchel",func(): pass]],true)
 	var water=game.state.water
-	modal_box.get_child(2).text="Right-click food to Eat or Drink. Click an item to assign it to a quick slot.\nSelected slot: %d · Water: %s" % [game.state.selected_slot+1,"Empty" if water==0 else "Low" if water==1 else "%d/20" % water]
+	modal_box.get_child(2).text="Click an item to make it active. Drag it onto a quick slot to save it there. Right-click for Eat or Drink.\nWater: %s" % ["Empty" if water==0 else "Low" if water==1 else "%d/20" % water]
 	modal.get_child(1).position.y=55
+	modal.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	modal.get_child(0).mouse_filter=Control.MOUSE_FILTER_IGNORE
 	inventory_slots.clear()
 	var grid=GridContainer.new()
 	grid.columns=6
@@ -363,14 +409,16 @@ func open_inventory() -> void:
 		inventory_slots.append(slot)
 		slot.disabled=stack.is_empty()
 		if not stack.is_empty():
-			slot.pressed.connect(func(): game.item_options(stack.id))
+			slot.inventory_source=true
+			slot.pressed.connect(func(): game.select_inventory_item(stack.id))
 			slot.gui_input.connect(func(event):
 				if event is InputEventMouseButton and event.button_index==MOUSE_BUTTON_RIGHT and event.pressed:
 					game.item_options(stack.id)
 					slot.accept_event())
 
 func item_slot(stack: Dictionary,pixels: int) -> Button:
-	var slot=Button.new()
+	var slot=ItemButton.new()
+	slot.interface=self
 	slot.custom_minimum_size=Vector2.ONE*pixels
 	_button_style(slot)
 	if stack.is_empty(): return slot
@@ -470,6 +518,11 @@ func update() -> void:
 	pause_badge.visible=game.world_paused
 	root.move_child(pause_shield,-1)
 	var s = game.state
+	var active=s.active_item()
+	active_button.icon=Items.icon(active) if Items.CATALOG.has(active) else null
+	active_button.tooltip_text=Items.CATALOG[active].name if Items.CATALOG.has(active) else "No active item"
+	for slot in inventory_slots:
+		if is_instance_valid(slot): _button_style(slot,slot.get_meta("item_id","")==active and active!="",true)
 	var quests=["crew_supplies"]
 	if s.invited: quests.append("restore_farmhouse")
 	if s.met_mayor: quests.append("first_harvest")

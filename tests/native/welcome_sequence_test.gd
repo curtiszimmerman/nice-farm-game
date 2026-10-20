@@ -44,6 +44,8 @@ func run() -> void:
 	game._process(7)
 	check(game.state.welcome_phase=="waiting","the visitors allow a short pause after cleanup")
 	game._process(2)
+	check(game.state.welcome_phase=="arriving" and not game.window_open,"the mayor's party walks over before the meeting begins")
+	preload("fixture.gd").await_visitors(game)
 	check(game.state.welcome_phase=="meeting" and game.window_open,"the mayor's party arrives during the paused first visit")
 	check(["moss","mayor","assistant"].all(func(id): return game.world.villagers[id].visible),"all three visitors are inside the farmhouse together")
 	check(game.state.total()==now,"arrival and meeting leave the clock unchanged")
@@ -74,7 +76,7 @@ func run() -> void:
 			check(game.world.villagers.moss.visible and not game.world.villagers.mayor.visible and not game.world.villagers.assistant.visible,"Moss stays physically inside after both officials leave")
 			check("energy" in game.ui.modal_box.get_child(2).text and game.clock_held(),"Moss explains farm work while the introductory clock stays held")
 			game.ui.modal_box.get_child(3).pressed.emit()
-			check("Iona" in game.ui.modal_box.get_child(2).text and "gods" in game.ui.modal_box.get_child(2).text,"Moss introduces the tower wizard and regional magic")
+			check("Iona" in game.ui.modal_box.get_child(2).text and "deities" in game.ui.modal_box.get_child(2).text,"Moss introduces the tower wizard and regional magic")
 		if game.window_open: game.ui.modal_box.get_child(3).pressed.emit()
 		if game.state.welcome_phase=="complete": break
 		game._process(0.25)

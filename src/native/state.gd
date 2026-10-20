@@ -37,6 +37,8 @@ var cabinet: Array=[]
 var ship_storage: Array=[]
 var quick_slots: Array=["","","","","","","",""]
 var selected_slot=0
+var inventory_selection=""
+var world_seed=0
 var water=0
 var pot=0
 var pan=0
@@ -89,6 +91,7 @@ var plots: Array = []
 
 func _init() -> void:
 	cave_seed=randi_range(1,2147483646)
+	world_seed=randi_range(1,2147483646)
 	chest=[{"id":"hoe","count":1},{"id":"watering_can","count":1},{"id":"sickle","count":1}]
 	chest.append({"id":"seeds","count":8})
 	while chest.size()<18: chest.append({})
@@ -129,12 +132,19 @@ func ripe(index: int) -> bool:
 	return index >= 0 and index < plots.size() and plots[index].planted >= 0.0 and plots[index].watered and total() - plots[index].planted+plots[index].growth >= CROP_MINUTES
 
 func clear_empty_slots() -> void:
+	if inventory_selection!="" and int(get(inventory_selection))<1: inventory_selection=""
 	for i in range(quick_slots.size()):
 		if quick_slots[i]!="" and quick_slots[i]!="wildgrowth" and int(get(quick_slots[i]))<1: quick_slots[i]=""
 
 func active_item() -> String:
 	clear_empty_slots()
-	return quick_slots[selected_slot]
+	return inventory_selection if selected_slot==8 else quick_slots[selected_slot]
+
+func select_inventory(id: String) -> bool:
+	if not Items.CATALOG.has(id) or int(get(id))<1: return false
+	inventory_selection=id
+	selected_slot=8
+	return true
 
 func assign_slot(index: int,id: String) -> bool:
 	if id=="wildgrowth" and not magic_learned: return false
@@ -384,7 +394,7 @@ func meet_mayor() -> bool:
 func to_dict() -> Dictionary:
 	var supplies={}
 	for id in EXTRA_ITEMS: supplies[id]=get(id)
-	return {"version": 7, "day": day, "minute": minute, "money": money,"magic_learned":magic_learned,
+	return {"version": 8, "world_seed":world_seed,"inventory_selection":inventory_selection,"day": day, "minute": minute, "money": money,"magic_learned":magic_learned,
 		"cave_seed":cave_seed,"cave_broken":cave_broken.duplicate(),"cave_defeated":cave_defeated.duplicate(),"cave_chrysalis_taken":cave_chrysalis_taken,"sparkfire_picked_day":sparkfire_picked_day,"cave_barrel":cave_barrel.duplicate(true),
 		"ship_departed":ship_departed,"welcome_phase":welcome_phase,"welcome_elapsed":welcome_elapsed,
 		"intro_complete":intro_complete,"briefing_complete":briefing_complete,"mayor_due":mayor_due,"house_tasks":house_tasks.duplicate(),
@@ -399,8 +409,10 @@ func to_dict() -> Dictionary:
 		"plots": plots.duplicate(true)}
 
 func restore(data: Variant) -> bool:
-	if not data is Dictionary or data.get("version") != 7:
+	if not data is Dictionary or data.get("version") != 8:
 		return false
+	if not _number(data.get("world_seed")) or data.world_seed<1 or data.world_seed>2147483646 or data.world_seed!=floor(data.world_seed): return false
+	if not data.get("inventory_selection") is String or (data.inventory_selection!="" and not Items.CATALOG.has(data.inventory_selection)): return false
 	if not data.get("magic_learned") is bool: return false
 	if not _number(data.get("cave_seed")) or data.cave_seed<1 or data.cave_seed>2147483646 or data.cave_seed!=floor(data.cave_seed): return false
 	if not data.get("cave_chrysalis_taken") is bool or not _number(data.get("sparkfire_picked_day")) or data.sparkfire_picked_day<0 or data.sparkfire_picked_day!=floor(data.sparkfire_picked_day): return false
@@ -412,7 +424,7 @@ func restore(data: Variant) -> bool:
 	if not data.get("cave_barrel") is Array or data.cave_barrel.size()!=4: return false
 	for stack in data.cave_barrel:
 		if not valid_stack(stack): return false
-	if not data.get("ship_departed") is bool or data.get("welcome_phase") not in ["unvisited","escorting","waiting","meeting","departing","moss_lesson","complete"] or not _number(data.get("welcome_elapsed")) or data.welcome_elapsed<0: return false
+	if not data.get("ship_departed") is bool or data.get("welcome_phase") not in ["unvisited","escorting","waiting","arriving","meeting","departing","moss_lesson","moss_departing","complete"] or not _number(data.get("welcome_elapsed")) or data.welcome_elapsed<0: return false
 	if not data.get("intro_complete") is bool or not data.get("briefing_complete") is bool or not _number(data.get("mayor_due")) or data.mayor_due< -1: return false
 	if not data.get("house_tasks") is Dictionary or data.house_tasks.size()!=house_tasks.size(): return false
 	for task in house_tasks:
@@ -425,7 +437,7 @@ func restore(data: Variant) -> bool:
 		if not _number(data.supplies.get(id)) or data.supplies[id]<0 or data.supplies[id]!=floor(data.supplies[id]): return false
 	for field in ["water","selected_slot","crew_fed_day","crew_hungry_days"]:
 		if not _number(data.get(field)) or data[field]<0 or data[field]!=floor(data[field]): return false
-	if data.water>20 or data.selected_slot>7 or data.crew_fed_day<1: return false
+	if data.water>20 or data.selected_slot>8 or data.crew_fed_day<1: return false
 	if not data.get("quick_slots") is Array or data.quick_slots.size()!=8: return false
 	for id in data.quick_slots:
 		if id!="" and id!="wildgrowth" and not Items.CATALOG.has(id): return false
@@ -491,6 +503,8 @@ func restore(data: Variant) -> bool:
 	for id in EXTRA_ITEMS: set(id,int(data.supplies[id]))
 	for field in ["water","selected_slot","crew_fed_day","crew_hungry_days"]: set(field,int(data[field]))
 	quick_slots=data.quick_slots.duplicate()
+	inventory_selection=data.inventory_selection
+	world_seed=int(data.world_seed)
 	cabinet=data.cabinet.duplicate(true)
 	ship_storage=data.ship_storage.duplicate(true)
 	purchased_utensils=data.purchased_utensils.duplicate()

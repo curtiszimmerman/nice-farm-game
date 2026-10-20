@@ -28,3 +28,9 @@ static func finish_welcome(game: Node2D) -> void:
 		if game.window_open: game.ui.modal_box.get_child(3).pressed.emit()
 		else: game._process(0.25)
 	game.leave_building()
+
+static func await_visitors(game: Node2D) -> void:
+	for i in range(1200):
+		if game.state.welcome_phase!="arriving": return
+		game._process(0.1)
+	assert(false,"The visitors must reach the farmhouse on foot")
