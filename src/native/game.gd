@@ -159,7 +159,7 @@ func _process(dt: float) -> void:
 	var staged=clock_held()
 	var frozen = (window_open and state.pause_mode=="all") or staged
 	if not frozen:
-		var minutes = dt*3.0
+		var minutes = dt
 		if resting>0.0 and not window_open:
 			minutes = minf(resting,dt*90.0)
 			resting -= minutes
@@ -169,7 +169,7 @@ func _process(dt: float) -> void:
 				save_visit()
 				toast("A little rest. A new angle on the same day.")
 		state.advance(minutes,window_open)
-		var walking_dt=dt*maxf(1.0,minutes/maxf(dt*3.0,0.001))
+		var walking_dt=dt*maxf(1.0,minutes/maxf(dt,0.001))
 		for room in rooms.values():
 			if room is Interior: room.prepare_departures()
 		outdoors.update_villagers(walking_dt)
@@ -316,6 +316,10 @@ func enter_building(id: String) -> void:
 	camera.limit_bottom=ceili(world.ROOM_SIZE.y+margin.y)
 	camera.position=state.player_position
 	toast("%s · E at the front door to leave" % world.room_name(),4)
+	if id=="cave" and not state.cave_intro_seen:
+		state.cave_intro_seen=true
+		save_visit()
+		dialog("Captain","AT THE CAVE ENTRANCE","Oh, good. Someone's left a pickaxe against that barrel. I'll need that to break through the rocks and get at any ore. Better take it with us.")
 
 func leave_building() -> void:
 	if world==outdoors: return
@@ -520,7 +524,7 @@ func interact() -> void:
 		sit_on_bench()
 		return
 	if nearest.get("id")=="stove": cooking(); return
-	if current_room=="cave" and state.active_item()=="rusty_sword" and nearest.get("type")!="site":
+	if state.active_item()=="rusty_sword" and nearest.get("type")!="site":
 		if world.attack(): burst(state.player_position+Vector2({"up":Vector2.UP,"down":Vector2.DOWN,"left":Vector2.LEFT,"right":Vector2.RIGHT}[world.facing])*26,"e8d2a0",10); save_visit()
 		else: toast("Carry and select your sword, and keep enough energy to swing.")
 		return
@@ -546,6 +550,7 @@ func interact() -> void:
 		var before: Dictionary=state.plots[nearest.index].duplicate()
 		toast(state.farm(nearest.index),2.5)
 		if before!=state.plots[nearest.index]:
+			preload("res://tool_motion.gd").start(world,state.active_item() if state.active_item()!="" else "sickle" if was_ripe else "hoe")
 			burst(world.plot_position(nearest.index),"e5d0a4" if was_ripe else "b8bf86",20 if was_ripe else 7)
 			world.crops.queue_redraw()
 			save_visit()
@@ -562,7 +567,14 @@ func interact() -> void:
 			return
 		match nearest.id:
 			"private_door": dialog("A private door","THE WAYWARD WREN","Rafe's living quarters are beyond the bar. Best to leave him his privacy.")
-			"smith_pickaxe": talk("smith")
+			"cave_pickaxe":
+				if state.accept_tool("pickaxe"):
+					world.queue_redraw()
+					for child in world.get_children():
+						if child is Cave.CaveObject and child.info.kind=="pickaxe": child.queue_redraw()
+					save_visit()
+					toast("Pickaxe collected. Select it from your satchel or assign a quick slot to mine.")
+				else: toast("Make room in your satchel for the pickaxe.")
 			"bulletin_board": bulletin_board()
 			"uncover_sofa","uncover_guest_bed","living_light","bathroom_light":
 				tidy_farmhouse(nearest.id.trim_prefix("uncover_"))
@@ -740,10 +752,8 @@ func talk(id: String) -> void:
 	match id:
 		"smith":
 			var at_work=current_room=="smithy"
-			dialog("Dain Rusk","BLACKSMITH","Mind the hot scale. I've a spare pickaxe on that bench. You're welcome to it; good steel ought to be used." if at_work else "Good to stretch the shoulders after a day at the forge. Need a tool? Come see me in the smithy; there's a spare pickaxe I can let you have.",[
-				["May I have the spare pickaxe?",func():
-					if current_room=="smithy": offer_tool("pickaxe","Dain Rusk")
-					else: dialog("Dain Rusk","AT THE SMITHY","It's on my bench. Come by when I'm working and we'll get you fitted out.")],
+			dialog("Dain Rusk","BLACKSMITH","Mind the hot scale. I can tell a lot about a tool by the wear on its edge. Bring yours by when you're ready to talk about better steel." if at_work else "Good to stretch my shoulders after a day at the forge. If you're thinking about upgrading your tools, come see me at the smithy.",[
+				["Tell me about your work.",func(): dialog("Dain Rusk","BETTER TOOLS","A sound handle, a balanced head, an edge that holds. That's where I'd start. Bring your tools to the forge and we'll talk about what they need.")],
 				["What sort of work do you do?",func(): dialog("Dain Rusk","IRON & HONEST WEAR",preload("res://neighbors.gd").STORIES.smith.split("|",true,1)[1])],
 				["See you around.",func(): pass]])
 		"woodcutter":
@@ -833,12 +843,15 @@ func talk(id: String) -> void:
 				["How long do we have?",func(): dialog("Chief Vale","CHIEF ENGINEER","As long as the cloak holds, we have room to breathe. No signals. No active scans. I'll keep the lights off. You keep us fed.")]])
 
 func buy_cookware(id: String) -> void:
-	toast("%s purchased. Recipe unlocked at your farmhouse stove." % ui.Items.CATALOG[id].name if state.buy_utensil(id) else "Already purchased, or you need 20 crowns.")
+	if not state.buy_utensil(id):
+		toast("Already purchased, or you need 20 crowns and room in your satchel.")
+		talk("tavi")
+		return
 	save_visit()
-	talk("tavi")
+	dialog("Tavi","A LITTLE HOME COOKING","There you are. That old stove in your kitchen should serve you well. Leave your food and cookware in the kitchen cabinet and you can cook straight from there. Anything you're carrying works too; no need to haul the whole cupboard about.",[["Thanks. What else have you got?",func(): talk("tavi")]])
 
 func offer_tool(id: String,person: String) -> void:
-	var flag="woodcutter_axe_given" if id=="axe" else "smith_pickaxe_given"
+	var flag="woodcutter_axe_given" if id=="axe" else "cave_pickaxe_taken"
 	var response="You've already got the one I set aside for you. Take good care of it."
 	if not state.get(flag):
 		if state.accept_tool(id):
@@ -851,7 +864,7 @@ func tool_directions() -> void:
 	dialog("Tavi","ASK A LOCAL","For tools, I know just the people. What are you after?",[
 		["Where can I get an axe?",func(): dialog("Tavi","ROWAN'S CABIN","Rowan, the woodcutter, lives in the southern woods, west of Bram's cabin. Follow the faint woodland path. Ask her about a spare axe.")],
 		["Where can I get a sword?",func(): dialog("Tavi","BRAM'S CABIN","Bram served in Aldermere's army. His log cabin's down south, away from the town roads. He may have an old blade you're welcome to.")],
-		["Where can I get a pickaxe?",func(): dialog("Tavi","DAIN'S SMITHY","Dain Rusk keeps the smithy east of the square. There's a spare pickaxe on his workbench. He's generous with people who mean to use their tools.")],
+		["What about better tools?",func(): dialog("Tavi","DAIN'S SMITHY","Dain Rusk keeps the smithy east of the square. Go see him when you're thinking about upgrading your tools. He knows good steel, and he won't talk you into something you don't need.")],
 		["Back to shopping",func(): talk("tavi")]])
 
 func bulletin_board() -> void:
@@ -861,7 +874,7 @@ func bulletin_board() -> void:
 			save_visit()
 			panel("Keep the lighthouse warm","OREN · SIX FIREWOOD · 25 CROWNS","Bring Oren six pieces of firewood at the western lighthouse. Rowan in the southern woods can help with an axe. Payment on delivery.")],
 		["Notice: a warm loaf and local news",func(): panel("Corin's bakery","FRESH BREAD & GOOD COMPANY","Visitors welcome. Bring your news, your questions, or simply yourself. The bakery is southeast of the square.")],
-		["Notice: tools for newcomers",func(): panel("Dain Rusk's smithy","A SPARE PICKAXE","Ask Dain in the smithy about his spare pickaxe. Good iron is meant to work, not gather dust.")]])
+		["Notice: tool upgrades",func(): panel("Dain Rusk's smithy","BETTER TOOLS, HONEST WORK","Thinking about upgrading your tools? Speak to Dain at the forge east of the square.")]])
 
 func mayor() -> void:
 	if current_room=="home" and state.welcome_phase=="waiting":
@@ -904,7 +917,7 @@ func place_welcome_party() -> void:
 		outdoors.villagers[id].position=outdoors.site_position("bed")+Vector2(0,32)
 		actor.visible=true
 		actor.data.sleeping=false
-		actor.position=Grid.center([Vector2i(7,11),Vector2i(5,11),Vector2i(9,11)][i])
+		actor.position=Grid.center([Vector2i(3,11),Vector2i(5,11),Vector2i(4,12)][i])
 		actor.queue_redraw()
 
 func walk_visitor(id: String,cell: Vector2i,dt: float) -> bool:
@@ -926,7 +939,7 @@ func update_welcome_arrival(dt: float) -> void:
 		if not actor.visible:
 			actor.position=world.entry_position()
 			actor.visible=true
-		if not walk_visitor(id,[Vector2i(7,11),Vector2i(5,11),Vector2i(9,11)][i],dt): arrived=false
+		if not walk_visitor(id,[Vector2i(3,11),Vector2i(5,11),Vector2i(4,12)][i],dt): arrived=false
 	if arrived: mayor()
 
 func update_welcome_departure(dt: float,members: Array=["mayor","assistant"]) -> void:
@@ -996,7 +1009,7 @@ func journal() -> void:
 
 func map_notes() -> void:
 	var wizard="↑ Iona's tower in the northern mountains · she rises at noon" if state.welcome_phase=="complete" else "↑ Northern cliffs"
-	panel("Around Briar Glen","ALDERMERE · LOCAL DIRECTIONS","NW Hidden ship & Chief Vale\nN Radio Club & Finch\nW Western shore, stone jetty & Oren's lighthouse\nE Town square, town hall & Tavi's grocery store\n%s\nSW Pond & fishing dock\nS Woodland paths to Bram and Rowan\nSE Copper cave · ask Dain for a pickaxe\n\nTavi opens the grocery 08:00–20:00, with lunch at 12:30.\nFaint paths lead from the farm to the coast and southern woods." % wizard)
+	panel("Around Briar Glen","ALDERMERE · LOCAL DIRECTIONS","NW Hidden ship & Chief Vale\nN Mountain observatory & Saeren\nN Radio Club & Finch\nW Western shore, stone jetty & Oren's lighthouse\nE Town square, town hall & Tavi's grocery store\n%s\nSW Pond & fishing dock\nS Woodland paths to Bram and Rowan\nSE Copper cave · Dain discusses tool upgrades in town\n\nTavi opens the grocery 08:00–20:00, with lunch at 12:30.\nFaint paths lead from the farm to the coast and southern woods." % wizard)
 
 func settings() -> void:
 	if not started: return

@@ -119,6 +119,9 @@ static func person(c: CanvasItem,p: Dictionary,step: float,direction: String) ->
 	else: sprite(c,"actor_%s_%s%d" % [id,direction,frame],Vector2(-16,-60))
 
 static func building(c: CanvasItem,b: Dictionary) -> void:
+	if b.kind=="observatory":
+		sprite(c,"observatory_exterior",Vector2(0,-224),Vector2(192,224))
+		return
 	if b.kind=="lighthouse":
 		for y in range(6):
 			for x in range(3):
@@ -219,7 +222,7 @@ static func interior(room: Node2D) -> void:
 	for cell in room.floor_cells:
 		var id="metal" if room.building.id=="ship" else "bath" if room.floor_cells[cell] in ["bathroom","kitchen"] else "wood"+str(posmod(hash([room.state.world_seed,room.building.id,cell]),4))
 		var tint=Color.WHITE
-		if room.building.id=="home" and ((cell.y>=7 and not room.state.house_tasks.living_light) or (room.floor_cells[cell]=="bathroom" and not room.state.house_tasks.bathroom_light)): tint=Color("8b9690")
+		if room.building.id=="home" and ((room.floor_cells[cell]=="living" and not room.state.house_tasks.living_light) or (room.floor_cells[cell]=="bedroom" and not room.state.house_tasks.bathroom_light)): tint=Color("8b9690")
 		tile(room,id,cell,tint)
 	for item in room.furnishings:
 		if item.kind!="rug": continue
@@ -259,8 +262,10 @@ static func effects(w: Node2D,c: CanvasItem) -> void:
 
 static func indoor_effects(room: Node2D,c: CanvasItem) -> void:
 	if room.building.id=="home":
-		for task in ["living_light","bathroom_light"]:
-			sprite(c,"tile_light",room.site_position(task)-Vector2(16,64),Vector2.ZERO,Color.WHITE if room.state.house_tasks[task] else Color("667772"))
+		for item in room.furnishings:
+			if item.kind!="floor_lamp": continue
+			var task="living_light" if room.floor_cells[item.bounds.position]=="living" else "bathroom_light"
+			if room.state.house_tasks[task]: c.draw_circle(Grid.center(item.bounds.position)-Vector2(0,24),19,Color("f7d78c22"))
 	if room.building.id=="ship":
 		for origin in [Vector2(135,282),Vector2(265,337),Vector2(385,402)]:
 			sprite(c,"cable",origin-Vector2(16,60))

@@ -42,13 +42,13 @@ const BUILDINGS = [
 	{"cell":Vector2i(52,34),"tiles":Vector2i(5,4),"roof":"5b8990","kind":"radio"},
 	{"cell":Vector2i(69,41),"tiles":Vector2i(6,4),"roof":"ad7956","kind":"store"},
 	{"cell":Vector2i(50,41),"tiles":Vector2i(7,5),"roof":"818a60","kind":"hall"},
-	{"cell":Vector2i(59,36),"tiles":Vector2i(5,3),"roof":"8c6856","kind":"cottage","resident":"mayor"},
-	{"cell":Vector2i(69,51),"tiles":Vector2i(5,3),"roof":"a87858","kind":"cottage","resident":"tavi"},
-	{"cell":Vector2i(59,56),"tiles":Vector2i(5,3),"roof":"65858b","kind":"cottage","resident":"finch"},
+	{"cell":Vector2i(59,32),"tiles":Vector2i(5,3),"roof":"8c6856","kind":"cottage","resident":"mayor"},
+	{"cell":Vector2i(82,51),"tiles":Vector2i(5,3),"roof":"a87858","kind":"cottage","resident":"tavi"},
+	{"cell":Vector2i(55,60),"tiles":Vector2i(5,3),"roof":"65858b","kind":"cottage","resident":"finch"},
 	{"cell":Vector2i(60,12),"tiles":Vector2i(3,3),"roof":"68658f","kind":"tower","resident":"iona","visual_height":192},
 	{"cell":Vector2i(24,55),"tiles":Vector2i(5,3),"roof":"8c6856","kind":"cottage","resident":"moss"},
 	{"cell":Vector2i(40,76),"tiles":Vector2i(5,4),"roof":"70685a","kind":"cabin","resident":"veteran"},
-	{"cell":Vector2i(82,55),"tiles":Vector2i(4,3),"roof":"6c7885","kind":"cottage","resident":"assistant"},
+	{"cell":Vector2i(84,60),"tiles":Vector2i(4,3),"roof":"6c7885","kind":"cottage","resident":"assistant"},
 	{"cell":Vector2i(-25,48),"tiles":Vector2i(3,3),"roof":"656b75","kind":"lighthouse","resident":"keeper","visual_height":256}
 ]
 const SITES = [
@@ -120,6 +120,7 @@ var scenery_layer: Node2D
 var moving_layer: Node2D
 var crop_signature=0
 var tree_damage: Dictionary={}
+var night_effects: Node2D
 
 class Prop extends Node2D:
 	var owner_world: Node2D
@@ -131,7 +132,9 @@ class Prop extends Node2D:
 		if kind == "tree": owner_world.paint_tree(self, data)
 		elif kind == "building": owner_world.paint_building(self, data)
 		elif kind == "person": owner_world.paint_person(self, data, sin(owner_world.elapsed*10.0) if data.get("walking",false) else 0.0, data.get("direction","down"))
-		elif kind == "player": owner_world.paint_person(self, data, sin(owner_world.elapsed * 14.0) if owner_world.moving else 0.0, owner_world.facing)
+		elif kind == "player":
+			owner_world.paint_person(self, data, sin(owner_world.elapsed * 14.0) if owner_world.moving else 0.0, owner_world.facing)
+			preload("res://tool_motion.gd").draw(owner_world,self)
 		elif kind == "crops": owner_world.paint_crops(self)
 		elif kind == "effects": owner_world.paint_effects(self)
 		elif kind == "sparkfire": owner_world.paint_sparkfire(self,data.get("bloom",false))
@@ -188,6 +191,9 @@ func _ready() -> void:
 	update_villagers(0.0,true)
 	var effects = _prop("effects",Vector2.ZERO,{})
 	effects.z_index = 5
+	night_effects=preload("res://night_effects.gd").new()
+	night_effects.world=self
+	add_child(night_effects)
 	_prop("sparkfire",site_position("sparkfire"),{"bloom":false})
 	_prop("fountain",Grid.origin(SQUARE.position+Vector2i(2,4)),{"frame":-1})
 	_prop("bulletin_board",Grid.origin(Vector2i(60,51)),{})
@@ -204,11 +210,18 @@ func _claim(footprint: Rect2i,kind: String) -> void:
 			assert(not solid_cells.has(cell),"Overlapping map footprints at %s" % cell)
 			solid_cells[cell]=kind
 
+func attack() -> bool:
+	if state.active_item()!="rusty_sword" or state.rusty_sword<1 or state.energy<2: return false
+	state.energy-=2
+	preload("res://tool_motion.gd").start(self,"rusty_sword")
+	return true
+
 func chop_tree(cell: Vector2i) -> bool:
 	if state.active_item()!="axe" or state.axe<1 or state.energy<4 or not state.can_carry("wood"): return false
 	var found=trees.filter(func(tree): return tree.cell==cell)
 	if found.is_empty(): return false
 	state.energy-=4
+	preload("res://tool_motion.gd").start(self,"axe")
 	tree_damage[cell]=tree_damage.get(cell,0)+1
 	if tree_damage[cell]<3: return true
 	var tree=found[0]
@@ -312,6 +325,13 @@ func _build_layout() -> void:
 			if DESCENT_AREAS.any(func(area): return area.has_point(cell)):
 				reserved_cells[cell]=true
 			else:
+				mountain_cells[cell]=true
+				_claim(Rect2i(cell,Vector2i.ONE),"mountain")
+	for ridge in [Rect2i(25,5,15,3),Rect2i(25,8,2,8),Rect2i(38,8,3,7)]:
+		for y in range(ridge.position.y,ridge.end.y):
+			for x in range(ridge.position.x,ridge.end.x):
+				var cell=Vector2i(x,y)
+				if solid_cells.has(cell): continue
 				mountain_cells[cell]=true
 				_claim(Rect2i(cell,Vector2i.ONE),"mountain")
 	for y in range(SQUARE.position.y,SQUARE.end.y):
@@ -432,6 +452,7 @@ func _prop(kind: String, pos: Vector2, data: Dictionary) -> Prop:
 	return p
 
 func refresh() -> void:
+	if night_effects!=null: night_effects.refresh()
 	var season=state.season_name()
 	if rendered_season!=season:
 		rendered_season=season
@@ -539,7 +560,7 @@ func find_nearest() -> Dictionary:
 		var d = state.player_position.distance_to(plot_position(i))
 		if d<distance:
 			var p = state.plots[i]
-			var label = "Harvest moon turnip" if state.ripe(i) else "Till the soil" if not p.tilled else "Plant moon turnip" if p.planted<0 else "Water moon turnip" if not p.watered else "Growing · Q casts Wildgrowth"
+			var label = "Harvest moon turnip" if state.ripe(i) else "Till the soil" if not p.tilled else "Plant moon turnip" if p.planted<0 else "Water moon turnip" if not p.watered else "Growing · three days to mature"
 			best = {"type":"plot","index":i,"label":label}
 			distance = d
 	for p in people:

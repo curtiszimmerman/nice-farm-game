@@ -2,14 +2,15 @@ extends RefCounted
 
 # Each stop gives the departure time, destination tile, and whether it is bedtime.
 const ROUTINES = {
+	"astronomer":[[0,31,14,false,"observatory"],[420,31,14,true,"observatory"],[840,31,14,false,"observatory"],[1020,35,16,false],[1080,31,14,false,"observatory"]],
 	"moss":[[0,26,58,true],[360,26,58,false,"moss"],[420,25,59,false],[720,26,58,false,"moss"],[810,31,61,false],[1080,26,58,false,"moss"],[1320,26,58,true]],
-	"tavi":[[0,71,54,true],[390,71,54,false,"tavi"],[435,60,45,false],[480,72,45,false,"store"],[750,63,48,false],[780,72,45,false,"store"],[1200,60,48,false],[1245,63,45,false],[1290,71,54,false,"tavi"],[1320,71,54,true]],
+	"tavi":[[0,84,54,true],[390,84,54,false,"tavi"],[435,60,45,false],[480,72,45,false,"store"],[750,63,48,false],[780,72,45,false,"store"],[1200,60,48,false],[1245,63,45,false],[1290,84,54,false,"tavi"],[1320,84,54,true]],
 	"iona":[[0,65,14,false],[180,61,15,false],[300,61,15,true],[720,61,15,false],[810,65,14,false],[900,60,45,false],[1020,32,47,false],[1170,63,48,false],[1230,61,15,false]],
-	"finch":[[0,61,59,true],[390,61,59,false,"finch"],[420,60,48,false],[480,54,38,false,"radio"],[720,60,45,false],[780,54,38,false,"radio"],[1050,63,48,false],[1170,61,59,false,"finch"],[1350,61,59,true]],
-	"mayor":[[0,61,39,true],[420,61,39,false,"mayor"],[480,54,46,false,"hall"],[720,60,45,false],[780,54,46,false,"hall"],[1050,63,48,false],[1200,61,39,false,"mayor"],[1380,61,39,true]],
+	"finch":[[0,57,63,true],[390,57,63,false,"finch"],[420,60,48,false],[480,54,38,false,"radio"],[720,60,45,false],[780,54,38,false,"radio"],[1050,63,48,false],[1170,57,63,false,"finch"],[1350,57,63,true]],
+	"mayor":[[0,61,35,true],[420,61,35,false,"mayor"],[480,54,46,false,"hall"],[720,60,45,false],[780,54,46,false,"hall"],[1050,63,48,false],[1200,61,35,false,"mayor"],[1380,61,35,true]],
 	"vale":[[0,11,14,false]],
 	"veteran":[[0,42,80,true],[390,42,80,false,"veteran"],[480,42,83,false],[720,42,80,false,"veteran"],[840,39,81,false],[1080,42,80,false,"veteran"],[1320,42,80,true]],
-	"assistant":[[0,84,58,true],[420,84,58,false,"assistant"],[480,54,46,false,"hall"],[720,63,48,false],[780,54,46,false,"hall"],[1080,84,58,false,"assistant"],[1350,84,58,true]],
+	"assistant":[[0,86,63,true],[420,86,63,false,"assistant"],[480,54,46,false,"hall"],[720,63,48,false],[780,54,46,false,"hall"],[1080,86,63,false,"assistant"],[1350,86,63,true]],
 	"keeper":[[0,-24,51,true],[390,-24,51,false,"keeper"],[690,-19,53,false],[780,-24,51,false,"keeper"],[1080,-21,51,false],[1200,-24,51,false,"keeper"],[1380,-24,51,true]],
 	"farmer_mother":[[0,103,47,true,"reed_farm"],[390,103,47,false,"reed_farm"],[450,99,52,false],[720,103,47,false,"reed_farm"],[810,108,54,false],[1080,60,48,false],[1170,103,47,false,"reed_farm"],[1320,103,47,true,"reed_farm"]],
 	"farmer_father":[[0,103,47,true,"reed_farm"],[360,103,47,false,"reed_farm"],[420,102,54,false],[720,103,47,false,"reed_farm"],[780,107,51,false],[1080,75,65,false,"bakery"],[1170,103,47,false,"reed_farm"],[1350,103,47,true,"reed_farm"]],

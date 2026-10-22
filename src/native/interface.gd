@@ -36,7 +36,7 @@ class ItemButton extends Button:
 	var skill_source=false
 	var active_channel=""
 	func _get_drag_data(_position: Vector2) -> Variant:
-		if not (inventory_source or skill_source) or not has_meta("item_id"): return null
+		if not (inventory_source or skill_source or quick_index>=0) or not has_meta("item_id"): return null
 		var id: String=get_meta("item_id")
 		if not interface.game.state.available_action(id): return null
 		var preview=TextureRect.new()
@@ -118,7 +118,7 @@ func _ready() -> void:
 	calendar_details = moons
 	moons.size.x = 225
 	moons.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	log_panel = _panel(Vector2(970,270),Vector2(280,310),Color("182d2bf5"))
+	log_panel = _panel(Vector2(970,302),Vector2(280,278),Color("182d2bf5"))
 	log_toggle=Button.new()
 	log_toggle.text="▾ CREW LOG"
 	log_toggle.position=Vector2(8,5)
@@ -132,7 +132,7 @@ func _ready() -> void:
 	next_task = _label("",Vector2(14,175),11,GOLD,false,log_panel)
 	quest_scroll=ScrollContainer.new()
 	quest_scroll.position=Vector2(12,50)
-	quest_scroll.size=Vector2(256,246)
+	quest_scroll.size=Vector2(256,214)
 	log_panel.add_child(quest_scroll)
 	quest_rows=VBoxContainer.new()
 	quest_rows.size_flags_horizontal=Control.SIZE_EXPAND_FILL
@@ -141,6 +141,8 @@ func _ready() -> void:
 	toggle_log()
 	var tray = _panel(Vector2(140,602),Vector2(1000,88),Color("172b2bf5"))
 	quick_tray=tray
+	tray.scale=Vector2(1.2,1.2)
+	tray.position=Vector2(40,582)
 	health_label = _label("HP  100",Vector2(19,7),10,MUTED,false,tray)
 	health_bar = _bar(Vector2(19,23),Vector2(132,4),Color("c38e80"),tray)
 	vitality = _label("ENERGY  100",Vector2(19,30),10,MUTED,false,tray)
@@ -446,6 +448,7 @@ func open_character_inventory() -> void:
 	modal.get_child(1).position=Vector2(100,40)
 	modal.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	modal.get_child(0).mouse_filter=Control.MOUSE_FILTER_IGNORE
+	root.move_child(quick_tray,-1)
 	inventory_slots.clear()
 	skill_buttons.clear()
 	equipment_slots.clear()
@@ -516,6 +519,10 @@ func open_character_inventory() -> void:
 	var list=VBoxContainer.new()
 	list.size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	scroll.add_child(list)
+	if Skills.learned(game.state).is_empty():
+		var empty=Label.new()
+		empty.text="[ None Known ]"
+		list.add_child(empty)
 	for id in Skills.learned(game.state):
 		var button=ItemButton.new()
 		button.interface=self
@@ -571,6 +578,7 @@ func decorate_action_slot(button: Button,key: String) -> void:
 	button.add_child(charge)
 
 func show_action(button: Button,id: String) -> void:
+	button.set_meta("item_id",id)
 	button.text=""
 	button.icon=null
 	button.get_node("Picture").texture=Items.icon(id) if id!="" else null
@@ -675,7 +683,7 @@ func toggle_log() -> void:
 	log_expanded=not log_expanded
 	for child in log_panel.get_children():
 		if child!=log_toggle: child.visible=log_expanded and child not in [objective,next_task]
-	log_panel.size.y=310 if log_expanded else 55
+	log_panel.size.y=278 if log_expanded else 55
 	log_toggle.text=("▾" if log_expanded else "▸")+" CREW LOG"
 
 func quest_lines() -> Array:
@@ -686,7 +694,13 @@ func quest_lines() -> Array:
 	if s.met_mayor: lines.append({"id":"first_harvest","title":"Putting down roots","description":"Moss left tools and seeds. Work a small garden to provide for yourselves.","tasks":[{"text":"Harvest a moon turnip","done":s.harvested>0}]})
 	if s.welcome_phase=="complete": lines.append({"id":"meet_wizard","title":"Gentler magic","description":"Visit Iona at the northern tower after noon to learn local magic.","tasks":[{"text":"Learn Wildgrowth from Iona","done":s.magic_learned}]})
 	if s.firewood_requested: lines.append({"id":"keeper_firewood","title":"A warm western light","description":"Oren needs firewood for his lighthouse stove. Ask the forest woodcutter about an axe.","tasks":[{"text":"Bring Oren six firewood","done":s.firewood_given}]})
-	return lines
+	var active=[]
+	var completed=[]
+	for quest in lines:
+		quest.complete=quest.tasks.all(func(task):return task.done)
+		if quest.complete: completed.append(quest)
+		else: active.append(quest)
+	return active+completed
 
 func render_quests() -> void:
 	var lines=quest_lines()
@@ -702,10 +716,12 @@ func render_quests() -> void:
 		header.alignment=HORIZONTAL_ALIGNMENT_LEFT
 		header.add_theme_font_size_override("font_size",20)
 		_button_style(header)
+		if quest.complete: header.modulate=Color("7b837d")
 		header.pressed.connect(func(): quest_opened[quest.id]=not quest_opened.get(quest.id,false); render_quests())
 		quest_rows.add_child(header)
 		if not quest_opened.get(quest.id,false): continue
 		var content=VBoxContainer.new()
+		if quest.complete: content.modulate=Color("7b837d")
 		content.add_theme_constant_override("separation",14)
 		quest_rows.add_child(content)
 		var description=Label.new()
@@ -772,7 +788,7 @@ func update() -> void:
 		show_action(button,id)
 		button.get_node("KeyBadge").get_child(0).text=OS.get_keycode_string(game.controls.keys["slot"+str(i+1)])
 		_button_style(button,i==s.selected_slot,true)
-	clock.text = "%02d:%02d" % [int(s.minute/60.0),int(s.minute)%60]
+	clock.text = "%02d:%02d" % [int(s.minute/60.0),int(s.minute/10)%6*10]
 	calendar_ring.state=s
 	calendar_ring.refresh()
 	season_word.text=s.season_name().to_upper()

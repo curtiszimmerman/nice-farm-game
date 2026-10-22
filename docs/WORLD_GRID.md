@@ -19,7 +19,7 @@ The world uses 32-unit tiles. The mainland spans 120 × 90 cells; a 28-cell west
 
 Collision reads the populated cell map. Static solid footprints reject overlapping placement; trees reserve their cells after checking the same map. Farm gates and the jetty reserve traversal space. Native checks verify alignment, population exclusions, footprints, route connectivity, interaction reachability, copper collection, and smooth movement.
 
-Saved world and cave seeds vary decoration and resource placement between visits. Paths and interaction destinations remain clear. Resource generation consumes the same seeded choices after clearing a tree or rock, so reloading does not reshuffle the rest. Version 10 additionally stores the woodcutter's and blacksmith's one-time tool gifts. Unsupported older saves remain preserved; no automatic migration is implemented.
+Saved world and cave seeds vary decoration and resource placement between visits. Paths and interaction destinations remain clear. Resource generation consumes the same seeded choices after clearing a tree or rock, so reloading does not reshuffle the rest. Version 11 stores the woodcutter's axe gift, cave pickaxe pickup and first cave discovery. Unsupported older saves remain preserved; no automatic migration is implemented.
 
 House walls occupy one ground cell and draw two cells high with connected plaster-and-timber sprites. Only overhangs above hallway cells can fade. Married parents share a two-person bed; children retain their own beds. The tavern entry leads into the taproom, with a private rear apartment. Its private doorway blocks visitors while allowing the resident to reach his rooms.
 

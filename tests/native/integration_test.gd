@@ -52,7 +52,9 @@ func run() -> void:
 	game.state.player_position=game.world.site_position("ore")-Vector2(0,15)
 	game.interact()
 	check(game.current_room=="cave","the copper entrance enters its own cave map")
-	game.state.storage_transfer("cave_barrel",0)
+	game.close_window()
+	game.state.player_position=game.world.site_position("cave_pickaxe")
+	game.interact()
 	game.state.assign_slot(4,"pickaxe")
 	game.select_quick_slot(4)
 	var rock=game.world.rocks.values().filter(func(item): return item.ore)[0]
@@ -83,7 +85,7 @@ func run() -> void:
 	game.state.minute=719
 	game.state.mayor_due=2160
 	game.state.player_position=game.world.site_position("bed")+Vector2(0,32)
-	game._process(0.5)
+	game._process(1.0)
 	check(not game.state.met_mayor and game.window_open,"mayor arrives at farmhouse when continuous clock reaches noon")
 	for i in range(3): game.ui.modal_box.get_child(3).pressed.emit()
 	check(game.state.met_mayor,"completing the introduction records meeting the mayor")

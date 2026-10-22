@@ -58,7 +58,7 @@ func _initialize() -> void:
 	check(not s.mine() and s.copper == 0, "exhausted mining yields no copper")
 	s.energy = 100.0
 	check(not s.mine(),"mining requires an armed pickaxe")
-	s.storage_transfer("cave_barrel",0)
+	s.accept_tool("pickaxe")
 	s.assign_slot(7,"pickaxe")
 	s.selected_slot=7
 	check(s.mine() and s.copper == 1 and s.energy == 95.0, "selected pickaxe mining costs energy")

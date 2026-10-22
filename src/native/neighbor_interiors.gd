@@ -1,6 +1,7 @@
 extends RefCounted
 
 static func layout(id: String) -> Dictionary:
+	if id=="observatory": return observatory()
 	if id=="tavern": return tavern()
 	if id=="woodcutter": return woodcutter()
 	if id in ["reed_farm","mill_home"]:
@@ -25,7 +26,6 @@ static func layout(id: String) -> Dictionary:
 	var plan={"size":Vector2i(width,depth),"areas":[["bedroom",Rect2i(1,1,5,4)],["hall",Rect2i(7,1,1,depth-2)],["bathroom",Rect2i(9,1,width-10,3)],["living",Rect2i(1,6,5,depth-7)],[id,Rect2i(9,5,width-10,depth-6)]],"doors":[["bedroom","hall",Vector2i(6,3)],["bathroom","hall",Vector2i(8,2)],["living","hall",Vector2i(6,8)],[id,"hall",Vector2i(8,9)]],"entry":Vector2i(7,depth-2),"exit":Vector2i(7,depth-1),"furniture":[["bed",Rect2i(1,1,2,3)],["bookshelf",Rect2i(4,1,2,1)],["kitchen",Rect2i(1,6,4,1)],["radio",Rect2i(5,depth-2,1,1)],["sofa",Rect2i(1,depth-3,3,1)],["toilet",Rect2i(9,1,1,1)],["sink",Rect2i(11,1,1,1)],["bath",Rect2i(width-2,1,1,2)]],"sites":[["radio",Vector2i(4,depth-2)]],"work":[]}
 	match id:
 		"smithy":
-			plan.sites.append(["smith_pickaxe",Vector2i(12,12)])
 			plan.furniture.append_array([["forge",Rect2i(10,5,3,2)],["anvil",Rect2i(11,9,1,1)],["tools",Rect2i(14,7,1,2)],["table",Rect2i(9,12,3,1)]])
 			plan.work=[Vector2i(10,9),Vector2i(12,7),Vector2i(13,10)]
 		"tavern":
@@ -56,6 +56,13 @@ static func tavern() -> Dictionary:
 
 static func woodcutter() -> Dictionary:
 	return {"size":Vector2i(12,13),"areas":[["bedroom",Rect2i(1,1,4,4)],["hall",Rect2i(6,1,1,11)],["bathroom",Rect2i(8,1,3,3)],["living",Rect2i(1,6,4,6)],["workshop",Rect2i(8,5,3,7)]],"doors":[["bedroom","hall",Vector2i(5,3)],["bathroom","hall",Vector2i(7,2)],["living","hall",Vector2i(5,9)],["workshop","hall",Vector2i(7,8)]],"entry":Vector2i(6,11),"exit":Vector2i(6,12),"furniture":[["bed",Rect2i(1,1,2,3)],["tools",Rect2i(8,5,1,2)],["table",Rect2i(8,9,2,1)],["cabinet",Rect2i(8,11,2,1)],["sofa",Rect2i(1,6,3,1)],["kitchen",Rect2i(1,10,3,1)],["radio",Rect2i(4,8,1,1)],["toilet",Rect2i(8,1,1,1)],["sink",Rect2i(10,1,1,1)],["bath",Rect2i(10,2,1,2)]],"sites":[["radio",Vector2i(3,8)]],"work":[Vector2i(9,7),Vector2i(3,8)]}
+
+static func observatory() -> Dictionary:
+	return {"size":Vector2i(15,14),"areas":[["observing",Rect2i(1,1,13,6)],["hall",Rect2i(7,8,1,5)],["bedroom",Rect2i(1,8,5,5)],["bathroom",Rect2i(9,8,5,5)]],
+		"doors":[["observing","hall",Vector2i(7,7)],["bedroom","hall",Vector2i(6,10)],["bathroom","hall",Vector2i(8,11)]],"entry":Vector2i(7,12),"exit":Vector2i(7,13),
+		"furniture":[["great_telescope",Rect2i(5,2,4,3)],["desk",Rect2i(1,1,3,1)],["bookshelf",Rect2i(10,1,3,1)],["chair",Rect2i(2,2,1,1)],["table",Rect2i(10,5,2,1)],
+		["bed",Rect2i(1,8,2,3)],["kitchen",Rect2i(3,8,3,1)],["radio",Rect2i(1,12,1,1)],["rug",Rect2i(3,10,2,2)],["toilet",Rect2i(9,8,1,1)],["sink",Rect2i(11,8,1,1)],["bath",Rect2i(13,9,1,2)]],
+		"sites":[["radio",Vector2i(2,12)]],"beds":{"astronomer":0},"work":[Vector2i(4,3),Vector2i(9,4),Vector2i(10,6)]}
 
 static func family_home(farm: bool) -> Dictionary:
 	var h=15 if farm else 14

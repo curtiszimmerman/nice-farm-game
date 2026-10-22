@@ -26,7 +26,7 @@ func run() -> void:
 		check(restored.restore(game.state.to_dict()) and restored.active_item("aux")=="wildgrowth","both action assignments survive saving")
 	game.inventory()
 	check(game.ui.has_method("open_character_inventory"),"inventory includes equipment and learned abilities")
-	check(game.ui.equipment_slots.size()==9 and game.ui.skill_buttons.size()==2,"character panel includes all nine equipment slots and both learned abilities")
+	check(game.ui.equipment_slots.size()==9 and game.ui.skill_buttons.size()==1,"character panel includes all nine equipment slots and the learned spell")
 	var auxiliary=game.ui.auxiliary_button
 	auxiliary.call("_drop_data",Vector2.ZERO,{"type":"ability","id":"wildgrowth"})
 	check(game.state.active_item("aux")=="wildgrowth","abilities can be dropped into the auxiliary action")

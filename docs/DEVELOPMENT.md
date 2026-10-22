@@ -186,6 +186,20 @@ The quest-rollout crash came from freeing a header during its pressed signal. Ro
 
 Final verification passed 1,472 native checks, four Python asset checks, startup smoke and the complete host visual/audio run, including real item and spell drags. Both atlases and bitmap font rebuild identically. The full run exposed an obsolete UI assertion on the retired single-objective label; the corrected check clicks the actual Crew Log header and verifies its quest list. That test and the remaining suite were rerun with clean output; the preceding tests also had clean output. Earlier failing logs remain under ignored internal/verification for diagnosis. Additional layout checks widened Bram's yard around his existing garden and retained the original three-occupant floor-area budget when married parents began sharing a bed.
 
+## Farmhouse, tools and observatory
+
+Branch: wip/farmhouse-and-observatory. The farmhouse now has separate kitchen/living rooms, tiled kitchen flooring, cabinet clearance and standing corner lamps in the bedroom/living room. Spare partition space returns to adjacent rooms while keeping their separation and doorways. Native checks cover one-cell partitions throughout the town, including the observatory.
+
+Quick-slot assignments move their carried-stack reference instead of duplicating shortcuts. Quick slots themselves support dragging. Real GUI tests exposed two missing pieces: the enlarged HUD needed to sit above the inventory panel, and displayed shortcuts needed their item metadata for drag initiation. Both are fixed; the visual runner now reports failure rather than printing success after a failed drag. Unknown abilities show an empty-state label, growing crops no longer advertise an unlearned spell, and completed quest lines darken and sort last.
+
+Ordinary time now advances one game minute per real second, displayed in ten-minute steps. The clock-driven pendulum alternates over those steps with an eased settling tail and follows time pauses. Work and sword actions render tool-specific motion. Sword animation also works outdoors. Jory's introduction is direct; cookware purchases explain cabinet-based cooking.
+
+The cave pickaxe visibly leans against its empty storage barrel; first entry opens a one-time discovery thought. Picking it up persists without assigning a quick slot. The exit is in the northern wall. Dain and local notices discuss upgrades instead of supplying a pickaxe. Tool-upgrade mechanics remain undesigned. Schema 11 stores discovery/pickup state; unsupported older saves stay protected, with no migration.
+
+Central homes have more space and side yard openings; vegetation avoids yard edges and schedules use the relocated doors. A separate animated layer supplies warm home windows until residents sleep, dim street-lamp pools, winter-night chimney smoke, and year-round bakery/forge smoke. Saeren's northern observatory has a large locally drawn brass telescope, a distinct home plan and a night-observing schedule. He privately recognizes the captain's origin from his observations. No external artwork-model calls were made for this batch.
+
+Verification passed 1,587 native checks, four asset checks and startup smoke with clean output. The native visual/audio run also passed, including inventory-to-shortcut, shortcut-to-shortcut and spell-to-auxiliary mouse drags. Earlier failing logs remain available under internal/verification. The preexisting launcher executable-bit change remains uncommitted.
+
 ## Next discussion
 
 Play and critique the slice before expanding it. Decide the next milestone, combat controls and feel, art direction, calendar/lunar rules, and the first actual networked cooperative interaction. Do not mistake placeholder content for approved final story or mechanics.

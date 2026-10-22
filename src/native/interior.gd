@@ -59,6 +59,7 @@ func _ready() -> void:
 				floor_cells[Vector2i(x,y)]=area[0]
 	for door in layout.doors: floor_cells[door[2]]="doorway"
 	floor_cells[layout.exit]="entry"
+	thin_partitions()
 	for y in range(ROOM_CELLS.y):
 		for x in range(ROOM_CELLS.x):
 			if not floor_cells.has(Vector2i(x,y)): solid_cells[Vector2i(x,y)]="wall"
@@ -73,7 +74,7 @@ func _ready() -> void:
 	for item in layout.furniture: add_furniture(item[0],item[1],item[0] not in ["rug","art"])
 	add_site("exit",layout.exit,"Leave "+room_name())
 	for site in layout.sites:
-		add_site(site[0],site[1],{"bed":"Rest in the bedroom","radio":"Listen to the radio","shop":"Browse Tavi's provisions","cabinet":"Open kitchen cabinet","stove":"Cook at the stove","ship_storage":"Open crew supply locker","diagnostics":"Inspect damaged machinery","uncover_sofa":"Remove sofa cover","uncover_guest_bed":"Remove guest bed cover","living_light":"Replace living-room bulb","bathroom_light":"Replace bathroom bulb","smith_pickaxe":"Ask about Dain's spare pickaxe","private_door":"Rafe's private quarters"}[site[0]])
+		add_site(site[0],site[1],{"bed":"Rest in the bedroom","radio":"Listen to the radio","shop":"Browse Tavi's provisions","cabinet":"Open kitchen cabinet","stove":"Cook at the stove","ship_storage":"Open crew supply locker","diagnostics":"Inspect damaged machinery","uncover_sofa":"Remove sofa cover","uncover_guest_bed":"Remove guest bed cover","living_light":"Replace living-room lamp bulb","bathroom_light":"Replace bedroom lamp bulb","private_door":"Rafe's private quarters"}[site[0]])
 	crops=Node2D.new()
 	add_child(crops)
 	player=_prop("player",state.player_position,{"coat":"6f9793","hair":"5c5045","skin":"d0a981","id":"player"})
@@ -83,6 +84,25 @@ func _ready() -> void:
 	var effects=_prop("effects",Vector2.ZERO,{})
 	effects.z_index=5
 	update_villagers(0.0,true)
+
+func thin_partitions() -> void:
+	# Give spare partition space back to a room while keeping its separating wall.
+	var changed=true
+	while changed:
+		changed=false
+		for cell in floor_cells.keys():
+			for direction in [Vector2i.RIGHT,Vector2i.DOWN]:
+				var other=cell+direction*3
+				if not floor_cells.has(other) or floor_cells.has(cell+direction) or floor_cells.has(cell+direction*2): continue
+				for pair in [[cell+direction,floor_cells[cell]],[cell+direction*2,floor_cells[other]]]:
+					if pair[1] in ["doorway","entry"]: continue
+					var safe=true
+					for step in [Vector2i.LEFT,Vector2i.RIGHT,Vector2i.UP,Vector2i.DOWN]:
+						if floor_cells.has(pair[0]+step) and floor_cells[pair[0]+step]!=pair[1]: safe=false
+					if safe:
+						floor_cells[pair[0]]=pair[1]
+						changed=true
+						break
 
 func add_site(id: String,cell: Vector2i,label: String) -> void:
 	var p=Grid.center(cell)
@@ -262,7 +282,8 @@ func refresh() -> void:
 			if previous_tasks.get(child.item.task)!=state.house_tasks[child.item.task]: child.queue_redraw()
 		if building.id=="home" and child is Furniture:
 			var cell: Vector2i=child.item.bounds.position
-			var dim=(cell.y>=7 and not state.house_tasks.living_light) or (cell.x>=9 and cell.y<4 and not state.house_tasks.bathroom_light)
+			var kind=floor_cells.get(cell,"")
+			var dim=(kind=="living" and not state.house_tasks.living_light) or (kind=="bedroom" and not state.house_tasks.bathroom_light)
 			child.modulate=Color("929b94") if dim else Color.WHITE
 		if child is Furniture or child is Wall:
 			var width=32.0 if child is Wall else child.item.bounds.size.x*32.0
@@ -292,7 +313,7 @@ func _draw() -> void:
 		r(self,p.x+14,p.y+3,1,26,"876e50")
 		if floor_cells[cell] in ["bathroom","kitchen"]: r(self,p.x+1,p.y+1,30,30,"abb7a4" if (cell.x+cell.y)%2 else "c2c7ae")
 		if building.id=="home":
-			if (cell.y>=7 and not state.house_tasks.living_light) or (floor_cells[cell]=="bathroom" and not state.house_tasks.bathroom_light): r(self,p.x,p.y,32,32,"17232a55")
+			if (floor_cells[cell]=="living" and not state.house_tasks.living_light) or (floor_cells[cell]=="bedroom" and not state.house_tasks.bathroom_light): r(self,p.x,p.y,32,32,"17232a55")
 			if not state.house_tasks.sofa and posmod(cell.x*13+cell.y*7,5)==0:
 				for i in range(4): r(self,p.x+4+i*5,p.y+posmod(i*7+cell.y,25),3,1,"c3bba077")
 	for item in furnishings:
@@ -500,8 +521,6 @@ func paint_cover(c: CanvasItem,item: Dictionary) -> void:
 	for i in range(6): r(c,5+posmod(i*13,int(w)-10),-h+posmod(i*7,int(h)-4),2,1,"7d887a")
 
 func paint_effects(c: CanvasItem) -> void:
-	if building.id=="smithy" and not state.smith_pickaxe_given:
-		Art.sprite(c,"item_pickaxe",Grid.origin(Vector2i(11,12))-Vector2(0,24),Vector2(24,24))
 	if Art.option==2: Art.indoor_effects(self,c); return
 	if building.id=="home":
 		for task in ["living_light","bathroom_light"]:

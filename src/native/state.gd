@@ -48,7 +48,8 @@ var wood=0
 var firewood_requested=false
 var firewood_given=false
 var woodcutter_axe_given=false
-var smith_pickaxe_given=false
+var cave_pickaxe_taken=false
+var cave_intro_seen=false
 var felled_trees: Array=[]
 var water=0
 var pot=0
@@ -72,7 +73,7 @@ var cave_broken: Array=[]
 var cave_defeated: Array=[]
 var cave_chrysalis_taken=false
 var sparkfire_picked_day=0
-var cave_barrel: Array=[{"id":"pickaxe","count":1},{},{},{}]
+var cave_barrel: Array=[{},{},{},{}]
 var pickaxe=0
 var stones=0
 var cave_moth_chrysalis=0
@@ -123,7 +124,7 @@ func accept_firewood_task() -> bool:
 
 func accept_tool(id: String) -> bool:
 	if id not in ["axe","pickaxe"]: return false
-	var flag="woodcutter_axe_given" if id=="axe" else "smith_pickaxe_given"
+	var flag="woodcutter_axe_given" if id=="axe" else "cave_pickaxe_taken"
 	if get(flag) or not can_carry(id): return false
 	set(id,int(get(id))+1)
 	set(flag,true)
@@ -193,6 +194,9 @@ func select_inventory(id: String) -> bool:
 
 func assign_slot(index: int,id: String) -> bool:
 	if index<0 or index>=8 or (id!="" and not available_action(id)): return false
+	if id!="":
+		for i in range(quick_slots.size()):
+			if quick_slots[i]==id: quick_slots[i]=""
 	quick_slots[index]=id
 	return true
 
@@ -438,7 +442,7 @@ func meet_mayor() -> bool:
 func to_dict() -> Dictionary:
 	var supplies={}
 	for id in EXTRA_ITEMS: supplies[id]=get(id)
-	return {"version": 10,"woodcutter_axe_given":woodcutter_axe_given,"smith_pickaxe_given":smith_pickaxe_given,"auxiliary_selection":auxiliary_selection,"world_seed":world_seed,"inventory_selection":inventory_selection,"firewood_requested":firewood_requested,"firewood_given":firewood_given,"felled_trees":felled_trees.duplicate(),"day": day, "minute": minute, "money": money,"magic_learned":magic_learned,
+	return {"version": 11,"woodcutter_axe_given":woodcutter_axe_given,"cave_pickaxe_taken":cave_pickaxe_taken,"cave_intro_seen":cave_intro_seen,"auxiliary_selection":auxiliary_selection,"world_seed":world_seed,"inventory_selection":inventory_selection,"firewood_requested":firewood_requested,"firewood_given":firewood_given,"felled_trees":felled_trees.duplicate(),"day": day, "minute": minute, "money": money,"magic_learned":magic_learned,
 		"cave_seed":cave_seed,"cave_broken":cave_broken.duplicate(),"cave_defeated":cave_defeated.duplicate(),"cave_chrysalis_taken":cave_chrysalis_taken,"sparkfire_picked_day":sparkfire_picked_day,"cave_barrel":cave_barrel.duplicate(true),
 		"ship_departed":ship_departed,"welcome_phase":welcome_phase,"welcome_elapsed":welcome_elapsed,
 		"intro_complete":intro_complete,"briefing_complete":briefing_complete,"mayor_due":mayor_due,"house_tasks":house_tasks.duplicate(),
@@ -453,14 +457,14 @@ func to_dict() -> Dictionary:
 		"plots": plots.duplicate(true)}
 
 func restore(data: Variant) -> bool:
-	if not data is Dictionary or data.get("version") != 10:
+	if not data is Dictionary or data.get("version") != 11:
 		return false
 	if not _number(data.get("world_seed")) or data.world_seed<1 or data.world_seed>2147483646 or data.world_seed!=floor(data.world_seed): return false
 	for field in ["inventory_selection","auxiliary_selection"]:
 		if not data.get(field) is String: return false
 		if data[field]!="" and not Items.CATALOG.has(data[field]) and not Skills.CATALOG.has(data[field]): return false
 	if not data.get("firewood_requested") is bool or not data.get("firewood_given") is bool or (data.firewood_given and not data.firewood_requested): return false
-	for field in ["woodcutter_axe_given","smith_pickaxe_given"]:
+	for field in ["woodcutter_axe_given","cave_pickaxe_taken","cave_intro_seen"]:
 		if not data.get(field) is bool: return false
 	if not data.get("felled_trees") is Array: return false
 	for cell in data.felled_trees:
@@ -518,7 +522,7 @@ func restore(data: Variant) -> bool:
 		var quantity=data.supplies[id] if id in EXTRA_ITEMS else data[id]
 		if quantity>0: occupied+=1
 	if occupied>INVENTORY_SLOTS: return false
-	if not data.get("location") in ["","home","moss","finch","mayor","tavi","iona","radio","store","hall","veteran","assistant","ship","cave","keeper","reed_farm","windmill","mill_home","smithy","tavern","bakery","woodcutter"]: return false
+	if not data.get("location") in ["","home","moss","finch","mayor","tavi","iona","radio","store","hall","veteran","assistant","ship","cave","keeper","reed_farm","windmill","mill_home","smithy","tavern","bakery","woodcutter","observatory"]: return false
 	if not data.get("chest") is Array or data.chest.size()!=18 or not data.get("abandoned_day") is Dictionary: return false
 	for stack in data.chest:
 		if not stack is Dictionary: return false
@@ -565,7 +569,8 @@ func restore(data: Variant) -> bool:
 	firewood_requested=data.firewood_requested
 	firewood_given=data.firewood_given
 	woodcutter_axe_given=data.woodcutter_axe_given
-	smith_pickaxe_given=data.smith_pickaxe_given
+	cave_pickaxe_taken=data.cave_pickaxe_taken
+	cave_intro_seen=data.cave_intro_seen
 	felled_trees=data.felled_trees.duplicate()
 	cabinet=data.cabinet.duplicate(true)
 	ship_storage=data.ship_storage.duplicate(true)

@@ -630,7 +630,8 @@ def main():
     from town_sprites16 import sprites
     from make_sprites16 import Pixels as SmallPixels
     from calendar_sprites16 import sprites as calendar_sprites, write_font
-    additions = dict(sprites(SmallPixels), **calendar_sprites(SmallPixels))
+    from observatory_sprites16 import sprites as observatory_sprites
+    additions = dict(sprites(SmallPixels), **calendar_sprites(SmallPixels), **observatory_sprites(SmallPixels))
     write_font(ROOT / "src/native/art/ui", SmallPixels)
     for name, small in additions.items():
         if name.startswith("tile_mill_sails"): name = name.removeprefix("tile_")

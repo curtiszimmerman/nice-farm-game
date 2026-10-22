@@ -3015,9 +3015,17 @@
       36
     ]
   },
-  "furniture_flour_2x1": {
+  "furniture_floor_lamp_1x1": {
     "rect": [
       93,
+      451,
+      20,
+      28
+    ]
+  },
+  "furniture_flour_2x1": {
+    "rect": [
+      115,
       451,
       32,
       24
@@ -3025,15 +3033,23 @@
   },
   "furniture_forge_3x2": {
     "rect": [
-      127,
+      149,
       451,
       48,
       40
     ]
   },
+  "furniture_great_telescope_4x3": {
+    "rect": [
+      199,
+      451,
+      68,
+      60
+    ]
+  },
   "furniture_kitchen_2x1": {
     "rect": [
-      177,
+      269,
       451,
       36,
       36
@@ -3041,7 +3057,7 @@
   },
   "furniture_kitchen_3x1": {
     "rect": [
-      215,
+      307,
       451,
       52,
       36
@@ -3049,7 +3065,7 @@
   },
   "furniture_kitchen_4x1": {
     "rect": [
-      269,
+      361,
       451,
       68,
       36
@@ -3057,7 +3073,7 @@
   },
   "furniture_kitchen_5x1": {
     "rect": [
-      339,
+      431,
       451,
       84,
       36
@@ -3065,7 +3081,7 @@
   },
   "furniture_kitchen_6x1": {
     "rect": [
-      425,
+      517,
       451,
       100,
       36
@@ -3073,7 +3089,7 @@
   },
   "furniture_machine_2x2": {
     "rect": [
-      527,
+      619,
       451,
       36,
       52
@@ -3081,7 +3097,7 @@
   },
   "furniture_machine_3x2": {
     "rect": [
-      565,
+      657,
       451,
       52,
       52
@@ -3089,7 +3105,7 @@
   },
   "furniture_mill_gears_2x2": {
     "rect": [
-      619,
+      711,
       451,
       32,
       40
@@ -3097,7 +3113,7 @@
   },
   "furniture_millstone_3x3": {
     "rect": [
-      653,
+      745,
       451,
       48,
       56
@@ -3105,7 +3121,7 @@
   },
   "furniture_oven_2x2": {
     "rect": [
-      703,
+      795,
       451,
       32,
       40
@@ -3113,7 +3129,7 @@
   },
   "furniture_plant_1x1": {
     "rect": [
-      737,
+      829,
       451,
       20,
       36
@@ -3121,7 +3137,7 @@
   },
   "furniture_radio_1x1": {
     "rect": [
-      759,
+      851,
       451,
       20,
       36
@@ -3129,7 +3145,7 @@
   },
   "cover_1x1": {
     "rect": [
-      781,
+      873,
       451,
       20,
       36
@@ -3137,7 +3153,7 @@
   },
   "furniture_radio_3x1": {
     "rect": [
-      803,
+      895,
       451,
       52,
       36
@@ -3145,7 +3161,7 @@
   },
   "cover_3x1": {
     "rect": [
-      857,
+      949,
       451,
       52,
       36
@@ -3153,1752 +3169,1760 @@
   },
   "furniture_radio_6x1": {
     "rect": [
-      911,
-      451,
+      1,
+      513,
       100,
       36
     ]
   },
   "cover_6x1": {
     "rect": [
-      1,
-      509,
+      103,
+      513,
       100,
       36
     ]
   },
   "furniture_reactor_3x3": {
     "rect": [
-      103,
-      509,
+      205,
+      513,
       52,
       68
     ]
   },
+  "furniture_rug_2x2": {
+    "rect": [
+      259,
+      513,
+      36,
+      52
+    ]
+  },
   "furniture_rug_2x3": {
     "rect": [
-      157,
-      509,
+      297,
+      513,
       36,
       68
     ]
   },
   "furniture_rug_2x4": {
     "rect": [
-      195,
-      509,
+      335,
+      513,
       36,
       84
     ]
   },
   "furniture_rug_3x3": {
     "rect": [
-      233,
-      509,
+      373,
+      513,
       52,
       68
     ]
   },
   "furniture_rug_3x4": {
     "rect": [
-      287,
-      509,
+      427,
+      513,
       52,
       84
     ]
   },
   "furniture_rug_4x2": {
     "rect": [
-      341,
-      509,
+      481,
+      513,
       68,
       52
     ]
   },
   "furniture_rug_4x3": {
     "rect": [
-      411,
-      509,
+      551,
+      513,
       68,
       68
     ]
   },
   "furniture_rug_5x3": {
     "rect": [
-      481,
-      509,
+      621,
+      513,
       84,
       68
     ]
   },
   "furniture_rug_6x3": {
     "rect": [
-      567,
-      509,
+      707,
+      513,
       100,
       68
     ]
   },
   "furniture_seed_tray_2x1": {
     "rect": [
-      669,
-      509,
+      809,
+      513,
       36,
       36
     ]
   },
   "furniture_sink_1x1": {
     "rect": [
-      707,
-      509,
+      847,
+      513,
       20,
       36
     ]
   },
   "furniture_sofa_2x1": {
     "rect": [
-      729,
-      509,
+      869,
+      513,
       36,
       36
     ]
   },
   "cover_2x1": {
     "rect": [
-      767,
-      509,
+      907,
+      513,
       36,
       36
     ]
   },
   "furniture_sofa_3x1": {
     "rect": [
-      805,
-      509,
+      945,
+      513,
       52,
       36
     ]
   },
   "furniture_stock_1x2": {
     "rect": [
-      859,
-      509,
+      999,
+      513,
       20,
       52
     ]
   },
   "furniture_stock_1x4": {
     "rect": [
-      881,
-      509,
+      1,
+      599,
       20,
       84
     ]
   },
   "furniture_stock_3x1": {
     "rect": [
-      903,
-      509,
+      23,
+      599,
       52,
       36
     ]
   },
   "furniture_stock_8x1": {
     "rect": [
-      1,
-      595,
+      77,
+      599,
       132,
       36
     ]
   },
   "furniture_table_1x1": {
     "rect": [
-      135,
-      595,
+      211,
+      599,
       20,
       36
     ]
   },
   "furniture_table_2x1": {
     "rect": [
-      157,
-      595,
+      233,
+      599,
       36,
       36
     ]
   },
   "furniture_table_3x1": {
     "rect": [
-      195,
-      595,
+      271,
+      599,
       52,
       36
     ]
   },
   "furniture_table_4x1": {
     "rect": [
-      249,
-      595,
+      325,
+      599,
       68,
       36
     ]
   },
   "furniture_table_5x2": {
     "rect": [
-      319,
-      595,
+      395,
+      599,
       84,
       52
     ]
   },
   "furniture_table_6x1": {
     "rect": [
-      405,
-      595,
+      481,
+      599,
       100,
       36
     ]
   },
   "furniture_telescope_1x1": {
     "rect": [
-      507,
-      595,
+      583,
+      599,
       20,
       36
     ]
   },
   "furniture_toilet_1x1": {
     "rect": [
-      529,
-      595,
+      605,
+      599,
       20,
       36
     ]
   },
   "furniture_tools_1x2": {
     "rect": [
-      551,
-      595,
+      627,
+      599,
       20,
       52
     ]
   },
   "furniture_tools_2x1": {
     "rect": [
-      573,
-      595,
+      649,
+      599,
       36,
       36
     ]
   },
   "tile_stone_jetty_edge_n": {
     "rect": [
-      611,
-      595,
+      687,
+      599,
       16,
       16
     ]
   },
   "tile_stone_jetty_edge_e": {
     "rect": [
-      629,
-      595,
+      705,
+      599,
       16,
       16
     ]
   },
   "tile_stone_jetty_edge_s": {
     "rect": [
-      647,
-      595,
+      723,
+      599,
       16,
       16
     ]
   },
   "tile_stone_jetty_edge_w": {
     "rect": [
-      665,
-      595,
+      741,
+      599,
       16,
       16
     ]
   },
   "tile_smithy_sign": {
     "rect": [
-      683,
-      595,
+      759,
+      599,
       16,
       16
     ]
   },
   "tile_bakery_sign": {
     "rect": [
-      701,
-      595,
+      777,
+      599,
       16,
       16
     ]
   },
   "tile_tavern_sign": {
     "rect": [
-      719,
-      595,
+      795,
+      599,
       16,
       16
     ]
   },
   "tile_windmill_wall": {
     "rect": [
-      737,
-      595,
+      813,
+      599,
       16,
       16
     ]
   },
   "mill_sails0": {
     "rect": [
-      755,
-      595,
+      831,
+      599,
       48,
       48
     ]
   },
   "mill_sails1": {
     "rect": [
-      805,
-      595,
+      881,
+      599,
       48,
       48
     ]
   },
   "mill_sails2": {
     "rect": [
-      855,
-      595,
+      931,
+      599,
       48,
       48
     ]
   },
   "mill_sails3": {
     "rect": [
-      905,
-      595,
+      1,
+      685,
       48,
       48
     ]
   },
   "tile_flowerbed0": {
     "rect": [
-      955,
-      595,
+      51,
+      685,
       16,
       16
     ]
   },
   "tile_flowerbed1": {
     "rect": [
-      973,
-      595,
+      69,
+      685,
       16,
       16
     ]
   },
   "bench": {
     "rect": [
-      991,
-      595,
+      87,
+      685,
       32,
       24
     ]
   },
   "fountain0": {
     "rect": [
-      1,
-      649,
+      121,
+      685,
       32,
       40
     ]
   },
   "fountain1": {
     "rect": [
-      35,
-      649,
+      155,
+      685,
       32,
       40
     ]
   },
   "fountain2": {
     "rect": [
-      69,
-      649,
+      189,
+      685,
       32,
       40
     ]
   },
   "fountain3": {
     "rect": [
-      103,
-      649,
+      223,
+      685,
       32,
       40
     ]
   },
   "actor_farmer_mother_down0": {
     "rect": [
-      137,
-      649,
+      257,
+      685,
       16,
       32
     ]
   },
   "actor_farmer_mother_down1": {
     "rect": [
-      155,
-      649,
+      275,
+      685,
       16,
       32
     ]
   },
   "actor_farmer_mother_down2": {
     "rect": [
-      173,
-      649,
+      293,
+      685,
       16,
       32
     ]
   },
   "actor_farmer_mother_up0": {
     "rect": [
-      191,
-      649,
+      311,
+      685,
       16,
       32
     ]
   },
   "actor_farmer_mother_up1": {
     "rect": [
-      209,
-      649,
+      329,
+      685,
       16,
       32
     ]
   },
   "actor_farmer_mother_up2": {
     "rect": [
-      227,
-      649,
+      347,
+      685,
       16,
       32
     ]
   },
   "actor_farmer_mother_left0": {
     "rect": [
-      245,
-      649,
+      365,
+      685,
       16,
       32
     ]
   },
   "actor_farmer_mother_left1": {
     "rect": [
-      263,
-      649,
+      383,
+      685,
       16,
       32
     ]
   },
   "actor_farmer_mother_left2": {
     "rect": [
-      281,
-      649,
+      401,
+      685,
       16,
       32
     ]
   },
   "actor_farmer_mother_right0": {
     "rect": [
-      299,
-      649,
+      419,
+      685,
       16,
       32
     ]
   },
   "actor_farmer_mother_right1": {
     "rect": [
-      317,
-      649,
+      437,
+      685,
       16,
       32
     ]
   },
   "actor_farmer_mother_right2": {
     "rect": [
-      335,
-      649,
+      455,
+      685,
       16,
       32
     ]
   },
   "actor_farmer_mother_sleep0": {
     "rect": [
-      353,
-      649,
+      473,
+      685,
       16,
       32
     ]
   },
   "actor_farmer_father_down0": {
     "rect": [
-      371,
-      649,
+      491,
+      685,
       16,
       32
     ]
   },
   "actor_farmer_father_down1": {
     "rect": [
-      389,
-      649,
+      509,
+      685,
       16,
       32
     ]
   },
   "actor_farmer_father_down2": {
     "rect": [
-      407,
-      649,
+      527,
+      685,
       16,
       32
     ]
   },
   "actor_farmer_father_up0": {
     "rect": [
-      425,
-      649,
+      545,
+      685,
       16,
       32
     ]
   },
   "actor_farmer_father_up1": {
     "rect": [
-      443,
-      649,
+      563,
+      685,
       16,
       32
     ]
   },
   "actor_farmer_father_up2": {
     "rect": [
-      461,
-      649,
+      581,
+      685,
       16,
       32
     ]
   },
   "actor_farmer_father_left0": {
     "rect": [
-      479,
-      649,
+      599,
+      685,
       16,
       32
     ]
   },
   "actor_farmer_father_left1": {
     "rect": [
-      497,
-      649,
+      617,
+      685,
       16,
       32
     ]
   },
   "actor_farmer_father_left2": {
     "rect": [
-      515,
-      649,
+      635,
+      685,
       16,
       32
     ]
   },
   "actor_farmer_father_right0": {
     "rect": [
-      533,
-      649,
+      653,
+      685,
       16,
       32
     ]
   },
   "actor_farmer_father_right1": {
     "rect": [
-      551,
-      649,
+      671,
+      685,
       16,
       32
     ]
   },
   "actor_farmer_father_right2": {
     "rect": [
-      569,
-      649,
+      689,
+      685,
       16,
       32
     ]
   },
   "actor_farmer_father_sleep0": {
     "rect": [
-      587,
-      649,
+      707,
+      685,
       16,
       32
     ]
   },
   "actor_farmer_son_down0": {
     "rect": [
-      605,
-      649,
+      725,
+      685,
       16,
       32
     ]
   },
   "actor_farmer_son_down1": {
     "rect": [
-      623,
-      649,
+      743,
+      685,
       16,
       32
     ]
   },
   "actor_farmer_son_down2": {
     "rect": [
-      641,
-      649,
+      761,
+      685,
       16,
       32
     ]
   },
   "actor_farmer_son_up0": {
     "rect": [
-      659,
-      649,
+      779,
+      685,
       16,
       32
     ]
   },
   "actor_farmer_son_up1": {
     "rect": [
-      677,
-      649,
+      797,
+      685,
       16,
       32
     ]
   },
   "actor_farmer_son_up2": {
     "rect": [
-      695,
-      649,
+      815,
+      685,
       16,
       32
     ]
   },
   "actor_farmer_son_left0": {
     "rect": [
-      713,
-      649,
+      833,
+      685,
       16,
       32
     ]
   },
   "actor_farmer_son_left1": {
     "rect": [
-      731,
-      649,
+      851,
+      685,
       16,
       32
     ]
   },
   "actor_farmer_son_left2": {
     "rect": [
-      749,
-      649,
+      869,
+      685,
       16,
       32
     ]
   },
   "actor_farmer_son_right0": {
     "rect": [
-      767,
-      649,
+      887,
+      685,
       16,
       32
     ]
   },
   "actor_farmer_son_right1": {
     "rect": [
-      785,
-      649,
+      905,
+      685,
       16,
       32
     ]
   },
   "actor_farmer_son_right2": {
     "rect": [
-      803,
-      649,
+      923,
+      685,
       16,
       32
     ]
   },
   "actor_farmer_son_sleep0": {
     "rect": [
-      821,
-      649,
+      941,
+      685,
       16,
       32
     ]
   },
   "actor_smith_down0": {
     "rect": [
-      839,
-      649,
+      959,
+      685,
       16,
       32
     ]
   },
   "actor_smith_down1": {
     "rect": [
-      857,
-      649,
+      977,
+      685,
       16,
       32
     ]
   },
   "actor_smith_down2": {
     "rect": [
-      875,
-      649,
+      995,
+      685,
       16,
       32
     ]
   },
   "actor_smith_up0": {
     "rect": [
-      893,
-      649,
+      1,
+      735,
       16,
       32
     ]
   },
   "actor_smith_up1": {
     "rect": [
-      911,
-      649,
+      19,
+      735,
       16,
       32
     ]
   },
   "actor_smith_up2": {
     "rect": [
-      929,
-      649,
+      37,
+      735,
       16,
       32
     ]
   },
   "actor_smith_left0": {
     "rect": [
-      947,
-      649,
+      55,
+      735,
       16,
       32
     ]
   },
   "actor_smith_left1": {
     "rect": [
-      965,
-      649,
+      73,
+      735,
       16,
       32
     ]
   },
   "actor_smith_left2": {
     "rect": [
-      983,
-      649,
+      91,
+      735,
       16,
       32
     ]
   },
   "actor_smith_right0": {
     "rect": [
-      1001,
-      649,
+      109,
+      735,
       16,
       32
     ]
   },
   "actor_smith_right1": {
     "rect": [
-      1,
-      691,
+      127,
+      735,
       16,
       32
     ]
   },
   "actor_smith_right2": {
     "rect": [
-      19,
-      691,
+      145,
+      735,
       16,
       32
     ]
   },
   "actor_smith_sleep0": {
     "rect": [
-      37,
-      691,
+      163,
+      735,
       16,
       32
     ]
   },
   "actor_miller_down0": {
     "rect": [
-      55,
-      691,
+      181,
+      735,
       16,
       32
     ]
   },
   "actor_miller_down1": {
     "rect": [
-      73,
-      691,
+      199,
+      735,
       16,
       32
     ]
   },
   "actor_miller_down2": {
     "rect": [
-      91,
-      691,
+      217,
+      735,
       16,
       32
     ]
   },
   "actor_miller_up0": {
     "rect": [
-      109,
-      691,
+      235,
+      735,
       16,
       32
     ]
   },
   "actor_miller_up1": {
     "rect": [
-      127,
-      691,
+      253,
+      735,
       16,
       32
     ]
   },
   "actor_miller_up2": {
     "rect": [
-      145,
-      691,
+      271,
+      735,
       16,
       32
     ]
   },
   "actor_miller_left0": {
     "rect": [
-      163,
-      691,
+      289,
+      735,
       16,
       32
     ]
   },
   "actor_miller_left1": {
     "rect": [
-      181,
-      691,
+      307,
+      735,
       16,
       32
     ]
   },
   "actor_miller_left2": {
     "rect": [
-      199,
-      691,
+      325,
+      735,
       16,
       32
     ]
   },
   "actor_miller_right0": {
     "rect": [
-      217,
-      691,
+      343,
+      735,
       16,
       32
     ]
   },
   "actor_miller_right1": {
     "rect": [
-      235,
-      691,
+      361,
+      735,
       16,
       32
     ]
   },
   "actor_miller_right2": {
     "rect": [
-      253,
-      691,
+      379,
+      735,
       16,
       32
     ]
   },
   "actor_miller_sleep0": {
     "rect": [
-      271,
-      691,
+      397,
+      735,
       16,
       32
     ]
   },
   "actor_miller_wife_down0": {
     "rect": [
-      289,
-      691,
+      415,
+      735,
       16,
       32
     ]
   },
   "actor_miller_wife_down1": {
     "rect": [
-      307,
-      691,
+      433,
+      735,
       16,
       32
     ]
   },
   "actor_miller_wife_down2": {
     "rect": [
-      325,
-      691,
+      451,
+      735,
       16,
       32
     ]
   },
   "actor_miller_wife_up0": {
     "rect": [
-      343,
-      691,
+      469,
+      735,
       16,
       32
     ]
   },
   "actor_miller_wife_up1": {
     "rect": [
-      361,
-      691,
+      487,
+      735,
       16,
       32
     ]
   },
   "actor_miller_wife_up2": {
     "rect": [
-      379,
-      691,
+      505,
+      735,
       16,
       32
     ]
   },
   "actor_miller_wife_left0": {
     "rect": [
-      397,
-      691,
+      523,
+      735,
       16,
       32
     ]
   },
   "actor_miller_wife_left1": {
     "rect": [
-      415,
-      691,
+      541,
+      735,
       16,
       32
     ]
   },
   "actor_miller_wife_left2": {
     "rect": [
-      433,
-      691,
+      559,
+      735,
       16,
       32
     ]
   },
   "actor_miller_wife_right0": {
     "rect": [
-      451,
-      691,
+      577,
+      735,
       16,
       32
     ]
   },
   "actor_miller_wife_right1": {
     "rect": [
-      469,
-      691,
+      595,
+      735,
       16,
       32
     ]
   },
   "actor_miller_wife_right2": {
     "rect": [
-      487,
-      691,
+      613,
+      735,
       16,
       32
     ]
   },
   "actor_miller_wife_sleep0": {
     "rect": [
-      505,
-      691,
+      631,
+      735,
       16,
       32
     ]
   },
   "actor_miller_daughter_down0": {
     "rect": [
-      523,
-      691,
+      649,
+      735,
       16,
       32
     ]
   },
   "actor_miller_daughter_down1": {
     "rect": [
-      541,
-      691,
+      667,
+      735,
       16,
       32
     ]
   },
   "actor_miller_daughter_down2": {
     "rect": [
-      559,
-      691,
+      685,
+      735,
       16,
       32
     ]
   },
   "actor_miller_daughter_up0": {
     "rect": [
-      577,
-      691,
+      703,
+      735,
       16,
       32
     ]
   },
   "actor_miller_daughter_up1": {
     "rect": [
-      595,
-      691,
+      721,
+      735,
       16,
       32
     ]
   },
   "actor_miller_daughter_up2": {
     "rect": [
-      613,
-      691,
+      739,
+      735,
       16,
       32
     ]
   },
   "actor_miller_daughter_left0": {
     "rect": [
-      631,
-      691,
+      757,
+      735,
       16,
       32
     ]
   },
   "actor_miller_daughter_left1": {
     "rect": [
-      649,
-      691,
+      775,
+      735,
       16,
       32
     ]
   },
   "actor_miller_daughter_left2": {
     "rect": [
-      667,
-      691,
+      793,
+      735,
       16,
       32
     ]
   },
   "actor_miller_daughter_right0": {
     "rect": [
-      685,
-      691,
+      811,
+      735,
       16,
       32
     ]
   },
   "actor_miller_daughter_right1": {
     "rect": [
-      703,
-      691,
+      829,
+      735,
       16,
       32
     ]
   },
   "actor_miller_daughter_right2": {
     "rect": [
-      721,
-      691,
+      847,
+      735,
       16,
       32
     ]
   },
   "actor_miller_daughter_sleep0": {
     "rect": [
-      739,
-      691,
+      865,
+      735,
       16,
       32
     ]
   },
   "actor_barkeep_down0": {
     "rect": [
-      757,
-      691,
+      883,
+      735,
       16,
       32
     ]
   },
   "actor_barkeep_down1": {
     "rect": [
-      775,
-      691,
+      901,
+      735,
       16,
       32
     ]
   },
   "actor_barkeep_down2": {
     "rect": [
-      793,
-      691,
+      919,
+      735,
       16,
       32
     ]
   },
   "actor_barkeep_up0": {
     "rect": [
-      811,
-      691,
+      937,
+      735,
       16,
       32
     ]
   },
   "actor_barkeep_up1": {
     "rect": [
-      829,
-      691,
+      955,
+      735,
       16,
       32
     ]
   },
   "actor_barkeep_up2": {
     "rect": [
-      847,
-      691,
+      973,
+      735,
       16,
       32
     ]
   },
   "actor_barkeep_left0": {
     "rect": [
-      865,
-      691,
+      991,
+      735,
       16,
       32
     ]
   },
   "actor_barkeep_left1": {
     "rect": [
-      883,
-      691,
+      1,
+      769,
       16,
       32
     ]
   },
   "actor_barkeep_left2": {
     "rect": [
-      901,
-      691,
+      19,
+      769,
       16,
       32
     ]
   },
   "actor_barkeep_right0": {
     "rect": [
-      919,
-      691,
+      37,
+      769,
       16,
       32
     ]
   },
   "actor_barkeep_right1": {
     "rect": [
-      937,
-      691,
+      55,
+      769,
       16,
       32
     ]
   },
   "actor_barkeep_right2": {
     "rect": [
-      955,
-      691,
+      73,
+      769,
       16,
       32
     ]
   },
   "actor_barkeep_sleep0": {
     "rect": [
-      973,
-      691,
+      91,
+      769,
       16,
       32
     ]
   },
   "actor_baker_down0": {
     "rect": [
-      991,
-      691,
+      109,
+      769,
       16,
       32
     ]
   },
   "actor_baker_down1": {
     "rect": [
-      1,
-      725,
+      127,
+      769,
       16,
       32
     ]
   },
   "actor_baker_down2": {
     "rect": [
-      19,
-      725,
+      145,
+      769,
       16,
       32
     ]
   },
   "actor_baker_up0": {
     "rect": [
-      37,
-      725,
+      163,
+      769,
       16,
       32
     ]
   },
   "actor_baker_up1": {
     "rect": [
-      55,
-      725,
+      181,
+      769,
       16,
       32
     ]
   },
   "actor_baker_up2": {
     "rect": [
-      73,
-      725,
+      199,
+      769,
       16,
       32
     ]
   },
   "actor_baker_left0": {
     "rect": [
-      91,
-      725,
+      217,
+      769,
       16,
       32
     ]
   },
   "actor_baker_left1": {
     "rect": [
-      109,
-      725,
+      235,
+      769,
       16,
       32
     ]
   },
   "actor_baker_left2": {
     "rect": [
-      127,
-      725,
+      253,
+      769,
       16,
       32
     ]
   },
   "actor_baker_right0": {
     "rect": [
-      145,
-      725,
+      271,
+      769,
       16,
       32
     ]
   },
   "actor_baker_right1": {
     "rect": [
-      163,
-      725,
+      289,
+      769,
       16,
       32
     ]
   },
   "actor_baker_right2": {
     "rect": [
-      181,
-      725,
+      307,
+      769,
       16,
       32
     ]
   },
   "actor_baker_sleep0": {
     "rect": [
-      199,
-      725,
+      325,
+      769,
       16,
       32
     ]
   },
   "calendar_ring0": {
     "rect": [
-      217,
-      725,
+      343,
+      769,
       64,
       64
     ]
   },
   "calendar_ring1": {
     "rect": [
-      283,
-      725,
+      409,
+      769,
       64,
       64
     ]
   },
   "calendar_ring2": {
     "rect": [
-      349,
-      725,
+      475,
+      769,
       64,
       64
     ]
   },
   "calendar_ring3": {
     "rect": [
-      415,
-      725,
+      541,
+      769,
       64,
       64
     ]
   },
   "calendar_ring4": {
     "rect": [
-      481,
-      725,
+      607,
+      769,
       64,
       64
     ]
   },
   "calendar_ring5": {
     "rect": [
-      547,
-      725,
+      673,
+      769,
       64,
       64
     ]
   },
   "calendar_ring6": {
     "rect": [
-      613,
-      725,
+      739,
+      769,
       64,
       64
     ]
   },
   "season_spring": {
     "rect": [
-      679,
-      725,
+      805,
+      769,
       16,
       16
     ]
   },
   "season_summer": {
     "rect": [
-      697,
-      725,
+      823,
+      769,
       16,
       16
     ]
   },
   "season_autumn": {
     "rect": [
-      715,
-      725,
+      841,
+      769,
       16,
       16
     ]
   },
   "season_winter": {
     "rect": [
-      733,
-      725,
+      859,
+      769,
       16,
       16
     ]
   },
   "moon_purple0": {
     "rect": [
-      751,
-      725,
+      877,
+      769,
       24,
       24
     ]
   },
   "moon_white0": {
     "rect": [
-      777,
-      725,
+      903,
+      769,
       24,
       24
     ]
   },
   "moon_purple1": {
     "rect": [
-      803,
-      725,
+      929,
+      769,
       24,
       24
     ]
   },
   "moon_white1": {
     "rect": [
-      829,
-      725,
+      955,
+      769,
       24,
       24
     ]
   },
   "moon_purple2": {
     "rect": [
-      855,
-      725,
+      981,
+      769,
       24,
       24
     ]
   },
   "moon_white2": {
     "rect": [
-      881,
-      725,
+      1,
+      835,
       24,
       24
     ]
   },
   "moon_purple3": {
     "rect": [
-      907,
-      725,
+      27,
+      835,
       24,
       24
     ]
   },
   "moon_white3": {
     "rect": [
-      933,
-      725,
+      53,
+      835,
       24,
       24
     ]
   },
   "moon_purple4": {
     "rect": [
-      959,
-      725,
+      79,
+      835,
       24,
       24
     ]
   },
   "moon_white4": {
     "rect": [
-      985,
-      725,
+      105,
+      835,
       24,
       24
     ]
   },
   "moon_purple5": {
     "rect": [
-      1,
-      791,
+      131,
+      835,
       24,
       24
     ]
   },
   "moon_white5": {
     "rect": [
-      27,
-      791,
+      157,
+      835,
       24,
       24
     ]
   },
   "moon_purple6": {
     "rect": [
-      53,
-      791,
+      183,
+      835,
       24,
       24
     ]
   },
   "moon_white6": {
     "rect": [
-      79,
-      791,
+      209,
+      835,
       24,
       24
     ]
   },
   "moon_purple7": {
     "rect": [
-      105,
-      791,
+      235,
+      835,
       24,
       24
     ]
   },
   "moon_white7": {
     "rect": [
-      131,
-      791,
+      261,
+      835,
       24,
       24
     ]
   },
   "moon_purple8": {
     "rect": [
-      157,
-      791,
+      287,
+      835,
       24,
       24
     ]
   },
   "moon_white8": {
     "rect": [
-      183,
-      791,
+      313,
+      835,
       24,
       24
     ]
   },
   "moon_purple9": {
     "rect": [
-      209,
-      791,
+      339,
+      835,
       24,
       24
     ]
   },
   "moon_white9": {
     "rect": [
-      235,
-      791,
+      365,
+      835,
       24,
       24
     ]
   },
   "moon_purple10": {
     "rect": [
-      261,
-      791,
+      391,
+      835,
       24,
       24
     ]
   },
   "moon_white10": {
     "rect": [
-      287,
-      791,
+      417,
+      835,
       24,
       24
     ]
   },
   "moon_purple11": {
     "rect": [
-      313,
-      791,
+      443,
+      835,
       24,
       24
     ]
   },
   "moon_white11": {
     "rect": [
-      339,
-      791,
+      469,
+      835,
       24,
       24
     ]
   },
   "moon_purple12": {
     "rect": [
-      365,
-      791,
+      495,
+      835,
       24,
       24
     ]
   },
   "moon_white12": {
     "rect": [
-      391,
-      791,
+      521,
+      835,
       24,
       24
     ]
   },
   "moon_purple13": {
     "rect": [
-      417,
-      791,
+      547,
+      835,
       24,
       24
     ]
   },
   "moon_white13": {
     "rect": [
-      443,
-      791,
+      573,
+      835,
       24,
       24
     ]
   },
   "moon_purple14": {
     "rect": [
-      469,
-      791,
+      599,
+      835,
       24,
       24
     ]
   },
   "moon_white14": {
     "rect": [
-      495,
-      791,
+      625,
+      835,
       24,
       24
     ]
   },
   "moon_purple15": {
     "rect": [
-      521,
-      791,
+      651,
+      835,
       24,
       24
     ]
   },
   "moon_white15": {
     "rect": [
-      547,
-      791,
+      677,
+      835,
       24,
       24
     ]
   },
   "tile_grass0_summer": {
     "rect": [
-      573,
-      791,
+      703,
+      835,
       16,
       16
     ]
   },
   "tile_grass1_summer": {
     "rect": [
-      591,
-      791,
+      721,
+      835,
       16,
       16
     ]
   },
   "tile_grass2_summer": {
     "rect": [
-      609,
-      791,
+      739,
+      835,
       16,
       16
     ]
   },
   "tile_grass3_summer": {
     "rect": [
-      627,
-      791,
+      757,
+      835,
       16,
       16
     ]
   },
   "tile_flowerbed0_summer": {
     "rect": [
-      645,
-      791,
+      775,
+      835,
       16,
       16
     ]
   },
   "tile_flowerbed1_summer": {
     "rect": [
-      663,
-      791,
+      793,
+      835,
       16,
       16
     ]
   },
   "bush0_summer": {
     "rect": [
-      681,
-      791,
+      811,
+      835,
       32,
       24
     ]
   },
   "bush1_summer": {
     "rect": [
-      715,
-      791,
+      845,
+      835,
       32,
       24
     ]
   },
   "bush2_summer": {
     "rect": [
-      749,
-      791,
+      879,
+      835,
       32,
       24
     ]
   },
   "tree_oak_2_summer": {
     "rect": [
-      783,
-      791,
+      913,
+      835,
       48,
       64
     ],
@@ -4913,8 +4937,8 @@
   },
   "tree_oak_3_summer": {
     "rect": [
-      833,
-      791,
+      963,
+      835,
       48,
       80
     ],
@@ -4929,8 +4953,8 @@
   },
   "tree_oak_4_summer": {
     "rect": [
-      883,
-      791,
+      1,
+      917,
       48,
       96
     ],
@@ -4945,8 +4969,8 @@
   },
   "tree_birch_2_summer": {
     "rect": [
-      933,
-      791,
+      51,
+      917,
       48,
       64
     ],
@@ -4961,8 +4985,8 @@
   },
   "tree_birch_3_summer": {
     "rect": [
-      1,
-      889,
+      101,
+      917,
       48,
       80
     ],
@@ -4977,8 +5001,8 @@
   },
   "tree_birch_4_summer": {
     "rect": [
-      51,
-      889,
+      151,
+      917,
       48,
       96
     ],
@@ -4993,8 +5017,8 @@
   },
   "tree_pine_2_summer": {
     "rect": [
-      101,
-      889,
+      201,
+      917,
       48,
       64
     ],
@@ -5009,8 +5033,8 @@
   },
   "tree_pine_3_summer": {
     "rect": [
-      151,
-      889,
+      251,
+      917,
       48,
       80
     ],
@@ -5025,8 +5049,8 @@
   },
   "tree_pine_4_summer": {
     "rect": [
-      201,
-      889,
+      301,
+      917,
       48,
       96
     ],
@@ -5041,80 +5065,80 @@
   },
   "tile_grass0_autumn": {
     "rect": [
-      251,
-      889,
+      351,
+      917,
       16,
       16
     ]
   },
   "tile_grass1_autumn": {
     "rect": [
-      269,
-      889,
+      369,
+      917,
       16,
       16
     ]
   },
   "tile_grass2_autumn": {
     "rect": [
-      287,
-      889,
+      387,
+      917,
       16,
       16
     ]
   },
   "tile_grass3_autumn": {
     "rect": [
-      305,
-      889,
+      405,
+      917,
       16,
       16
     ]
   },
   "tile_flowerbed0_autumn": {
     "rect": [
-      323,
-      889,
+      423,
+      917,
       16,
       16
     ]
   },
   "tile_flowerbed1_autumn": {
     "rect": [
-      341,
-      889,
+      441,
+      917,
       16,
       16
     ]
   },
   "bush0_autumn": {
     "rect": [
-      359,
-      889,
+      459,
+      917,
       32,
       24
     ]
   },
   "bush1_autumn": {
     "rect": [
-      393,
-      889,
+      493,
+      917,
       32,
       24
     ]
   },
   "bush2_autumn": {
     "rect": [
-      427,
-      889,
+      527,
+      917,
       32,
       24
     ]
   },
   "tree_oak_2_autumn": {
     "rect": [
-      461,
-      889,
+      561,
+      917,
       48,
       64
     ],
@@ -5129,8 +5153,8 @@
   },
   "tree_oak_3_autumn": {
     "rect": [
-      511,
-      889,
+      611,
+      917,
       48,
       80
     ],
@@ -5145,8 +5169,8 @@
   },
   "tree_oak_4_autumn": {
     "rect": [
-      561,
-      889,
+      661,
+      917,
       48,
       96
     ],
@@ -5161,8 +5185,8 @@
   },
   "tree_birch_2_autumn": {
     "rect": [
-      611,
-      889,
+      711,
+      917,
       48,
       64
     ],
@@ -5177,8 +5201,8 @@
   },
   "tree_birch_3_autumn": {
     "rect": [
-      661,
-      889,
+      761,
+      917,
       48,
       80
     ],
@@ -5193,8 +5217,8 @@
   },
   "tree_birch_4_autumn": {
     "rect": [
-      711,
-      889,
+      811,
+      917,
       48,
       96
     ],
@@ -5209,8 +5233,8 @@
   },
   "tree_pine_2_autumn": {
     "rect": [
-      761,
-      889,
+      861,
+      917,
       48,
       64
     ],
@@ -5225,8 +5249,8 @@
   },
   "tree_pine_3_autumn": {
     "rect": [
-      811,
-      889,
+      911,
+      917,
       48,
       80
     ],
@@ -5241,8 +5265,8 @@
   },
   "tree_pine_4_autumn": {
     "rect": [
-      861,
-      889,
+      961,
+      917,
       48,
       96
     ],
@@ -5257,80 +5281,80 @@
   },
   "tile_grass0_winter": {
     "rect": [
-      911,
-      889,
+      1,
+      1015,
       16,
       16
     ]
   },
   "tile_grass1_winter": {
     "rect": [
-      929,
-      889,
+      19,
+      1015,
       16,
       16
     ]
   },
   "tile_grass2_winter": {
     "rect": [
-      947,
-      889,
+      37,
+      1015,
       16,
       16
     ]
   },
   "tile_grass3_winter": {
     "rect": [
-      965,
-      889,
+      55,
+      1015,
       16,
       16
     ]
   },
   "tile_flowerbed0_winter": {
     "rect": [
-      983,
-      889,
+      73,
+      1015,
       16,
       16
     ]
   },
   "tile_flowerbed1_winter": {
     "rect": [
-      1001,
-      889,
+      91,
+      1015,
       16,
       16
     ]
   },
   "bush0_winter": {
     "rect": [
-      1,
-      987,
+      109,
+      1015,
       32,
       24
     ]
   },
   "bush1_winter": {
     "rect": [
-      35,
-      987,
+      143,
+      1015,
       32,
       24
     ]
   },
   "bush2_winter": {
     "rect": [
-      69,
-      987,
+      177,
+      1015,
       32,
       24
     ]
   },
   "tree_oak_2_winter": {
     "rect": [
-      103,
-      987,
+      211,
+      1015,
       48,
       64
     ],
@@ -5345,8 +5369,8 @@
   },
   "tree_oak_3_winter": {
     "rect": [
-      153,
-      987,
+      261,
+      1015,
       48,
       80
     ],
@@ -5361,8 +5385,8 @@
   },
   "tree_oak_4_winter": {
     "rect": [
-      203,
-      987,
+      311,
+      1015,
       48,
       96
     ],
@@ -5377,8 +5401,8 @@
   },
   "tree_birch_2_winter": {
     "rect": [
-      253,
-      987,
+      361,
+      1015,
       48,
       64
     ],
@@ -5393,8 +5417,8 @@
   },
   "tree_birch_3_winter": {
     "rect": [
-      303,
-      987,
+      411,
+      1015,
       48,
       80
     ],
@@ -5409,8 +5433,8 @@
   },
   "tree_birch_4_winter": {
     "rect": [
-      353,
-      987,
+      461,
+      1015,
       48,
       96
     ],
@@ -5425,8 +5449,8 @@
   },
   "tree_pine_2_winter": {
     "rect": [
-      403,
-      987,
+      511,
+      1015,
       48,
       64
     ],
@@ -5441,8 +5465,8 @@
   },
   "tree_pine_3_winter": {
     "rect": [
-      453,
-      987,
+      561,
+      1015,
       48,
       80
     ],
@@ -5457,8 +5481,8 @@
   },
   "tree_pine_4_winter": {
     "rect": [
-      503,
-      987,
+      611,
+      1015,
       48,
       96
     ],
@@ -5473,600 +5497,768 @@
   },
   "tile_roof_snow": {
     "rect": [
-      553,
-      987,
+      661,
+      1015,
       16,
       16
     ]
   },
   "tile_town_iron_mask0": {
     "rect": [
-      571,
-      987,
+      679,
+      1015,
       16,
       16
     ]
   },
   "tile_town_iron_mask1": {
     "rect": [
-      589,
-      987,
+      697,
+      1015,
       16,
       16
     ]
   },
   "tile_town_iron_mask2": {
     "rect": [
-      607,
-      987,
+      715,
+      1015,
       16,
       16
     ]
   },
   "tile_town_iron_mask3": {
     "rect": [
-      625,
-      987,
+      733,
+      1015,
       16,
       16
     ]
   },
   "tile_town_iron_mask4": {
     "rect": [
-      643,
-      987,
+      751,
+      1015,
       16,
       16
     ]
   },
   "tile_town_iron_mask5": {
     "rect": [
-      661,
-      987,
+      769,
+      1015,
       16,
       16
     ]
   },
   "tile_town_iron_mask6": {
     "rect": [
-      679,
-      987,
+      787,
+      1015,
       16,
       16
     ]
   },
   "tile_town_iron_mask7": {
     "rect": [
-      697,
-      987,
+      805,
+      1015,
       16,
       16
     ]
   },
   "tile_town_iron_mask8": {
     "rect": [
-      715,
-      987,
+      823,
+      1015,
       16,
       16
     ]
   },
   "tile_town_iron_mask9": {
     "rect": [
-      733,
-      987,
+      841,
+      1015,
       16,
       16
     ]
   },
   "tile_town_iron_mask10": {
     "rect": [
-      751,
-      987,
+      859,
+      1015,
       16,
       16
     ]
   },
   "tile_town_iron_mask11": {
     "rect": [
-      769,
-      987,
+      877,
+      1015,
       16,
       16
     ]
   },
   "tile_town_iron_mask12": {
     "rect": [
-      787,
-      987,
+      895,
+      1015,
       16,
       16
     ]
   },
   "tile_town_iron_mask13": {
     "rect": [
-      805,
-      987,
+      913,
+      1015,
       16,
       16
     ]
   },
   "tile_town_iron_mask14": {
     "rect": [
-      823,
-      987,
+      931,
+      1015,
       16,
       16
     ]
   },
   "tile_town_iron_mask15": {
     "rect": [
-      841,
-      987,
+      949,
+      1015,
       16,
       16
     ]
   },
   "tile_town_iron_gate": {
     "rect": [
-      859,
-      987,
+      967,
+      1015,
       16,
       16
     ]
   },
   "tile_town_wood_mask0": {
     "rect": [
-      877,
-      987,
+      985,
+      1015,
       16,
       16
     ]
   },
   "tile_town_wood_mask1": {
     "rect": [
-      895,
-      987,
+      1003,
+      1015,
       16,
       16
     ]
   },
   "tile_town_wood_mask2": {
     "rect": [
-      913,
-      987,
+      1,
+      1113,
       16,
       16
     ]
   },
   "tile_town_wood_mask3": {
     "rect": [
-      931,
-      987,
+      19,
+      1113,
       16,
       16
     ]
   },
   "tile_town_wood_mask4": {
     "rect": [
-      949,
-      987,
+      37,
+      1113,
       16,
       16
     ]
   },
   "tile_town_wood_mask5": {
     "rect": [
-      967,
-      987,
+      55,
+      1113,
       16,
       16
     ]
   },
   "tile_town_wood_mask6": {
     "rect": [
-      985,
-      987,
+      73,
+      1113,
       16,
       16
     ]
   },
   "tile_town_wood_mask7": {
     "rect": [
-      1003,
-      987,
+      91,
+      1113,
       16,
       16
     ]
   },
   "tile_town_wood_mask8": {
     "rect": [
-      1,
-      1085,
+      109,
+      1113,
       16,
       16
     ]
   },
   "tile_town_wood_mask9": {
     "rect": [
-      19,
-      1085,
+      127,
+      1113,
       16,
       16
     ]
   },
   "tile_town_wood_mask10": {
     "rect": [
-      37,
-      1085,
+      145,
+      1113,
       16,
       16
     ]
   },
   "tile_town_wood_mask11": {
     "rect": [
-      55,
-      1085,
+      163,
+      1113,
       16,
       16
     ]
   },
   "tile_town_wood_mask12": {
     "rect": [
-      73,
-      1085,
+      181,
+      1113,
       16,
       16
     ]
   },
   "tile_town_wood_mask13": {
     "rect": [
-      91,
-      1085,
+      199,
+      1113,
       16,
       16
     ]
   },
   "tile_town_wood_mask14": {
     "rect": [
-      109,
-      1085,
+      217,
+      1113,
       16,
       16
     ]
   },
   "tile_town_wood_mask15": {
     "rect": [
-      127,
-      1085,
+      235,
+      1113,
       16,
       16
     ]
   },
   "tile_town_wood_gate": {
     "rect": [
-      145,
-      1085,
+      253,
+      1113,
       16,
       16
     ]
   },
   "wall_house_mask0": {
     "rect": [
-      163,
-      1085,
+      271,
+      1113,
       16,
       32
     ]
   },
   "wall_house_mask1": {
     "rect": [
-      181,
-      1085,
+      289,
+      1113,
       16,
       32
     ]
   },
   "wall_house_mask2": {
     "rect": [
-      199,
-      1085,
+      307,
+      1113,
       16,
       32
     ]
   },
   "wall_house_mask3": {
     "rect": [
-      217,
-      1085,
+      325,
+      1113,
       16,
       32
     ]
   },
   "wall_house_mask4": {
     "rect": [
-      235,
-      1085,
+      343,
+      1113,
       16,
       32
     ]
   },
   "wall_house_mask5": {
     "rect": [
-      253,
-      1085,
+      361,
+      1113,
       16,
       32
     ]
   },
   "wall_house_mask6": {
     "rect": [
-      271,
-      1085,
+      379,
+      1113,
       16,
       32
     ]
   },
   "wall_house_mask7": {
     "rect": [
-      289,
-      1085,
+      397,
+      1113,
       16,
       32
     ]
   },
   "wall_house_mask8": {
     "rect": [
-      307,
-      1085,
+      415,
+      1113,
       16,
       32
     ]
   },
   "wall_house_mask9": {
     "rect": [
-      325,
-      1085,
+      433,
+      1113,
       16,
       32
     ]
   },
   "wall_house_mask10": {
     "rect": [
-      343,
-      1085,
+      451,
+      1113,
       16,
       32
     ]
   },
   "wall_house_mask11": {
     "rect": [
-      361,
-      1085,
+      469,
+      1113,
       16,
       32
     ]
   },
   "wall_house_mask12": {
     "rect": [
-      379,
-      1085,
+      487,
+      1113,
       16,
       32
     ]
   },
   "wall_house_mask13": {
     "rect": [
-      397,
-      1085,
+      505,
+      1113,
       16,
       32
     ]
   },
   "wall_house_mask14": {
     "rect": [
-      415,
-      1085,
+      523,
+      1113,
       16,
       32
     ]
   },
   "wall_house_mask15": {
     "rect": [
-      433,
-      1085,
+      541,
+      1113,
       16,
       32
     ]
   },
   "bulletin_board": {
     "rect": [
-      451,
-      1085,
+      559,
+      1113,
       48,
       48
     ]
   },
   "woodpile": {
     "rect": [
-      501,
-      1085,
+      609,
+      1113,
       32,
       24
     ]
   },
   "actor_woodcutter_down0": {
     "rect": [
-      535,
-      1085,
+      643,
+      1113,
       16,
       32
     ]
   },
   "actor_woodcutter_down1": {
     "rect": [
-      553,
-      1085,
+      661,
+      1113,
       16,
       32
     ]
   },
   "actor_woodcutter_down2": {
     "rect": [
-      571,
-      1085,
+      679,
+      1113,
       16,
       32
     ]
   },
   "actor_woodcutter_up0": {
     "rect": [
-      589,
-      1085,
+      697,
+      1113,
       16,
       32
     ]
   },
   "actor_woodcutter_up1": {
     "rect": [
-      607,
-      1085,
+      715,
+      1113,
       16,
       32
     ]
   },
   "actor_woodcutter_up2": {
     "rect": [
-      625,
-      1085,
+      733,
+      1113,
       16,
       32
     ]
   },
   "actor_woodcutter_left0": {
     "rect": [
-      643,
-      1085,
+      751,
+      1113,
       16,
       32
     ]
   },
   "actor_woodcutter_left1": {
     "rect": [
-      661,
-      1085,
+      769,
+      1113,
       16,
       32
     ]
   },
   "actor_woodcutter_left2": {
     "rect": [
-      679,
-      1085,
+      787,
+      1113,
       16,
       32
     ]
   },
   "actor_woodcutter_right0": {
     "rect": [
-      697,
-      1085,
+      805,
+      1113,
       16,
       32
     ]
   },
   "actor_woodcutter_right1": {
     "rect": [
-      715,
-      1085,
+      823,
+      1113,
       16,
       32
     ]
   },
   "actor_woodcutter_right2": {
     "rect": [
-      733,
-      1085,
+      841,
+      1113,
       16,
       32
     ]
   },
   "actor_woodcutter_sleep0": {
     "rect": [
-      751,
-      1085,
+      859,
+      1113,
+      16,
+      32
+    ]
+  },
+  "clock_pendulum": {
+    "rect": [
+      877,
+      1113,
+      16,
+      32
+    ]
+  },
+  "window_warm": {
+    "rect": [
+      895,
+      1113,
+      16,
+      16
+    ]
+  },
+  "lamp_halo": {
+    "rect": [
+      913,
+      1113,
+      64,
+      32
+    ]
+  },
+  "chimney_smoke0": {
+    "rect": [
+      979,
+      1113,
+      16,
+      16
+    ]
+  },
+  "chimney_smoke1": {
+    "rect": [
+      997,
+      1113,
+      16,
+      16
+    ]
+  },
+  "chimney_smoke2": {
+    "rect": [
+      1,
+      1163,
+      16,
+      16
+    ]
+  },
+  "chimney_smoke3": {
+    "rect": [
+      19,
+      1163,
+      16,
+      16
+    ]
+  },
+  "observatory_exterior": {
+    "rect": [
+      37,
+      1163,
+      96,
+      112
+    ]
+  },
+  "actor_astronomer_down0": {
+    "rect": [
+      135,
+      1163,
+      16,
+      32
+    ]
+  },
+  "actor_astronomer_down1": {
+    "rect": [
+      153,
+      1163,
+      16,
+      32
+    ]
+  },
+  "actor_astronomer_down2": {
+    "rect": [
+      171,
+      1163,
+      16,
+      32
+    ]
+  },
+  "actor_astronomer_up0": {
+    "rect": [
+      189,
+      1163,
+      16,
+      32
+    ]
+  },
+  "actor_astronomer_up1": {
+    "rect": [
+      207,
+      1163,
+      16,
+      32
+    ]
+  },
+  "actor_astronomer_up2": {
+    "rect": [
+      225,
+      1163,
+      16,
+      32
+    ]
+  },
+  "actor_astronomer_left0": {
+    "rect": [
+      243,
+      1163,
+      16,
+      32
+    ]
+  },
+  "actor_astronomer_left1": {
+    "rect": [
+      261,
+      1163,
+      16,
+      32
+    ]
+  },
+  "actor_astronomer_left2": {
+    "rect": [
+      279,
+      1163,
+      16,
+      32
+    ]
+  },
+  "actor_astronomer_right0": {
+    "rect": [
+      297,
+      1163,
+      16,
+      32
+    ]
+  },
+  "actor_astronomer_right1": {
+    "rect": [
+      315,
+      1163,
+      16,
+      32
+    ]
+  },
+  "actor_astronomer_right2": {
+    "rect": [
+      333,
+      1163,
+      16,
+      32
+    ]
+  },
+  "actor_astronomer_sleep0": {
+    "rect": [
+      351,
+      1163,
       16,
       32
     ]
   },
   "crop_soil": {
     "rect": [
-      769,
-      1085,
+      369,
+      1163,
       16,
       16
     ]
   },
   "crop_tilled": {
     "rect": [
-      787,
-      1085,
+      387,
+      1163,
       16,
       16
     ]
   },
   "crop_wet": {
     "rect": [
-      805,
-      1085,
+      405,
+      1163,
       16,
       16
     ]
   },
   "crop_sprout": {
     "rect": [
-      823,
-      1085,
+      423,
+      1163,
       16,
       16
     ]
   },
   "crop_turnip": {
     "rect": [
-      841,
-      1085,
+      441,
+      1163,
       16,
       16
     ]
   },
   "crop_bulb": {
     "rect": [
-      859,
-      1085,
+      459,
+      1163,
       16,
       16
     ]
   },
   "crop_sprout_wet": {
     "rect": [
-      877,
-      1085,
+      477,
+      1163,
       16,
       16
     ]
   },
   "crop_turnip_wet": {
     "rect": [
-      895,
-      1085,
+      495,
+      1163,
       16,
       16
     ]
   },
   "crop_bulb_wet": {
     "rect": [
-      913,
-      1085,
+      513,
+      1163,
       16,
       16
     ]

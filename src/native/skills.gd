@@ -9,4 +9,4 @@ static func known(state: RefCounted,id: String) -> bool:
 	return id=="sit" or (id=="wildgrowth" and state.magic_learned)
 
 static func learned(state: RefCounted) -> Array:
-	return CATALOG.keys().filter(func(id): return known(state,id))
+	return CATALOG.keys().filter(func(id): return id!="sit" and known(state,id))

@@ -4,7 +4,7 @@ var building: Dictionary
 var outdoors: Node2D
 var ROOM_CELLS=Vector2i(43,28)
 var ROOM_SIZE=Vector2(1376,896)
-var layout={"entry":Vector2i(5,4),"exit":Vector2i(5,2)}
+var layout={"entry":Vector2i(5,3),"exit":Vector2i(5,1)}
 var chambers: Array[Rect2i]=[]
 var floor_cells: Dictionary={}
 var rocks: Dictionary={}
@@ -28,6 +28,8 @@ func _ready() -> void:
 	solid_cells[barrel.cell]="barrel"
 	add_site("exit",layout.exit,"Leave cave")
 	add_site("cave_barrel",Vector2i(4,4),"Search entrance barrel")
+	add_site("cave_pickaxe",Vector2i(3,5),"Take the leaning pickaxe")
+	if not state.cave_pickaxe_taken: object({"kind":"pickaxe","cell":Vector2i(3,4)})
 	if not state.cave_chrysalis_taken:
 		var cell=chambers.back().position+Vector2i(1,1)
 		var chrysalis=object({"kind":"chrysalis","cell":cell})
@@ -72,6 +74,7 @@ func generate() -> void:
 				if (horizontal_first and cell.x!=target.x) or cell.y==target.y: cell+=Vector2i(signi(target.x-cell.x),0)
 				else: cell+=Vector2i(0,signi(target.y-cell.y))
 			floor_cells[target]=true
+	floor_cells[layout.exit]=true
 	for y in range(ROOM_CELLS.y):
 		for x in range(ROOM_CELLS.x):
 			var cell=Vector2i(x,y)
@@ -83,7 +86,7 @@ func generate() -> void:
 		for y in range(room.position.y+1,room.end.y-1):
 			for x in range(room.position.x+1,room.end.x-1):
 				var cell=Vector2i(x,y)
-				if corridors.has(cell) or cell in [Vector2i(3,4),Vector2i(4,4),layout.entry,layout.exit,chambers.back().position+Vector2i.ONE]: continue
+				if corridors.has(cell) or cell in [Vector2i(3,4),Vector2i(4,4),Vector2i(3,5),layout.entry,layout.exit,chambers.back().position+Vector2i.ONE]: continue
 				if absi(cell.x-room.get_center().x)<=1 and absi(cell.y-room.get_center().y)<=1: continue
 				candidates.append(cell)
 		for k in range(candidates.size()-1,0,-1):
@@ -137,6 +140,7 @@ func find_nearest() -> Dictionary:
 	var best={}
 	var distance=46.0
 	for site in sites:
+		if site.id=="cave_pickaxe" and state.cave_pickaxe_taken: continue
 		var d=state.player_position.distance_to(Grid.center(site.cell))
 		if d<distance: best=site.duplicate(); best.type="site"; distance=d
 	for rock in rocks.values():
@@ -155,6 +159,7 @@ func mine_rock(id: String) -> bool:
 	if state.player_position.distance_to(Grid.center(rock.cell))>46: return false
 	var resource="copper" if rock.ore else "stones"
 	if not state.mine(resource): return false
+	preload("res://tool_motion.gd").start(self,"pickaxe")
 	state.cave_broken.append(id)
 	solid_cells.erase(rock.cell)
 	rock.node.queue_free()
@@ -162,8 +167,7 @@ func mine_rock(id: String) -> bool:
 	return true
 
 func attack() -> bool:
-	if state.active_item()!="rusty_sword" or state.rusty_sword<1 or state.energy<2 or swing_cooldown>0: return false
-	state.energy-=2
+	if swing_cooldown>0 or not super.attack(): return false
 	swing_cooldown=0.35
 	var direction={"up":Vector2.UP,"down":Vector2.DOWN,"left":Vector2.LEFT,"right":Vector2.RIGHT}[facing]
 	for rat in rats:
@@ -214,7 +218,8 @@ func _draw() -> void:
 		for cell in floor_cells: Art.tile(self,"cave"+str(posmod(cell.x+cell.y,4)),cell)
 		for cell in solid_cells:
 			if solid_cells[cell]=="wall" and floor_cells.has(cell+Vector2i.DOWN): Art.tile(self,"cliff8",cell)
-		Art.tile(self,"jetty",layout.exit)
+		Art.tile(self,"stone_door_top",layout.exit+Vector2i.UP)
+		Art.tile(self,"stone_door_bottom",layout.exit)
 		return
 	r(self,-400,-400,ROOM_SIZE.x+800,ROOM_SIZE.y+800,"20282e")
 	for y in range(ROOM_CELLS.y):
@@ -252,6 +257,9 @@ func paint_effects(c: CanvasItem) -> void:
 		c.draw_polyline(points,Color("ebd7a4aa"),2)
 
 func paint_object(c: CanvasItem,info: Dictionary) -> void:
+	if info.kind=="pickaxe":
+		if not state.cave_pickaxe_taken: Art.sprite(c,"item_pickaxe",Vector2(5,-22),Vector2(25,25))
+		return
 	if Art.option==2:
 		var id="copper" if info.kind=="rock" and info.ore else "rock" if info.kind=="rock" else "rat"+str(int(elapsed*6)%3) if info.kind=="rat" else info.kind
 		var size=Art.sprite_size(id)

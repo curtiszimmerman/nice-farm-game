@@ -2162,7 +2162,8 @@ def main():
     for kind, w, h in sorted(sizes): furniture(kind, w, h)
     from town_sprites16 import sprites
     from calendar_sprites16 import sprites as calendar_sprites, write_font
-    additions = dict(sprites(Pixels), **calendar_sprites(Pixels))
+    from observatory_sprites16 import sprites as observatory_sprites
+    additions = dict(sprites(Pixels), **calendar_sprites(Pixels), **observatory_sprites(Pixels))
     write_font(ROOT / "src/native/art/ui", Pixels)
     for name, image in additions.items():
         if name.startswith("tile_mill_sails"): name = name.removeprefix("tile_")

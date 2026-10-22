@@ -37,7 +37,9 @@ func run() -> void:
 	check(game.world.find_nearest().get("door")=="cave","the visible cave mouth offers entry")
 	game.interact()
 	check(game.current_room=="cave" and game.state.copper==0,"outdoor activation enters the cave instead of generating copper")
-	game.state.storage_transfer("cave_barrel",0)
+	game.close_window()
+	game.state.player_position=game.world.site_position("cave_pickaxe")
+	game.interact()
 	game.state.assign_slot(0,"pickaxe")
 	var deposits=game.world.rocks.values().filter(func(rock): return rock.ore)
 	for i in range(3):

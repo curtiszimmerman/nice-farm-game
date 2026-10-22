@@ -14,10 +14,16 @@ static func yards(world: Node2D) -> void:
 		if building.id=="home": gate=Vector2i(14,46)
 		if building.id=="reed_farm": gate.x+=1
 		var kind="iron" if building.id in ["mayor","assistant","finch"] else "wood"
+		var town_home=TOWN.has_point(building.cell)
+		var side_y=building.cell.y+building.tiles.y+1
+		for y in range(bounds.position.y-1,bounds.end.y+1):
+			for x in range(bounds.position.x-1,bounds.end.x+1): world.reserved_cells[Vector2i(x,y)]=true
 		for y in range(bounds.position.y,bounds.end.y):
 			for x in range(bounds.position.x,bounds.end.x):
 				if x not in [bounds.position.x,bounds.end.x-1] and y not in [bounds.position.y,bounds.end.y-1]: continue
 				var cell=Vector2i(x,y)
+				if town_home and world.buildings.any(func(other):return other.id!=building.id and Rect2i(other.cell,other.tiles).grow(2).has_point(cell)): continue
+				if town_home and ((x in [bounds.position.x,bounds.end.x-1] and y in [side_y,side_y-1]) or (y==bounds.position.y and x==gate.x)): continue
 				if cell==gate or (building.id=="home" and cell==Vector2i(18,37)):
 					world.yard_gates[cell]=kind
 					world.reserved_cells[cell]=true

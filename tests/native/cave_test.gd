@@ -22,13 +22,17 @@ func run() -> void:
 	for room in cave.chambers:
 		if cave._route(cave.layout.entry,room.get_center()).is_empty(): paths=false
 	check(paths,"every generated room is connected by grid passages")
-	check(game.state.cave_barrel.size()==4 and game.state.cave_barrel[0].id=="pickaxe","the entrance barrel holds a pickaxe in four storage slots")
+	check(game.state.cave_barrel.size()==4 and game.state.cave_barrel.all(func(stack):return stack.is_empty()),"the entrance barrel offers four empty storage slots beside the pickaxe")
+	game.close_window()
 	var ore=cave.rocks.values().filter(func(rock): return rock.ore)[0]
 	game.state.player_position=game.Grid.center(ore.cell+Vector2i.DOWN)
 	cave.facing="up"
 	var before=game.state.energy
 	check(not cave.mine_rock(ore.id) and game.state.energy==before,"mining requires the selected carried pickaxe")
-	game.state.storage_transfer("cave_barrel",0)
+	var ore_position=game.state.player_position
+	game.state.player_position=cave.site_position("cave_pickaxe")
+	game.interact()
+	game.state.player_position=ore_position
 	check(game.state.quick_slots.all(func(id): return id==""),"taking the pickaxe never assigns a quick slot")
 	game.state.assign_slot(0,"pickaxe")
 	game.state.selected_slot=0

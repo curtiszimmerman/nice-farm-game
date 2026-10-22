@@ -7,9 +7,7 @@ static func for_building(id: String) -> Dictionary:
 	var plan: Dictionary
 	match id:
 		"home":
-			plan=_open_house(14,true)
-			plan.furniture.append(["cabinet",Rect2i(10,8,2,1)])
-			plan.sites.append_array([["cabinet",Vector2i(10,9)],["stove",Vector2i(8,8)],["uncover_sofa",Vector2i(2,9)],["uncover_guest_bed",Vector2i(5,3)],["living_light",Vector2i(6,11)],["bathroom_light",Vector2i(10,3)]])
+			plan=_farmhouse()
 		"ship": plan=_ship()
 		"finch": plan=_finch()
 		"moss": plan=_moss()
@@ -23,6 +21,14 @@ static func for_building(id: String) -> Dictionary:
 		"keeper": plan=_lighthouse()
 		_: plan=_council()
 	return plan
+
+static func _farmhouse() -> Dictionary:
+	return {"size":Vector2i(13,14),"areas":[["bedroom",Rect2i(1,1,5,4)],["bathroom",Rect2i(9,1,3,4)],["hall",Rect2i(7,1,1,5)],["living",Rect2i(1,6,6,7)],["kitchen",Rect2i(8,6,4,7)]],
+		"doors":[["bedroom","hall",Vector2i(6,3)],["bathroom","hall",Vector2i(8,3)],["hall","living",Vector2i(6,5)],["living","kitchen",Vector2i(7,9)]],
+		"entry":Vector2i(6,12),"exit":Vector2i(6,13),"furniture":[["bed",Rect2i(1,1,2,2)],["bed",Rect2i(4,1,2,2)],["bookshelf",Rect2i(1,4,2,1)],["floor_lamp",Rect2i(5,4,1,1)],["floor_lamp",Rect2i(1,12,1,1)],
+		["bath",Rect2i(11,1,1,2)],["toilet",Rect2i(10,1,1,1)],["sink",Rect2i(9,1,1,1)],["sofa",Rect2i(1,7,3,1)],["table",Rect2i(3,9,2,1)],["chair",Rect2i(2,9,1,1)],["chair",Rect2i(5,9,1,1)],
+		["kitchen",Rect2i(8,6,4,1)],["cabinet",Rect2i(10,10,2,1)],["radio",Rect2i(1,6,1,1)],["rug",Rect2i(3,8,3,3)],["art",Rect2i(3,0,2,1)]],
+		"sites":[["bed",Vector2i(3,2)],["radio",Vector2i(2,6)],["cabinet",Vector2i(10,11)],["stove",Vector2i(9,7)],["uncover_sofa",Vector2i(2,8)],["uncover_guest_bed",Vector2i(5,3)],["living_light",Vector2i(2,12)],["bathroom_light",Vector2i(4,4)]],"work":[Vector2i(6,10),Vector2i(8,9),Vector2i(5,11)]}
 
 static func _lighthouse() -> Dictionary:
 	return {"size":Vector2i(12,16),"areas":[["lamp_workshop",Rect2i(1,1,10,4)],

@@ -3,15 +3,17 @@ extends SceneTree
 const Game = preload("res://game.gd")
 var game: Node2D
 var prefix=""
+var failed=false
 
 func _initialize() -> void:
 	call_deferred("run")
 
-func drag_inventory_item(id: String,index: int,channel: String="") -> void:
+func drag_inventory_item(id: String,index: int,channel: String="",source_slot: int=-1) -> void:
 	game.inventory()
 	await process_frame
 	var sources=game.ui.skill_buttons if game.state.Skills.CATALOG.has(id) else game.ui.inventory_slots
 	var slots=sources.filter(func(slot): return slot.get_meta("item_id","")==id)
+	if source_slot>=0: slots=[game.ui.quick_buttons[source_slot]]
 	assert(not slots.is_empty(),"Drag source must be carried")
 	var start: Vector2=slots[0].get_global_rect().get_center()
 	var target=game.ui.quick_buttons[index] if channel=="" else game.ui.active_button if channel=="primary" else game.ui.auxiliary_button
@@ -36,7 +38,10 @@ func drag_inventory_item(id: String,index: int,channel: String="") -> void:
 	up.position=end
 	Input.parse_input_event(up)
 	await process_frame
-	assert((game.state.quick_slots[index] if channel=="" else game.state.active_item(channel))==id,"A real GUI drag must assign its destination slot")
+	if (game.state.quick_slots[index] if channel=="" else game.state.active_item(channel))!=id:
+		failed=true
+		push_error("FAIL: real GUI drag of "+id+" did not assign its destination")
+		return
 	print("NATIVE DRAG PASSED: ",id," to ",str(index+1) if channel=="" else channel)
 
 func capture(label: String) -> void:
@@ -151,6 +156,8 @@ func run() -> void:
 	game.state.player_position=game.world.site_position("pond")
 	await capture("dock")
 	game.enter_building("cave")
+	await capture("cave-discovery")
+	game.close_window()
 	game.state.player_position=game.Grid.center(Vector2i(6,7))
 	await capture("cave-entrance")
 	game.state.player_position=game.Grid.center(game.world.chambers[2].get_center()+Vector2i(-1,2))
@@ -199,10 +206,13 @@ func run() -> void:
 	game.state.player_position=game.world.site_position("radio")+Vector2(32,0)
 	await capture("interior-radio-club")
 	game.leave_building()
-	for id in ["moss","finch","tavi","mayor","assistant","veteran","iona","store","hall","reed_farm","windmill","mill_home","smithy","tavern","bakery","woodcutter"]:
+	for id in ["moss","finch","tavi","mayor","assistant","veteran","iona","store","hall","reed_farm","windmill","mill_home","smithy","tavern","bakery","woodcutter","observatory"]:
 		game.enter_building(id)
 		game.state.player_position=game.world.entry_position()
 		await capture("interior-"+id)
+		if id=="observatory":
+			game.state.player_position=game.Grid.center(Vector2i(9,5))
+			await capture("observatory-telescope")
 		game.leave_building()
 	game.enter_building("store")
 	game.leave_building()
@@ -237,6 +247,10 @@ func run() -> void:
 	game.state.accept_tool("axe")
 	await drag_inventory_item("axe",7)
 	await capture("inventory-dragged-axe")
+	await drag_inventory_item("axe",6,"",7)
+	if game.state.quick_slots[7]!="":
+		failed=true
+		push_error("FAIL: moving a quick-slot assignment left its source occupied")
 	game.close_window()
 	var primary=game.state.active_item("primary")
 	await drag_inventory_item("wildgrowth",-1,"aux")
@@ -270,7 +284,7 @@ func run() -> void:
 	assert(game.sound.music.playing,"Native music should play")
 	game.sound.play_spell("wildgrowth")
 	await game.sound.shutdown()
-	print("NATIVE VISUAL CHECKS PASSED; sound start/stop passed")
+	if not failed: print("NATIVE VISUAL CHECKS PASSED; sound start/stop passed")
 	game.queue_free()
 	await process_frame
-	quit()
+	quit(1 if failed else 0)
