@@ -40,7 +40,9 @@ const CATALOG={
 static var textures: Dictionary={}
 
 static func icon(id: String) -> Texture2D:
-	if Art.option==2 and Art.catalog.has("item_"+id):
+	var sprite_only=id in ["bread","copper_bars","build_crucible"]
+	if sprite_only: Art.load_atlas()
+	if (Art.option==2 or sprite_only) and Art.catalog.has("item_"+id):
 		var key="sprite_"+id
 		if not textures.has(key):
 			var texture=AtlasTexture.new()

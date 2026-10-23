@@ -20,6 +20,11 @@ func run() -> void:
 		var s=game.state
 		s.money=20
 		check(s.buy_bread() and s.money==14 and s.bread==1,"a fresh loaf costs six crowns")
+		s.Items.Art.option=1
+		for id in ["bread","copper_bars","build_crucible"]:
+			check(s.Items.icon(id).get_image().get_used_rect().size!=Vector2i.ZERO,"new item artwork remains visible with original artwork selected: "+id)
+		s.Items.Art.option=2
+		s.Items.textures.clear()
 		s.energy=40
 		check(s.consume("bread") and s.energy==60 and s.bread==0,"fresh bread restores twenty energy")
 		s.money=0
