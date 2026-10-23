@@ -51,6 +51,14 @@ func run() -> void:
 	check(game.window_open and game.storage_name=="ship_storage","the physical ship shelves open their storage")
 	game.close_window()
 	game.leave_building()
+	game.enter_building("cave")
+	game.close_window()
+	for x in [4,5]:
+		for y in [1,2]:
+			game.state.player_position=game.Grid.center(Vector2i(x,y))
+			game.world.facing="up"
+			check(game.world.find_nearest().get("id")=="exit","both cave exit columns work before and on the doorway")
+	game.leave_building()
 	game.enter_building("veteran")
 	check(not game.world.blocked(game.Grid.center(Vector2i(5,7))),"Bram's main passage stays clear of his table")
 	game.leave_building()

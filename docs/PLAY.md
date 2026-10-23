@@ -8,7 +8,7 @@ New visits open at 09:00 on Spring 01 with a ship battle. Individual laser shots
 
 Your first entry into the farmhouse begins a required welcome sequence. Finish removing all covers and replacing both bulbs. The visitors approach during cleanup, then enter one at a time after a one-second pause. The ordinary HUD stays hidden throughout their arrival and meeting. You cannot leave during this first visit. Neral remains suspicious about your arrival and the flash on the mountain. Alder and Neral walk out after the meeting; Moss stays to explain farming and recommend Iona's tower. Movement and the clock resume after Moss leaves too.
 
-The farmhouse initially has dusty covers on the sofa, both beds and radio. Press E at each furnishing to remove its cover. Take the two spare bulbs from the kitchen cabinet, then press E at the broken living-room and bathroom lights. The crew log tracks the remaining jobs. Alder offers permission to stay if you promise to keep the house clean, and suggests working the garden to support yourselves.
+The farmhouse initially has dusty covers on the sofa, both beds and radio. Press E at each furnishing to remove its cover. Take the two spare bulbs from the kitchen cabinet, then press E at the broken living-room and bedroom lamps. The crew log tracks the remaining jobs. Alder offers permission to stay if you promise to keep the house clean, and suggests working the garden to support yourselves.
 
 Town has a cobbled square with a fountain, nearby homes, and the provisions shop. Tavi works inside his grocery from 08:00–20:00 with lunch and walks. Finch spends his workday inside the Radio Club, moving between equipment and shelves. Moss tends his decorative southern fields; those crops cannot be harvested by the player. The wizard wakes at noon and sleeps before sunrise. Sleeping residents can be seen in their own bedrooms. The mayor's appointment still takes priority.
 
@@ -87,7 +87,7 @@ Face physical objects to interact with the square directly ahead: doors, furnitu
 
 Doorways offer both the threshold and the square beyond it, so walking onto a doorway retains the enter/exit prompt. The cave mouth is two squares wide; the bulletin board has two usable squares. Equipment slots have individual hover descriptions around the larger character figure.
 
-Plant seeds, then water them. Each watered midnight earns one of three growth days; dry days do not count. Yesterday's wet soil gradually fades until sunrise, when fresh watering is needed. The daily forecast brings sunshine with ground shadows, drifting cloud shadows, or gentle rain with occasional thunder. Rain currently waters outdoor crops. Escape → Development → Weather previews each condition or restores the daily forecast.
+Plant seeds, then water them. Each watered midnight earns one of three growth days; dry days do not count. Yesterday's wet soil gradually fades until sunrise, when fresh watering is needed. The daily forecast brings sunshine with ground shadows, drifting cloud shadows, or gentle rain with occasional thunder. Rain waters outdoor crops automatically. Escape → Development → Weather previews each condition or restores the daily forecast.
 
 Defeating a rat earns 10 experience. Green experience gains and damage values rise and fade near the affected character. Experience is saved and shown in Stats & Quests.
 

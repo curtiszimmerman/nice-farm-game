@@ -229,7 +229,7 @@ func assign_slot(index: int,id: String) -> bool:
 func farm(index: int) -> String:
 	if index<0 or index>=plots.size(): return "No soil here."
 	var p=plots[index]
-	if p.planted>=0 and p.watered and not ripe(index): return "Growing. Three days to mature."+(" Select Wildgrowth to hasten it." if magic_learned else "")
+	if p.planted>=0 and p.watered and not ripe(index): return "Growing. Water each day; three watered midnights to mature."+(" Select Wildgrowth to hasten it." if magic_learned else "")
 	var needed="sickle" if ripe(index) else "hoe" if not p.tilled else "watering_can" if p.planted>=0 and not p.watered else selected_seed
 	if p.tilled and p.planted<0 and active_item() in ["seeds","star_seeds"]: selected_seed=active_item(); needed=selected_seed
 	if active_item()!=needed: return "Select %s in a quick slot first." % Items.CATALOG[needed].name

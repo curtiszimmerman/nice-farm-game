@@ -593,7 +593,7 @@ func find_nearest() -> Dictionary:
 		var d = state.player_position.distance_to(plot_position(i))
 		if d<distance:
 			var p = state.plots[i]
-			var label = "Harvest moon turnip" if state.ripe(i) else "Till the soil" if not p.tilled else "Plant moon turnip" if p.planted<0 else "Water moon turnip" if not p.watered else "Growing · three days to mature"
+			var label = "Harvest moon turnip" if state.ripe(i) else "Till the soil" if not p.tilled else "Plant moon turnip" if p.planted<0 else "Water moon turnip" if not p.watered else "Growing · water daily"
 			best = {"type":"plot","index":i,"label":label}
 			distance = d
 	for p in people:

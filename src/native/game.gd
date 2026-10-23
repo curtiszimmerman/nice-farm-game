@@ -1049,7 +1049,7 @@ func update_welcome_departure(dt: float,members: Array=["mayor","assistant"]) ->
 func moss_lesson() -> void:
 	state.welcome_phase="moss_lesson"
 	begin_conversation(["moss"],true)
-	dialog("Moss","A LITTLE HELP GETTING STARTED","Before I go, those seeds will do you more good in the ground than in a chest. Hoe a little patch, plant them, and keep it watered. The can's empty, but there's a pond south of here. Three days and you should have a crop. Use the sickle when it's ready. Mind your energy, though. A meal and a rest in your own bed will set you right.",[
+	dialog("Moss","A LITTLE HELP GETTING STARTED","Before I go, those seeds will do you more good in the ground than in a chest. Hoe a little patch and plant them. The can's empty, but there's a pond south of here. Give them water each day; three watered nights and you should have a crop. The soil dries out by sunrise, so don't forget the next morning. Use the sickle when it's ready. Mind your energy, though. A meal and a rest in your own bed will set you right.",[
 		["And the spell you mentioned?",func(): dialog("Moss","THE WIZARD IN THE NORTHERN CLIFFS","Go see Iona, up at the northern tower. She'll introduce you to this area's deities and magic. Might save you a sore back in the garden. Don't knock before noon, though. She's likely only just gone to bed.",[
 			["Thanks, Moss. We'll visit her.",func():
 				state.welcome_phase="moss_departing"
