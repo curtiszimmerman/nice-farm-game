@@ -13,9 +13,11 @@ func run() -> void:
 	preload("fixture.gd").explore(game,true)
 	game.state.welcome_phase="unvisited"
 	game.enter_building("home")
+	game.outdoors.story_destinations.clear()
 	for task in game.state.house_tasks: game.state.house_tasks[task]=true
 	game._process(1.5)
 	check(game.state.welcome_phase=="arriving","cleanup begins the welcome promptly")
+	check(game.WELCOME_MEMBERS.all(func(id):return game.outdoors.story_destinations.has(id)),"resuming cleanup reconstructs every visitor's walking destination")
 	if game.state.welcome_phase=="waiting": game.mayor()
 	check(not game.ui.quick_tray.visible and not game.ui.calendar_ring.visible and not game.ui.log_panel.visible and not game.ui.place.visible,"the arrival hides every ordinary HUD element immediately")
 	var first_entry=-1.0

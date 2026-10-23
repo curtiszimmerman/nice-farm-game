@@ -311,8 +311,7 @@ func enter_building(id: String) -> void:
 	if id=="home" and state.welcome_phase=="unvisited":
 		state.welcome_phase="waiting"
 		state.welcome_elapsed=0
-		for visitor in WELCOME_MEMBERS:
-			outdoors.story_destinations[visitor]={"cell":Grid.world_to_cell(outdoors.site_position("bed")),"room":"","sleeping":false}
+		prepare_welcome_party()
 	activity=""
 	resting=0
 	world.update_villagers(0.0,true)
@@ -958,8 +957,13 @@ func bulletin_board() -> void:
 		["Notice: a warm loaf and local news",func(): panel("Corin's bakery","FRESH BREAD & GOOD COMPANY","Visitors welcome. Bring your news, your questions, or simply yourself. The bakery is southeast of the square.")],
 		["Notice: tool upgrades",func(): panel("Dain Rusk's smithy","BETTER TOOLS, HONEST WORK","Thinking about upgrading your tools? Speak to Dain at the forge east of the square.")]])
 
+func prepare_welcome_party() -> void:
+	for visitor in WELCOME_MEMBERS:
+		outdoors.story_destinations[visitor]={"cell":Grid.world_to_cell(outdoors.site_position("bed")),"room":"","sleeping":false}
+
 func mayor() -> void:
 	if current_room=="home" and state.welcome_phase=="waiting":
+		prepare_welcome_party()
 		state.welcome_phase="arriving"
 		ui.update_hud()
 		return

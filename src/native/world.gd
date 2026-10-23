@@ -309,7 +309,7 @@ func _build_layout() -> void:
 	_claim(OUTCROP_CELLS,"rock")
 	_claim(MINE_RIDGE,"rock")
 	_claim(CART_CELLS,"cart")
-	_claim(Rect2i(9,11,5,3),"ship hull")
+	_claim(Rect2i(8,10,7,4),"ship hull")
 	_claim(Rect2i(Vector2i(17,44),Vector2i.ONE),"chest")
 	for cell in LAMP_CELLS: _claim(Rect2i(cell,Vector2i.ONE),"lamp")
 	_claim(Rect2i(Grid.world_to_cell(site_position("sign")),Vector2i.ONE),"sign")
