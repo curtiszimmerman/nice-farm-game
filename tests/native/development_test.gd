@@ -32,7 +32,14 @@ func run() -> void:
 	game.set_process(false)
 	preload("fixture.gd").explore(game)
 	preload("fixture.gd").tools(game.state)
-	var start=game.Grid.center(Vector2i(35,45))
+	var start=Vector2.INF
+	for cell in game.world.road_cells:
+		var candidate=game.Grid.center(cell)
+		if game.world.blocked(candidate) or game.world.blocked(candidate+Vector2(32,0)): continue
+		if game.world.villagers.values().any(func(actor):return actor.visible and actor.position.distance_to(candidate)<64): continue
+		start=candidate
+		break
+	check(start!=Vector2.INF,"speed checks use a clear stretch of the generated road network")
 	game.state.player_position=start
 	key(KEY_D,true)
 	game._move(0.02)
@@ -40,7 +47,8 @@ func run() -> void:
 	key(KEY_SHIFT,true)
 	game._move(0.02)
 	check(is_equal_approx(game.state.player_position.x,start.x+15.9),"development running is three times normal speed")
-	var trunk=game.world.trees[0].pos
+	var accessible=game.world.trees.filter(func(tree):return not game.world.blocked(tree.pos-Vector2(17,0)))
+	var trunk=accessible[0].pos
 	game.state.player_position=trunk-Vector2(17,0)
 	game._move(0.05)
 	check(game.state.player_position.x<trunk.x and not game.world.blocked(game.state.player_position),"fast development movement cannot tunnel through thin tree trunks")

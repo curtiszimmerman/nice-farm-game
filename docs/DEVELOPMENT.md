@@ -218,6 +218,8 @@ Both artwork catalogs contain 757 sprites, including equipment placeholders and 
 
 Older interaction fixtures now approach and face physical objects rather than standing on their interaction anchors. The thirty-seed cave check caught a rock spawning on the pickaxe's newly moved approach cell; resource placement now reserves that cell. Rebuilding both sprite packs and all three battle effects reproduced their exact SHA-256 hashes.
 
+The development-speed check assumed a fixed outdoor cell stayed clear despite randomized scenery. It now selects a clear road segment away from NPCs and an accessible tree approach, keeping both speed and collision assertions intact.
+
 ## Next discussion
 
 Play and critique the slice before expanding it. Decide the next milestone, combat controls and feel, art direction, calendar/lunar rules, and the first actual networked cooperative interaction. Do not mistake placeholder content for approved final story or mechanics.
