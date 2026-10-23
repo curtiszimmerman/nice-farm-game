@@ -282,6 +282,7 @@ func chop_tree(cell: Vector2i) -> bool:
 	var tree=found[0]
 	state.wood+=3
 	state.felled_trees.append("%d,%d" % [cell.x,cell.y])
+	forage_nodes.apples.erase(cell)
 	solid_cells.erase(cell)
 	tree.node.queue_free()
 	trees.erase(tree)

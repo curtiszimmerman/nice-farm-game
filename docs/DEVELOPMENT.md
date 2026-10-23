@@ -250,12 +250,14 @@ The dedicated native crafting playthrough passed bread purchase/eating, live spi
 
 Final verification passed 1,908 native checks, four asset checks and startup smoke with clean output in internal/verification/status-crafting-verified.log. Additional focused checks cover pending-batch persistence, full-satchel collection, duplicate/invalid construction and status data, and new item icons under the preserved original artwork. The latter exposed transparent fallback icons; bread, bars and the blueprint now use their atlas art in that mode too. Native logs are internal/verification/crafting-visual-final.log and internal/verification/status-general-visual.log. Both atlas rebuilds reproduced their exact SHA-256 hashes. All requested work is complete; the launcher mode change remains uncommitted and no push was performed.
 
-## Next discussion
+## Calendar and seasonal harvest verification
 
 The calendar/foraging pass audited the requests before changing code. Development weather choices and the final-chamber spider already existed and have live checks. Cave art covered columns 94–95 while activation covered 93–94; the shared mouth footprint now aligns drawing, interaction and exit landing. Oren's loop came from indoor departures reading raw schedules while outdoors respected forced return-home overrides. Both now use the same effective stop. Welcome admission previously waited for each visitor's final destination; it now waits only for doorway clearance, retaining physical spacing.
 
 The Crew Log is left-aligned; season, weekday/year and clock labels are larger and framed. Mara Bell supplies the missing-ladder quest, Nessa explains the borrowed aerial ladder, and a compact tool shed provides the physical pickup. Picking it clears collision and survives reload. Seeded sampling assigns about 7.5% of bushes/oaks seasonal fruit. Assignments use the original tree population so felling trees cannot reshuffle remaining fruit. Saved per-plant timestamps enforce seven full days between harvests. Save schema 15 is strict, with no migration. Unsupported older saves remain untouched.
 
 The bounded artwork run produced fifteen sprites for a reported API-equivalent cost of $0.2733368. One additional wet bare-soil sprite was added locally. Both packs contain 792 sprites. Public prompting, tool traffic, replies and usage are exported under internal/claude-review/harvest/; private reasoning is excluded. The first --bare invocation could not use OAuth; normal OAuth succeeded without reauthentication. No new tools or dependencies were installed. Native screenshots cover the calendar, crossroads, tool shed, sky exit, existing spider, bright night glints and both seasonal fruits. All writes remain inside the project; the preexisting launcher mode modification is excluded from commits.
+
+## Next discussion
 
 Play and critique the slice before expanding it. Decide the next milestone, combat controls and feel, art direction, calendar/lunar rules, and the first actual networked cooperative interaction. Do not mistake placeholder content for approved final story or mechanics.

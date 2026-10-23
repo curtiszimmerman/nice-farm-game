@@ -647,7 +647,7 @@ func restore(data: Variant) -> bool:
 		var parts=key.split(":")
 		if parts.size()!=3 or parts[0] not in ["berries","apples"] or not parts[1].is_valid_int() or not parts[2].is_valid_int(): return false
 		if not Grid.contains(Vector2i(int(parts[1]),int(parts[2]))): return false
-		if not _number(data.forage_harvests[key]) or data.forage_harvests[key]<0 or data.forage_harvests[key]>(data.day-1)*1440+data.minute: return false
+		if not _number(data.forage_harvests[key]) or data.forage_harvests[key]<0: return false
 	for field in ["awake_minutes","sleep_minutes"]:
 		if not _number(data.get(field)) or data[field]<0: return false
 	if not data.get("status_effects") is Dictionary: return false
@@ -741,6 +741,8 @@ func restore(data: Variant) -> bool:
 	if data.invitation_day>data.day: return false
 	if data.crew_fed_day>data.day: return false
 	if data.sparkfire_picked_day>data.day: return false
+	for timestamp in data.forage_harvests.values():
+		if timestamp>(data.day-1)*1440+data.minute: return false
 	var occupied=0
 	for id in Items.CATALOG:
 		var quantity=data.supplies[id] if id in EXTRA_ITEMS else data[id]
