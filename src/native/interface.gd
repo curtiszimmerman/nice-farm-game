@@ -28,6 +28,7 @@ var equipment_slots: Dictionary={}
 var skill_buttons: Array=[]
 var dialogue_open=false
 var controls_hint: Label
+var container_view=""
 
 class ItemButton extends Button:
 	var interface: CanvasLayer
@@ -35,24 +36,26 @@ class ItemButton extends Button:
 	var inventory_source=false
 	var skill_source=false
 	var active_channel=""
+	var inventory_index=-1
+	var storage_source=""
+	var storage_index=-1
 	func _get_drag_data(_position: Vector2) -> Variant:
-		if not (inventory_source or skill_source or quick_index>=0) or not has_meta("item_id"): return null
+		if not (inventory_source or skill_source or quick_index>=0 or active_channel!="" or storage_source!="") or not has_meta("item_id"): return null
 		var id: String=get_meta("item_id")
-		if not interface.game.state.available_action(id): return null
+		if storage_source=="" and not interface.game.state.available_action(id): return null
 		var preview=TextureRect.new()
 		preview.texture=Items.icon(id)
 		preview.custom_minimum_size=Vector2(40,40)
 		preview.texture_filter=CanvasItem.TEXTURE_FILTER_NEAREST
 		set_drag_preview(preview)
-		return {"type":"ability" if skill_source else "inventory_item","id":id}
+		return {"type":"ability" if skill_source or Skills.CATALOG.has(id) else "inventory_item","id":id,"storage":storage_source,"index":storage_index}
+	func destination() -> Dictionary:
+		return {"storage":storage_source,"index":storage_index,"inventory_index":inventory_index,"quick_index":quick_index,"channel":active_channel}
 	func _can_drop_data(_position: Vector2,data: Variant) -> bool:
-		return (quick_index>=0 or active_channel!="") and data is Dictionary and data.get("type") in ["inventory_item","ability"] and interface.game.state.available_action(data.get("id",""))
+		return interface.game.can_drop_item(data,destination())
 	func _drop_data(position: Vector2,data: Variant) -> void:
 		if not _can_drop_data(position,data): return
-		if active_channel!="": interface.game.state.assign_active(active_channel,data.id)
-		else: interface.game.state.assign_slot(quick_index,data.id)
-		interface.game.save_visit()
-		interface.update()
+		interface.game.drop_item(data,destination())
 var quantity_control: SpinBox
 var game: Node2D
 var root: Control
@@ -442,6 +445,7 @@ func open_inventory() -> void:
 func open_character_inventory() -> void:
 	# The quick bar remains a drop target while the satchel is open.
 	open_modal("Your satchel","SUPPLIES & EQUIPMENT","Hover over an item for details. Select an item to use it.",[["Close satchel",func(): pass]],true)
+	container_view="inventory"
 	var water=game.state.water
 	modal_box.get_child(2).text="Click to select · drag onto either action or a quick slot · right-click food to eat or drink"
 	modal_box.get_child(2).custom_minimum_size.x=1000
@@ -492,13 +496,13 @@ func open_character_inventory() -> void:
 	grid.add_theme_constant_override("h_separation",9)
 	grid.add_theme_constant_override("v_separation",9)
 	supplies.add_child(grid)
-	var stacks=game.inventory_stacks()
+	var stacks=game.state.inventory_cells()
 	for i in range(game.State.INVENTORY_SLOTS):
 		var stack: Dictionary=stacks[i] if i<stacks.size() else {}
 		var slot=item_slot(stack,70)
 		grid.add_child(slot)
 		inventory_slots.append(slot)
-		slot.disabled=stack.is_empty()
+		slot.inventory_index=i
 		if not stack.is_empty():
 			slot.inventory_source=true
 			slot.pressed.connect(func(): game.select_inventory_item(stack.id))
@@ -632,6 +636,10 @@ func open_chest(selected: String) -> void:
 	var storage: Array=game.state.get(game.storage_name)
 	var title={"chest":"Farmhouse chest","cabinet":"Kitchen cabinet","ship_storage":"Crew supplies","cave_barrel":"Cave entrance barrel"}[game.storage_name]
 	open_modal(title,"TOOLS & SUPPLIES","Choose a stack, then choose the quantity. Select a carried stack and a storage slot to deposit or swap.",[["Close storage",func(): pass]],true)
+	container_view="storage"
+	modal.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	modal.get_child(0).mouse_filter=Control.MOUSE_FILTER_IGNORE
+	root.move_child(quick_tray,-1)
 	modal.get_child(1).position=Vector2(160,100)
 	modal_box.get_child(2).custom_minimum_size.x=920
 	if selected!="": modal_box.get_child(2).text="Selected: %s. Choose a chest slot to move or swap this stack." % Items.CATALOG[selected].name
@@ -641,7 +649,7 @@ func open_chest(selected: String) -> void:
 	modal_box.move_child(row,3)
 	inventory_slots.clear()
 	chest_slots.clear()
-	var carried=game.inventory_stacks()
+	var carried=game.state.inventory_cells()
 	for side in range(2):
 		var column=VBoxContainer.new()
 		row.add_child(column)
@@ -657,9 +665,12 @@ func open_chest(selected: String) -> void:
 			grid.add_child(button)
 			if side==0:
 				inventory_slots.append(button)
-				button.disabled=stack.is_empty()
+				button.inventory_index=i
+				button.inventory_source=true
 				if not stack.is_empty(): button.pressed.connect(func(): game.chest_selected=stack.id; game.open_chest())
 			else:
+				button.storage_source=game.storage_name
+				button.storage_index=i
 				chest_slots.append(button)
 				var index=i
 				button.pressed.connect(func(): game.transfer_chest(index))

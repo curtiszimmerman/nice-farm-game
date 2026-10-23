@@ -38,6 +38,7 @@ var ship_storage: Array=[]
 var quick_slots: Array=["","","","","","","",""]
 var selected_slot=0
 var inventory_selection=""
+var inventory_order: Array=[]
 var auxiliary_selection=""
 var action_channel="primary"
 const Skills=preload("res://skills.gd")
@@ -102,6 +103,8 @@ var player_position = Grid.center(Vector2i(7,12))
 var plots: Array = []
 
 func _init() -> void:
+	inventory_order.resize(INVENTORY_SLOTS)
+	inventory_order.fill("")
 	cave_seed=randi_range(1,2147483646)
 	world_seed=randi_range(1,2147483646)
 	chest=[{"id":"hoe","count":1},{"id":"watering_can","count":1},{"id":"sickle","count":1}]
@@ -123,6 +126,7 @@ func accept_firewood_task() -> bool:
 	return true
 
 func accept_tool(id: String) -> bool:
+	sync_inventory()
 	if id not in ["axe","pickaxe"]: return false
 	var flag="woodcutter_axe_given" if id=="axe" else "cave_pickaxe_taken"
 	if get(flag) or not can_carry(id): return false
@@ -315,6 +319,7 @@ func chest_transfer(index: int,carried_id: String="",quantity: int=-1) -> bool:
 	return storage_transfer("chest",index,carried_id,quantity)
 
 func storage_transfer(storage_name: String,index: int,carried_id: String="",quantity: int=-1) -> bool:
+	sync_inventory()
 	if storage_name not in ["chest","cabinet","ship_storage","cave_barrel"]: return false
 	var storage: Array=get(storage_name)
 	if index<0 or index>=storage.size() or (carried_id!="" and (not Items.CATALOG.has(carried_id) or int(get(carried_id))<=0)): return false
@@ -350,6 +355,31 @@ func carried_slots() -> int:
 	for id in Items.CATALOG:
 		if int(get(id))>0: count+=1
 	return count
+
+func sync_inventory() -> void:
+	for i in range(inventory_order.size()):
+		if inventory_order[i]!="" and int(get(inventory_order[i]))<=0: inventory_order[i]=""
+	for id in Items.CATALOG:
+		if int(get(id))<=0 or id in inventory_order: continue
+		var last=-1
+		for i in range(inventory_order.size()):
+			if inventory_order[i]!="": last=i
+		var slot=last+1 if last+1<INVENTORY_SLOTS else inventory_order.find("")
+		if slot>=0: inventory_order[slot]=id
+
+func inventory_cells() -> Array:
+	sync_inventory()
+	var cells=[]
+	for id in inventory_order: cells.append({} if id=="" else {"id":id,"count":int(get(id))})
+	return cells
+
+func move_inventory(id: String,index: int) -> bool:
+	sync_inventory()
+	var previous=inventory_order.find(id)
+	if id=="" or previous<0 or index<0 or index>=INVENTORY_SLOTS: return false
+	inventory_order[previous]=inventory_order[index]
+	inventory_order[index]=id
+	return true
 
 func can_carry(id: String) -> bool:
 	return Items.CATALOG.has(id) and (int(get(id))>0 or carried_slots()<INVENTORY_SLOTS)
@@ -440,9 +470,10 @@ func meet_mayor() -> bool:
 	return true
 
 func to_dict() -> Dictionary:
+	sync_inventory()
 	var supplies={}
 	for id in EXTRA_ITEMS: supplies[id]=get(id)
-	return {"version": 11,"woodcutter_axe_given":woodcutter_axe_given,"cave_pickaxe_taken":cave_pickaxe_taken,"cave_intro_seen":cave_intro_seen,"auxiliary_selection":auxiliary_selection,"world_seed":world_seed,"inventory_selection":inventory_selection,"firewood_requested":firewood_requested,"firewood_given":firewood_given,"felled_trees":felled_trees.duplicate(),"day": day, "minute": minute, "money": money,"magic_learned":magic_learned,
+	return {"version": 12,"inventory_order":inventory_order.duplicate(),"woodcutter_axe_given":woodcutter_axe_given,"cave_pickaxe_taken":cave_pickaxe_taken,"cave_intro_seen":cave_intro_seen,"auxiliary_selection":auxiliary_selection,"world_seed":world_seed,"inventory_selection":inventory_selection,"firewood_requested":firewood_requested,"firewood_given":firewood_given,"felled_trees":felled_trees.duplicate(),"day": day, "minute": minute, "money": money,"magic_learned":magic_learned,
 		"cave_seed":cave_seed,"cave_broken":cave_broken.duplicate(),"cave_defeated":cave_defeated.duplicate(),"cave_chrysalis_taken":cave_chrysalis_taken,"sparkfire_picked_day":sparkfire_picked_day,"cave_barrel":cave_barrel.duplicate(true),
 		"ship_departed":ship_departed,"welcome_phase":welcome_phase,"welcome_elapsed":welcome_elapsed,
 		"intro_complete":intro_complete,"briefing_complete":briefing_complete,"mayor_due":mayor_due,"house_tasks":house_tasks.duplicate(),
@@ -457,8 +488,13 @@ func to_dict() -> Dictionary:
 		"plots": plots.duplicate(true)}
 
 func restore(data: Variant) -> bool:
-	if not data is Dictionary or data.get("version") != 11:
+	if not data is Dictionary or data.get("version") != 12:
 		return false
+	if not data.get("inventory_order") is Array or data.inventory_order.size()!=INVENTORY_SLOTS: return false
+	var ordered=[]
+	for id in data.inventory_order:
+		if not id is String or (id!="" and (not Items.CATALOG.has(id) or id in ordered)): return false
+		if id!="": ordered.append(id)
 	if not _number(data.get("world_seed")) or data.world_seed<1 or data.world_seed>2147483646 or data.world_seed!=floor(data.world_seed): return false
 	for field in ["inventory_selection","auxiliary_selection"]:
 		if not data.get(field) is String: return false
@@ -564,6 +600,7 @@ func restore(data: Variant) -> bool:
 	for field in ["water","selected_slot","crew_fed_day","crew_hungry_days"]: set(field,int(data[field]))
 	quick_slots=data.quick_slots.duplicate()
 	inventory_selection=data.inventory_selection
+	inventory_order=data.inventory_order.duplicate()
 	auxiliary_selection=data.auxiliary_selection
 	world_seed=int(data.world_seed)
 	firewood_requested=data.firewood_requested

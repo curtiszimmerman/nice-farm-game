@@ -724,6 +724,66 @@ func transfer_chest(index: int) -> void:
 		chest_selected=""
 		open_chest(),open_chest)
 
+func can_drop_item(data: Variant,destination: Dictionary) -> bool:
+	if not data is Dictionary or data.get("type") not in ["inventory_item","ability"]: return false
+	var id=data.get("id","")
+	var storage=data.get("storage","")
+	if storage!="":
+		if storage not in ["chest","cabinet","ship_storage","cave_barrel"]: return false
+		var index=int(data.get("index",-1))
+		var cells: Array=state.get(storage)
+		if index<0 or index>=cells.size() or cells[index].get("id","")!=id: return false
+	elif not state.available_action(id): return false
+	if destination.get("storage","")!="" or destination.get("inventory_index",-1)>=0:
+		return ui.Items.CATALOG.has(id)
+	return destination.get("quick_index",-1)>=0 or destination.get("channel","")!=""
+
+func drop_item(data: Dictionary,destination: Dictionary) -> void:
+	if not can_drop_item(data,destination): return
+	var source=data.get("storage","")
+	var target=destination.get("storage","")
+	var view=ui.container_view
+	var physical=source!="" or target!=""
+	var count=int(state.get(source)[int(data.index)].count) if source!="" else int(state.get(data.id)) if ui.Items.CATALOG.has(data.id) else 1
+	var confirm=func(amount):
+		if perform_drop(data,destination,amount): save_visit()
+		else: toast("That transfer needs an empty slot, enough room, or the full stack for a swap.")
+		if view=="storage": open_chest()
+		elif view=="inventory": inventory()
+		ui.update()
+	if physical and count>1:
+		ui.quantity_picker(count,confirm,func(): open_chest() if view=="storage" else inventory())
+	else: confirm.call(count)
+
+func perform_drop(data: Dictionary,destination: Dictionary,amount: int) -> bool:
+	state.sync_inventory()
+	var source=data.get("storage","")
+	var target=destination.get("storage","")
+	var index=int(destination.get("inventory_index",-1))
+	if source!="" and target!="":
+		var from_cells: Array=state.get(source)
+		var to_cells: Array=state.get(target)
+		var from_index=int(data.index)
+		var to_index=int(destination.index)
+		if source==target and from_index==to_index: return true
+		var stack: Dictionary=from_cells[from_index]
+		var other: Dictionary=to_cells[to_index]
+		if amount<1 or amount>stack.count: return false
+		if not other.is_empty() and other.id!=stack.id:
+			if amount!=stack.count: return false
+			from_cells[from_index]=other
+			to_cells[to_index]=stack
+		else:
+			to_cells[to_index]={"id":stack.id,"count":amount+int(other.get("count",0))}
+			from_cells[from_index]={} if amount==stack.count else {"id":stack.id,"count":stack.count-amount}
+		return true
+	if target!="": return state.storage_transfer(target,int(destination.index),data.id,amount)
+	if source!="":
+		if not state.storage_transfer(source,int(data.index),"",amount): return false
+	if index>=0: return state.move_inventory(data.id,index)
+	if destination.get("channel","")!="": return state.assign_active(destination.channel,data.id)
+	return state.assign_slot(int(destination.quick_index),data.id)
+
 func cooking() -> void:
 	if current_room!="home" or state.player_position.distance_to(world.site_position("stove"))>55:
 		toast("Use the farmhouse oven to cook.")
@@ -977,11 +1037,7 @@ func inventory() -> void:
 	ui.open_inventory()
 
 func inventory_stacks() -> Array:
-	var stacks: Array=[]
-	for id in ui.Items.CATALOG:
-		var count=int(state.get(id))
-		if count>0: stacks.append({"id":id,"count":count})
-	return stacks
+	return state.inventory_cells().filter(func(stack):return not stack.is_empty())
 
 func use_inventory_item(id: String) -> void:
 	if state.consume(id): toast("%s %s." % [ui.Items.CATALOG[id].name,"drunk" if id=="health_elixir" else "eaten"])
@@ -1030,6 +1086,10 @@ func preferences() -> void:
 		[("✓ " if selected=="none" else "")+"Time continues",func(): state.pause_mode="none"; preferences()],
 		[("✓ " if selected=="clock" else "")+"Stop calendar · simulation continues",func(): state.pause_mode="clock"; preferences()],
 		[("✓ " if selected=="all" else "")+"Pause entire world · single-player default",func(): state.pause_mode="all"; preferences()],
+		[("✓ " if controls.show_target else "")+"Always show the facing square",func():
+			controls.show_target=not controls.show_target
+			if not testing: controls.save()
+			preferences()],
 		["Sound · music, ambience, and spells",sound_settings],
 		["Artwork · choose a sprite pack",art_settings],
 		["Back",settings]]

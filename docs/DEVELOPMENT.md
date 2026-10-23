@@ -200,6 +200,14 @@ Central homes have more space and side yard openings; vegetation avoids yard edg
 
 Verification passed 1,587 native checks, four asset checks and startup smoke with clean output. The native visual/audio run also passed, including inventory-to-shortcut, shortcut-to-shortcut and spell-to-auxiliary mouse drags. Earlier failing logs remain available under internal/verification. The preexisting launcher executable-bit change remains uncommitted.
 
+## Interaction and character-screen work in progress
+
+Branch: wip/interactions-and-character-screen. Z requested shorter HUD height, synchronized opening battle sounds, hidden HUD during cutscenes, continuous one-cell interior walls and clear doorways, separated sleeping/cooking/bathrooms, a larger equipment diagram with uniform silhouette slots, faster correctly oriented tools, pause verification, acquisition-ordered inventory, drag support across all appropriate slots, a general-store sign, facing-only object activation and default-on target square, floating combat/XP values, and inventory/stats tabs with full quest history while Crew Log shows active quests only.
+
+Initial reproductions: storage buttons had no drag source/target setup and inventory was rebuilt in catalog order. Carried items now have twelve persistent positions; new stacks append after existing positions, dragging reorders them, and storage drags use quantity selection. Active slots, quick slots and storage share drag validation. Inventory-order, storage-drag and facing-interaction tests pass. The pickaxe has its own tile beside the barrel, so the barrel no longer wins its interaction. Object targeting uses the facing cell and real furniture footprints. NPC activation priority remains intact. The facing-square preference defaults on and is saved with controls. Schema 12 currently stores inventory order; no migration was introduced.
+
+The pause reproduction passed: toggling manual pause twice while inventory remains open does not advance time; closing inventory restores normal play. Further real input and GUI checks are still required. Remaining work includes the HUD/cutscene pass, character tabs/equipment artwork, synchronized audio, combat/XP display, interior layout/corner corrections, all regression fixtures and final documentation/commits. No journal tool is available; implementation findings are recorded here. Keep the preexisting scripts/play.sh mode change out of commits.
+
 ## Next discussion
 
 Play and critique the slice before expanding it. Decide the next milestone, combat controls and feel, art direction, calendar/lunar rules, and the first actual networked cooperative interaction. Do not mistake placeholder content for approved final story or mechanics.

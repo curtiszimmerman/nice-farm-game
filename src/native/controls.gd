@@ -4,6 +4,7 @@ const DEFAULTS={"up":KEY_W,"down":KEY_S,"left":KEY_A,"right":KEY_D,"run":KEY_SHI
 const LABELS={"up":"Walk up","down":"Walk down","left":"Walk left","right":"Walk right","run":"Run","primary":"Primary action / left click","aux":"Auxiliary action / right click","inventory":"Inventory","journal":"Crew log","map":"Map","menu":"Game menu","pause":"Pause world","fullscreen":"Fullscreen"}
 const PATH="res://../../internal/controls.cfg"
 var keys=DEFAULTS.duplicate()
+var show_target=true
 
 func _init() -> void:
 	reset()
@@ -27,6 +28,7 @@ func rebind(action: String,key: int) -> void:
 
 func save(path: String=PATH) -> Error:
 	var file=ConfigFile.new()
+	file.set_value("display","show_target",show_target)
 	for action in keys: file.set_value("keyboard",action,keys[action])
 	return file.save(path)
 
@@ -39,3 +41,5 @@ func load_keys(path: String=PATH) -> void:
 		if not key is int or key<=0 or key in loaded.values(): return
 		loaded[action]=key
 	keys=loaded
+	var display=file.get_value("display","show_target",true)
+	if display is bool: show_target=display

@@ -28,8 +28,8 @@ func _ready() -> void:
 	solid_cells[barrel.cell]="barrel"
 	add_site("exit",layout.exit,"Leave cave")
 	add_site("cave_barrel",Vector2i(4,4),"Search entrance barrel")
-	add_site("cave_pickaxe",Vector2i(3,5),"Take the leaning pickaxe")
-	if not state.cave_pickaxe_taken: object({"kind":"pickaxe","cell":Vector2i(3,4)})
+	add_site("cave_pickaxe",Vector2i(4,5),"Take the leaning pickaxe")
+	if not state.cave_pickaxe_taken: object({"kind":"pickaxe","cell":Vector2i(4,4)})
 	if not state.cave_chrysalis_taken:
 		var cell=chambers.back().position+Vector2i(1,1)
 		var chrysalis=object({"kind":"chrysalis","cell":cell})
@@ -141,9 +141,11 @@ func find_nearest() -> Dictionary:
 	var distance=46.0
 	for site in sites:
 		if site.id=="cave_pickaxe" and state.cave_pickaxe_taken: continue
+		if front_cell() not in activation_cells(site): continue
 		var d=state.player_position.distance_to(Grid.center(site.cell))
 		if d<distance: best=site.duplicate(); best.type="site"; distance=d
 	for rock in rocks.values():
+		if rock.cell!=front_cell(): continue
 		var d=state.player_position.distance_to(Grid.center(rock.cell))
 		if d<distance:
 			best={"id":rock.id,"type":"rock","label":"Mine copper · pickaxe" if rock.ore else "Break rock · pickaxe"}
@@ -152,6 +154,11 @@ func find_nearest() -> Dictionary:
 		best={"id":"swing","type":"weapon","label":"Swing sword · 2 energy"}
 	nearest=best
 	return best
+
+func activation_cells(site: Dictionary) -> Array:
+	if site.id=="cave_barrel": return [Vector2i(3,4)]
+	if site.id=="cave_pickaxe": return [Vector2i(4,4)]
+	return [site.cell]
 
 func mine_rock(id: String) -> bool:
 	if not rocks.has(id) or state.active_item()!="pickaxe" or state.pickaxe<1 or state.energy<5: return false

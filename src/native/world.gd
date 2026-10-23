@@ -136,7 +136,12 @@ class Prop extends Node2D:
 			owner_world.paint_person(self, data, sin(owner_world.elapsed * 14.0) if owner_world.moving else 0.0, owner_world.facing)
 			preload("res://tool_motion.gd").draw(owner_world,self)
 		elif kind == "crops": owner_world.paint_crops(self)
-		elif kind == "effects": owner_world.paint_effects(self)
+		elif kind == "effects":
+			owner_world.paint_effects(self)
+			if owner_world.get_parent().controls.show_target:
+				var square=Rect2(Grid.origin(owner_world.front_cell()),Vector2.ONE*32)
+				draw_rect(square,Color("e4daa312"))
+				draw_rect(square,Color("e4daa399"),false,1)
 		elif kind == "sparkfire": owner_world.paint_sparkfire(self,data.get("bloom",false))
 		elif kind == "bush": Art.sprite(self,Art.seasonal("bush"+str(data.variant),data.get("season","spring")),Vector2(-32,-42))
 		elif kind == "stump": Art.sprite(self,"stump",Vector2(-16,-16))
@@ -506,6 +511,13 @@ func target_plot() -> int:
 	var row=point.y
 	return row*5+col if col>=0 and col<5 and row>=0 and row<4 else -1
 
+func front_cell() -> Vector2i:
+	return Grid.world_to_cell(state.player_position)+{"up":Vector2i.UP,"down":Vector2i.DOWN,"left":Vector2i.LEFT,"right":Vector2i.RIGHT}[facing]
+
+func activation_cells(site: Dictionary) -> Array:
+	if site.has("door"): return [site.cell+Vector2i.UP]
+	return [site.cell]
+
 func plot_position(i: int) -> Vector2:
 	return Grid.center(FARM_CELL+Vector2i(i%5,int(i/5.0)))
 
@@ -572,7 +584,7 @@ func find_nearest() -> Dictionary:
 			best.label = "Talk to " + p.name
 			distance = d
 	for p in sites:
-		if p.id=="pond": continue
+		if p.id in ["pond","bed"] or front_cell() not in activation_cells(p): continue
 		var interaction_point=Vector2(p.x,p.y)
 		if p.has("bounds"):
 			interaction_point=state.player_position.clamp(p.bounds.position,p.bounds.end)

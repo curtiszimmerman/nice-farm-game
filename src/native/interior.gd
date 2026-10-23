@@ -254,13 +254,26 @@ func find_nearest() -> Dictionary:
 			best={"id":id,"type":"person","label":"Talk to "+actor.data.name}
 			distance=d
 	for site in sites:
+		if front_cell() not in activation_cells(site): continue
 		var d=state.player_position.distance_to(Vector2(site.x,site.y))
-		if d<distance:
+		if best.is_empty() or d<distance:
 			best=site.duplicate()
 			best.type="site"
 			distance=d
 	nearest=best
 	return best
+
+func activation_cells(site: Dictionary) -> Array:
+	var kind={"bed":"bed","uncover_guest_bed":"bed","uncover_sofa":"sofa","radio":"radio","stove":"kitchen","cabinet":"cabinet","shop":"counter","ship_storage":"stock","diagnostics":"machine","living_light":"floor_lamp","bathroom_light":"floor_lamp"}.get(site.id,"")
+	var cells=[]
+	for item in furnishings:
+		if item.kind!=kind: continue
+		if site.id=="uncover_guest_bed" and item.get("task","")!="guest_bed": continue
+		if site.id=="bed" and item.get("task","")=="guest_bed": continue
+		if kind=="floor_lamp" and (floor_cells[item.bounds.position]=="living")!=(site.id=="living_light"): continue
+		for y in range(item.bounds.position.y,item.bounds.end.y):
+			for x in range(item.bounds.position.x,item.bounds.end.x): cells.append(Vector2i(x,y))
+	return cells if not cells.is_empty() else [site.cell]
 
 func refresh() -> void:
 	var previous_tasks=rendered_tasks
