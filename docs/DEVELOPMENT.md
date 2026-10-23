@@ -220,6 +220,8 @@ Older interaction fixtures now approach and face physical objects rather than st
 
 The development-speed check assumed a fixed outdoor cell stayed clear despite randomized scenery. It now selects a clear road segment away from NPCs and an accessible tree approach, keeping both speed and collision assertions intact.
 
+Final verification passed 1,659 native checks, four Python asset checks and startup smoke with clean logs in internal/verification/checks-character-release.log. The native visual/audio run passed in internal/verification/visual-character-complete.log, including real item/spell drags, quantity transfers and Space-key pause checks. Earlier failing reproductions remain available for review. All requested changes are committed; the preexisting launcher mode change remains uncommitted. No push was performed.
+
 ## Next discussion
 
 Play and critique the slice before expanding it. Decide the next milestone, combat controls and feel, art direction, calendar/lunar rules, and the first actual networked cooperative interaction. Do not mistake placeholder content for approved final story or mechanics.
