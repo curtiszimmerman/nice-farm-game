@@ -30,6 +30,9 @@ func run() -> void:
 	check(game.state.get("experience")==10,"defeated rats cannot award experience twice")
 	var loaded=game.State.new()
 	check(loaded.restore(game.state.to_dict()) and loaded.get("experience")==10,"experience survives saving")
+	var invalid=game.state.to_dict()
+	invalid.experience=-1
+	check(not loaded.restore(invalid) and loaded.experience==10,"invalid experience cannot replace saved progress")
 	var attacker=game.world.rats[1]
 	attacker.position=game.state.player_position+Vector2(0,20)
 	var before=game.state.health

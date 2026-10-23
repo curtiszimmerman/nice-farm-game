@@ -71,7 +71,7 @@ func run() -> void:
 		var bad=snapshot.duplicate(true)
 		bad[field]={"cave_seed":0,"cave_broken":["unknown"],"cave_defeated":[9],"cave_barrel":[{}],"day":"invalid"}[field]
 		check(not restored.restore(bad),"invalid %s is rejected without mutating progress" % field)
-	game.state.player_position=cave.site_position("exit")
+	preload("fixture.gd").face_site(game,"exit")
 	game.interact()
 	check(game.current_room=="","an armed sword still allows using the cave exit")
 	game.enter_building("cave")
@@ -82,7 +82,7 @@ func run() -> void:
 	game.ui.modal_box.get_child(3).pressed.emit()
 	check(game.state.magic_learned and game.state.assign_slot(2,"wildgrowth"),"Iona's free tower lesson unlocks manually assigned Wildgrowth")
 	game.leave_building()
-	game.state.player_position=game.outdoors.site_position("sparkfire")
+	preload("fixture.gd").face_site(game,"sparkfire")
 	game.state.minute=720
 	game.interact()
 	check(game.state.golden_sparkfire_bloom==0,"the sparkfire plant cannot be harvested outside dawn")
@@ -92,7 +92,7 @@ func run() -> void:
 	check(game.state.golden_sparkfire_bloom==1,"sunrise opens one harvestable bloom per day")
 	game.enter_building("cave")
 	game.state.selected_slot=0
-	game.state.player_position=game.world.site_position("chrysalis")
+	preload("fixture.gd").face_site(game,"chrysalis")
 	game.interact()
 	game.interact()
 	check(game.state.cave_moth_chrysalis==1 and game.state.cave_chrysalis_taken,"the deep cave component is collected only once")

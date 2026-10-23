@@ -32,6 +32,11 @@ func run() -> void:
 		check(game.ui.character_quests.get_children().any(func(row):return row is Button and row.get_meta("quest_id","")=="first_harvest"),"completed quests remain available in character history")
 	var loaded=game.State.new()
 	check(loaded.restore(game.state.to_dict()) and loaded.get("quest_order") is Array and loaded.quest_order==game.state.quest_order,"quest assignment order survives saving")
+	var invalid=game.state.to_dict()
+	invalid.quest_order=["crew_supplies","crew_supplies"]
+	check(not loaded.restore(invalid),"duplicate quest history entries are rejected")
+	invalid.quest_order=["unknown_quest"]
+	check(not loaded.restore(invalid),"unknown quest history entries are rejected")
 	await game.sound.shutdown()
 	game.queue_free()
 	await process_frame

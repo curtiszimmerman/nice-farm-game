@@ -86,7 +86,7 @@ func generate() -> void:
 		for y in range(room.position.y+1,room.end.y-1):
 			for x in range(room.position.x+1,room.end.x-1):
 				var cell=Vector2i(x,y)
-				if corridors.has(cell) or cell in [Vector2i(3,4),Vector2i(4,4),Vector2i(3,5),layout.entry,layout.exit,chambers.back().position+Vector2i.ONE]: continue
+				if corridors.has(cell) or cell in [Vector2i(3,4),Vector2i(4,4),Vector2i(3,5),Vector2i(4,5),layout.entry,layout.exit,chambers.back().position+Vector2i.ONE]: continue
 				if absi(cell.x-room.get_center().x)<=1 and absi(cell.y-room.get_center().y)<=1: continue
 				candidates.append(cell)
 		for k in range(candidates.size()-1,0,-1):

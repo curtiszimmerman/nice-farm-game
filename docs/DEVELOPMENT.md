@@ -216,6 +216,8 @@ Laser, hull-hit and enemy-explosion effects share the battle animation clock. To
 
 Both artwork catalogs contain 757 sprites, including equipment placeholders and the general-store sign. The test harness now rejects native error and warning output even when Godot exits successfully. No journal tool is available; implementation findings are recorded here. Keep the preexisting scripts/play.sh mode change out of commits.
 
+Older interaction fixtures now approach and face physical objects rather than standing on their interaction anchors. The thirty-seed cave check caught a rock spawning on the pickaxe's newly moved approach cell; resource placement now reserves that cell. Rebuilding both sprite packs and all three battle effects reproduced their exact SHA-256 hashes.
+
 ## Next discussion
 
 Play and critique the slice before expanding it. Decide the next milestone, combat controls and feel, art direction, calendar/lunar rules, and the first actual networked cooperative interaction. Do not mistake placeholder content for approved final story or mechanics.

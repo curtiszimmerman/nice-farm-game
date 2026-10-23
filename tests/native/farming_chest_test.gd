@@ -57,7 +57,7 @@ func run() -> void:
 	root.add_child(game)
 	game.set_process(false)
 	preload("fixture.gd").explore(game)
-	game.state.player_position=game.world.site_position("chest")+Vector2(0,32)
+	preload("fixture.gd").face_site(game,"chest")
 	game.interact()
 	check(game.window_open and game.ui.chest_slots.size()==18,"E opens the farmhouse chest's eighteen slots")
 	game.ui.chest_slots[0].pressed.emit()
