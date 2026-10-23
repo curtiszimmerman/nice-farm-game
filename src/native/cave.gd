@@ -284,7 +284,7 @@ func paint_object(c: CanvasItem,info: Dictionary) -> void:
 	if info.kind=="pickaxe":
 		if not state.cave_pickaxe_taken: Art.sprite(c,"item_pickaxe",Vector2(-12,-16),Vector2(24,24))
 		return
-	if Art.option==2:
+	if Art.option==2 or info.kind=="spider":
 		var id="copper" if info.kind=="rock" and info.ore else "rock" if info.kind=="rock" else info.kind+str(int(elapsed*6)%3) if info.kind in ["rat","spider"] else info.kind
 		var size=Art.sprite_size(id)
 		Art.sprite(c,id,Vector2(-size.x/2,-size.y+8))

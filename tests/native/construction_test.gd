@@ -30,6 +30,23 @@ func run() -> void:
 	game.interact()
 	check(game.window_open and game.ui.modal_box.get_child(1).text.contains("crucible"),"facing the built crucible opens its smelting menu")
 	game.close_window()
+	var body=game.outdoors.scenery_layer.get_children().filter(func(node):return node.kind=="crucible")[0]
+	await process_frame
+	var draws=body.draw_count
+	game.state.copper=2
+	game.state.start_smelting(0)
+	for i in range(4):
+		game.outdoors.elapsed+=0.1
+		game.outdoors.refresh()
+		await process_frame
+	check(body.draw_count==draws,"the crucible's moving heat does not redraw its retained stone body")
+	var loaded=game.State.new()
+	check(loaded.restore(game.state.to_dict()),"a working crucible saves its pending batch")
+	var rebuilt=game.World.new()
+	rebuilt.state=loaded
+	game.add_child(rebuilt)
+	check(rebuilt.blocked(game.Grid.center(cell)) and rebuilt.sites.any(func(site):return site.id=="crucible"),"loading reconstructs the crucible's collision and interaction")
+	rebuilt.queue_free()
 	var sign=game.outdoors.sites.filter(func(site):return site.id=="sign")[0]
 	check(sign.cell.x in range(20,25) and sign.cell.y in range(44,49),"the road sign stands at the crossroads east of the farmhouse")
 	await game.sound.shutdown()

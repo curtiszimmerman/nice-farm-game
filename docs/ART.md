@@ -1,6 +1,6 @@
 # Pixel artwork
 
-The default artwork is Rustic 16-pixel artwork (option 3): an original RGBA PNG atlas, drawn at 16 pixels per tile and enlarged with nearest-neighbor filtering. Its 763 sprites include seasonal scenery, calendar symbols, connected fences, house walls, residents, floor lamps, a clock pendulum, warm windows, soft lamplight and chimney smoke. `scripts/observatory_sprites16.py` adds the locally drawn brass telescope, domed observatory, astronomer, equipment placeholders, general-store sign and weather sprites. It uses the same standard-library pixel primitives as the established generators and requires no external artwork service. The 32-pixel modular pack remains selectable under Settings → Artwork. All assets and build outputs stay in the project.
+The default artwork is Rustic 16-pixel artwork (option 3): an original RGBA PNG atlas, drawn at 16 pixels per tile and enlarged with nearest-neighbor filtering. Its 776 sprites include seasonal scenery, calendar symbols, connected fences, house walls, residents, floor lamps, a clock pendulum, warm windows, soft lamplight and chimney smoke. `scripts/observatory_sprites16.py` adds the locally drawn brass telescope, domed observatory, astronomer, equipment placeholders, general-store sign, weather sprites, bread, copper bars, crucible, blueprint, spider, status indicators and crossroads sign. It uses the same standard-library pixel primitives as the established generators and requires no external artwork service. The 32-pixel modular pack remains selectable under Settings → Artwork. All assets and build outputs stay in the project.
 
 The previous artwork is preserved as option 1. Its source snapshot is [original-art.tar](../src/native/art/option1/original-art.tar), from commit `9527b38`. The original renderers remain available under Settings → Artwork. Switching options redraws the retained scenery and changes the inventory icons; the choice currently lasts for the session.
 
@@ -14,6 +14,8 @@ The previous artwork is preserved as option 1. Its source snapshot is [original-
 - Actors have facing, walking and sleeping frames. Crops, bushes, cave rocks, copper, rats, inventory icons, opening ships, bridge, planet, explosions and particles all use the atlas.
 
 Each object's geometry and collision still follow the existing invisible grid. Sprites are retained draw commands; changing the art does not require repainting static scenery every frame.
+
+The crucible occupies one tile in both width and height. Its stone body stays retained while the heat overlay animates separately. Construction mode shows the reserved yard and a facing-square placement preview. The cave spider has three leg frames. Status art uses a Zzz tile and a purple skull with a separate red-eye layer for smooth pulsing.
 
 Tool actions last 0.325 seconds. Their transforms account for each icon's working tip and the player's facing direction, including horizontal mirroring. The equipment diagram uses a 224 × 448 silhouette with uniform 64-pixel slots, individual hover descriptions and separate jewelry connectors. Sunny contact shadows, drifting cloud shadows, rain streaks and splashes have separate atlas sprites and rendering nodes. Wet crop variants blend toward dry soil between midnight and sunrise.
 

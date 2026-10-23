@@ -56,12 +56,13 @@ func _initialize() -> void:
 	check(s.buy_seeds() and s.money == 0, "buying seeds charges the quoted price")
 	s.energy = 0.0
 	check(not s.mine() and s.copper == 0, "exhausted mining yields no copper")
+	s.advance(360,false,true)
 	s.energy = 100.0
 	check(not s.mine(),"mining requires an armed pickaxe")
 	s.accept_tool("pickaxe")
 	s.assign_slot(7,"pickaxe")
 	s.selected_slot=7
-	check(s.mine() and s.copper == 1 and s.energy == 95.0, "selected pickaxe mining costs energy")
+	check(s.mine() and s.copper == 1 and s.energy == 95.0, "rested selected pickaxe mining costs five energy")
 	check(not s.meet_mayor(), "mayor cannot meet before invitation")
 	s.invite_mayor()
 	s.advance(119)

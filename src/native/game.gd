@@ -21,7 +21,7 @@ const BRIEFING=[
 	["Captain","Then we'll get what you need. First order of business: the cloak."],
 	["Chief Vale","Already on it. I'm bringing the emergency gravitic power sink online. As long as this planet keeps its gravity well, the cloak should hold. Rather counting on that. It leaves us precious little power for anything else."],
 	["Captain","Keeping that cloak running is our main priority until rescue arrives. Outside of that, the basics: food and water, and our local commlink repeater so we can stay in contact."],
-	["Chief Vale","Three pieces of copper would get our local repeater talking again. The last scan showed a deposit southeast of a settlement below us. A couple of kilometers, give or take. Assuming I was reading the screen the right way up."],
+	["Chief Vale","Three copper bars would get our local repeater talking again. Raw ore won't do; we'll need it refined. The last scan showed a deposit southeast of a settlement below us. A couple of kilometers, give or take. Perhaps the local smith can help us turn it into something useful."],
 	["Captain","What have we got for food?"],
 	["Chief Vale","Six emergency rations stowed by the bunks. One a day for each of us doesn't leave much breathing room. We'll need fresh water and something local to eat. And if you find a kitchen, I'd dearly love a meal that doesn't come out of a foil packet. Leave me something in the locker while I'm working, would you?"],
 	["Captain","We'll find water, food, and the supplies you need. Keep the cloak stable, Vale. We'll start by seeing who's down the mountain."]]
@@ -532,6 +532,9 @@ func interact() -> void:
 	if not activity.is_empty(): return
 	nearest=world.find_nearest()
 	if nearest.get("type")=="person": talk(nearest.id); return
+	if nearest.get("type")=="build":
+		build_crucible()
+		return
 	if nearest.get("id","").begins_with("bench"):
 		sit_on_bench()
 		return
@@ -550,8 +553,8 @@ func interact() -> void:
 		return
 	if nearest.get("type")=="rock":
 		var position=Grid.center(world.rocks[nearest.id].cell)
-		if world.mine_rock(nearest.id): burst(position,"c6a47b",12); save_visit(); toast("Rock mined. Five energy spent.")
-		else: toast("Select a carried pickaxe. Mining costs 5 energy and needs room in your satchel.")
+		if world.mine_rock(nearest.id): burst(position,"c6a47b",12); save_visit(); toast("Rock mined. %d energy spent." % int(state.energy_cost(5)))
+		else: toast("Select a carried pickaxe. Mining costs %d energy and needs room in your satchel." % int(state.energy_cost(5)))
 		return
 	if nearest.is_empty():
 		toast("Walk closer to a person, garden patch, or landmark.")
@@ -571,13 +574,14 @@ func interact() -> void:
 			burst(Grid.center(nearest.cell),"b89662",12)
 			toast("Three pieces of firewood gathered." if not world.solid_cells.has(nearest.cell) else "The axe bites into the trunk.")
 			save_visit()
-		else: toast("You need an axe, four energy, and room for firewood.")
+		else: toast("You need an axe, %d energy, and room for firewood." % int(state.energy_cost(4)))
 	elif nearest.type=="person": talk(nearest.id)
 	else:
 		if nearest.has("door"):
 			enter_building(nearest.door)
 			return
 		match nearest.id:
+			"crucible": crucible_menu(nearest.index)
 			"private_door": dialog("A private door","THE WAYWARD WREN","Rafe's living quarters are beyond the bar. Best to leave him his privacy.")
 			"cave_pickaxe":
 				if state.accept_tool("pickaxe"):
@@ -612,7 +616,7 @@ func interact() -> void:
 				else: rest_options()
 			"pond","ocean","ocean_tip":
 				start_fishing(nearest.id)
-			"sign": dialog("A weathered sign","BRIAR GLEN","East: town and market. Southwest: the old mill pond. Southeast: copper outcrop. Northwest: nothing in particular, according to the official map.")
+			"sign": dialog("The farmhouse crossroads","BRIAR GLEN","East: Briar Glen, general store and smithy. West: the old farmhouse and the coastal path. South: the mill pond and woodland cabins. For the copper cave, take the southeast road from town.")
 			"radio":
 				if current_room=="home" and not state.house_tasks.radio: tidy_farmhouse("radio")
 				else: radio()
@@ -808,6 +812,43 @@ func perform_drop(data: Dictionary,destination: Dictionary,amount: int) -> bool:
 	if destination.get("channel","")!="": return state.assign_active(destination.channel,data.id)
 	return state.assign_slot(int(destination.quick_index),data.id)
 
+func build_crucible() -> void:
+	if world!=outdoors or not outdoors.can_build_crucible(world.front_cell()):
+		toast("Face a clear square in the building yard east of your garden.")
+		return
+	if not state.build_crucible(world.front_cell()):
+		toast("Learn Dain's blueprint and carry %d stone to build a crucible." % State.CRUCIBLE_STONE)
+		return
+	outdoors.add_crucible(state.crucibles.size()-1)
+	save_visit()
+	toast("Stone crucible built. Face it to smelt copper ore.")
+
+func crucible_menu(index: int) -> void:
+	var station=state.crucibles[index]
+	var choices=[]
+	var description="%d copper ore becomes one bar in %d game minutes. No fuel needed." % [State.ORE_PER_BAR,int(State.SMELT_MINUTES)]
+	if station.bars>0:
+		choices.append(["Collect copper bar",func():
+			toast("Copper bar collected." if state.collect_copper_bar(index) else "Make room in your satchel for the copper bar.")
+			save_visit()
+			crucible_menu(index)])
+	elif station.ready_at>=0:
+		description+="\n\nSmelting: %d game minutes remaining. Leave it working while you get on with your day." % ceili(station.ready_at-state.total())
+	else:
+		choices.append(["Smelt %d copper ore · %d minutes" % [State.ORE_PER_BAR,int(State.SMELT_MINUTES)],func():
+			toast("The copper begins to melt." if state.start_smelting(index) else "You need %d copper ore in your satchel." % State.ORE_PER_BAR)
+			save_visit()
+			crucible_menu(index)])
+	choices.append(["Leave the crucible",func(): pass])
+	panel("Stone crucible","COPPER REFINING",description,choices)
+
+func learn_crucible() -> void:
+	if not state.learn_crucible():
+		dialog("Dain Rusk","A FAIR EXCHANGE","Bring me ten star bulbs and I'll show you how to build a stone crucible. I use them to check the temper of a blade; that little glow shows up a crack beautifully.")
+		return
+	save_visit()
+	dialog("Dain Rusk","CRUCIBLE BLUEPRINT LEARNED","There you are. Ten pieces of stone make a small crucible. Select the blueprint from your inventory's abilities, then face a clear square in the yard east of your garden and activate it. Two lumps of copper ore will make a bar in half an hour. Set it going and get on with your day. Three bars for your engineer, was it? That should do nicely.")
+
 func cooking() -> void:
 	if current_room!="home" or world.front_cell() not in world.activation_cells(world.sites.filter(func(site):return site.id=="stove")[0]):
 		toast("Use the farmhouse oven to cook.")
@@ -836,10 +877,12 @@ func talk(id: String) -> void:
 	match id:
 		"smith":
 			var at_work=current_room=="smithy"
-			dialog("Dain Rusk","BLACKSMITH","Mind the hot scale. I can tell a lot about a tool by the wear on its edge. Bring yours by when you're ready to talk about better steel." if at_work else "Good to stretch my shoulders after a day at the forge. If you're thinking about upgrading your tools, come see me at the smithy.",[
+			var choices=[
 				["Tell me about your work.",func(): dialog("Dain Rusk","BETTER TOOLS","A sound handle, a balanced head, an edge that holds. That's where I'd start. Bring your tools to the forge and we'll talk about what they need.")],
 				["What sort of work do you do?",func(): dialog("Dain Rusk","IRON & HONEST WEAR",preload("res://neighbors.gd").STORIES.smith.split("|",true,1)[1])],
-				["See you around.",func(): pass]])
+				["See you around.",func(): pass]]
+			if at_work and not state.crucible_known: choices.push_front(["Learn crucible blueprint · 10 star bulbs",learn_crucible])
+			dialog("Dain Rusk","BLACKSMITH","Mind the hot scale. I can tell a lot about a tool by the wear on its edge. Bring yours by when you're ready to talk about better steel." if at_work else "Good to stretch my shoulders after a day at the forge. If you're thinking about upgrading your tools, come see me at the smithy.",choices)
 		"woodcutter":
 			dialog("Rowan","FOREST WOODCUTTER","Mind the shavings if you're coming in. I've a spare axe, if you're after firewood. Oren's knees aren't what they used to be; he shouldn't be swinging one at all." if current_room=="woodcutter" else "Hello there. Leave the little saplings, won't you? The older trees give us all the wood we need. If you're looking for an axe, I've a spare you can keep.",[
 				["I'd appreciate an axe.",func(): offer_tool("axe","Rowan")],
@@ -916,10 +959,10 @@ func talk(id: String) -> void:
 		"vale":
 			if not state.briefing_complete: show_briefing(); return
 			if state.delivered: dialog("Chief Vale","CHIEF ENGINEER · SECURE CREW LINK","Give your commlink a try. Hear that? Much better than shouting down a mountain. The cloak's holding, too. "+("Thanks for seeing to supper. I'll try to earn it before the day's out." if state.crew_fed_day==state.day else "I meant to stop for breakfast, but the locker was empty. If you find something to cook, save me a helping?"))
-			else: dialog("Chief Vale","CHIEF ENGINEER · SECURE CREW LINK","The cloak's behaving. Wish I could say the same for the engines. Bring me three copper from that southeast cave and we'll at least have our crew link back. How's the search for supper going? The emergency rations won't last forever. Leave me a cooked meal in the locker if you can. I'll try not to get engine grease on it.",[
-				["Hand over three copper." if state.copper>=3 else "I'll look inside the southeast cave.",func():
-					if state.copper>=3:
-						state.copper-=3
+			else: dialog("Chief Vale","CHIEF ENGINEER · SECURE CREW LINK","The cloak's behaving. Wish I could say the same for the engines. Bring me three copper bars and we'll at least have our crew link back. The ore is in that southeast cave, but it'll need refining. Try the town smith; he may know how to build a crucible. How's the search for supper going? Leave me a cooked meal in the locker if you can. I'll try not to get engine grease on it.",[
+				["Hand over three copper bars." if state.copper_bars>=3 else "I'll ask the smith about refining copper.",func():
+					if state.copper_bars>=3:
+						state.copper_bars-=3
 						state.delivered=true
 						save_visit()
 						burst(state.player_position,"a3d4d0")
@@ -1097,7 +1140,7 @@ func journal() -> void:
 	var visit="Speak with Moss behind the farmhouse to arrange the visit."
 	if state.invited:
 		visit="The mayor's welcome is complete." if state.met_mayor else "Wait inside the farmhouse and finish every cover and bulb. Moss brings Alder and Neral after the house is ready. The welcome sequence holds the clock."
-	panel("Captain's field notes","FIRST LANDING","%s Shelter · speak with Moss behind the farmhouse.\n\n%s %s\n\n%s Make the house a home · remove the furniture covers and replace both broken light bulbs. Spares are in the kitchen cabinet.\n\n%s Provide for ourselves · harvest a moon turnip; Tavi buys produce.\n\n%s Crew communications · bring Vale three copper from southeast of town. Keep food in the ship locker." % ["✓" if state.invited else "○","✓" if state.met_mayor else "○",visit,"✓" if state.house_tasks.values().all(func(done): return done) else "○","✓" if state.harvested>0 else "○","✓" if state.delivered else "○"])
+	panel("Captain's field notes","FIRST LANDING","%s Shelter · speak with Moss behind the farmhouse.\n\n%s %s\n\n%s Make the house a home · remove the furniture covers and replace both broken light bulbs. Spares are in the kitchen cabinet.\n\n%s Provide for ourselves · harvest a moon turnip; Tavi buys produce.\n\n%s Crew communications · bring Vale three copper bars. Dain teaches a crucible blueprint for ten star bulbs; build it with stone and smelt the cave ore. Keep food in the ship locker." % ["✓" if state.invited else "○","✓" if state.met_mayor else "○",visit,"✓" if state.house_tasks.values().all(func(done): return done) else "○","✓" if state.harvested>0 else "○","✓" if state.delivered else "○"])
 	ui.modal.get_child(1).position.y=55
 
 func map_notes() -> void:

@@ -8,6 +8,7 @@ const PLATFORM=Rect2i(-26,48,7,7)
 const LIGHTHOUSE=Rect2i(-25,48,3,3)
 const TIP=Rect2i(-26,51,3,4)
 const PATHS=[
+	[Vector2i(21,47),Vector2i(21,53)],
 	[Vector2i(13,45),Vector2i(14,45),Vector2i(14,54),Vector2i(7,54),Vector2i(7,50),Vector2i(2,50),Vector2i(2,52),Vector2i(0,52)],
 	[Vector2i(21,53),Vector2i(21,61),Vector2i(23,61),Vector2i(23,71),Vector2i(33,71),Vector2i(33,83),Vector2i(42,83),Vector2i(42,81)],
 	[Vector2i(33,83),Vector2i(29,83),Vector2i(29,80)]

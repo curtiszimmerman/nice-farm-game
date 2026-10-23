@@ -782,7 +782,7 @@ func toggle_log() -> void:
 
 func quest_lines() -> Array:
 	var s=game.state
-	var lines=[{"id":"crew_supplies","title":"A quiet signal home","description":"Vale is keeping the cloak stable. Help him restore contact and keep the crew fed.","tasks":[{"text":"Bring Vale three copper","done":s.delivered},{"text":"Leave food in the ship locker","done":s.crew_fed_day>=s.day}]}]
+	var lines=[{"id":"crew_supplies","title":"A quiet signal home","description":"Vale needs refined copper. Ask Dain at the smithy about a crucible blueprint, then build one east of your garden and smelt the cave ore. Keep food in the ship locker too.","tasks":[{"text":"Learn Dain's crucible blueprint · 10 star bulbs","done":s.crucible_known},{"text":"Build a stone crucible · 10 stone","done":not s.crucibles.is_empty()},{"text":"Bring Vale three copper bars","done":s.delivered},{"text":"Leave food in the ship locker","done":s.crew_fed_day>=s.day}]}]
 	if s.invited:
 		lines.append({"id":"restore_farmhouse","title":"A place to begin","description":"Make the abandoned farmhouse welcoming before Moss brings the mayor.","tasks":[{"text":"Remove the covers from the furniture","done":["sofa","bed","guest_bed","radio"].all(func(id):return s.house_tasks[id])},{"text":"Change the lightbulbs around the house","done":s.house_tasks.living_light and s.house_tasks.bathroom_light}]})
 	if s.met_mayor: lines.append({"id":"first_harvest","title":"Putting down roots","description":"Moss left tools and seeds. Work a small garden to provide for yourselves.","tasks":[{"text":"Harvest a moon turnip","done":s.harvested>0}]})
@@ -952,10 +952,11 @@ func update() -> void:
 	elif p.y>2550: region.text="Southern woodland"
 	elif game.world.Grid.rect(game.world.OUTCROP_CELLS.position,game.world.OUTCROP_CELLS.size).grow(200).has_point(p): region.text="Copper foothills"
 	if game.world!=game.outdoors: region.text=game.world.room_name()
+	elif game.world.Grid.BUILD_AREA.has_point(game.world.Grid.world_to_cell(p)): region.text="Farmhouse building yard"
 	place.text = "A quiet signal" if region.text=="The hidden clearing" else "Briar Glen"
 	objective.text = "Follow the mountain path to the back of the farmhouse. Find out who lives here." if not s.invited else "The mayor's party is waiting at the farmhouse." if not s.met_mayor and s.mayor_available() else "Moss is fetching the mayor. They return two hours after you spoke. Tidy the farmhouse while you wait." if not s.met_mayor else "A home, a little soil, a place in the world. Keep the farmhouse clean and work the garden."
 	if s.invited and not s.met_mayor: objective.text="Uncover the farmhouse furniture and replace both bulbs. Moss will return with the mayor after the house is ready."
-	next_task.text = "○ Tend your first moon turnip" if s.harvested==0 else "○ Chief Vale needs 3 copper" if not s.delivered else "✓ Crew link restored"
+	next_task.text = "○ Tend your first moon turnip" if s.harvested==0 else "○ Chief Vale needs 3 copper bars" if not s.delivered else "✓ Crew link restored"
 	if s.invited:
 		for task in s.house_tasks:
 			if not s.house_tasks[task]:

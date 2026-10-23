@@ -75,6 +75,23 @@ def sprites(Pixels):
         tired.line(x + size - 1, y, x, y + size - 1, "f5dfaa")
         tired.hline(x, x + size - 1, y + size - 1, "f5dfaa")
     result["status_tired"] = tired
+    marker = Pixels(16, 16)
+    for x, y, sx, sy in [(0, 0, 1, 1), (15, 0, -1, 1), (0, 15, 1, -1), (15, 15, -1, -1)]:
+        marker.line(x, y, x + sx * 3, y, "ffffffff")
+        marker.line(x, y, x, y + sy * 3, "ffffffff")
+    result["build_marker"] = marker
+    waypost = Pixels(16, 24)
+    waypost.box(7, 2, 3, 21, "6f4a33")
+    waypost.vline(7, 3, 21, "bc8b50")
+    waypost.polygon([(0, 3), (13, 3), (15, 6), (13, 9), (0, 9)], "a87542")
+    waypost.hline(1, 12, 4, "e1b56c")
+    waypost.polygon([(3, 11), (15, 11), (15, 16), (3, 16), (0, 13)], "89603e")
+    waypost.hline(4, 13, 12, "c89c60")
+    for x in (3, 6, 9):
+        waypost.vline(x, 6, 7, "4b3d30")
+        waypost.dot(x + 2, 14, "4b3d30")
+    waypost.oval(8, 22, 5, 1, "6d735c")
+    result["crossroads_sign"] = waypost
     cloud = Pixels(80, 40)
     for x, y, rx, ry in [(15, 23, 14, 10), (31, 17, 20, 14), (53, 18, 18, 13), (66, 25, 12, 9)]:
         cloud.oval(x, y, rx, ry, "ffffff55")

@@ -31,6 +31,12 @@ func _initialize() -> void:
 		check(not s.is_tired() and s.awake_minutes==0,"six consecutive hours asleep clears tiredness")
 		s.advance(5,false,true)
 		check(is_equal_approx(s.energy,37),"energy recovery returns to full strength after tiredness clears")
+		var interrupted=State.new()
+		interrupted.awake_minutes=1441
+		interrupted.advance(180,false,true)
+		interrupted.advance(1)
+		interrupted.advance(180,false,true)
+		check(interrupted.is_tired(),"two short naps separated by waking do not count as six consecutive sleeping hours")
 	if s.has_method("apply_poison"):
 		var poisoned=State.new()
 		poisoned.apply_poison()
@@ -49,6 +55,9 @@ func _initialize() -> void:
 		check(poisoned.health==74,"refreshing poison never postpones its next damage tick")
 		var loaded=State.new()
 		check(loaded.restore(poisoned.to_dict()) and loaded.status_effects==poisoned.status_effects,"status timers survive saving")
+		var bad=poisoned.to_dict()
+		bad.status_effects.poison.remaining=-1
+		check(not loaded.restore(bad),"corrupt poison durations are rejected")
 		var paused=State.new()
 		paused.apply_poison()
 		paused.advance(30,true)

@@ -25,7 +25,7 @@ func run() -> void:
 	while game.window_open:
 		lines.append(game.ui.modal_box.get_child(2).text)
 		game.ui.modal_box.get_child(3).pressed.emit()
-	check(game.state.briefing_complete and lines.any(func(line): return "gravitic power sink" in line) and lines.any(func(line): return "Three pieces of copper" in line),"the briefing explains cloak power supplies and the commlink repair")
+	check(game.state.briefing_complete and lines.any(func(line): return "gravitic power sink" in line) and lines.any(func(line): return "Three copper bars" in line),"the briefing explains cloak power supplies and the refined-copper repair")
 	game.leave_building()
 	var w=game.world
 	var start=w.Grid.world_to_cell(game.state.player_position)

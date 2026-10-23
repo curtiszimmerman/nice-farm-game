@@ -209,7 +209,7 @@ static func outdoors(w: Node2D) -> void:
 			for x in range(garden.position.x,garden.end.x): sprite(w,"crop_turnip" if (x+y)%3 else "crop_sprout",Grid.origin(Vector2i(x,y)))
 	sprite(w,"chest",w.site_position("chest")-Vector2(16,40))
 	sprite(w,"cart",Grid.origin(w.CART_CELLS.position)-Vector2(0,32))
-	sprite(w,"sign",w.site_position("sign")-Vector2(32,52))
+	sprite(w,"crossroads_sign",w.site_position("sign")-Vector2(16,40),Vector2(32,48))
 	for cell in w.LAMP_CELLS: sprite(w,"lamp",Grid.center(cell)-Vector2(16,86))
 	var radio=w.site_position("radio")
 	sprite(w,"furniture_table_2x1",radio-Vector2(36,36))

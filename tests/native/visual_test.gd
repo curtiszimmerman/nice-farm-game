@@ -203,7 +203,7 @@ func run() -> void:
 	game.state.star_bulbs=2
 	game.state.star_seeds=3
 	game.state.fish=2
-	game.state.copper=3
+	game.state.copper_bars=3
 	game.state.accept_sword()
 	game.inventory()
 	await capture("inventory")

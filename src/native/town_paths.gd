@@ -39,6 +39,7 @@ static func yards(world: Node2D) -> void:
 				world._claim(Rect2i(cell,Vector2i.ONE),"flowerbed")
 
 static func road_blocked(world: Node2D,cell: Vector2i) -> bool:
+	if Grid.BUILD_AREA.has_point(cell): return true
 	if world.blocked(Grid.center(cell)): return true
 	if Rect2i(world.FARM_CELL,Vector2i(5,4)).has_point(cell): return true
 	for field in world.DECORATIVE_FIELDS+world.Neighbors.FIELDS:

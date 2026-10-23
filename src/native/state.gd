@@ -635,6 +635,7 @@ func restore(data: Variant) -> bool:
 		if not Grid.BUILD_AREA.has_point(cell) or cell in stations: return false
 		stations.append(cell)
 		if station.bars not in [0,1] or not _number(station.get("ready_at")) or station.ready_at< -1: return false
+		if station.ready_at<0 and station.ready_at!= -1: return false
 		if station.ready_at>=0 and station.bars>0: return false
 	for id in data.status_effects:
 		if id!="poison" or not data.status_effects[id] is Dictionary: return false
@@ -667,6 +668,7 @@ func restore(data: Variant) -> bool:
 		if pair.size()!=2 or not pair[0].is_valid_int() or not pair[1].is_valid_int() or not Grid.contains(Vector2i(int(pair[0]),int(pair[1]))): return false
 	if not data.get("magic_learned") is bool: return false
 	if not data.magic_learned and "wildgrowth" in [data.inventory_selection,data.auxiliary_selection]: return false
+	if not data.crucible_known and "build_crucible" in [data.inventory_selection,data.auxiliary_selection]: return false
 	if not _number(data.get("cave_seed")) or data.cave_seed<1 or data.cave_seed>2147483646 or data.cave_seed!=floor(data.cave_seed): return false
 	if not data.get("cave_chrysalis_taken") is bool or not _number(data.get("sparkfire_picked_day")) or data.sparkfire_picked_day<0 or data.sparkfire_picked_day!=floor(data.sparkfire_picked_day): return false
 	if not data.get("cave_broken") is Array or not data.get("cave_defeated") is Array: return false
@@ -695,6 +697,7 @@ func restore(data: Variant) -> bool:
 	for id in data.quick_slots:
 		if id!="" and not Skills.CATALOG.has(id) and not Items.CATALOG.has(id): return false
 		if id=="wildgrowth" and not data.magic_learned: return false
+		if id=="build_crucible" and not data.crucible_known: return false
 	for field in ["cabinet","ship_storage"]:
 		if not data.get(field) is Array or data[field].size()!=12: return false
 		for stack in data[field]:

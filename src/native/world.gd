@@ -58,7 +58,7 @@ const SITES = [
 	{"id":"pond","cell":Vector2i(21,67),"label":"Fish from the jetty"},
 	{"id":"ore","cell":Vector2i(94,74),"door":"cave","label":"Enter copper cave"},
 	{"id":"sparkfire","cell":Vector2i(58,16),"label":"Inspect woodland plant"},
-	{"id":"sign","cell":Vector2i(30,42),"label":"Read the signpost"},
+	{"id":"sign","cell":Vector2i(22,46),"label":"Read the crossroads sign"},
 	{"id":"radio","cell":Vector2i(55,39),"label":"Listen to the radio"}
 ]
 const ROAD_ROUTES = [
@@ -140,6 +140,7 @@ class Prop extends Node2D:
 		elif kind == "crops": owner_world.paint_crops(self)
 		elif kind == "effects":
 			owner_world.paint_effects(self)
+			owner_world.paint_build_preview(self)
 			if not owner_world.cutscene_hidden(): owner_world.paint_combat_texts(self)
 			if owner_world.should_highlight():
 				var square=Rect2(Grid.origin(owner_world.front_cell()),Vector2.ONE*32)
@@ -152,6 +153,10 @@ class Prop extends Node2D:
 		elif kind == "fountain": Art.sprite(self,"fountain"+str(int(owner_world.elapsed*6)%4),Vector2(0,-80))
 		elif kind == "mill_sails": Art.sprite(self,"mill_sails"+str(int(owner_world.elapsed*2)%4),Vector2(-48,-48))
 		elif kind == "bulletin_board": Art.sprite(self,"bulletin_board",Vector2(-16,-96))
+		elif kind == "crucible": Art.sprite(self,"crucible",Vector2(0,-32),Vector2(32,32))
+		elif kind == "crucible_heat":
+			if owner_world.state.crucibles[data.index].ready_at>=0:
+				Art.sprite(self,"crucible_hot",Vector2(0,-32),Vector2(32,32),Color(1,1,1,0.8+sin(owner_world.elapsed*8)*0.2))
 
 func _ready() -> void:
 	y_sort_enabled = true
@@ -191,6 +196,7 @@ func _ready() -> void:
 		trees.append(tree)
 		tree.node=_prop("tree",p,tree)
 	for b in buildings: _prop("building",Vector2(b.x,b.y+b.h),b)
+	for index in range(state.crucibles.size()): add_crucible(index)
 	for p in people: villagers[p.id]=_prop("person",Vector2(p.x,p.y),p)
 	crops = _prop("crops",Vector2.ZERO,{})
 	crops.z_index = 0
@@ -220,6 +226,29 @@ func _claim(footprint: Rect2i,kind: String) -> void:
 			var cell=Vector2i(x,y)
 			assert(not solid_cells.has(cell),"Overlapping map footprints at %s" % cell)
 			solid_cells[cell]=kind
+
+func can_build_crucible(cell: Vector2i) -> bool:
+	if not Grid.BUILD_AREA.has_point(cell) or blocked(Grid.center(cell)) or road_cells.has(cell): return false
+	return not villagers.values().any(func(actor):return actor.visible and actor.position.distance_to(Grid.center(cell))<Bodies.RADIUS)
+
+func add_crucible(index: int) -> void:
+	var station=state.crucibles[index]
+	var cell=Vector2i(station.x,station.y)
+	_claim(Rect2i(cell,Vector2i.ONE),"crucible")
+	_prop("crucible",Grid.origin(cell+Vector2i.DOWN),{"index":index})
+	_prop("crucible_heat",Grid.origin(cell+Vector2i.DOWN),{"index":index})
+	var point=Grid.center(cell)
+	sites.append({"id":"crucible","index":index,"cell":cell,"x":point.x,"y":point.y,"label":"Use stone crucible"})
+
+func paint_build_preview(canvas: CanvasItem) -> void:
+	if get("building")!=null: return
+	if cutscene_hidden() or "build_crucible" not in [state.active_item("primary"),state.active_item("aux")]: return
+	for y in range(Grid.BUILD_AREA.position.y,Grid.BUILD_AREA.end.y):
+		for x in range(Grid.BUILD_AREA.position.x,Grid.BUILD_AREA.end.x):
+			var cell=Vector2i(x,y)
+			Art.sprite(canvas,"build_marker",Grid.origin(cell),Vector2(32,32),Color(0.75,0.9,0.8,0.3))
+	var valid=can_build_crucible(front_cell()) and state.stones>=state.CRUCIBLE_STONE
+	Art.sprite(canvas,"crucible",Grid.origin(front_cell()),Vector2(32,32),Color(0.7,1,0.8,0.65) if valid else Color(1,0.5,0.5,0.55))
 
 func attack() -> bool:
 	if state.active_item()!="rusty_sword" or state.rusty_sword<1 or not state.spend_energy(2): return false
@@ -253,6 +282,8 @@ func rebuild_visit(new_state: RefCounted) -> void:
 	_ready()
 
 func _build_layout() -> void:
+	for y in range(Grid.BUILD_AREA.position.y,Grid.BUILD_AREA.end.y):
+		for x in range(Grid.BUILD_AREA.position.x,Grid.BUILD_AREA.end.x): reserved_cells[Vector2i(x,y)]=true
 	for y in range(Grid.MAP_SIZE.y):
 		for x in range(Coast.MIN_X,Grid.MAP_SIZE.x):
 			var cell=Vector2i(x,y)
@@ -459,7 +490,7 @@ func _prop(kind: String, pos: Vector2, data: Dictionary) -> Prop:
 	p.kind = kind
 	p.data = data
 	p.position = pos
-	(scenery_layer if kind in ["tree","building","bush","stump","bench"] else moving_layer).add_child(p)
+	(scenery_layer if kind in ["tree","building","bush","stump","bench","crucible"] else moving_layer).add_child(p)
 	return p
 
 func refresh() -> void:
@@ -489,7 +520,7 @@ func refresh() -> void:
 			if child.kind in ["fountain","mill_sails"]:
 				var frame=int(elapsed*(6 if child.kind=="fountain" else 2))%4
 				if child.data.frame!=frame: child.data.frame=frame; child.queue_redraw()
-			elif child.kind == "effects": child.queue_redraw()
+			elif child.kind in ["effects","crucible_heat"]: child.queue_redraw()
 			elif child.kind=="sparkfire":
 				var bloom=state.minute>=330 and state.minute<420 and state.sparkfire_picked_day!=state.day
 				if child.data.bloom!=bloom: child.data.bloom=bloom; child.queue_redraw()
@@ -613,6 +644,8 @@ func find_nearest() -> Dictionary:
 			best = p.duplicate()
 			best.type = "site"
 			distance = d
+	if best.is_empty() and state.active_item()=="build_crucible":
+		best={"type":"build","cell":front_cell(),"label":"Build stone crucible · %d stone" % state.CRUCIBLE_STONE}
 	if best.is_empty(): best=coastal_fishing(state.player_position)
 	nearest = best
 	return best

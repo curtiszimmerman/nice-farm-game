@@ -19,9 +19,11 @@ The world uses 32-unit tiles. The mainland spans 120 × 90 cells; a 28-cell west
 
 Collision reads the populated cell map. Static solid footprints reject overlapping placement; trees reserve their cells after checking the same map. Farm gates and the jetty reserve traversal space. Native checks verify alignment, population exclusions, footprints, route connectivity, interaction reachability, copper collection, and smooth movement.
 
-Saved world and cave seeds vary decoration and resource placement between visits. Paths and interaction destinations remain clear. Resource generation consumes the same seeded choices after clearing a tree or rock, so reloading does not reshuffle the rest. Version 13 also stores daily watering state and the weather override. Unsupported older saves remain preserved; no automatic migration is implemented.
+Saved world and cave seeds vary decoration and resource placement between visits. Paths and interaction destinations remain clear. Resource generation consumes the same seeded choices after clearing a tree or rock, so reloading does not reshuffle the rest. Version 14 also stores status timers, blueprint knowledge and placed crucibles with their pending batches. Unsupported older saves remain preserved; no automatic migration is implemented.
 
 Physical interactions select the grid cell ahead of the player and match the object's actual footprint. The cave barrel and leaning pickaxe occupy separate cells. The farmhouse has a straight central hall; interior partitions occupy one cell, with clear approach cells on both sides of doorways. Kitchens, bathrooms and bedrooms have separate room boundaries.
+
+The twelve-by-eight building yard starts at cell (25,49), east of the garden. Trees, bushes and roads reserve it for player construction. Crucibles occupy individual solid cells; placement rejects roads, occupied ground and NPC bodies. Saving reconstructs each structure's collision and facing-square interaction. The crossroads sign stands at (22,46), beside the farm-to-town and southern woodland paths.
 
 Doorway activation spans both the threshold and the next tile along the direction of travel. The cave mouth has two columns, the ship boarding edge has three, and the crew locker activates across its three visible shelf squares. The bulletin board activates across both occupied tiles. The full visible ship hull is solid. Weather shadows and sky effects use separate drawing nodes; static environment layers remain retained.
 

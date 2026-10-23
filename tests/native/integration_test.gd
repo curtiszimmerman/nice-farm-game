@@ -63,12 +63,12 @@ func run() -> void:
 	game.interact()
 	check(game.state.copper==1,"mining completes through the game controller with a selected pickaxe")
 	game.leave_building()
-	game.state.copper=3
+	game.state.copper_bars=3
 	game.enter_building("ship")
 	game.state.player_position=game.world.villagers.vale.position+Vector2(0,15)
 	game.interact()
 	game.ui.modal_box.get_child(3).pressed.emit()
-	check(game.state.delivered and game.state.copper==0,"crew repair consumes copper and completes objective")
+	check(game.state.delivered and game.state.copper_bars==0,"crew repair consumes copper bars and completes objective")
 	game.leave_building()
 	game.select_quick_slot(0)
 	game.state.player_position=game.world.site_position("pond")

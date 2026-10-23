@@ -19,11 +19,23 @@ func run() -> void:
 	if strip!=null:
 		check(strip.visible and strip.get_child_count()==2 and absf(strip.position.x+strip.size.x/2-640)<1,"tiredness and poison appear centered above the world")
 		check(strip.get_children().all(func(icon):return not icon.tooltip_text.is_empty()),"status indicators explain their gameplay effects on hover")
+		var eyes=game.ui.status_icons.poison.get_node("PoisonEyes")
+		var alpha=eyes.modulate.a
+		game.ui._process(0.1)
+		check(eyes.modulate.a!=alpha,"the poison skull's red eyes pulse")
 		game.dialog("Moss","HELLO","A little conversation.")
 		check(not strip.visible,"cutscenes also hide status indicators")
 		game.close_window()
 		game.ui.update()
 		check(strip.visible,"status indicators return after a cutscene")
+	game.state.energy=50
+	game.state.rusty_sword=1
+	game.state.assign_active("primary","rusty_sword")
+	check(game.world.attack() and game.state.energy==46,"tired sword swings spend four energy")
+	game.state.axe=1
+	game.state.assign_active("primary","axe")
+	var tree=game.outdoors.trees[0]
+	check(game.outdoors.chop_tree(tree.cell) and game.state.energy==38,"tired axe swings spend eight energy")
 	game.state.health=1
 	game.state.status_effects.clear()
 	game.state.apply_poison()

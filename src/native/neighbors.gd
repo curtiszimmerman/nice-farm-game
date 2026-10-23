@@ -70,6 +70,6 @@ static func talk(game: Node2D,id: String) -> bool:
 	var text=story[1] if working else OFF_DUTY.get(id,story[1])
 	var choices=[]
 	if id=="baker" and working:
-		choices=[["Buy fresh bread · 6 crowns · 20 energy",game.buy_bread],["Nothing today, thank you.",func(): pass]]
+		choices=[["Buy fresh bread · 6 crowns · %s energy" % str(game.state.energy_recovery(game.state.Items.FOOD.bread.energy)),game.buy_bread],["Nothing today, thank you.",func(): pass]]
 	game.dialog(story[0],PEOPLE.filter(func(p):return p.id==id)[0].role,text,choices)
 	return true
