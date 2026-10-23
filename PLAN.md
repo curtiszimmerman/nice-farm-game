@@ -180,6 +180,12 @@ Players start without magic. Iona offers Wildgrowth free at her tower and explai
 
 Each town interior has independently authored room geometry and furnishings. Static terrain and scenery retain Godot CanvasItem draw lists. Moving actors, crop changes, ambient particles and spell effects update separately; ship displays animate over retained machinery bodies. Furniture covers and repaired lights invalidate drawings only when their state changes.
 
+The Crew Log opens on the left. Calendar labels use larger pixel text and gold-framed green windows. Development weather choices already support automatic, sunny, partly cloudy and rainy days. Welcome visitors enter in a spaced procession as soon as the preceding visitor clears the doorway. Indoor departures follow the same effective schedule as outdoor movement, including story overrides and abandoned conversations.
+
+Garden plots can be watered at any stage, preserving normal charge and energy costs. A seeded sample of about 7.5% of bushes offers berries in spring and summer; about 7.5% of oak-like trees offers apples in autumn. Each plant replenishes seven full days after harvesting, with timers saved. Mara Bell is Mrs. Bell, the millwright. Nessa borrowed her ladder for a radio aerial without asking and left it inside the family's tool shed east of their home. Returning it completes a small local quest.
+
+The cave mouth's two visible columns match its usable footprint. Its interior exit is a rocky opening showing sky and treetops. The existing spider guards the final-room chrysalis. Golden glints mark rare lantern-ray water at the western jetty's sea end from 19:00 to 06:00; the fish joins that habitat only during those hours.
+
 1. Review the native Godot slice and agree on the next playable increment.
 2. Camera perspective, movement, input devices, and combat controls.
 3. Initial playable slice and its acceptance criteria.

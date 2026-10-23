@@ -28,6 +28,13 @@ var storm_eel=0
 var copper = 0
 var copper_bars=0
 var bread=0
+var berries=0
+var apples=0
+var ladder=0
+var ladder_requested=false
+var ladder_taken=false
+var ladder_returned=false
+var forage_harvests: Dictionary={}
 var star_seeds = 0
 var star_bulbs = 0
 var rusty_sword = 0
@@ -84,7 +91,7 @@ var golden_sparkfire_bloom=0
 var mayor_due=-1.0
 var house_tasks={"sofa":false,"bed":false,"guest_bed":false,"radio":false,"living_light":false,"bathroom_light":false}
 const INVENTORY_SLOTS=12
-const EXTRA_ITEMS=["pot","pan","fish_sticks","fish_stew","health_elixir","rations","light_bulbs","moon_pike","sea_sprat","blue_mackerel","storm_eel","pickaxe","stones","cave_moth_chrysalis","golden_sparkfire_bloom","lantern_ray","axe","wood","bread","copper_bars"]
+const EXTRA_ITEMS=["pot","pan","fish_sticks","fish_stew","health_elixir","rations","light_bulbs","moon_pike","sea_sprat","blue_mackerel","storm_eel","pickaxe","stones","cave_moth_chrysalis","golden_sparkfire_bloom","lantern_ray","axe","wood","bread","copper_bars","berries","apples","ladder"]
 const CROP_MINUTES=4320.0
 const RECIPES={"fish_sticks":{"utensil":"pan","ingredients":{"fish":1}},"fish_stew":{"utensil":"pot","ingredients":{"turnips":1,"star_bulbs":1,"fish":1}}}
 var invitation_day=1
@@ -330,11 +337,24 @@ func assign_slot(index: int,id: String) -> bool:
 func farm(index: int) -> String:
 	if index<0 or index>=plots.size(): return "No soil here."
 	var p=plots[index]
+	if active_item()=="watering_can": return water_plot(index)
 	if p.planted>=0 and p.watered and not ripe(index): return "Growing. Water each day; three watered midnights to mature."+(" Select Wildgrowth to hasten it." if magic_learned else "")
 	var needed="sickle" if ripe(index) else "hoe" if not p.tilled else "watering_can" if p.planted>=0 and not p.watered else selected_seed
 	if p.tilled and p.planted<0 and active_item() in ["seeds","star_seeds"]: selected_seed=active_item(); needed=selected_seed
 	if active_item()!=needed: return "Select %s in a quick slot first." % Items.CATALOG[needed].name
 	return tend(index)
+
+func water_plot(index: int) -> String:
+	if index<0 or index>=plots.size(): return "No soil here."
+	if watering_can<1: return "Carry your watering can from the farmhouse chest."
+	if water<1: return "Empty watering can. Refill it at the pond."
+	var cost=energy_cost(1.0)
+	if energy<cost: return "Too tired. Sleep in your own bed or eat something restorative."
+	energy-=cost
+	water-=1
+	plots[index].watered=true
+	plots[index].water_day=day
+	return "Watered for today."
 
 func refill_water() -> bool:
 	if active_item()!="watering_can" or watering_can<1: return false
@@ -372,11 +392,7 @@ func tend(index: int) -> String:
 		p.planted = total()
 		return "%s planted. A little water next." % Items.CATALOG[p.crop].name
 	if not p.watered:
-		energy-=cost
-		p.watered = true
-		water-=1
-		p.water_day=day
-		return "Watered for today. Three watered days to mature."+(" Select Wildgrowth to hasten it." if magic_learned else "")
+		return water_plot(index)
 	return "Growing happily."
 
 func grow(index: int) -> bool:
@@ -601,7 +617,8 @@ func to_dict() -> Dictionary:
 	sync_inventory()
 	var supplies={}
 	for id in EXTRA_ITEMS: supplies[id]=get(id)
-	return {"version": 14,"inventory_order":inventory_order.duplicate(),"woodcutter_axe_given":woodcutter_axe_given,"cave_pickaxe_taken":cave_pickaxe_taken,"cave_intro_seen":cave_intro_seen,"auxiliary_selection":auxiliary_selection,"world_seed":world_seed,"inventory_selection":inventory_selection,"firewood_requested":firewood_requested,"firewood_given":firewood_given,"felled_trees":felled_trees.duplicate(),"day": day, "minute": minute, "money": money,"magic_learned":magic_learned,
+	return {"version": 15,"inventory_order":inventory_order.duplicate(),"woodcutter_axe_given":woodcutter_axe_given,"cave_pickaxe_taken":cave_pickaxe_taken,"cave_intro_seen":cave_intro_seen,"auxiliary_selection":auxiliary_selection,"world_seed":world_seed,"inventory_selection":inventory_selection,"firewood_requested":firewood_requested,"firewood_given":firewood_given,"felled_trees":felled_trees.duplicate(),"day": day, "minute": minute, "money": money,"magic_learned":magic_learned,
+		"forage_harvests":forage_harvests.duplicate(),"ladder_requested":ladder_requested,"ladder_taken":ladder_taken,"ladder_returned":ladder_returned,
 		"awake_minutes":awake_minutes,"sleep_minutes":sleep_minutes,"status_effects":status_effects.duplicate(true),
 		"crucible_known":crucible_known,"crucibles":crucibles.duplicate(true),
 		"experience":experience,"quest_order":quest_order.duplicate(),"weather_override":weather_override,
@@ -619,8 +636,18 @@ func to_dict() -> Dictionary:
 		"plots": plots.duplicate(true)}
 
 func restore(data: Variant) -> bool:
-	if not data is Dictionary or data.get("version") != 14:
+	if not data is Dictionary or data.get("version") != 15:
 		return false
+	for field in ["ladder_requested","ladder_taken","ladder_returned"]:
+		if not data.get(field) is bool: return false
+	if data.ladder_returned and (not data.ladder_taken or not data.ladder_requested): return false
+	if not data.get("forage_harvests") is Dictionary: return false
+	for key in data.forage_harvests:
+		if not key is String: return false
+		var parts=key.split(":")
+		if parts.size()!=3 or parts[0] not in ["berries","apples"] or not parts[1].is_valid_int() or not parts[2].is_valid_int(): return false
+		if not Grid.contains(Vector2i(int(parts[1]),int(parts[2]))): return false
+		if not _number(data.forage_harvests[key]) or data.forage_harvests[key]<0 or data.forage_harvests[key]>(data.day-1)*1440+data.minute: return false
 	for field in ["awake_minutes","sleep_minutes"]:
 		if not _number(data.get(field)) or data[field]<0: return false
 	if not data.get("status_effects") is Dictionary: return false
@@ -649,7 +676,7 @@ func restore(data: Variant) -> bool:
 	if data.get("weather_override") not in ["","sunny","partly_cloudy","rainy"]: return false
 	var quests=[]
 	for id in data.quest_order:
-		if not id is String or id not in ["crew_supplies","restore_farmhouse","first_harvest","meet_wizard","keeper_firewood"] or id in quests: return false
+		if not id is String or id not in ["crew_supplies","restore_farmhouse","first_harvest","meet_wizard","keeper_firewood","bells_ladder"] or id in quests: return false
 		quests.append(id)
 	for id in data.inventory_order:
 		if not id is String or (id!="" and (not Items.CATALOG.has(id) or id in ordered)): return false
@@ -719,7 +746,7 @@ func restore(data: Variant) -> bool:
 		var quantity=data.supplies[id] if id in EXTRA_ITEMS else data[id]
 		if quantity>0: occupied+=1
 	if occupied>INVENTORY_SLOTS: return false
-	if not data.get("location") in ["","home","moss","finch","mayor","tavi","iona","radio","store","hall","veteran","assistant","ship","cave","keeper","reed_farm","windmill","mill_home","smithy","tavern","bakery","woodcutter","observatory"]: return false
+	if not data.get("location") in ["","home","moss","finch","mayor","tavi","iona","radio","store","hall","veteran","assistant","ship","cave","keeper","reed_farm","windmill","mill_home","mill_shed","smithy","tavern","bakery","woodcutter","observatory"]: return false
 	if not data.get("chest") is Array or data.chest.size()!=18 or not data.get("abandoned_day") is Dictionary: return false
 	for stack in data.chest:
 		if not stack is Dictionary: return false
@@ -776,6 +803,8 @@ func restore(data: Variant) -> bool:
 	world_seed=int(data.world_seed)
 	firewood_requested=data.firewood_requested
 	firewood_given=data.firewood_given
+	for field in ["ladder_requested","ladder_taken","ladder_returned"]: set(field,data[field])
+	forage_harvests=data.forage_harvests.duplicate()
 	woodcutter_axe_given=data.woodcutter_axe_given
 	cave_pickaxe_taken=data.cave_pickaxe_taken
 	cave_intro_seen=data.cave_intro_seen

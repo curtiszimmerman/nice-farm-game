@@ -1,6 +1,7 @@
 extends RefCounted
 
 static func layout(id: String) -> Dictionary:
+	if id=="mill_shed": return {"size":Vector2i(8,7),"areas":[["workshop",Rect2i(1,1,6,5)]],"doors":[],"entry":Vector2i(4,5),"exit":Vector2i(4,6),"furniture":[["shed_rack",Rect2i(1,1,3,1)],["shed_workbench",Rect2i(1,4,2,1)],["shed_ladder",Rect2i(6,2,1,1)],["tools",Rect2i(1,2,1,2)],["cabinet",Rect2i(5,5,2,1)]],"sites":[["ladder",Vector2i(6,2)]],"work":[Vector2i(4,3)]}
 	if id=="observatory": return observatory()
 	if id=="tavern":
 		var bar=tavern()

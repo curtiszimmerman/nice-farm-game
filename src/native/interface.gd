@@ -120,20 +120,18 @@ func _ready() -> void:
 	region = _label("The old south farm",Vector2(33,88),13,MUTED)
 	calendar_ring=preload("res://calendar.gd").new()
 	calendar_ring.state=game.state
-	calendar_ring.position=Vector2(1010,8)
-	calendar_ring.size=Vector2(220,250)
+	calendar_ring.position=Vector2(1000,8)
+	calendar_ring.size=Vector2(256,380)
 	root.add_child(calendar_ring)
-	season_word=_label("SPRING",Vector2(1118,125),10,GOLD)
-	date = _label("01",Vector2(1118,139),24,CREAM)
+	season_word=_label("SPRING",Vector2(1110,155),18,GOLD)
+	season_word.size.x=74
+	season_word.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
+	date = _label("01",Vector2(1127,180),26,CREAM)
 	date.size.x = 40
-	clock = _label("08:00",Vector2(1055,225),27,CREAM,true)
-	clock.size.x = 130
-	clock.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	var moons = _label("Root · year one",Vector2(1020,210),10,MUTED)
+	clock = calendar_window("08:00",Vector2(1060,310),Vector2(136,40),26)
+	var moons = calendar_window("Root · year one",Vector2(1028,274),Vector2(200,34),16)
 	calendar_details = moons
-	moons.size.x = 225
-	moons.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	log_panel = _panel(Vector2(970,302),Vector2(280,278),Color("182d2bf5"))
+	log_panel = _panel(Vector2(30,128),Vector2(280,278),Color("182d2bf5"))
 	log_toggle=Button.new()
 	log_toggle.text="▾ CREW LOG"
 	log_toggle.position=Vector2(8,5)
@@ -317,6 +315,18 @@ func style(fill: Color,border = Color("8d9a7666")) -> StyleBoxFlat:
 	box.content_margin_top = 10
 	box.content_margin_bottom = 10
 	return box
+
+func calendar_window(text: String,pos: Vector2,dimensions: Vector2,font_size: int) -> Label:
+	var frame=_panel(pos,dimensions,Color("bb9546"))
+	var border=style(Color("bb9546"),Color("eed588"))
+	border.set_corner_radius_all(6)
+	frame.add_theme_stylebox_override("panel",border)
+	var inset=_panel(Vector2(5,5),dimensions-Vector2(10,10),Color("284b39"),frame)
+	var label=_label(text,Vector2.ZERO,font_size,CREAM,false,inset)
+	label.size=inset.size
+	label.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment=VERTICAL_ALIGNMENT_CENTER
+	return label
 
 func _panel(pos: Vector2,dimensions: Vector2,fill: Color,parent: Node = null) -> Panel:
 	var panel = Panel.new()
@@ -783,6 +793,7 @@ func toggle_log() -> void:
 func quest_lines() -> Array:
 	var s=game.state
 	var lines=[{"id":"crew_supplies","title":"A quiet signal home","description":"Vale needs refined copper. Ask Dain at the smithy about a crucible blueprint, then build one east of your garden and smelt the cave ore. Keep food in the ship locker too.","tasks":[{"text":"Learn Dain's crucible blueprint · 10 star bulbs","done":s.crucible_known},{"text":"Build a stone crucible · 10 stone","done":not s.crucibles.is_empty()},{"text":"Bring Vale three copper bars","done":s.delivered},{"text":"Leave food in the ship locker","done":s.crew_fed_day>=s.day}]}]
+	if s.ladder_requested: lines.append({"id":"bells_ladder","title":"A ladder with legs","description":"Nessa borrowed Mrs. Bell's ladder for her radio aerial. Look in the tool shed east of the Bell family home, then return it to Mara.","tasks":[{"text":"Find the ladder in the Bell tool shed","done":s.ladder_taken},{"text":"Return the ladder to Mrs. Bell","done":s.ladder_returned}]})
 	if s.invited:
 		lines.append({"id":"restore_farmhouse","title":"A place to begin","description":"Make the abandoned farmhouse welcoming before Moss brings the mayor.","tasks":[{"text":"Remove the covers from the furniture","done":["sofa","bed","guest_bed","radio"].all(func(id):return s.house_tasks[id])},{"text":"Change the lightbulbs around the house","done":s.house_tasks.living_light and s.house_tasks.bathroom_light}]})
 	if s.met_mayor: lines.append({"id":"first_harvest","title":"Putting down roots","description":"Moss left tools and seeds. Work a small garden to provide for yourselves.","tasks":[{"text":"Harvest a moon turnip","done":s.harvested>0}]})

@@ -6,6 +6,9 @@ const FOOD={"bread":{"health":0,"energy":20,"mana":0},"lantern_ray":{"health":10
 const FISH={"lantern_ray":{"habitat":"ocean_tip","hard":true,"price":90,"weight":1,"color":"e4cf8b"},"fish":{"habitat":"pond","hard":false,"price":10,"color":"9dbcc0"},"moon_pike":{"habitat":"pond","hard":true,"price":35,"color":"a8ad7b"},"sea_sprat":{"habitat":"ocean","hard":false,"price":12,"color":"c1c7b2"},"blue_mackerel":{"habitat":"ocean","hard":false,"price":16,"color":"729ab6"},"storm_eel":{"habitat":"ocean","hard":true,"price":50,"color":"a58bb6"}}
 
 const CATALOG={
+	"berries":{"name":"Wild berries","description":"Sweet berries gathered in spring and summer.","action":"Foraged fruit"},
+	"apples":{"name":"Wild apple","description":"An autumn apple from an old oak-like fruit tree.","action":"Foraged fruit"},
+	"ladder":{"name":"Mrs. Bell's ladder","description":"Borrowed by Nessa for her radio antenna. Mara would like it back.","action":"Return to Mrs. Bell"},
 	"bread":{"name":"Fresh bread","description":"Corin's warm, crusty loaf. Restores 20 energy.","action":"Eat"},
 	"copper_bars":{"name":"Copper bar","description":"Refined copper for Chief Vale's crew-link repair.","action":"Crafting material"},
 	"axe":{"name":"Axe","description":"Oren's spare axe. Three blows fell a tree; each costs 4 energy.","action":"Chop a tree in front of you"},
@@ -40,7 +43,7 @@ const CATALOG={
 static var textures: Dictionary={}
 
 static func icon(id: String) -> Texture2D:
-	var sprite_only=id in ["bread","copper_bars","build_crucible"]
+	var sprite_only=id in ["bread","copper_bars","build_crucible","berries","apples","ladder"]
 	if sprite_only: Art.load_atlas()
 	if (Art.option==2 or sprite_only) and Art.catalog.has("item_"+id):
 		var key="sprite_"+id

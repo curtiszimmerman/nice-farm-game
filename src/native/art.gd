@@ -87,9 +87,16 @@ static func sprite(c: CanvasItem,id: String,p: Vector2,size: Vector2=Vector2.ZER
 static func tile(c: CanvasItem,id: String,cell: Vector2i,tint: Color=Color.WHITE) -> void:
 	sprite(c,"tile_"+id,Grid.origin(cell),Vector2.ZERO,tint)
 
+static func furniture_id(item: Dictionary) -> String:
+	if item.kind in ["shed_ladder","shed_workbench"]: return item.kind
+	return "furniture_%s_%dx%d" % [item.kind,item.bounds.size.x,item.bounds.size.y]
+
 static func furniture(c: CanvasItem,item: Dictionary) -> void:
+	if item.kind in ["shed_ladder","shed_workbench"]:
+		sprite(c,furniture_id(item),Vector2(0,-64 if item.kind=="shed_ladder" else -48),Vector2(32,64) if item.kind=="shed_ladder" else Vector2(64,48))
+		return
 	var bounds: Rect2i=item.bounds
-	sprite(c,"furniture_%s_%dx%d" % [item.kind,bounds.size.x,bounds.size.y],Vector2(-4,-bounds.size.y*32-24))
+	sprite(c,furniture_id(item),Vector2(-4,-bounds.size.y*32-24))
 
 static func cover(c: CanvasItem,item: Dictionary) -> void:
 	var size: Vector2i=item.bounds.size
@@ -97,8 +104,11 @@ static func cover(c: CanvasItem,item: Dictionary) -> void:
 
 static func tree_id(data: Dictionary) -> String:
 	var rows=clampi(roundi((data.size-0.8)*4)+2,2,4)
-	var species="oak" if data.warm else "birch" if posmod(data.cell.x+data.cell.y,5)==0 else "pine"
+	var species=tree_species(data)
 	return seasonal("tree_%s_%d" % [species,rows],data.get("season","spring"))
+
+static func tree_species(data: Dictionary) -> String:
+	return "oak" if data.warm else "birch" if posmod(data.cell.x+data.cell.y,5)==0 else "pine"
 
 static func seasonal(id: String,season: String) -> String:
 	load_atlas()
@@ -119,6 +129,12 @@ static func person(c: CanvasItem,p: Dictionary,step: float,direction: String) ->
 	else: sprite(c,"actor_%s_%s%d" % [id,direction,frame],Vector2(-16,-60))
 
 static func building(c: CanvasItem,b: Dictionary) -> void:
+	if b.kind=="mill_shed":
+		for y in range(3):
+			for x in range(4):
+				var part="roof" if y==0 else "door_top" if x==2 and y==1 else "door_bottom" if x==2 else "wall"
+				tile(c,"shed_"+part,Vector2i(x,y-3))
+		return
 	if b.kind=="observatory":
 		sprite(c,"observatory_exterior",Vector2(0,-224),Vector2(192,224))
 		return
@@ -188,10 +204,10 @@ static func outdoors(w: Node2D) -> void:
 		for y in range(bounds.position.y,bounds.end.y):
 			for x in range(bounds.position.x,bounds.end.x): rock_cells[Vector2i(x,y)]=true
 		for cell in rock_cells: cliff(w,cell,rock_cells)
-	for y in range(72,74):
-		for x in [94,95]: tile(w,"void",Vector2i(x,y))
-	tile(w,"cave_arch_left",Vector2i(94,72))
-	tile(w,"cave_arch_right",Vector2i(95,72))
+	for y in range(w.CAVE_MOUTH.position.y,w.CAVE_MOUTH.end.y):
+		for x in range(w.CAVE_MOUTH.position.x,w.CAVE_MOUTH.end.x): tile(w,"void",Vector2i(x,y))
+	tile(w,"cave_arch_left",w.CAVE_MOUTH.position)
+	tile(w,"cave_arch_right",w.CAVE_MOUTH.position+Vector2i.RIGHT)
 	for y in range(w.SQUARE.position.y,w.SQUARE.end.y):
 		for x in range(w.SQUARE.position.x,w.SQUARE.end.x): tile(w,"paving"+str(posmod(x+y,4)),Vector2i(x,y))
 	for y in range(w.SQUARE.position.y-1,w.SQUARE.end.y+1):
@@ -243,7 +259,7 @@ static func crops(w: Node2D,c: CanvasItem) -> void:
 		sprite(c,"crop_"+id,w.plot_position(i)-Vector2(16,16))
 		var moisture=w.state.plot_moisture(i)
 		if moisture>0:
-			var wet=id+"_wet" if p.planted>=0 else "wet"
+			var wet=id+"_wet" if p.planted>=0 or not p.tilled else "wet"
 			sprite(c,"crop_"+wet,w.plot_position(i)-Vector2(16,16),Vector2.ZERO,Color(1,1,1,moisture))
 
 static func particles(w: Node2D,c: CanvasItem) -> void:
@@ -253,6 +269,12 @@ static func particles(w: Node2D,c: CanvasItem) -> void:
 		sprite(c,"particle",p.pos,Vector2.ZERO,color)
 
 static func effects(w: Node2D,c: CanvasItem) -> void:
+	if w.state.minute<360 or w.state.minute>=1140:
+		for i in range(3):
+			var p=Grid.center([Vector2i(-27,52),Vector2i(-26,55),Vector2i(-27,54)][i])
+			var alpha=0.7+0.3*pow((sin(w.elapsed*2+i*2)+1)/2,2)
+			var tint=w.night_tint.color
+			sprite(c,"fish_glint",p-Vector2(16,16),Vector2(32,32),Color(1/tint.r,1/tint.g,1/tint.b,alpha))
 	for p in w.people:
 		if w.cutscene_hidden(): break
 		if w.villagers[p.id].visible and w.state.player_position.distance_to(w.villagers[p.id].position)<105:

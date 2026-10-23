@@ -25,7 +25,8 @@ func run() -> void:
 	if w.has_method("coastal_fishing"):
 		var tip=w.call("coastal_fishing",w.Grid.center(Vector2i(-26,53)))
 		check(tip.get("id")=="ocean_tip" and not w.blocked(w.Grid.center(Vector2i(-20,52))),"the stone jetty is walkable and its outer end offers deep-water fishing")
-	check("lantern_ray" in game.fish_pool("ocean_tip") and "lantern_ray" not in game.fish_pool("ocean"),"the rare lantern ray is exclusive to the jetty's sea end")
+	game.state.minute=1260
+	check("lantern_ray" in game.fish_pool("ocean_tip") and "lantern_ray" not in game.fish_pool("ocean"),"the rare lantern ray is exclusive to the jetty's sea end at night")
 	var catches={}
 	game.fishing_rng.seed=31
 	for i in range(500):

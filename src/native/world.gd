@@ -11,6 +11,7 @@ const SQUARE = Rect2i(59,44,6,6)
 const SIZE = Grid.WORLD_SIZE
 const FARM_CELL = Vector2i(9,48)
 const OUTCROP_CELLS = Rect2i(90,69,9,5)
+const CAVE_MOUTH = Rect2i(94,72,2,2)
 const COPPER_CELLS = Rect2i(90,74,9,1)
 const MINE_RIDGE = Rect2i(97,65,3,4)
 const MOSS_FIELDS = Rect2i(25,63,6,4)
@@ -58,7 +59,7 @@ const SITES = [
 	{"id":"pond","cell":Vector2i(21,67),"label":"Fish from the jetty"},
 	{"id":"ore","cell":Vector2i(94,74),"door":"cave","label":"Enter copper cave"},
 	{"id":"sparkfire","cell":Vector2i(58,16),"label":"Inspect woodland plant"},
-	{"id":"sign","cell":Vector2i(22,46),"label":"Read the crossroads sign"},
+	{"id":"sign","cell":Vector2i(22,47),"label":"Read the crossroads sign"},
 	{"id":"radio","cell":Vector2i(55,39),"label":"Listen to the radio"}
 ]
 const ROAD_ROUTES = [
@@ -102,6 +103,10 @@ var fence_cells: Array[Vector2i] = []
 var gate_cells: Array[Vector2i] = []
 var trees: Array = []
 var bushes: Array=[]
+var bush_nodes: Dictionary={}
+var tree_population: Array=[]
+var forage_nodes={"berries":{},"apples":{}}
+const Foraging=preload("res://foraging.gd")
 var terrain: ImageTexture
 var west_terrain: ImageTexture
 var rendered_season=""
@@ -131,7 +136,9 @@ class Prop extends Node2D:
 	var draw_count=0
 	func _draw() -> void:
 		draw_count+=1
-		if kind == "tree": owner_world.paint_tree(self, data)
+		if kind == "tree":
+			owner_world.paint_tree(self, data)
+			if data.get("fruit_ready",false): Art.sprite(self,"apple_cluster",Vector2(-20,-82),Vector2(40,32))
 		elif kind == "building": owner_world.paint_building(self, data)
 		elif kind == "person": owner_world.paint_person(self, data, sin(owner_world.elapsed*10.0) if data.get("walking",false) else 0.0, data.get("direction","down"))
 		elif kind == "player":
@@ -147,7 +154,9 @@ class Prop extends Node2D:
 				draw_rect(square,Color("e4daa312"))
 				draw_rect(square,Color("e4daa399"),false,1)
 		elif kind == "sparkfire": owner_world.paint_sparkfire(self,data.get("bloom",false))
-		elif kind == "bush": Art.sprite(self,Art.seasonal("bush"+str(data.variant),data.get("season","spring")),Vector2(-32,-42))
+		elif kind == "bush":
+			Art.sprite(self,Art.seasonal("bush"+str(data.variant),data.get("season","spring")),Vector2(-32,-42))
+			if data.get("fruit_ready",false): Art.sprite(self,"berry_cluster",Vector2(-24,-36),Vector2(48,32))
 		elif kind == "stump": Art.sprite(self,"stump",Vector2(-16,-16))
 		elif kind == "bench": Art.sprite(self,"bench",Vector2(0,-48))
 		elif kind == "fountain": Art.sprite(self,"fountain"+str(int(owner_world.elapsed*6)%4),Vector2(0,-80))
@@ -172,7 +181,7 @@ func _ready() -> void:
 		reserved_cells[cell]=true
 		solid_cells[cell]="bush"
 		bushes.append(cell)
-		_prop("bush",Grid.center(cell),{"variant":random.randi_range(0,3)})
+		bush_nodes[cell]=_prop("bush",Grid.center(cell),{"variant":random.randi_range(0,3)})
 	for y in range(24,37):
 		for x in range(4,28):
 			var cell=Vector2i(x,y)
@@ -180,7 +189,7 @@ func _ready() -> void:
 			reserved_cells[cell]=true
 			solid_cells[cell]="bush"
 			bushes.append(cell)
-			_prop("bush",Grid.center(cell),{"variant":random.randi_range(0,3)})
+			bush_nodes[cell]=_prop("bush",Grid.center(cell),{"variant":random.randi_range(0,3)})
 	var placed: Array=[]
 	for i in range(1800):
 		var cell=Vector2i(random.randi_range(4,Grid.MAP_SIZE.x-4),random.randi_range(5,Grid.MAP_SIZE.y-4))
@@ -189,12 +198,19 @@ func _ready() -> void:
 		if placed.any(func(t): return absi(t.x-cell.x)<=1 and absi(t.y-cell.y)<=1): continue
 		var tree = {"cell":cell,"pos":p,"size":random.randf_range(0.8,1.3),"warm":random.randf()>0.72}
 		placed.append(cell)
+		tree_population.append(tree)
 		if "%d,%d" % [cell.x,cell.y] in state.felled_trees:
 			_prop("stump",p,{})
 			continue
 		solid_cells[cell]="tree"
 		trees.append(tree)
 		tree.node=_prop("tree",p,tree)
+	for cell in Foraging.choose(bushes,state.world_seed+391): forage_nodes.berries[cell]=bush_nodes[cell]
+	var oaks=tree_population.filter(func(tree):return Art.tree_species(tree)=="oak").map(func(tree):return tree.cell)
+	for cell in Foraging.choose(oaks,state.world_seed+392):
+		for tree in trees:
+			if tree.cell==cell: forage_nodes.apples[cell]=tree.node
+	refresh_forage()
 	for b in buildings: _prop("building",Vector2(b.x,b.y+b.h),b)
 	for index in range(state.crucibles.size()): add_crucible(index)
 	for p in people: villagers[p.id]=_prop("person",Vector2(p.x,p.y),p)
@@ -273,6 +289,9 @@ func chop_tree(cell: Vector2i) -> bool:
 	return true
 
 func rebuild_visit(new_state: RefCounted) -> void:
+	bush_nodes.clear()
+	tree_population.clear()
+	forage_nodes={"berries":{},"apples":{}}
 	for child in get_children(): child.free()
 	for field in [people,villagers,routes,buildings,sites,road_segments,road_cells,paved_cells,yard_fences,yard_gates,garden_cells,water_cells,mountain_cells,solid_cells,reserved_cells,fence_cells,gate_cells,trees,bushes,particles,story_destinations,conversation_holds,indoor_departures,tree_damage]: field.clear()
 	scenery_layer=null
@@ -434,24 +453,46 @@ func _route(start: Vector2i,goal: Vector2i,avoid_player: bool=false) -> Array:
 		path.append(Grid.center(current))
 	return path
 
+func stop_for(id: String) -> Dictionary:
+	var stop=Schedule.stop(id,state.minute)
+	if id=="vale": stop.room="ship"
+	if id=="moss" and not state.invited: stop={"cell":MOSS_ENCOUNTER_CELL,"sleeping":false,"room":""}
+	var visit=state.mayor_visit_start()
+	if visit>=0 and state.total()>=visit+240: visit+=1440
+	if id=="moss" and state.invited and not state.met_mayor and state.total()<state.mayor_due-60: stop={"cell":Vector2i(54,46),"sleeping":false,"room":"hall"}
+	if id in ["moss","mayor","assistant"] and state.invited and not state.met_mayor and visit>=0 and state.total()>=visit-60 and state.total()<visit+240:
+		var offset={"moss":Vector2i(3,0),"mayor":Vector2i(1,0),"assistant":Vector2i(2,1)}[id]
+		stop={"cell":Grid.SPAWN_CELL+offset,"sleeping":false,"room":"home" if state.location=="home" and state.total()>=visit-8 else ""}
+	if state.abandoned_day.get(id,0)==state.day: stop=Schedule.home_stop(id)
+	if story_destinations.has(id): stop=story_destinations[id]
+	return stop
+
+func refresh_forage() -> void:
+	for item in forage_nodes:
+		for cell in forage_nodes[item]:
+			var node=forage_nodes[item][cell]
+			if not is_instance_valid(node): continue
+			var ready=Foraging.ready(state,item,cell)
+			if node.data.get("fruit_ready",false)!=ready:
+				node.data.fruit_ready=ready
+				node.queue_redraw()
+
+func harvest_forage(item: String,cell: Vector2i) -> bool:
+	if not forage_nodes.has(item) or not forage_nodes[item].has(cell): return false
+	if not is_instance_valid(forage_nodes[item][cell]) or not Foraging.ready(state,item,cell) or not state.can_carry(item): return false
+	state.set(item,int(state.get(item))+1)
+	state.forage_harvests[Foraging.key(item,cell)]=state.total()
+	refresh_forage()
+	return true
+
 func update_villagers(dt: float,snap: bool=false) -> void:
 	for id in villagers:
 		if conversation_holds.has(id) or indoor_departures.has(id):
 			villagers[id].data.walking=false
 			villagers[id].queue_redraw()
 			continue
-		var stop=Schedule.stop(id,state.minute)
-		if id=="vale": stop.room="ship"
-		if id=="moss" and not state.invited: stop={"cell":MOSS_ENCOUNTER_CELL,"sleeping":false,"room":""}
-		var visit=state.mayor_visit_start()
-		if visit>=0 and state.total()>=visit+240: visit+=1440
-		if id=="moss" and state.invited and not state.met_mayor and state.total()<state.mayor_due-60: stop={"cell":Vector2i(54,46),"sleeping":false,"room":"hall"}
-		if id in ["moss","mayor","assistant"] and state.invited and not state.met_mayor and visit>=0 and state.total()>=visit-60 and state.total()<visit+240:
-			var offset={"moss":Vector2i(3,0),"mayor":Vector2i(1,0),"assistant":Vector2i(2,1)}[id]
-			stop={"cell":Grid.SPAWN_CELL+offset,"sleeping":false,"room":"home" if state.location=="home" and state.total()>=visit-8 else ""}
-		if state.abandoned_day.get(id,0)==state.day: stop=Schedule.home_stop(id)
-		if story_destinations.has(id): stop=story_destinations[id]
-		elif stop.get("room","")!="":
+		var stop=stop_for(id)
+		if not story_destinations.has(id) and stop.get("room","")!="":
 			for building in buildings:
 				if building.id==stop.room:
 					stop.cell=building.cell+Vector2i(int(building.tiles.x/2),building.tiles.y)
@@ -494,6 +535,7 @@ func _prop(kind: String, pos: Vector2, data: Dictionary) -> Prop:
 	return p
 
 func refresh() -> void:
+	refresh_forage()
 	if night_effects!=null: night_effects.refresh()
 	if weather_effects!=null: weather_effects.refresh()
 	var season=state.season_name()
@@ -565,7 +607,7 @@ func activation_cells(site: Dictionary) -> Array:
 		for x in range(10,13):
 			for y in [13,14]: cells.append(Vector2i(x,y))
 		return cells
-	if site.id=="ore": return [Vector2i(93,73),Vector2i(94,73),Vector2i(93,74),Vector2i(94,74)]
+	if site.id=="ore": return [CAVE_MOUTH.position+Vector2i(0,1),CAVE_MOUTH.position+Vector2i(1,1),CAVE_MOUTH.position+Vector2i(0,2),CAVE_MOUTH.position+Vector2i(1,2)]
 	if site.has("door"): return [site.cell+Vector2i.UP,site.cell]
 	return [site.cell]
 
@@ -601,6 +643,9 @@ func blocked(p: Vector2) -> bool:
 	return not Grid.PLAYABLE_CELLS.has_point(cell) or solid_cells.has(cell)
 
 func find_nearest() -> Dictionary:
+	for item in forage_nodes:
+		if forage_nodes[item].has(front_cell()) and is_instance_valid(forage_nodes[item][front_cell()]) and Foraging.ready(state,item,front_cell()) and state.active_item()!="axe":
+			return {"type":"forage","item":item,"cell":front_cell(),"label":"Gather "+item}
 	var person=Bodies.nearby(self)
 	if not person.is_empty():
 		for site in sites:
@@ -623,7 +668,7 @@ func find_nearest() -> Dictionary:
 		var d = state.player_position.distance_to(plot_position(i))
 		if d<distance:
 			var p = state.plots[i]
-			var label = "Harvest moon turnip" if state.ripe(i) else "Till the soil" if not p.tilled else "Plant moon turnip" if p.planted<0 else "Water moon turnip" if not p.watered else "Growing · water daily"
+			var label = "Water this plot" if state.active_item()=="watering_can" else "Harvest moon turnip" if state.ripe(i) else "Till the soil" if not p.tilled else "Plant moon turnip" if p.planted<0 else "Water moon turnip" if not p.watered else "Growing · water daily"
 			best = {"type":"plot","index":i,"label":label}
 			distance = d
 	for p in people:

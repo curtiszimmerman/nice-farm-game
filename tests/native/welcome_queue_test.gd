@@ -23,8 +23,10 @@ func run() -> void:
 	var first_entry=-1.0
 	var seen=[]
 	var separated=true
+	var overlapping_arrival=false
 	for i in range(600):
 		game._process(0.05)
+		if game.world.villagers.moss.visible and game.world.villagers.mayor.position.distance_to(game.Grid.center(game.WELCOME_POSITIONS[0]))>1: overlapping_arrival=true
 		var visible=[]
 		for id in game.WELCOME_MEMBERS:
 			if game.world.villagers[id].visible:
@@ -38,6 +40,7 @@ func run() -> void:
 		if game.state.welcome_phase=="meeting": break
 	check(first_entry>=0 and first_entry<10,"the first visitor enters within ten seconds of cleanup")
 	check(seen==game.WELCOME_MEMBERS and separated,"visitors enter in order and remain physically separated")
+	check(overlapping_arrival,"the next visitor enters before the leader reaches his final meeting position")
 	check(game.state.welcome_phase=="meeting","all visitors reach their meeting positions")
 	await game.sound.shutdown()
 	game.queue_free()

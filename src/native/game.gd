@@ -290,7 +290,7 @@ func enter_building(id: String) -> void:
 	for b in outdoors.buildings:
 		if b.id==id: building=b; break
 	if id=="ship": building={"id":"ship","cell":World.SHIP_CELL+Vector2i(-1,0),"tiles":Vector2i(2,2)}
-	if id=="cave": building={"id":"cave","cell":Vector2i(93,73),"tiles":Vector2i(2,1)}
+	if id=="cave": building={"id":"cave","cell":World.CAVE_MOUTH.position+Vector2i.DOWN,"tiles":Vector2i(2,1)}
 	if id=="home" and not state.invited and state.briefing_complete:
 		if outdoors.villagers.moss.position.distance_to(state.player_position)<75: talk("moss")
 		else: toast("Speak to the farmer waiting at the foot of the mountain trail.")
@@ -563,8 +563,9 @@ func interact() -> void:
 		if state.active_item()=="wildgrowth": cast_growth(); return
 		var was_ripe=state.ripe(nearest.index)
 		var before: Dictionary=state.plots[nearest.index].duplicate()
+		var previous_water=state.water
 		toast(state.farm(nearest.index),2.5)
-		if before!=state.plots[nearest.index]:
+		if before!=state.plots[nearest.index] or previous_water!=state.water:
 			preload("res://tool_motion.gd").start(world,state.active_item() if state.active_item()!="" else "sickle" if was_ripe else "hoe")
 			burst(world.plot_position(nearest.index),"e5d0a4" if was_ripe else "b8bf86",20 if was_ripe else 7)
 			world.crops.queue_redraw()
@@ -575,12 +576,27 @@ func interact() -> void:
 			toast("Three pieces of firewood gathered." if not world.solid_cells.has(nearest.cell) else "The axe bites into the trunk.")
 			save_visit()
 		else: toast("You need an axe, %d energy, and room for firewood." % int(state.energy_cost(4)))
+	elif nearest.type=="forage":
+		toast("Gathered "+nearest.item+"." if outdoors.harvest_forage(nearest.item,nearest.cell) else "Make room in your satchel.")
+		save_visit()
 	elif nearest.type=="person": talk(nearest.id)
 	else:
 		if nearest.has("door"):
 			enter_building(nearest.door)
 			return
 		match nearest.id:
+			"ladder":
+				if state.ladder_taken: return
+				if not state.can_carry("ladder"): toast("Make room in your satchel for the ladder."); return
+				state.ladder=1
+				state.ladder_taken=true
+				state.ladder_requested=true
+				world.sites=world.sites.filter(func(site):return site.id!="ladder")
+				world.solid_cells.erase(Vector2i(6,2))
+				for child in world.get_children():
+					if child is Interior.Furniture and child.item.kind=="shed_ladder": child.queue_free()
+				toast("Mrs. Bell's ladder. Better take it back to Mara.")
+				save_visit()
 			"crucible": crucible_menu(nearest.index)
 			"private_door": dialog("A private door","THE WAYWARD WREN","Rafe's living quarters are beyond the bar. Best to leave him his privacy.")
 			"cave_pickaxe":
@@ -658,7 +674,7 @@ func fishing_position() -> float:
 	return (sin(time*1.7+fishing_phase)+1.0)*0.5
 
 func fish_pool(habitat: String) -> Array:
-	return ui.Items.FISH.keys().filter(func(id): return ui.Items.FISH[id].habitat==habitat or (habitat=="ocean_tip" and ui.Items.FISH[id].habitat=="ocean"))
+	return ui.Items.FISH.keys().filter(func(id): return (id!="lantern_ray" or state.minute<360 or state.minute>=1140) and (ui.Items.FISH[id].habitat==habitat or (habitat=="ocean_tip" and ui.Items.FISH[id].habitat=="ocean")))
 
 func start_fishing(habitat: String) -> void:
 	var pool=fish_pool(habitat)
@@ -1071,7 +1087,7 @@ func update_welcome_arrival(dt: float) -> void:
 	for i in range(WELCOME_MEMBERS.size()):
 		var id=WELCOME_MEMBERS[i]
 		var actor=world.villagers[id]
-		if i>0 and world.villagers[WELCOME_MEMBERS[i-1]].position.distance_to(Grid.center(WELCOME_POSITIONS[i-1]))>1:
+		if i>0 and (not world.villagers[WELCOME_MEMBERS[i-1]].visible or world.villagers[WELCOME_MEMBERS[i-1]].position.distance_to(world.entry_position())<48):
 			arrived=false
 			break
 		outdoors.story_destinations[id]={"cell":Grid.world_to_cell(outdoors.site_position("bed")),"room":"home","sleeping":false}
@@ -1108,7 +1124,24 @@ func moss_lesson() -> void:
 				outdoors.story_destinations.erase("moss")
 				save_visit()]])]])
 
+func ask_bell_ladder() -> void:
+	state.ladder_requested=true
+	dialog("Mrs. Bell","A LADDER WITH LEGS","My good ladder's gone wandering. Nessa was asking how high a radio aerial needs to be, which may be a clue. If you see it, would you bring it back? Try our tool shed, just east of the house.")
+	save_visit()
+
+func return_bell_ladder() -> void:
+	if state.ladder<1: return
+	state.ladder-=1
+	state.clear_empty_slots()
+	state.ladder_requested=true
+	state.ladder_returned=true
+	dialog("Mrs. Bell","BACK WHERE IT BELONGS","There it is! Thank you. I'll have a word with Nessa. I don't mind lending things, but it's nice to be asked before I'm left balancing on a flour sack.")
+	save_visit()
+
 func radio() -> void:
+	if state.ladder_returned:
+		dialog("Briar Glen Radio","LOCAL SERVICE · 1040","...the north road remains open, with delays at the border. Mrs. Bell sends her thanks to the travelers who returned her ladder. Tonight: the Radio Club's music hour.")
+		return
 	dialog("Briar Glen Radio","LOCAL SERVICE · 1040","...a fair morning across the valley. The north road is open to travelers, with delays at the border crossing. Tonight: the Radio Club's spring music hour. And if anyone has borrowed Mrs. Bell's ladder, she would like it back.")
 
 func inventory() -> void:

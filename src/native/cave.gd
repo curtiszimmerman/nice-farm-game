@@ -221,7 +221,12 @@ func update_enemies(dt: float) -> void:
 			rat.info.bite=1.0
 		rat.queue_redraw()
 
+var exit_night=false
 func refresh() -> void:
+	var night=state.minute<360 or state.minute>=1140
+	if night!=exit_night:
+		exit_night=night
+		queue_redraw()
 	player.position=state.player_position.round()
 	player.queue_redraw()
 	for child in moving_layer.get_children():
@@ -241,9 +246,7 @@ func _draw() -> void:
 		for cell in floor_cells: Art.tile(self,"cave"+str(posmod(cell.x+cell.y,4)),cell)
 		for cell in solid_cells:
 			if solid_cells[cell]=="wall" and floor_cells.has(cell+Vector2i.DOWN): Art.tile(self,"cliff8",cell)
-		for cell in [layout.exit+Vector2i.LEFT,layout.exit]:
-			Art.tile(self,"stone_door_top",cell+Vector2i.UP)
-			Art.tile(self,"stone_door_bottom",cell)
+		Art.sprite(self,"cave_exit_night" if state.minute<360 or state.minute>=1140 else "cave_exit_day",Grid.origin(layout.exit+Vector2i(-1,-1)),Vector2(64,64))
 		return
 	r(self,-400,-400,ROOM_SIZE.x+800,ROOM_SIZE.y+800,"20282e")
 	for y in range(ROOM_CELLS.y):

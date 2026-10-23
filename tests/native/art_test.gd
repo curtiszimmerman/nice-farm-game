@@ -43,7 +43,7 @@ func run() -> void:
 	for building in game.outdoors.buildings:
 		game.enter_building(building.id)
 		for item in game.world.furnishings:
-			var id="furniture_%s_%dx%d" % [item.kind,item.bounds.size.x,item.bounds.size.y]
+			var id=Art.furniture_id(item)
 			check(Art.catalog.has(id),"sprite available for %s in %s" % [item.kind,building.id])
 		game.world.refresh()
 		await process_frame

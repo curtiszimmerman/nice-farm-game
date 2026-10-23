@@ -7,7 +7,7 @@ const PEOPLE=[
 	{"id":"farmer_son","name":"Pip Reed","role":"YOUNG SEED COLLECTOR","cell":Vector2i(105,47),"coat":"ad6051","hair":"775439","skin":"b88c67"},
 	{"id":"smith","name":"Dain Rusk","role":"BLACKSMITH","cell":Vector2i(79,48),"coat":"886447","hair":"aaa59b","skin":"79513e"},
 	{"id":"miller","name":"Tomas Bell","role":"MILLER","cell":Vector2i(90,29),"coat":"b5a47b","hair":"594536","skin":"c29672"},
-	{"id":"miller_wife","name":"Mara Bell","role":"MILLWRIGHT","cell":Vector2i(99,31),"coat":"618398","hair":"a8754d","skin":"d2a17f"},
+	{"id":"miller_wife","name":"Mara Bell","role":"MRS. BELL · MILLWRIGHT","cell":Vector2i(99,31),"coat":"618398","hair":"a8754d","skin":"d2a17f"},
 	{"id":"miller_daughter","name":"Nessa Bell","role":"RADIO ENTHUSIAST","cell":Vector2i(98,31),"coat":"8f7098","hair":"594536","skin":"bc9479"},
 	{"id":"barkeep","name":"Rafe Fen","role":"KEEPER OF THE WAYWARD WREN","cell":Vector2i(69,38),"coat":"846652","hair":"65503b","skin":"bd8e6c"},
 	{"id":"baker","name":"Corin Hale","role":"BAKER","cell":Vector2i(75,65),"coat":"d8cdb0","hair":"a46843","skin":"d2aa83"},
@@ -18,6 +18,7 @@ const BUILDINGS=[
 	{"cell":Vector2i(100,42),"tiles":Vector2i(7,5),"roof":"9d6c4b","kind":"reed_farm"},
 	{"cell":Vector2i(88,24),"tiles":Vector2i(5,5),"roof":"827058","kind":"windmill","visual_height":240},
 	{"cell":Vector2i(96,27),"tiles":Vector2i(6,4),"roof":"8e6659","kind":"mill_home"},
+	{"cell":Vector2i(105,28),"tiles":Vector2i(4,3),"roof":"686879","kind":"mill_shed"},
 	{"cell":Vector2i(76,43),"tiles":Vector2i(6,5),"roof":"686879","kind":"smithy"},
 	{"cell":Vector2i(66,33),"tiles":Vector2i(7,5),"roof":"965d51","kind":"tavern"},
 	{"cell":Vector2i(72,61),"tiles":Vector2i(6,4),"roof":"b68a58","kind":"bakery"},
@@ -69,6 +70,16 @@ static func talk(game: Node2D,id: String) -> bool:
 	if id.begins_with("farmer_"): working=game.world==game.outdoors and game.state.player_position.x>95*32
 	var text=story[1] if working else OFF_DUTY.get(id,story[1])
 	var choices=[]
+	if id=="miller_wife":
+		if game.state.ladder_returned: text="There you are! That ladder's back where it belongs. Next time Nessa needs to borrow it, she can try asking."
+		elif game.state.ladder>0:
+			choices.append(["I found your ladder.",game.return_bell_ladder])
+		else: choices.append(["I heard you're missing a ladder?",game.ask_bell_ladder])
+	if id=="miller_daughter" and not game.state.ladder_returned:
+		choices.append(["Have you seen your mother's ladder?",func():
+			game.state.ladder_requested=true
+			game.dialog("Nessa Bell","A BORROWED LADDER","Oh. Mum noticed? I needed it to get the aerial above the shed roof. Meant to put it back before she missed it. It's leaning inside our tool shed, east of the house. Would you take it back? I'll go and apologise.")
+		])
 	if id=="baker" and working:
 		choices=[["Buy fresh bread · 6 crowns · %s energy" % str(game.state.energy_recovery(game.state.Items.FOOD.bread.energy)),game.buy_bread],["Nothing today, thank you.",func(): pass]]
 	game.dialog(story[0],PEOPLE.filter(func(p):return p.id==id)[0].role,text,choices)

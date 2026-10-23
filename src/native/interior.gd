@@ -71,9 +71,14 @@ func _ready() -> void:
 			if solid_cells.has(cell+pair[0]): wall.mask|=pair[1]
 		wall.position=Grid.origin(cell)+Vector2(0,32)
 		add_child(wall)
-	for item in layout.furniture: add_furniture(item[0],item[1],item[0] not in ["rug","art"])
+	for item in layout.furniture:
+		if item[0]=="shed_ladder" and state.ladder_taken: continue
+		add_furniture(item[0],item[1],item[0] not in ["rug","art"])
 	add_site("exit",layout.exit,"Leave "+room_name())
 	for site in layout.sites:
+		if site[0]=="ladder":
+			if not state.ladder_taken: add_site("ladder",site[1],"Collect Mrs. Bell's ladder")
+			continue
 		add_site(site[0],site[1],{"bed":"Rest in the bedroom","radio":"Listen to the radio","shop":"Browse Tavi's provisions","cabinet":"Open kitchen cabinet","stove":"Cook at the stove","ship_storage":"Open crew supply locker","diagnostics":"Inspect damaged machinery","uncover_sofa":"Remove sofa cover","uncover_guest_bed":"Remove guest bed cover","living_light":"Replace living-room lamp bulb","bathroom_light":"Replace bedroom lamp bulb","private_door":"Rafe's private quarters"}[site[0]])
 	crops=Node2D.new()
 	add_child(crops)
@@ -142,6 +147,7 @@ func bed_position(resident: String="") -> Vector2:
 	return entry_position()
 
 func room_name() -> String:
+	if building.id=="mill_shed": return "Bell family tool shed"
 	if Neighbors.NAMES.has(building.id): return Neighbors.NAMES[building.id]
 	match building.id:
 		"ship": return "Cloaked ship · engineering & bunks"
@@ -174,7 +180,7 @@ func audio_context(_p: Vector2) -> Dictionary:
 func prepare_departures() -> void:
 	for id in villagers:
 		if id=="vale" or outdoors.conversation_holds.has(id): continue
-		if villagers[id].visible and outdoors.villagers[id].data.get("room","")==building.id and Schedule.stop(id,state.minute).room!=building.id:
+		if villagers[id].visible and outdoors.villagers[id].data.get("room","")==building.id and outdoors.stop_for(id).room!=building.id:
 			outdoors.indoor_departures[id]=building.id
 
 func walk_actor(id: String,cell: Vector2i,dt: float,speed: float=45) -> bool:
@@ -264,6 +270,7 @@ func find_nearest() -> Dictionary:
 	return best
 
 func activation_cells(site: Dictionary) -> Array:
+	if site.id=="ladder": return [Vector2i(6,2)]
 	if site.id=="exit": return [layout.exit,layout.exit+Vector2i.DOWN]
 	if site.id=="private_door": return layout.private_doors
 	var kind={"bed":"bed","uncover_guest_bed":"bed","uncover_sofa":"sofa","radio":"radio","stove":"kitchen","cabinet":"cabinet","shop":"counter","ship_storage":"cabinet","diagnostics":"machine","living_light":"floor_lamp","bathroom_light":"floor_lamp"}.get(site.id,"")
@@ -350,6 +357,9 @@ func _draw() -> void:
 		r(self,p.x,p.y+11,28,2,"e3d4ab")
 
 func paint_furniture(c: CanvasItem,item: Dictionary) -> void:
+	if item.kind.begins_with("shed_"):
+		Art.furniture(c,item)
+		return
 	if Art.option==2: Art.furniture(c,item); return
 	var w=item.bounds.size.x*32
 	var h=item.bounds.size.y*32
