@@ -264,8 +264,9 @@ func find_nearest() -> Dictionary:
 	return best
 
 func activation_cells(site: Dictionary) -> Array:
+	if site.id=="exit": return [layout.exit,layout.exit+Vector2i.DOWN]
 	if site.id=="private_door": return layout.private_doors
-	var kind={"bed":"bed","uncover_guest_bed":"bed","uncover_sofa":"sofa","radio":"radio","stove":"kitchen","cabinet":"cabinet","shop":"counter","ship_storage":"stock","diagnostics":"machine","living_light":"floor_lamp","bathroom_light":"floor_lamp"}.get(site.id,"")
+	var kind={"bed":"bed","uncover_guest_bed":"bed","uncover_sofa":"sofa","radio":"radio","stove":"kitchen","cabinet":"cabinet","shop":"counter","ship_storage":"cabinet","diagnostics":"machine","living_light":"floor_lamp","bathroom_light":"floor_lamp"}.get(site.id,"")
 	var cells=[]
 	for item in furnishings:
 		if item.kind!=kind: continue

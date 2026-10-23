@@ -75,6 +75,7 @@ func generate() -> void:
 				else: cell+=Vector2i(0,signi(target.y-cell.y))
 			floor_cells[target]=true
 	floor_cells[layout.exit]=true
+	floor_cells[layout.exit+Vector2i.LEFT]=true
 	for y in range(ROOM_CELLS.y):
 		for x in range(ROOM_CELLS.x):
 			var cell=Vector2i(x,y)
@@ -156,6 +157,7 @@ func find_nearest() -> Dictionary:
 	return best
 
 func activation_cells(site: Dictionary) -> Array:
+	if site.id=="exit": return [layout.exit,layout.exit+Vector2i.UP,layout.exit+Vector2i.LEFT,layout.exit+Vector2i.LEFT+Vector2i.UP]
 	if site.id=="cave_barrel": return [Vector2i(3,4)]
 	if site.id=="cave_pickaxe": return [Vector2i(4,4)]
 	return [site.cell]
@@ -230,8 +232,9 @@ func _draw() -> void:
 		for cell in floor_cells: Art.tile(self,"cave"+str(posmod(cell.x+cell.y,4)),cell)
 		for cell in solid_cells:
 			if solid_cells[cell]=="wall" and floor_cells.has(cell+Vector2i.DOWN): Art.tile(self,"cliff8",cell)
-		Art.tile(self,"stone_door_top",layout.exit+Vector2i.UP)
-		Art.tile(self,"stone_door_bottom",layout.exit)
+		for cell in [layout.exit+Vector2i.LEFT,layout.exit]:
+			Art.tile(self,"stone_door_top",cell+Vector2i.UP)
+			Art.tile(self,"stone_door_bottom",cell)
 		return
 	r(self,-400,-400,ROOM_SIZE.x+800,ROOM_SIZE.y+800,"20282e")
 	for y in range(ROOM_CELLS.y):
@@ -270,7 +273,7 @@ func paint_effects(c: CanvasItem) -> void:
 
 func paint_object(c: CanvasItem,info: Dictionary) -> void:
 	if info.kind=="pickaxe":
-		if not state.cave_pickaxe_taken: Art.sprite(c,"item_pickaxe",Vector2(-15,-24),Vector2(25,25))
+		if not state.cave_pickaxe_taken: Art.sprite(c,"item_pickaxe",Vector2(-12,-16),Vector2(24,24))
 		return
 	if Art.option==2:
 		var id="copper" if info.kind=="rock" and info.ore else "rock" if info.kind=="rock" else "rat"+str(int(elapsed*6)%3) if info.kind=="rat" else info.kind

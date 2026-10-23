@@ -21,10 +21,14 @@ func run() -> void:
 		opening.elapsed=3.4
 		opening._process(0.02)
 		check(game.sound.battle.laser.playing,"the opening actually plays the firing sound")
+		check(is_equal_approx(game.sound.battle.laser.pitch_scale,0.93/4.0),"enemy lasers sound two octaves lower")
+		game.sound.play_battle("laser_hit")
+		check(is_equal_approx(game.sound.battle.laser_hit.pitch_scale,0.25),"hull hits sound two octaves lower")
 		opening.elapsed=18
 		opening.caption_step=5
 		opening._process(0.02)
 		check(game.sound.battle.explosion.playing and opening.explosion_played,"enemy destruction plays its explosion once")
+		check(is_equal_approx(game.sound.battle.explosion.pitch_scale,0.25),"ship destruction sounds two octaves lower")
 	await game.sound.shutdown()
 	game.queue_free()
 	await process_frame

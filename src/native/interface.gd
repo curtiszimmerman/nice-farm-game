@@ -495,10 +495,10 @@ func open_character_inventory() -> void:
 	row.add_theme_constant_override("separation",26)
 	inventory_tabs.add_child(row)
 	var equipment=Control.new()
-	equipment.custom_minimum_size=Vector2(440,430)
+	equipment.custom_minimum_size=Vector2(440,470)
 	row.add_child(equipment)
 	_label("EQUIPMENT",Vector2(160,0),12,GOLD,false,equipment)
-	for points in [[Vector2(96,308),Vector2(160,302)],[Vector2(344,308),Vector2(280,302)],[Vector2(344,182),Vector2(220,204)]]:
+	for points in [[Vector2(96,334),Vector2(150,326)],[Vector2(344,334),Vector2(296,326)],[Vector2(344,178),Vector2(220,204)]]:
 		var line=Line2D.new()
 		line.points=PackedVector2Array(points)
 		line.width=1
@@ -511,18 +511,18 @@ func open_character_inventory() -> void:
 	portrait.region=Items.Art.region("actor_player_down0")
 	silhouette.texture=portrait
 	silhouette.modulate=Color("728b8060")
-	silhouette.position=Vector2(124,24)
-	silhouette.size=Vector2(192,384)
+	silhouette.position=Vector2(108,8)
+	silhouette.size=Vector2(224,448)
 	silhouette.texture_filter=CanvasItem.TEXTURE_FILTER_NEAREST
 	silhouette.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	equipment.add_child(silhouette)
-	var positions={"head":Vector2(188,96),"necklace":Vector2(344,150),"chest":Vector2(188,214),"arms":Vector2(278,214),"hands":Vector2(130,270),"legs":Vector2(188,304),"feet":Vector2(188,360),"left_ring":Vector2(32,276),"right_ring":Vector2(344,276)}
+	var positions={"head":Vector2(188,86),"necklace":Vector2(344,146),"chest":Vector2(188,214),"arms":Vector2(284,220),"hands":Vector2(118,294),"legs":Vector2(188,328),"feet":Vector2(188,400),"left_ring":Vector2(32,302),"right_ring":Vector2(344,302)}
 	for id in positions:
 		var slot=Button.new()
 		slot.position=positions[id]
 		slot.custom_minimum_size=Vector2(64,64)
 		slot.size=Vector2(64,64)
-		slot.tooltip_text="Empty "+id.replace("_"," ")+" slot"
+		slot.tooltip_text={"head":"Helmet / head armor","chest":"Chest armor","arms":"Arm armor","hands":"Gloves / hand armor","legs":"Leg armor","feet":"Boots / foot armor","necklace":"Necklace","left_ring":"Left-hand ring","right_ring":"Right-hand ring"}[id]
 		_button_style(slot,false,true)
 		var placeholder=TextureRect.new()
 		var picture=AtlasTexture.new()
@@ -841,6 +841,7 @@ func quest_pulse(time: float) -> float:
 
 func _process(dt: float) -> void:
 	if game==null or quick_tray==null: return
+	update_hud()
 	if is_instance_valid(modal) and modal_box!=null:
 		var panel=modal.get_child(1)
 		panel.size.y=clampf(modal_box.get_combined_minimum_size().y+24,80,690-panel.position.y)

@@ -6079,9 +6079,57 @@
       64
     ]
   },
-  "equipment_head": {
+  "cloud_shadow": {
     "rect": [
       607,
+      2326,
+      160,
+      80
+    ]
+  },
+  "shadow_tree": {
+    "rect": [
+      769,
+      2326,
+      64,
+      40
+    ]
+  },
+  "shadow_fence": {
+    "rect": [
+      835,
+      2326,
+      40,
+      20
+    ]
+  },
+  "shadow_lamp": {
+    "rect": [
+      877,
+      2326,
+      32,
+      48
+    ]
+  },
+  "rain_streak": {
+    "rect": [
+      911,
+      2326,
+      4,
+      12
+    ]
+  },
+  "rain_splash": {
+    "rect": [
+      917,
+      2326,
+      12,
+      6
+    ]
+  },
+  "equipment_head": {
+    "rect": [
+      931,
       2326,
       32,
       32
@@ -6089,7 +6137,7 @@
   },
   "equipment_chest": {
     "rect": [
-      641,
+      965,
       2326,
       32,
       32
@@ -6097,7 +6145,7 @@
   },
   "equipment_arms": {
     "rect": [
-      675,
+      999,
       2326,
       32,
       32
@@ -6105,7 +6153,7 @@
   },
   "equipment_hands": {
     "rect": [
-      709,
+      1033,
       2326,
       32,
       32
@@ -6113,7 +6161,7 @@
   },
   "equipment_legs": {
     "rect": [
-      743,
+      1067,
       2326,
       32,
       32
@@ -6121,7 +6169,7 @@
   },
   "equipment_feet": {
     "rect": [
-      777,
+      1101,
       2326,
       32,
       32
@@ -6129,7 +6177,7 @@
   },
   "equipment_left_ring": {
     "rect": [
-      811,
+      1135,
       2326,
       32,
       32
@@ -6137,7 +6185,7 @@
   },
   "equipment_right_ring": {
     "rect": [
-      845,
+      1169,
       2326,
       32,
       32
@@ -6145,7 +6193,7 @@
   },
   "equipment_necklace": {
     "rect": [
-      879,
+      1203,
       2326,
       32,
       32
@@ -6153,7 +6201,7 @@
   },
   "general_store_sign": {
     "rect": [
-      913,
+      1237,
       2326,
       192,
       32
@@ -6161,7 +6209,7 @@
   },
   "furniture_floor_lamp_1x1": {
     "rect": [
-      1107,
+      1431,
       2326,
       40,
       56
@@ -6169,7 +6217,7 @@
   },
   "furniture_great_telescope_4x3": {
     "rect": [
-      1149,
+      1473,
       2326,
       136,
       120
@@ -6177,7 +6225,7 @@
   },
   "clock_pendulum": {
     "rect": [
-      1287,
+      1611,
       2326,
       32,
       64
@@ -6185,7 +6233,7 @@
   },
   "window_warm": {
     "rect": [
-      1321,
+      1645,
       2326,
       32,
       32
@@ -6193,7 +6241,7 @@
   },
   "lamp_halo": {
     "rect": [
-      1355,
+      1679,
       2326,
       128,
       64
@@ -6201,7 +6249,7 @@
   },
   "chimney_smoke0": {
     "rect": [
-      1485,
+      1809,
       2326,
       32,
       32
@@ -6209,7 +6257,7 @@
   },
   "chimney_smoke1": {
     "rect": [
-      1519,
+      1843,
       2326,
       32,
       32
@@ -6217,7 +6265,7 @@
   },
   "chimney_smoke2": {
     "rect": [
-      1553,
+      1877,
       2326,
       32,
       32
@@ -6225,7 +6273,7 @@
   },
   "chimney_smoke3": {
     "rect": [
-      1587,
+      1911,
       2326,
       32,
       32
@@ -6233,112 +6281,112 @@
   },
   "observatory_exterior": {
     "rect": [
-      1621,
-      2326,
+      1,
+      2448,
       192,
       224
     ]
   },
   "actor_astronomer_down0": {
     "rect": [
-      1815,
-      2326,
+      195,
+      2448,
       32,
       64
     ]
   },
   "actor_astronomer_down1": {
     "rect": [
-      1849,
-      2326,
+      229,
+      2448,
       32,
       64
     ]
   },
   "actor_astronomer_down2": {
     "rect": [
-      1883,
-      2326,
+      263,
+      2448,
       32,
       64
     ]
   },
   "actor_astronomer_up0": {
     "rect": [
-      1917,
-      2326,
+      297,
+      2448,
       32,
       64
     ]
   },
   "actor_astronomer_up1": {
     "rect": [
-      1951,
-      2326,
+      331,
+      2448,
       32,
       64
     ]
   },
   "actor_astronomer_up2": {
     "rect": [
-      1985,
-      2326,
+      365,
+      2448,
       32,
       64
     ]
   },
   "actor_astronomer_left0": {
     "rect": [
-      1,
-      2552,
+      399,
+      2448,
       32,
       64
     ]
   },
   "actor_astronomer_left1": {
     "rect": [
-      35,
-      2552,
+      433,
+      2448,
       32,
       64
     ]
   },
   "actor_astronomer_left2": {
     "rect": [
-      69,
-      2552,
+      467,
+      2448,
       32,
       64
     ]
   },
   "actor_astronomer_right0": {
     "rect": [
-      103,
-      2552,
+      501,
+      2448,
       32,
       64
     ]
   },
   "actor_astronomer_right1": {
     "rect": [
-      137,
-      2552,
+      535,
+      2448,
       32,
       64
     ]
   },
   "actor_astronomer_right2": {
     "rect": [
-      171,
-      2552,
+      569,
+      2448,
       32,
       64
     ]
   },
   "actor_astronomer_sleep0": {
     "rect": [
-      205,
-      2552,
+      603,
+      2448,
       32,
       64
     ]

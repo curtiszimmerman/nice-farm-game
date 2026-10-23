@@ -238,10 +238,13 @@ static func interior(room: Node2D) -> void:
 static func crops(w: Node2D,c: CanvasItem) -> void:
 	for i in range(w.state.plots.size()):
 		var p=w.state.plots[i]
-		var id="soil" if not p.tilled else "wet" if p.watered else "tilled"
+		var id="soil" if not p.tilled else "tilled"
 		if p.planted>=0: id="bulb" if w.state.ripe(i) and p.crop=="star_bulbs" else "turnip" if w.state.ripe(i) else "sprout"
-		if p.planted>=0 and p.watered: id+="_wet"
 		sprite(c,"crop_"+id,w.plot_position(i)-Vector2(16,16))
+		var moisture=w.state.plot_moisture(i)
+		if moisture>0:
+			var wet=id+"_wet" if p.planted>=0 else "wet"
+			sprite(c,"crop_"+wet,w.plot_position(i)-Vector2(16,16),Vector2.ZERO,Color(1,1,1,moisture))
 
 static func particles(w: Node2D,c: CanvasItem) -> void:
 	for p in w.particles:

@@ -236,12 +236,34 @@ def explosion():
     return track
 
 
+def rain():
+    track = buffer(12)
+    noise = Random(730)
+    low = 0.0
+    for i in range(len(track)):
+        low += (noise.uniform(-1, 1) - low) * .18
+        track[i] = low * .3 * (.8 + .12 * sin(TAU * i / RATE / 7))
+    return track
+
+
+def thunder():
+    track = buffer(4.8)
+    noise = Random(731)
+    low = 0.0
+    for i in range(len(track)):
+        t = i / RATE
+        low += (noise.uniform(-1, 1) - low) * .018
+        envelope = min(1, t * 4) * exp(-t * .85)
+        track[i] = (low * .9 + sin(TAU * (39 * t - t * t)) * .12) * envelope
+    return track
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--only", choices=["music", "birds", "crickets", "drips", "wildgrowth", "ship", "crash", "laser", "laser_hit", "explosion"], help="Rebuild one sound instead of all assets.")
+    parser.add_argument("--only", choices=["music", "birds", "crickets", "drips", "wildgrowth", "ship", "crash", "laser", "laser_hit", "explosion", "rain", "thunder"], help="Rebuild one sound instead of all assets.")
     args = parser.parse_args()
     OUTPUT.mkdir(parents=True, exist_ok=True)
-    for name, build in {"music": music, "birds": birds, "crickets": crickets, "drips": drips, "wildgrowth": wildgrowth, "ship": ship, "crash": crash, "laser": laser, "laser_hit": laser_hit, "explosion": explosion}.items():
+    for name, build in {"music": music, "birds": birds, "crickets": crickets, "drips": drips, "wildgrowth": wildgrowth, "ship": ship, "crash": crash, "laser": laser, "laser_hit": laser_hit, "explosion": explosion, "rain": rain, "thunder": thunder}.items():
         if args.only is None or args.only == name:
             write(name, build())
 

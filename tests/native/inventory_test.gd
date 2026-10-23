@@ -27,7 +27,7 @@ func run() -> void:
 	s.star_seeds=1
 	s.selected_seed="star_seeds"
 	s.tend(0); s.tend(0); s.tend(0)
-	s.advance(4320)
+	preload("fixture.gd").grow_watered_days(s)
 	s.tend(0)
 	check(s.star_bulbs==1 and s.star_seeds==0,"star bulbs grow and harvest through the real farming system")
 	check(s.accept_sword() and not s.accept_sword() and s.rusty_sword==1,"veteran sword can be accepted only once")

@@ -25,22 +25,20 @@ func run() -> void:
 	check(not s.plots[0].watered and s.energy==energy_before,"watering requires its tool without wasting energy")
 	s.watering_can=1
 	s.tend(0)
-	s.advance(4320)
+	s.weather_override="sunny"
+	preload("fixture.gd").grow_watered_days(s)
 	s.sickle=0
 	s.tend(0)
 	check(s.ripe(0) and s.harvested==0,"harvesting requires a carried sickle")
 	s=State.new()
 	preload("fixture.gd").tools(s)
 	s.seeds=80
-	for cycle in range(2):
-		for i in range(20):
-			if cycle==0: s.tend(i)
-			s.tend(i)
-			s.tend(i)
-		s.advance(4320)
-		for i in range(20): s.tend(i)
-		if cycle==0: s.water=20
-	check(s.energy==0 and s.harvested==20 and s.total()==9180,"doubled farming costs exhaust energy during the second full-field harvest")
+	for i in range(20):
+		s.tend(i)
+		s.tend(i)
+	preload("fixture.gd").grow_watered_days(s)
+	for i in range(20): s.tend(i)
+	check(s.energy==0 and s.harvested==0 and s.ripe(0),"tilling twenty plots and watering for three days exhausts energy before harvesting")
 	var before=s.plots.duplicate(true)
 	s.tend(1)
 	s.tend(1)

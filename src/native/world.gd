@@ -122,6 +122,7 @@ var moving_layer: Node2D
 var crop_signature=0
 var tree_damage: Dictionary={}
 var night_effects: Node2D
+var weather_effects: Node2D
 
 class Prop extends Node2D:
 	var owner_world: Node2D
@@ -201,6 +202,9 @@ func _ready() -> void:
 	night_effects=preload("res://night_effects.gd").new()
 	night_effects.world=self
 	add_child(night_effects)
+	weather_effects=preload("res://weather.gd").new()
+	weather_effects.world=self
+	add_child(weather_effects)
 	_prop("sparkfire",site_position("sparkfire"),{"bloom":false})
 	_prop("fountain",Grid.origin(SQUARE.position+Vector2i(2,4)),{"frame":-1})
 	_prop("bulletin_board",Grid.origin(Vector2i(60,51)),{})
@@ -305,6 +309,7 @@ func _build_layout() -> void:
 	_claim(OUTCROP_CELLS,"rock")
 	_claim(MINE_RIDGE,"rock")
 	_claim(CART_CELLS,"cart")
+	_claim(Rect2i(9,11,5,3),"ship hull")
 	_claim(Rect2i(Vector2i(17,44),Vector2i.ONE),"chest")
 	for cell in LAMP_CELLS: _claim(Rect2i(cell,Vector2i.ONE),"lamp")
 	_claim(Rect2i(Grid.world_to_cell(site_position("sign")),Vector2i.ONE),"sign")
@@ -460,6 +465,7 @@ func _prop(kind: String, pos: Vector2, data: Dictionary) -> Prop:
 
 func refresh() -> void:
 	if night_effects!=null: night_effects.refresh()
+	if weather_effects!=null: weather_effects.refresh()
 	var season=state.season_name()
 	if rendered_season!=season:
 		rendered_season=season
@@ -473,7 +479,7 @@ func refresh() -> void:
 	var ripe_mask=0
 	for i in range(state.plots.size()):
 		if state.ripe(i): ripe_mask|=1<<i
-	var signature=hash(state.plots)^ripe_mask
+	var signature=hash(state.plots)^ripe_mask^(int(state.minute/5) if state.minute<360 and state.plots.any(func(plot):return plot.water_day==state.day-1) else 0)
 	if signature!=crop_signature:
 		crop_signature=signature
 		crops.queue_redraw()
@@ -523,7 +529,14 @@ func should_highlight() -> bool:
 	return get_parent().has_method("cutscene_active") and get_parent().controls.show_target and not cutscene_hidden()
 
 func activation_cells(site: Dictionary) -> Array:
-	if site.has("door"): return [site.cell+Vector2i.UP]
+	if site.id=="bulletin_board": return [Vector2i(60,50),Vector2i(61,50)]
+	if site.id=="ship_entry":
+		var cells=[]
+		for x in range(10,13):
+			for y in [13,14]: cells.append(Vector2i(x,y))
+		return cells
+	if site.id=="ore": return [Vector2i(93,73),Vector2i(94,73),Vector2i(93,74),Vector2i(94,74)]
+	if site.has("door"): return [site.cell+Vector2i.UP,site.cell]
 	return [site.cell]
 
 func plot_position(i: int) -> Vector2:
@@ -593,7 +606,7 @@ func find_nearest() -> Dictionary:
 			distance = d
 	for p in sites:
 		if p.id in ["pond","bed"] or front_cell() not in activation_cells(p): continue
-		var interaction_point=Vector2(p.x,p.y)
+		var interaction_point=Grid.center(front_cell())
 		if p.has("bounds"):
 			interaction_point=state.player_position.clamp(p.bounds.position,p.bounds.end)
 		var d = state.player_position.distance_to(interaction_point)

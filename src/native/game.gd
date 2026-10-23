@@ -57,6 +57,7 @@ var conversation_steps=0
 var conversation_location=""
 var conversation_anchor=Vector2.ZERO
 const WELCOME_MEMBERS=["mayor","moss","assistant"]
+const WELCOME_POSITIONS=[Vector2i(2,11),Vector2i(3,12),Vector2i(5,12)]
 var departure_paths: Dictionary={}
 var escort_path: Array=[]
 var fishing_species="fish"
@@ -153,7 +154,7 @@ func _process(dt: float) -> void:
 	if not conversation_members.is_empty() and (state.location!=conversation_location or state.player_position.distance_to(conversation_anchor)>160): close_window()
 	if state.welcome_phase=="waiting":
 		state.welcome_elapsed=state.welcome_elapsed+dt if state.house_tasks.values().all(func(done): return done) else 0.0
-		if state.welcome_elapsed>=4:
+		if state.welcome_elapsed>=1:
 			if window_open: close_window()
 			mayor()
 	var staged=clock_held()
@@ -219,6 +220,7 @@ func _process(dt: float) -> void:
 	if elapsed>message_until: ui.message.text=""
 	var context=world.audio_context(state.player_position)
 	sound.update_context(state.minute,context.environment,context.season,context.cave_weight,dt)
+	sound.update_weather(state.weather_name(),world==outdoors,dt)
 	world.refresh()
 	camera.position = state.player_position.round()+Vector2(20,-5)
 	ui.update()
@@ -309,6 +311,8 @@ func enter_building(id: String) -> void:
 	if id=="home" and state.welcome_phase=="unvisited":
 		state.welcome_phase="waiting"
 		state.welcome_elapsed=0
+		for visitor in WELCOME_MEMBERS:
+			outdoors.story_destinations[visitor]={"cell":Grid.world_to_cell(outdoors.site_position("bed")),"room":"","sleeping":false}
 	activity=""
 	resting=0
 	world.update_villagers(0.0,true)
@@ -499,7 +503,7 @@ func choose_dialogue(action: Callable) -> void:
 func dialog(title: String,role: String,text: String,choices: Array = []) -> void:
 	if not conversation_members.is_empty():
 		conversation_steps+=1
-		if conversation_steps>1: conversation_sequence=true
+		if conversation_steps>1 and conversation_members!=["tavi"]: conversation_sequence=true
 	window_open = true
 	if choices.is_empty(): choices=[["See you around.",func(): pass]]
 	ui.open_modal(title,role,text,choices)
@@ -803,7 +807,7 @@ func perform_drop(data: Dictionary,destination: Dictionary,amount: int) -> bool:
 	return state.assign_slot(int(destination.quick_index),data.id)
 
 func cooking() -> void:
-	if current_room!="home" or state.player_position.distance_to(world.site_position("stove"))>55:
+	if current_room!="home" or world.front_cell() not in world.activation_cells(world.sites.filter(func(site):return site.id=="stove")[0]):
 		toast("Use the farmhouse oven to cook.")
 		return
 	var choices=[]
@@ -957,8 +961,7 @@ func bulletin_board() -> void:
 func mayor() -> void:
 	if current_room=="home" and state.welcome_phase=="waiting":
 		state.welcome_phase="arriving"
-		for id in WELCOME_MEMBERS:
-			outdoors.story_destinations[id]={"cell":Grid.world_to_cell(outdoors.site_position("bed"))+Vector2i.DOWN,"room":"home","sleeping":false}
+		ui.update_hud()
 		return
 	var first_visit=current_room=="home" and state.welcome_phase in ["arriving","meeting"]
 	if not first_visit and state.welcome_phase!="complete":
@@ -995,29 +998,33 @@ func place_welcome_party() -> void:
 		outdoors.villagers[id].position=outdoors.site_position("bed")+Vector2(0,32)
 		actor.visible=true
 		actor.data.sleeping=false
-		actor.position=Grid.center([Vector2i(3,11),Vector2i(5,11),Vector2i(4,12)][i])
+		actor.position=Grid.center(WELCOME_POSITIONS[i])
 		actor.queue_redraw()
 
 func walk_visitor(id: String,cell: Vector2i,dt: float) -> bool:
-	return world.walk_actor(id,cell,dt,65)
+	return world.walk_actor(id,cell,dt,100)
 
 func update_welcome_arrival(dt: float) -> void:
+	outdoors.update_villagers(dt*2)
 	if state.player_position.distance_to(Grid.center(Vector2i(4,11)))>1:
 		var path=world._route(Grid.world_to_cell(state.player_position),Vector2i(4,11))
 		if not path.is_empty():
-			state.player_position=state.player_position.move_toward(path[0],dt*65)
+			state.player_position=state.player_position.move_toward(path[0],dt*120)
 			world.moving=true
 			return
-	outdoors.update_villagers(dt)
 	var arrived=true
 	for i in range(WELCOME_MEMBERS.size()):
 		var id=WELCOME_MEMBERS[i]
 		var actor=world.villagers[id]
+		if i>0 and world.villagers[WELCOME_MEMBERS[i-1]].position.distance_to(Grid.center(WELCOME_POSITIONS[i-1]))>1:
+			arrived=false
+			break
+		outdoors.story_destinations[id]={"cell":Grid.world_to_cell(outdoors.site_position("bed")),"room":"home","sleeping":false}
 		if outdoors.villagers[id].data.get("room","")!="home": arrived=false; continue
 		if not actor.visible:
 			actor.position=world.entry_position()
 			actor.visible=true
-		if not walk_visitor(id,[Vector2i(3,11),Vector2i(5,11),Vector2i(4,12)][i],dt): arrived=false
+		if not walk_visitor(id,WELCOME_POSITIONS[i],dt): arrived=false
 	if arrived: mayor()
 
 func update_welcome_departure(dt: float,members: Array=["mayor","assistant"]) -> void:
@@ -1159,7 +1166,20 @@ func development_tools() -> void:
 		["Advance 12 hours",func(): advance_development_time(720.0)],
 		["Advance 24 hours",func(): advance_development_time(1440.0)],
 		["Advance 1 season · 28 days",func(): advance_development_time(State.DEVELOPMENT_SEASON_DAYS*1440.0)],
+		["Weather · "+state.weather_name().replace("_"," "),development_weather],
 		["Back to settings",settings]])
+
+func development_weather() -> void:
+	var choices=[]
+	for mode in ["","sunny","partly_cloudy","rainy"]:
+		var weather: String=mode
+		choices.append(["Follow the daily forecast" if mode=="" else mode.replace("_"," ").capitalize(),func():
+			state.weather_override=weather
+			world.refresh()
+			sound.update_weather(state.weather_name(),world==outdoors,1)
+			save_visit()
+			development_tools()])
+	panel("Weather","DEVELOPMENT PREVIEW","Preview sunshine, passing clouds or gentle rain. The daily forecast is reproducible for this visit.",choices)
 
 func advance_development_time(minutes: float) -> void:
 	if not OS.is_debug_build(): return

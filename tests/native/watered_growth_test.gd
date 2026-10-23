@@ -1,0 +1,30 @@
+extends SceneTree
+const State=preload("res://state.gd")
+var failed=false
+func check(ok: bool,label: String) -> void:
+	if ok: print("PASS: "+label)
+	else: failed=true; push_error("FAIL: "+label)
+func _initialize() -> void:
+	var s=State.new()
+	preload("fixture.gd").tools(s)
+	s.tend(0)
+	s.tend(0)
+	s.advance(4320)
+	check(not s.ripe(0) and s.plots[0].growth==0,"unwatered seeds make no growth even after three days")
+	s.tend(0)
+	s.advance(1440-s.minute)
+	check(s.plots[0].growth==1440 and not s.plots[0].watered,"a watered day earns one growth day at midnight and needs fresh water tomorrow")
+	if s.has_method("plot_moisture"):
+		check(is_equal_approx(s.plot_moisture(0),1),"yesterday's water remains visibly wet at midnight")
+		s.advance(180)
+		check(is_equal_approx(s.plot_moisture(0),0.5),"soil moisture fades gradually overnight")
+		s.advance(180)
+		check(s.plot_moisture(0)==0,"soil is dry again at sunrise")
+	s.advance(2880)
+	check(not s.ripe(0) and s.plots[0].growth==1440,"missing watering days never advances the harvest clock")
+	s.tend(0)
+	s.advance(1440)
+	s.tend(0)
+	s.advance(1440)
+	check(s.ripe(0),"three watered midnights mature a crop even after skipped dry days")
+	quit(1 if failed else 0)

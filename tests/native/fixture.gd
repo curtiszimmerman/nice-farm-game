@@ -12,6 +12,7 @@ static func explore(game: Node2D,meet_moss: bool=false) -> void:
 	game.world.refresh()
 
 static func tools(state: RefCounted) -> void:
+	state.weather_override="sunny"
 	state.magic_learned=true
 	for i in range(4): state.chest_transfer(i)
 	for pair in [[0,"hoe"],[1,"watering_can"],[2,"sickle"],[3,"seeds"],[5,"wildgrowth"]]: state.assign_slot(pair[0],pair[1])
@@ -38,6 +39,18 @@ static func face_site(game: Node2D,id: String) -> void:
 			game.world.facing=facing
 			return
 	assert(false,"The interaction must have an accessible facing tile: "+id)
+
+static func grow_watered_days(state: RefCounted,days: int=3) -> void:
+	var selected=state.inventory_selection
+	var slot=state.selected_slot
+	state.assign_active("primary","watering_can")
+	for day in range(days):
+		state.refill_water()
+		for i in range(state.plots.size()):
+			if state.plots[i].planted>=0 and not state.plots[i].watered and not state.ripe(i): state.tend(i)
+		state.advance(1440-state.minute)
+	state.inventory_selection=selected
+	state.selected_slot=slot
 
 static func finish_welcome(game: Node2D) -> void:
 	while game.state.welcome_phase=="escorting": game._process(0.1)

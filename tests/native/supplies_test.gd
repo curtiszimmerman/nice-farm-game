@@ -29,10 +29,15 @@ func _initialize() -> void:
 	s.refill_water()
 	s.farm(0)
 	check(s.plots[0].watered and s.water==19,"watering spends one of twenty charges")
-	s.advance(4319)
-	check(not s.ripe(0),"plants need three days to mature")
+	s.weather_override="sunny"
+	s.advance(1440-s.minute)
+	s.tend(0)
+	s.advance(1440)
+	s.tend(0)
+	s.advance(1439)
+	check(not s.ripe(0),"plants need three watered midnights to mature")
 	s.advance(1)
-	check(s.ripe(0),"plants mature at three full days")
+	check(s.ripe(0),"plants mature at the third watered midnight")
 	s.fish=3
 	check(not s.cook("fish_sticks"),"fish sticks require a purchased pan")
 	s.money=100

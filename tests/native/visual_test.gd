@@ -136,7 +136,7 @@ func run() -> void:
 		game.state.tend(i)
 		game.state.tend(i)
 		game.state.tend(i)
-	game.state.advance(4320.0)
+	preload("fixture.gd").grow_watered_days(game.state)
 	game.state.player_position=game.world.plot_position(12)+Vector2(0,32)
 	await capture("garden")
 	game.state.player_position=game.world.Grid.center(game.world.PEOPLE[0].cell)+Vector2(0,20)
@@ -331,6 +331,17 @@ func run() -> void:
 		game.state.day=day
 		game.state.minute=600
 		await capture("season-"+game.state.season_name())
+	game.state.day=10
+	game.state.minute=720
+	for weather in ["sunny","partly_cloudy","rainy"]:
+		game.state.weather_override=weather
+		game.world.elapsed=20
+		game.sound.update_weather(weather,true,2)
+		await capture("weather-"+weather)
+		if weather!="sunny":
+			game.world.elapsed=30
+			await capture("weather-"+weather+"-later")
+	game.state.weather_override="sunny"
 	game.state.day=57
 	game.state.minute=0
 	await capture("calendar-both-full")

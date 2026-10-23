@@ -41,9 +41,9 @@ func run() -> void:
 	game._process(20)
 	check(game.state.welcome_phase=="waiting","partial cleanup never starts the welcome")
 	for task in game.state.house_tasks: game.state.house_tasks[task]=true
-	game._process(3)
+	game._process(0.5)
 	check(game.state.welcome_phase=="waiting","the visitors allow a short pause after cleanup")
-	game._process(2)
+	game._process(0.6)
 	check(game.state.welcome_phase=="arriving" and not game.window_open,"the mayor's party walks over before the meeting begins")
 	preload("fixture.gd").await_visitors(game)
 	check(game.state.welcome_phase=="meeting" and game.window_open,"the mayor's party arrives during the paused first visit")

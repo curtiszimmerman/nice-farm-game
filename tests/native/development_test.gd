@@ -58,12 +58,13 @@ func run() -> void:
 	game.state.tend(0)
 	game.state.tend(0)
 	game.state.tend(0)
+	game.state.tend(0)
 	game.development_tools()
 	for option in [[3,60.0],[4,720.0],[5,1440.0],[6,SEASON_DAYS*1440.0]]:
 		var before=game.state.total()
 		game.ui.modal_box.get_child(option[0]).pressed.emit()
 		check(is_equal_approx(game.state.total()-before,option[1]),"development menu advances exactly %d minutes even in full pause" % option[1])
-	check(game.state.ripe(0),"time jumps advance real crop growth")
+	check(not game.state.ripe(0) and game.state.plots[0].growth==1440,"time jumps credit watered days without inventing water for skipped days")
 	check(game.state.season_name()=="summer" and game.world.audio_context(game.state.player_position).season=="summer","season jump updates calendar and environmental audio together")
 	game.state.day=SEASON_DAYS*4+1
 	check(game.state.season_name()=="spring" and game.state.calendar_year()==2,"development calendar wraps seasons into a new year")

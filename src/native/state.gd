@@ -97,6 +97,7 @@ var mana = 60.0
 var energy = 100.0
 var experience=0
 var quest_order: Array=[]
+var weather_override=""
 var invited = false
 var met_mayor = false
 var delivered = false
@@ -117,10 +118,13 @@ func _init() -> void:
 		ship_storage.append({"id":"rations","count":6} if i==0 else {})
 	cabinet[0]={"id":"light_bulbs","count":2}
 	for i in range(20):
-		plots.append({"tilled": false, "planted": -1.0, "watered": false,"crop":"turnips","growth":0.0})
+		plots.append({"tilled": false, "planted": -1.0, "watered": false,"crop":"turnips","growth":0.0,"water_day":0})
 
 func total() -> float:
 	return (day - 1) * 1440.0 + minute
+
+func weather_name(on_day: int=0) -> String:
+	return weather_override if weather_override!="" else preload("res://weather.gd").for_day(world_seed,day if on_day==0 else on_day)
 
 func accept_firewood_task() -> bool:
 	if firewood_given: return false
@@ -154,6 +158,17 @@ func advance(minutes: float, window_open = false) -> void:
 	var previous_day=day
 	day = int(elapsed / 1440.0) + 1
 	minute = fmod(elapsed, 1440.0)
+	for crop_day in range(previous_day,day):
+		for plot in plots:
+			if plot.planted>=0 and (plot.watered or weather_name(crop_day)=="rainy"):
+				plot.growth=minf(CROP_MINUTES,plot.growth+1440)
+				plot.water_day=crop_day
+			plot.watered=false
+	if weather_name()=="rainy":
+		for plot in plots:
+			if plot.planted>=0:
+				plot.watered=true
+				plot.water_day=day
 	for meal_day in range(previous_day+1,day+1):
 		if take_crew_meal(): crew_fed_day=meal_day
 		else: crew_hungry_days+=1
@@ -168,7 +183,12 @@ func take_crew_meal() -> bool:
 	return false
 
 func ripe(index: int) -> bool:
-	return index >= 0 and index < plots.size() and plots[index].planted >= 0.0 and plots[index].watered and total() - plots[index].planted+plots[index].growth >= CROP_MINUTES
+	return index >= 0 and index < plots.size() and plots[index].planted >= 0.0 and plots[index].growth >= CROP_MINUTES
+
+func plot_moisture(index: int) -> float:
+	var plot=plots[index]
+	if plot.watered: return 1.0
+	return 1.0-minute/360.0 if plot.water_day>0 and plot.water_day==day-1 and minute<360 else 0.0
 
 func clear_empty_slots() -> void:
 	if inventory_selection!="" and not available_action(inventory_selection): inventory_selection=""
@@ -254,8 +274,8 @@ func tend(index: int) -> String:
 		energy-=cost
 		p.watered = true
 		water-=1
-		p.planted = total()
-		return "Watered. Three days to mature."+(" Select Wildgrowth to hasten it." if magic_learned else "")
+		p.water_day=day
+		return "Watered for today. Three watered days to mature."+(" Select Wildgrowth to hasten it." if magic_learned else "")
 	return "Growing happily."
 
 func grow(index: int) -> bool:
@@ -475,8 +495,8 @@ func to_dict() -> Dictionary:
 	sync_inventory()
 	var supplies={}
 	for id in EXTRA_ITEMS: supplies[id]=get(id)
-	return {"version": 12,"inventory_order":inventory_order.duplicate(),"woodcutter_axe_given":woodcutter_axe_given,"cave_pickaxe_taken":cave_pickaxe_taken,"cave_intro_seen":cave_intro_seen,"auxiliary_selection":auxiliary_selection,"world_seed":world_seed,"inventory_selection":inventory_selection,"firewood_requested":firewood_requested,"firewood_given":firewood_given,"felled_trees":felled_trees.duplicate(),"day": day, "minute": minute, "money": money,"magic_learned":magic_learned,
-		"experience":experience,"quest_order":quest_order.duplicate(),
+	return {"version": 13,"inventory_order":inventory_order.duplicate(),"woodcutter_axe_given":woodcutter_axe_given,"cave_pickaxe_taken":cave_pickaxe_taken,"cave_intro_seen":cave_intro_seen,"auxiliary_selection":auxiliary_selection,"world_seed":world_seed,"inventory_selection":inventory_selection,"firewood_requested":firewood_requested,"firewood_given":firewood_given,"felled_trees":felled_trees.duplicate(),"day": day, "minute": minute, "money": money,"magic_learned":magic_learned,
+		"experience":experience,"quest_order":quest_order.duplicate(),"weather_override":weather_override,
 		"cave_seed":cave_seed,"cave_broken":cave_broken.duplicate(),"cave_defeated":cave_defeated.duplicate(),"cave_chrysalis_taken":cave_chrysalis_taken,"sparkfire_picked_day":sparkfire_picked_day,"cave_barrel":cave_barrel.duplicate(true),
 		"ship_departed":ship_departed,"welcome_phase":welcome_phase,"welcome_elapsed":welcome_elapsed,
 		"intro_complete":intro_complete,"briefing_complete":briefing_complete,"mayor_due":mayor_due,"house_tasks":house_tasks.duplicate(),
@@ -491,12 +511,13 @@ func to_dict() -> Dictionary:
 		"plots": plots.duplicate(true)}
 
 func restore(data: Variant) -> bool:
-	if not data is Dictionary or data.get("version") != 12:
+	if not data is Dictionary or data.get("version") != 13:
 		return false
 	if not data.get("inventory_order") is Array or data.inventory_order.size()!=INVENTORY_SLOTS: return false
 	var ordered=[]
 	if not _number(data.get("experience")) or data.experience<0 or data.experience!=floor(data.experience): return false
 	if not data.get("quest_order") is Array: return false
+	if data.get("weather_override") not in ["","sunny","partly_cloudy","rainy"]: return false
 	var quests=[]
 	for id in data.quest_order:
 		if not id is String or id not in ["crew_supplies","restore_farmhouse","first_harvest","meet_wizard","keeper_firewood"] or id in quests: return false
@@ -596,6 +617,7 @@ func restore(data: Variant) -> bool:
 			return false
 		if not p.get("crop") in ["turnips","star_bulbs"]: return false
 		if not _number(p.get("growth")) or p.growth<0 or p.growth>CROP_MINUTES: return false
+		if not _number(p.get("water_day")) or p.water_day<0 or p.water_day>data.day or p.water_day!=floor(p.water_day): return false
 	for field in ["day", "money", "seeds", "turnips", "fish", "copper", "harvested","star_seeds","star_bulbs","rusty_sword","hoe","watering_can","sickle","invitation_day"]:
 		set(field, int(data[field]))
 	for field in ["minute", "mana", "energy", "invited", "met_mayor", "delivered", "pause_mode","health","equipped","selected_seed","location"]:
@@ -612,6 +634,7 @@ func restore(data: Variant) -> bool:
 	inventory_order=data.inventory_order.duplicate()
 	experience=int(data.experience)
 	quest_order=data.quest_order.duplicate()
+	weather_override=data.weather_override
 	auxiliary_selection=data.auxiliary_selection
 	world_seed=int(data.world_seed)
 	firewood_requested=data.firewood_requested

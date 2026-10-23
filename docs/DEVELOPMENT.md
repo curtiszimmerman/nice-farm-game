@@ -222,6 +222,18 @@ The development-speed check assumed a fixed outdoor cell stayed clear despite ra
 
 Final verification passed 1,659 native checks, four Python asset checks and startup smoke with clean logs in internal/verification/checks-character-release.log. The native visual/audio run passed in internal/verification/visual-character-complete.log, including real item/spell drags, quantity transfers and Space-key pause checks. Earlier failing reproductions remain available for review. All requested changes are committed; the preexisting launcher mode change remains uncommitted. No push was performed.
 
+## Doorways, daily watering and weather
+
+Branch: wip/doorways-growth-and-weather. Z requested full-width object activation, forgiving two-depth doorway targets, an impassable ship hull with several boarding squares, clear household circulation, a quicker single-file welcome with hidden HUD, daily watered crop growth and overnight drying, persistent grocery service, cabinet-based cooking, a larger labeled equipment figure, weather visuals/audio and deeper intro effects.
+
+Reproductions found the ship locker mapped to stock furniture although its visible shelves are cabinets, and outdoor door targets omitted the threshold cell. The bulletin board similarly targeted its standing anchor instead of its two occupied squares. Explicit footprints now cover those objects, two-wide cave entries and both doorway approach depths. Real activation checks cover every authored interior and exterior door. Bram's dining table now leaves the main passage clear; the cave pickaxe drawing stays inside its ground cell.
+
+Cookware explanations increased the conversation step count and marked Tavi's shopping as an abandoned story sequence, sending him home. Shopping now stays outside that abandonment rule. Cooking already consumed both cabinet and carried ingredients; the physical oven trigger now uses its actual footprint too. Regressions cook a meal entirely from cabinet supplies.
+
+The mayor party begins approaching while the crew tidies. Cleanup starts the arrival after one second. Visitors enter one at a time and finish walking to separate meeting spots; HUD visibility updates immediately and on UI frames. Daily plant growth credits a watered day at midnight, with no credit for skipped dry days. Moisture fades from midnight to sunrise, independently from the growth total. Save schema 13 stores each plot's watering day and the weather override; no migration is implemented.
+
+Weather uses a reproducible daily forecast with development previews. Separate retained shadow and moving sky layers provide sunny tree/fence/lamp shadows, drifting cloud shadows and rain streaks/splashes. Rain and occasional thunder use separate generated ambience tracks. Rain watering is provisional pending Z's answer to the preference question. Battle effects play at one quarter their previous pitch. Both sprite catalogs now contain 763 sprites. New checks cover footprints, shop continuity, the visitor queue, watered growth and weather. Final regression and native visual verification remain in progress. No journal tool is available; findings are recorded here. Preserve the preexisting launcher mode change.
+
 ## Next discussion
 
 Play and critique the slice before expanding it. Decide the next milestone, combat controls and feel, art direction, calendar/lunar rules, and the first actual networked cooperative interaction. Do not mistake placeholder content for approved final story or mechanics.

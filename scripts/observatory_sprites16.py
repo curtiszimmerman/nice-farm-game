@@ -7,6 +7,31 @@ import math
 
 def sprites(Pixels):
     result = {}
+    cloud = Pixels(80, 40)
+    for x, y, rx, ry in [(15, 23, 14, 10), (31, 17, 20, 14), (53, 18, 18, 13), (66, 25, 12, 9)]:
+        cloud.oval(x, y, rx, ry, "ffffff55")
+        cloud.oval(x, y, rx - 3, ry - 3, "ffffffaa")
+    result["cloud_shadow"] = cloud
+    tree_shadow = Pixels(32, 20)
+    tree_shadow.polygon([(1, 18), (3, 19), (23, 9), (19, 6)], "ffffffff")
+    for x, y, rx, ry in [(17, 8, 8, 5), (23, 5, 7, 5), (27, 8, 4, 4)]:
+        tree_shadow.oval(x, y, rx, ry, "ffffffbb")
+    result["shadow_tree"] = tree_shadow
+    fence_shadow = Pixels(20, 10)
+    fence_shadow.polygon([(1, 3), (17, 0), (19, 2), (3, 6)], "ffffffcc")
+    fence_shadow.line(8, 2, 13, 9, "ffffffff")
+    result["shadow_fence"] = fence_shadow
+    lamp_shadow = Pixels(16, 24)
+    lamp_shadow.line(1, 20, 12, 4, "ffffffff")
+    lamp_shadow.box(9, 1, 5, 5, "ffffffcc")
+    result["shadow_lamp"] = lamp_shadow
+    streak = Pixels(2, 6)
+    streak.line(1, 0, 0, 5, "ffffffff")
+    result["rain_streak"] = streak
+    splash = Pixels(6, 3)
+    splash.line(0, 0, 2, 2, "ffffffaa")
+    splash.line(3, 2, 5, 0, "ffffffaa")
+    result["rain_splash"] = splash
     silhouettes = {
         "head": [(4, 3, 8, 3), (3, 6, 10, 5), (3, 11, 3, 2), (10, 11, 3, 2)],
         "chest": [(3, 3, 4, 3), (9, 3, 4, 3), (4, 5, 8, 8), (6, 3, 4, 10)],

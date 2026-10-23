@@ -1,6 +1,10 @@
 extends Node
 
-const TRACKS = ["music","birds","crickets","drips","wildgrowth","ship","crash","laser","laser_hit","explosion"]
+const TRACKS = ["music","birds","crickets","drips","wildgrowth","ship","crash","laser","laser_hit","explosion","rain","thunder"]
+var rain: AudioStreamPlayer
+var thunder: AudioStreamPlayer
+var rain_weight=0.0
+var thunder_wait=18.0
 var battle: Dictionary={}
 var crash: AudioStreamPlayer
 var cinematic=false
@@ -23,7 +27,7 @@ var current_mix = {"birds":0.0,"crickets":0.0,"drips":0.0}
 func _ready() -> void:
 	for name in TRACKS:
 		var stream=AudioStreamWAV.load_from_file("res://audio/"+name+".wav")
-		if name not in ["wildgrowth","crash","laser","laser_hit","explosion"]:
+		if name not in ["wildgrowth","crash","laser","laser_hit","explosion","thunder"]:
 			stream.loop_mode=AudioStreamWAV.LOOP_FORWARD
 			stream.loop_end=stream.data.size()/2
 		streams[name]=stream
@@ -34,6 +38,8 @@ func _ready() -> void:
 	ship=_player("ship")
 	crash=_player("crash")
 	spell=_player("wildgrowth")
+	rain=_player("rain")
+	thunder=_player("thunder")
 	spell.max_polyphony=4
 	for name in ["laser","laser_hit","explosion"]:
 		battle[name]=_player(name)
@@ -68,6 +74,19 @@ func update_context(minute: float,environment: String,season: String,cave_weight
 func _db(value: float) -> float:
 	return linear_to_db(value) if value>0.0001 else -80.0
 
+func update_weather(mode: String,outdoors: bool,dt: float) -> void:
+	var wet=outdoors and mode=="rainy" and not cinematic
+	rain_weight=lerpf(rain_weight,1.0 if wet else 0.0,1-exp(-dt*1.8))
+	if wet and active:
+		thunder_wait-=dt
+		if thunder_wait<=0:
+			thunder.play()
+			thunder_wait=24+absf(sin(Time.get_ticks_msec()*0.001))*18
+	elif not wet:
+		thunder.stop()
+		thunder_wait=18
+	_apply_volumes()
+
 func _apply_volumes() -> void:
 	music.volume_db=_db(music_level*(1.0-ship_weight) if not cinematic else 0.0)
 	ship.volume_db=_db(ambience_level*ship_weight if not cinematic else 0.0)
@@ -76,6 +95,8 @@ func _apply_volumes() -> void:
 	crickets.volume_db=_db(ambience_level*current_mix.crickets if not cinematic else 0.0)
 	drips.volume_db=_db(ambience_level*current_mix.drips if not cinematic else 0.0)
 	spell.volume_db=_db(effects_level)
+	rain.volume_db=_db(ambience_level*rain_weight if not cinematic else 0.0)
+	thunder.volume_db=_db(ambience_level*0.65 if not cinematic else 0.0)
 	for player in battle.values(): player.volume_db=_db(effects_level)
 
 func set_cinematic(value: bool) -> void:
@@ -85,11 +106,11 @@ func set_cinematic(value: bool) -> void:
 func start() -> void:
 	if active: return
 	active=true
-	for player in [music,birds,crickets,drips,ship]: player.play()
+	for player in [music,birds,crickets,drips,ship,rain]: player.play()
 
 func stop() -> void:
 	active=false
-	for player in [music,birds,crickets,drips,ship,spell,crash]: player.stop()
+	for player in [music,birds,crickets,drips,ship,spell,crash,rain,thunder]: player.stop()
 	for player in battle.values(): player.stop()
 
 func shutdown() -> void:
@@ -117,7 +138,7 @@ func play_spell(id: String) -> bool:
 
 func play_battle(id: String,friendly: bool=false) -> void:
 	if not battle.has(id) or effects_level<=0: return
-	battle[id].pitch_scale=1.06 if id=="laser" and friendly else 0.93 if id=="laser" else 1.0
+	battle[id].pitch_scale=(1.06 if id=="laser" and friendly else 0.93 if id=="laser" else 1.0)/4.0
 	battle[id].play()
 
 func preferences_path() -> String:
