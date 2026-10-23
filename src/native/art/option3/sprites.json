@@ -6023,15 +6023,15 @@
       32
     ]
   },
-  "clock_pendulum": {
+  "equipment_head": {
     "rect": [
       877,
       1113,
       16,
-      32
+      16
     ]
   },
-  "window_warm": {
+  "equipment_chest": {
     "rect": [
       895,
       1113,
@@ -6039,31 +6039,55 @@
       16
     ]
   },
-  "lamp_halo": {
+  "equipment_arms": {
     "rect": [
       913,
       1113,
-      64,
-      32
+      16,
+      16
     ]
   },
-  "chimney_smoke0": {
+  "equipment_hands": {
     "rect": [
-      979,
+      931,
       1113,
       16,
       16
     ]
   },
-  "chimney_smoke1": {
+  "equipment_legs": {
     "rect": [
-      997,
+      949,
       1113,
       16,
       16
     ]
   },
-  "chimney_smoke2": {
+  "equipment_feet": {
+    "rect": [
+      967,
+      1113,
+      16,
+      16
+    ]
+  },
+  "equipment_left_ring": {
+    "rect": [
+      985,
+      1113,
+      16,
+      16
+    ]
+  },
+  "equipment_right_ring": {
+    "rect": [
+      1003,
+      1113,
+      16,
+      16
+    ]
+  },
+  "equipment_necklace": {
     "rect": [
       1,
       1163,
@@ -6071,9 +6095,65 @@
       16
     ]
   },
-  "chimney_smoke3": {
+  "general_store_sign": {
     "rect": [
       19,
+      1163,
+      96,
+      16
+    ]
+  },
+  "clock_pendulum": {
+    "rect": [
+      117,
+      1163,
+      16,
+      32
+    ]
+  },
+  "window_warm": {
+    "rect": [
+      135,
+      1163,
+      16,
+      16
+    ]
+  },
+  "lamp_halo": {
+    "rect": [
+      153,
+      1163,
+      64,
+      32
+    ]
+  },
+  "chimney_smoke0": {
+    "rect": [
+      219,
+      1163,
+      16,
+      16
+    ]
+  },
+  "chimney_smoke1": {
+    "rect": [
+      237,
+      1163,
+      16,
+      16
+    ]
+  },
+  "chimney_smoke2": {
+    "rect": [
+      255,
+      1163,
+      16,
+      16
+    ]
+  },
+  "chimney_smoke3": {
+    "rect": [
+      273,
       1163,
       16,
       16
@@ -6081,7 +6161,7 @@
   },
   "observatory_exterior": {
     "rect": [
-      37,
+      291,
       1163,
       96,
       112
@@ -6089,7 +6169,7 @@
   },
   "actor_astronomer_down0": {
     "rect": [
-      135,
+      389,
       1163,
       16,
       32
@@ -6097,7 +6177,7 @@
   },
   "actor_astronomer_down1": {
     "rect": [
-      153,
+      407,
       1163,
       16,
       32
@@ -6105,7 +6185,7 @@
   },
   "actor_astronomer_down2": {
     "rect": [
-      171,
+      425,
       1163,
       16,
       32
@@ -6113,7 +6193,7 @@
   },
   "actor_astronomer_up0": {
     "rect": [
-      189,
+      443,
       1163,
       16,
       32
@@ -6121,7 +6201,7 @@
   },
   "actor_astronomer_up1": {
     "rect": [
-      207,
+      461,
       1163,
       16,
       32
@@ -6129,7 +6209,7 @@
   },
   "actor_astronomer_up2": {
     "rect": [
-      225,
+      479,
       1163,
       16,
       32
@@ -6137,7 +6217,7 @@
   },
   "actor_astronomer_left0": {
     "rect": [
-      243,
+      497,
       1163,
       16,
       32
@@ -6145,7 +6225,7 @@
   },
   "actor_astronomer_left1": {
     "rect": [
-      261,
+      515,
       1163,
       16,
       32
@@ -6153,7 +6233,7 @@
   },
   "actor_astronomer_left2": {
     "rect": [
-      279,
+      533,
       1163,
       16,
       32
@@ -6161,7 +6241,7 @@
   },
   "actor_astronomer_right0": {
     "rect": [
-      297,
+      551,
       1163,
       16,
       32
@@ -6169,7 +6249,7 @@
   },
   "actor_astronomer_right1": {
     "rect": [
-      315,
+      569,
       1163,
       16,
       32
@@ -6177,7 +6257,7 @@
   },
   "actor_astronomer_right2": {
     "rect": [
-      333,
+      587,
       1163,
       16,
       32
@@ -6185,7 +6265,7 @@
   },
   "actor_astronomer_sleep0": {
     "rect": [
-      351,
+      605,
       1163,
       16,
       32
@@ -6193,7 +6273,7 @@
   },
   "crop_soil": {
     "rect": [
-      369,
+      623,
       1163,
       16,
       16
@@ -6201,7 +6281,7 @@
   },
   "crop_tilled": {
     "rect": [
-      387,
+      641,
       1163,
       16,
       16
@@ -6209,7 +6289,7 @@
   },
   "crop_wet": {
     "rect": [
-      405,
+      659,
       1163,
       16,
       16
@@ -6217,7 +6297,7 @@
   },
   "crop_sprout": {
     "rect": [
-      423,
+      677,
       1163,
       16,
       16
@@ -6225,7 +6305,7 @@
   },
   "crop_turnip": {
     "rect": [
-      441,
+      695,
       1163,
       16,
       16
@@ -6233,7 +6313,7 @@
   },
   "crop_bulb": {
     "rect": [
-      459,
+      713,
       1163,
       16,
       16
@@ -6241,7 +6321,7 @@
   },
   "crop_sprout_wet": {
     "rect": [
-      477,
+      731,
       1163,
       16,
       16
@@ -6249,7 +6329,7 @@
   },
   "crop_turnip_wet": {
     "rect": [
-      495,
+      749,
       1163,
       16,
       16
@@ -6257,7 +6337,7 @@
   },
   "crop_bulb_wet": {
     "rect": [
-      513,
+      767,
       1163,
       16,
       16

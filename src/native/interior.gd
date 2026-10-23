@@ -264,10 +264,12 @@ func find_nearest() -> Dictionary:
 	return best
 
 func activation_cells(site: Dictionary) -> Array:
+	if site.id=="private_door": return layout.private_doors
 	var kind={"bed":"bed","uncover_guest_bed":"bed","uncover_sofa":"sofa","radio":"radio","stove":"kitchen","cabinet":"cabinet","shop":"counter","ship_storage":"stock","diagnostics":"machine","living_light":"floor_lamp","bathroom_light":"floor_lamp"}.get(site.id,"")
 	var cells=[]
 	for item in furnishings:
 		if item.kind!=kind: continue
+		if site.id=="stove": return [item.bounds.position]
 		if site.id=="uncover_guest_bed" and item.get("task","")!="guest_bed": continue
 		if site.id=="bed" and item.get("task","")=="guest_bed": continue
 		if kind=="floor_lamp" and (floor_cells[item.bounds.position]=="living")!=(site.id=="living_light"): continue

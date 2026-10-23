@@ -26,6 +26,9 @@ func run() -> void:
 		check(game.state.seeds==1 and game.state.chest[5].count==2,"carried stacks drag back into a chosen chest slot with quantity")
 		game.ui.inventory_slots[0]._drop_data(Vector2.ZERO,{"type":"inventory_item","id":"seeds"})
 		check(game.state.inventory_order[0]=="seeds" and game.state.inventory_order[4]=="","inventory drags reorder a stack without duplicating it")
+		game.state.chest[8]={"id":"axe","count":1}
+		game.ui.inventory_slots[0]._drop_data(Vector2.ZERO,{"type":"inventory_item","id":"axe","storage":"chest","index":8})
+		check(game.state.axe==1 and game.state.seeds==0 and game.state.chest[8].id=="seeds" and game.state.inventory_order[0]=="axe","dropping storage onto an occupied inventory slot swaps both physical stacks")
 	await game.sound.shutdown()
 	game.queue_free()
 	await process_frame

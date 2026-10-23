@@ -16,7 +16,7 @@ func run() -> void:
 	check(game.state.cave_barrel.all(func(stack):return stack.is_empty()),"the pickaxe leans outside the four-slot barrel")
 	game.close_window()
 	check(game.world.site_position("cave_pickaxe")!=Vector2.ZERO,"the leaning pickaxe has a physical pickup site")
-	game.state.player_position=game.world.site_position("cave_pickaxe")
+	preload("fixture.gd").face_site(game,"cave_pickaxe")
 	game.interact()
 	check(game.state.pickaxe==1 and game.state.quick_slots.all(func(id):return id==""),"picking up the cave tool carries it without assigning a shortcut")
 	game.leave_building()

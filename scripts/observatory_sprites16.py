@@ -7,6 +7,48 @@ import math
 
 def sprites(Pixels):
     result = {}
+    silhouettes = {
+        "head": [(4, 3, 8, 3), (3, 6, 10, 5), (3, 11, 3, 2), (10, 11, 3, 2)],
+        "chest": [(3, 3, 4, 3), (9, 3, 4, 3), (4, 5, 8, 8), (6, 3, 4, 10)],
+        "arms": [(2, 4, 4, 8), (10, 4, 4, 8), (3, 3, 2, 10), (11, 3, 2, 10)],
+        "hands": [(5, 3, 2, 9), (8, 2, 2, 10), (11, 4, 2, 8), (3, 7, 10, 6)],
+        "legs": [(4, 2, 8, 4), (4, 6, 3, 8), (9, 6, 3, 8)],
+        "feet": [(3, 3, 4, 8), (9, 3, 4, 8), (2, 10, 5, 3), (9, 10, 5, 3)]}
+    for name, boxes in silhouettes.items():
+        icon = Pixels(16, 16)
+        for x, y, w, h in boxes: icon.box(x, y, w, h, "667b72")
+        for y in range(16):
+            for x in range(16):
+                if icon.get(x, y)[3] and (y == 0 or not icon.get(x, y - 1)[3]): icon.dot(x, y, "a2afa0")
+        result["equipment_" + name] = icon
+    ring = Pixels(16, 16)
+    ring.oval(8, 9, 5, 5, "8d9d8f")
+    ring.oval(8, 9, 3, 3, "293f38")
+    ring.polygon([(8, 1), (11, 4), (8, 7), (5, 4)], "b2b9a3")
+    result["equipment_left_ring"] = ring
+    result["equipment_right_ring"] = ring
+    necklace = Pixels(16, 16)
+    for x, y in [(3, 3), (3, 6), (4, 9), (12, 3), (12, 6), (11, 9)]: necklace.box(x, y, 1, 2, "9aa995")
+    necklace.polygon([(8, 9), (11, 12), (8, 15), (5, 12)], "8d9d8f")
+    necklace.dot(8, 11, "c0c7ac")
+    result["equipment_necklace"] = necklace
+    sign = Pixels(96, 16)
+    sign.box(0, 0, 96, 16, "302d30")
+    sign.box(1, 1, 94, 14, "a27b45")
+    sign.box(2, 2, 92, 12, "34483d")
+    sign.hline(2, 93, 2, "d9b778")
+    from calendar_sprites16 import font_glyphs
+    glyphs = font_glyphs()
+    text = "GENERAL STORE"
+    x = (96 - sum(glyphs[ord(ch)][0] + 1 for ch in text)) // 2
+    for ch in text:
+        width, rows = glyphs[ord(ch)]
+        for y, row in enumerate(rows):
+            for dx, cell in enumerate(row):
+                if cell == "#": sign.dot(x + dx, y + 3, "f2d699")
+        x += width + 1
+    for x in [4, 90]: sign.dot(x, 8, "d2ae6f")
+    result["general_store_sign"] = sign
     lamp = Pixels(20, 28)
     lamp.oval(10, 25, 6, 2, "302c38")
     lamp.oval(10, 24, 5, 2, "84613d")

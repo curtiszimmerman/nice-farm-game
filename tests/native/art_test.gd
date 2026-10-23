@@ -49,7 +49,7 @@ func run() -> void:
 		await process_frame
 		game.leave_building()
 	game.enter_building("home")
-	game.state.player_position=game.world.site_position("stove")
+	preload("fixture.gd").face_site(game,"stove")
 	game.cooking()
 	var labels=[]
 	for child in game.ui.modal_box.get_children():

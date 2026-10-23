@@ -29,6 +29,15 @@ var skill_buttons: Array=[]
 var dialogue_open=false
 var controls_hint: Label
 var container_view=""
+var hud_nodes: Array=[]
+var hud_visibility: Dictionary={}
+var hud_hidden=false
+var inventory_tabs: TabContainer
+var inventory_tab=0
+var equipment_silhouette: TextureRect
+var stats_experience: Label
+var character_quests: VBoxContainer
+var history_opened: Dictionary={}
 
 class ItemButton extends Button:
 	var interface: CanvasLayer
@@ -196,6 +205,13 @@ func _ready() -> void:
 	tray.add_child(actions)
 	purse = _label("24",Vector2(832,18),24,GOLD,true,tray)
 	_label("crowns",Vector2(834,51),12,MUTED,false,tray)
+	tray.size.y*=0.8
+	tray.position.y+=88*1.2*0.2
+	for child in tray.get_children():
+		child.position.y*=0.8
+		if child is Button:
+			child.size.y*=0.8
+			if child.has_node("Quantity"): child.get_node("Quantity").position.y=child.size.y-17
 	controls_hint = _label("",Vector2(0,699),10,MUTED)
 	controls_hint.size.x = 1280
 	controls_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -255,6 +271,19 @@ func _ready() -> void:
 	pause_layer.add_child(pause_badge)
 	var pause_text=_label("PAUSED · Space to resume",Vector2.ZERO,14,GOLD,false,pause_badge)
 	pause_text.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
+	for child in root.get_children():
+		if child!=pause_shield and child!=title_screen: hud_nodes.append(child)
+
+func update_hud() -> void:
+	var hidden=game.cutscene_active()
+	if hidden and not hud_hidden:
+		for node in hud_nodes: hud_visibility[node]=node.visible
+	elif not hidden and hud_hidden:
+		for node in hud_nodes: node.visible=hud_visibility.get(node,true)
+		hud_visibility.clear()
+	hud_hidden=hidden
+	if hidden:
+		for node in hud_nodes: node.hide()
 
 func _label(text: String,pos: Vector2,font_size: int,color: Color,book = false,parent: Node = null) -> Label:
 	var label = Label.new()
@@ -347,6 +376,7 @@ func show_title() -> void:
 
 func close_modal() -> void:
 	dialogue_open=false
+	if not hud_nodes.is_empty(): update_hud()
 	if is_instance_valid(modal): modal.queue_free()
 	modal = null
 	modal_box = null
@@ -446,43 +476,63 @@ func open_character_inventory() -> void:
 	# The quick bar remains a drop target while the satchel is open.
 	open_modal("Your satchel","SUPPLIES & EQUIPMENT","Hover over an item for details. Select an item to use it.",[["Close satchel",func(): pass]],true)
 	container_view="inventory"
-	var water=game.state.water
-	modal_box.get_child(2).text="Click to select · drag onto either action or a quick slot · right-click food to eat or drink"
-	modal_box.get_child(2).custom_minimum_size.x=1000
-	modal.get_child(1).position=Vector2(100,40)
+	modal_box.get_child(1).hide()
+	modal_box.get_child(2).hide()
+	modal.get_child(1).position=Vector2(40,12)
+	modal.get_child(1).custom_minimum_size.x=1200
 	modal.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	modal.get_child(0).mouse_filter=Control.MOUSE_FILTER_IGNORE
 	root.move_child(quick_tray,-1)
 	inventory_slots.clear()
 	skill_buttons.clear()
 	equipment_slots.clear()
+	inventory_tabs=TabContainer.new()
+	inventory_tabs.custom_minimum_size=Vector2(1130,460)
+	modal_box.add_child(inventory_tabs)
+	modal_box.move_child(inventory_tabs,3)
 	var row=HBoxContainer.new()
+	row.name="Inventory"
 	row.add_theme_constant_override("separation",26)
-	modal_box.add_child(row)
-	modal_box.move_child(row,3)
+	inventory_tabs.add_child(row)
 	var equipment=Control.new()
-	equipment.custom_minimum_size=Vector2(250,280)
+	equipment.custom_minimum_size=Vector2(440,430)
 	row.add_child(equipment)
-	_label("EQUIPMENT",Vector2(65,0),12,GOLD,false,equipment)
+	_label("EQUIPMENT",Vector2(160,0),12,GOLD,false,equipment)
+	for points in [[Vector2(96,308),Vector2(160,302)],[Vector2(344,308),Vector2(280,302)],[Vector2(344,182),Vector2(220,204)]]:
+		var line=Line2D.new()
+		line.points=PackedVector2Array(points)
+		line.width=1
+		line.default_color=MUTED
+		equipment.add_child(line)
 	var silhouette=TextureRect.new()
+	equipment_silhouette=silhouette
 	var portrait=AtlasTexture.new()
 	portrait.atlas=Items.Art.atlas
 	portrait.region=Items.Art.region("actor_player_down0")
 	silhouette.texture=portrait
 	silhouette.modulate=Color("728b8060")
-	silhouette.position=Vector2(94,70)
-	silhouette.size=Vector2(64,128)
+	silhouette.position=Vector2(124,24)
+	silhouette.size=Vector2(192,384)
 	silhouette.texture_filter=CanvasItem.TEXTURE_FILTER_NEAREST
+	silhouette.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	equipment.add_child(silhouette)
-	var positions={"head":Vector2(100,22),"necklace":Vector2(10,22),"chest":Vector2(10,82),"arms":Vector2(190,82),"hands":Vector2(10,142),"legs":Vector2(190,142),"feet":Vector2(100,212),"left_ring":Vector2(10,212),"right_ring":Vector2(190,212)}
+	var positions={"head":Vector2(188,96),"necklace":Vector2(344,150),"chest":Vector2(188,214),"arms":Vector2(278,214),"hands":Vector2(130,270),"legs":Vector2(188,304),"feet":Vector2(188,360),"left_ring":Vector2(32,276),"right_ring":Vector2(344,276)}
 	for id in positions:
 		var slot=Button.new()
 		slot.position=positions[id]
-		slot.size=Vector2(54,48)
-		slot.text=id.replace("_ring","\nring").capitalize()
-		slot.add_theme_font_size_override("font_size",10)
+		slot.custom_minimum_size=Vector2(64,64)
+		slot.size=Vector2(64,64)
 		slot.tooltip_text="Empty "+id.replace("_"," ")+" slot"
-		_button_style(slot)
+		_button_style(slot,false,true)
+		var placeholder=TextureRect.new()
+		var picture=AtlasTexture.new()
+		picture.atlas=Items.Art.atlas
+		picture.region=Items.Art.region("equipment_"+id)
+		placeholder.texture=picture
+		placeholder.position=Vector2(12,12)
+		placeholder.size=Vector2(40,40)
+		placeholder.mouse_filter=Control.MOUSE_FILTER_IGNORE
+		slot.add_child(placeholder)
 		equipment.add_child(slot)
 		equipment_slots[id]=slot
 	var supplies=VBoxContainer.new()
@@ -499,7 +549,7 @@ func open_character_inventory() -> void:
 	var stacks=game.state.inventory_cells()
 	for i in range(game.State.INVENTORY_SLOTS):
 		var stack: Dictionary=stacks[i] if i<stacks.size() else {}
-		var slot=item_slot(stack,70)
+		var slot=item_slot(stack,64)
 		grid.add_child(slot)
 		inventory_slots.append(slot)
 		slot.inventory_index=i
@@ -542,6 +592,32 @@ func open_character_inventory() -> void:
 		button.pressed.connect(func(): game.state.assign_active("primary",id); update())
 		list.add_child(button)
 		skill_buttons.append(button)
+	add_character_stats()
+	inventory_tabs.current_tab=inventory_tab
+	inventory_tabs.tab_changed.connect(func(index): inventory_tab=index)
+
+func add_character_stats() -> void:
+	var row=HBoxContainer.new()
+	row.name="Stats & Quests"
+	row.add_theme_constant_override("separation",40)
+	inventory_tabs.add_child(row)
+	var stats=VBoxContainer.new()
+	stats.custom_minimum_size.x=330
+	stats.add_theme_constant_override("separation",18)
+	row.add_child(stats)
+	var state=game.state
+	for text in ["CAPTAIN'S RECORD","Health: %d / 100" % state.health,"Energy: %d / 100" % state.energy,"Mana: %d / 60" % state.mana,"Experience: %d XP" % state.experience,"Crowns: %d" % state.money]:
+		var label=Label.new()
+		label.text=text
+		if text.begins_with("Experience"): stats_experience=label
+		stats.add_child(label)
+	var scroll=ScrollContainer.new()
+	scroll.custom_minimum_size=Vector2(730,420)
+	row.add_child(scroll)
+	character_quests=VBoxContainer.new()
+	character_quests.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	scroll.add_child(character_quests)
+	render_quest_list(character_quests,quest_lines(),history_opened,680)
 
 func decorate_action_slot(button: Button,key: String) -> void:
 	var picture=TextureRect.new()
@@ -661,7 +737,7 @@ func open_chest(selected: String) -> void:
 		column.add_child(grid)
 		for i in range(game.State.INVENTORY_SLOTS if side==0 else storage.size()):
 			var stack: Dictionary=(carried[i] if i<carried.size() else {}) if side==0 else storage[i]
-			var button=item_slot(stack,68)
+			var button=item_slot(stack,64)
 			grid.add_child(button)
 			if side==0:
 				inventory_slots.append(button)
@@ -714,30 +790,34 @@ func quest_lines() -> Array:
 	return active+completed
 
 func render_quests() -> void:
-	var lines=quest_lines()
+	var lines=quest_lines().filter(func(quest):return not quest.complete)
 	var signature=hash(lines)^hash(quest_opened)
 	if signature==quest_signature: return
 	quest_signature=signature
-	for child in quest_rows.get_children():
-		quest_rows.remove_child(child)
+	render_quest_list(quest_rows,lines,quest_opened,230)
+
+func render_quest_list(container: VBoxContainer,lines: Array,opened: Dictionary,width: int) -> void:
+	for child in container.get_children():
+		container.remove_child(child)
 		child.queue_free()
 	for quest in lines:
 		var header=Button.new()
-		header.text=("▾ " if quest_opened.get(quest.id,false) else "▸ ")+quest.title
+		header.text=("▾ " if opened.get(quest.id,false) else "▸ ")+quest.title
+		header.set_meta("quest_id",quest.id)
 		header.alignment=HORIZONTAL_ALIGNMENT_LEFT
 		header.add_theme_font_size_override("font_size",20)
 		_button_style(header)
 		if quest.complete: header.modulate=Color("7b837d")
-		header.pressed.connect(func(): quest_opened[quest.id]=not quest_opened.get(quest.id,false); render_quests())
-		quest_rows.add_child(header)
-		if not quest_opened.get(quest.id,false): continue
+		header.pressed.connect(func(): opened[quest.id]=not opened.get(quest.id,false); render_quest_list(container,lines,opened,width))
+		container.add_child(header)
+		if not opened.get(quest.id,false): continue
 		var content=VBoxContainer.new()
 		if quest.complete: content.modulate=Color("7b837d")
 		content.add_theme_constant_override("separation",14)
-		quest_rows.add_child(content)
+		container.add_child(content)
 		var description=Label.new()
 		description.text=quest.description
-		description.custom_minimum_size.x=230
+		description.custom_minimum_size.x=width
 		description.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
 		description.add_theme_font_size_override("font_size",20)
 		description.add_theme_color_override("font_color",MUTED)
@@ -745,7 +825,7 @@ func render_quests() -> void:
 		for task in quest.tasks:
 			var row=Label.new()
 			row.text=("✓ " if task.done else "○ ")+task.text
-			row.custom_minimum_size.x=230
+			row.custom_minimum_size.x=width
 			row.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
 			row.add_theme_font_size_override("font_size",20)
 			row.add_theme_color_override("font_color",GOLD if task.done else CREAM)
@@ -848,3 +928,4 @@ func update() -> void:
 		action_meter.queue_redraw()
 		action_label.text = "Casting…" if game.activity_time<1.2 else "%s · %s · E in gold band" % [Items.CATALOG[game.fishing_species].name,"Hard" if Items.FISH[game.fishing_species].hard else "Easy"]
 	elif game.resting>0: action_label.text = "The sun keeps its own company."
+	update_hud()

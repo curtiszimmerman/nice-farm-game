@@ -19,6 +19,26 @@ static func tools(state: RefCounted) -> void:
 	state.refill_water()
 	state.selected_slot=0
 
+static func face_site(game: Node2D,id: String) -> void:
+	var sites=game.world.sites.filter(func(site):return site.id==id)
+	assert(not sites.is_empty(),"The interaction site must exist: "+id)
+	var site=sites[0]
+	var targets=game.world.activation_cells(site)
+	var directions={"up":Vector2i.UP,"down":Vector2i.DOWN,"left":Vector2i.LEFT,"right":Vector2i.RIGHT}
+	for facing in directions:
+		if site.cell+directions[facing] in targets and not game.world.blocked(game.Grid.center(site.cell)):
+			game.state.player_position=game.Grid.center(site.cell)
+			game.world.facing=facing
+			return
+	for target in targets:
+		for facing in directions:
+			var stand=target-directions[facing]
+			if game.world.blocked(game.Grid.center(stand)): continue
+			game.state.player_position=game.Grid.center(stand)
+			game.world.facing=facing
+			return
+	assert(false,"The interaction must have an accessible facing tile: "+id)
+
 static func finish_welcome(game: Node2D) -> void:
 	while game.state.welcome_phase=="escorting": game._process(0.1)
 	game.state.storage_transfer("cabinet",0)

@@ -27,8 +27,10 @@ func run() -> void:
 	game.close_window()
 	var door=game.outdoors.site_position("door_iona")
 	iona.position=door+Vector2(35,0)
+	preload("fixture.gd").face_site(game,"door_iona")
 	check(game.outdoors.find_nearest().get("door")=="iona","moving Iona clear of the doorway permits entering even while she is nearby")
 	iona.position=door
+	game.state.player_position=door+Vector2(0,25)
 	check(game.has_method("try_player_step"),"player movement resolves NPC bodies and pushing")
 	if game.has_method("try_player_step"):
 		var start=iona.position

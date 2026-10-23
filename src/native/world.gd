@@ -116,6 +116,7 @@ var moving = false
 var facing = "down"
 var nearest: Dictionary = {}
 var particles: Array = []
+var combat_texts: Array=[]
 var scenery_layer: Node2D
 var moving_layer: Node2D
 var crop_signature=0
@@ -138,7 +139,8 @@ class Prop extends Node2D:
 		elif kind == "crops": owner_world.paint_crops(self)
 		elif kind == "effects":
 			owner_world.paint_effects(self)
-			if owner_world.get_parent().controls.show_target:
+			if not owner_world.cutscene_hidden(): owner_world.paint_combat_texts(self)
+			if owner_world.should_highlight():
 				var square=Rect2(Grid.origin(owner_world.front_cell()),Vector2.ONE*32)
 				draw_rect(square,Color("e4daa312"))
 				draw_rect(square,Color("e4daa399"),false,1)
@@ -513,6 +515,12 @@ func target_plot() -> int:
 
 func front_cell() -> Vector2i:
 	return Grid.world_to_cell(state.player_position)+{"up":Vector2i.UP,"down":Vector2i.DOWN,"left":Vector2i.LEFT,"right":Vector2i.RIGHT}[facing]
+
+func cutscene_hidden() -> bool:
+	return get_parent().has_method("cutscene_active") and get_parent().cutscene_active()
+
+func should_highlight() -> bool:
+	return get_parent().has_method("cutscene_active") and get_parent().controls.show_target and not cutscene_hidden()
 
 func activation_cells(site: Dictionary) -> Array:
 	if site.has("door"): return [site.cell+Vector2i.UP]
@@ -1173,9 +1181,23 @@ func paint_crops(c: CanvasItem) -> void:
 			r(c,x+2,y-7,6,4,"8ea85b")
 			if p.watered: r(c,x+9,y+7,2,2,"8aa8a2")
 
+func combat_text(text: String,position: Vector2,color: Color) -> void:
+	combat_texts.append({"text":text,"position":position-Vector2(0,58),"color":color,"age":0.0,"duration":1.3})
+
+func paint_combat_texts(canvas: CanvasItem) -> void:
+	for entry in combat_texts:
+		var color: Color=entry.color
+		color.a=minf(1,entry.age/0.1)*clampf((entry.duration-entry.age)/0.45,0,1)
+		var font=ThemeDB.fallback_font
+		var width=font.get_string_size(entry.text,HORIZONTAL_ALIGNMENT_LEFT,-1,10).x
+		var point: Vector2=entry.position+Vector2(-width/2,-entry.age*22)
+		canvas.draw_string(font,point+Vector2(1,1),entry.text,HORIZONTAL_ALIGNMENT_LEFT,-1,10,Color(0.08,0.12,0.12,color.a))
+		canvas.draw_string(font,point,entry.text,HORIZONTAL_ALIGNMENT_LEFT,-1,10,color)
+
 func paint_effects(c: CanvasItem) -> void:
 	if Art.option==2: Art.effects(self,c); return
 	for p in people:
+		if cutscene_hidden(): break
 		if not villagers[p.id].visible: continue
 		var pos = villagers[p.id].position
 		if state.player_position.distance_to(pos)<105:

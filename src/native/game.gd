@@ -188,6 +188,8 @@ func _process(dt: float) -> void:
 			p.pos += p.velocity*dt
 			p.velocity.y += 15.0*dt
 		world.particles = world.particles.filter(func(p): return p.life>0.0)
+		for entry in world.combat_texts: entry.age+=dt
+		world.combat_texts=world.combat_texts.filter(func(entry):return entry.age<entry.duration)
 	else:
 		world.moving=false
 		if state.welcome_phase=="escorting":
@@ -223,6 +225,9 @@ func _process(dt: float) -> void:
 
 func clock_held() -> bool:
 	return not state.ship_departed or state.welcome_phase in ["escorting","waiting","arriving","meeting","departing","moss_lesson","moss_departing"] or ("moss" in conversation_members and not state.invited)
+
+func cutscene_active() -> bool:
+	return opening!=null or welcome_control_locked() or ui.dialogue_open
 
 func welcome_control_locked() -> bool:
 	return state.welcome_phase in ["escorting","arriving","meeting","departing","moss_lesson","moss_departing"] or ("moss" in conversation_members and not state.invited)
@@ -499,6 +504,7 @@ func dialog(title: String,role: String,text: String,choices: Array = []) -> void
 	if choices.is_empty(): choices=[["See you around.",func(): pass]]
 	ui.open_modal(title,role,text,choices)
 	ui.dialogue_open=true
+	ui.update_hud()
 	if state.welcome_phase in ["meeting","moss_lesson"] or ("moss" in conversation_members and not state.invited): ui.modal.get_child(1).position.y=35
 
 func panel(title: String,eyebrow: String,text: String,choices: Array = []) -> void:
@@ -735,8 +741,11 @@ func can_drop_item(data: Variant,destination: Dictionary) -> bool:
 		if index<0 or index>=cells.size() or cells[index].get("id","")!=id: return false
 	elif not state.available_action(id): return false
 	if destination.get("storage","")!="" or destination.get("inventory_index",-1)>=0:
-		return ui.Items.CATALOG.has(id)
-	return destination.get("quick_index",-1)>=0 or destination.get("channel","")!=""
+		if not ui.Items.CATALOG.has(id): return false
+		var name=destination.get("storage","")
+		if name!="": return name in ["chest","cabinet","ship_storage","cave_barrel"] and int(destination.get("index",-1))>=0 and int(destination.index)<state.get(name).size()
+		return int(destination.inventory_index)<State.INVENTORY_SLOTS
+	return destination.get("quick_index",-1) in range(8) or destination.get("channel","") in ["primary","aux"]
 
 func drop_item(data: Dictionary,destination: Dictionary) -> void:
 	if not can_drop_item(data,destination): return
@@ -777,9 +786,18 @@ func perform_drop(data: Dictionary,destination: Dictionary,amount: int) -> bool:
 			to_cells[to_index]={"id":stack.id,"count":amount+int(other.get("count",0))}
 			from_cells[from_index]={} if amount==stack.count else {"id":stack.id,"count":stack.count-amount}
 		return true
-	if target!="": return state.storage_transfer(target,int(destination.index),data.id,amount)
+	if target!="":
+		var replaced=state.get(target)[int(destination.index)].get("id","")
+		var previous=state.inventory_order.find(data.id)
+		if not state.storage_transfer(target,int(destination.index),data.id,amount): return false
+		if replaced!="" and replaced!=data.id and int(state.get(data.id))==0: state.move_inventory(replaced,previous)
+		return true
 	if source!="":
-		if not state.storage_transfer(source,int(data.index),"",amount): return false
+		var replaced=state.inventory_order[index] if index>=0 else ""
+		if replaced!="" and replaced!=data.id and int(state.get(data.id))==0:
+			if amount!=state.get(source)[int(data.index)].count: return false
+			if not state.storage_transfer(source,int(data.index),replaced): return false
+		elif not state.storage_transfer(source,int(data.index),"",amount): return false
 	if index>=0: return state.move_inventory(data.id,index)
 	if destination.get("channel","")!="": return state.assign_active(destination.channel,data.id)
 	return state.assign_slot(int(destination.quick_index),data.id)
@@ -968,7 +986,7 @@ func mayor() -> void:
 
 func place_welcome_party() -> void:
 	if current_room!="home": return
-	state.player_position=Grid.center(Vector2i(6,11))
+	state.player_position=Grid.center(Vector2i(4,11))
 	for i in range(WELCOME_MEMBERS.size()):
 		var id=WELCOME_MEMBERS[i]
 		var actor=world.villagers[id]
@@ -984,8 +1002,8 @@ func walk_visitor(id: String,cell: Vector2i,dt: float) -> bool:
 	return world.walk_actor(id,cell,dt,65)
 
 func update_welcome_arrival(dt: float) -> void:
-	if state.player_position.distance_to(Grid.center(world.layout.exit))<63:
-		var path=world._route(Grid.world_to_cell(state.player_position),Vector2i(6,11))
+	if state.player_position.distance_to(Grid.center(Vector2i(4,11)))>1:
+		var path=world._route(Grid.world_to_cell(state.player_position),Vector2i(4,11))
 		if not path.is_empty():
 			state.player_position=state.player_position.move_toward(path[0],dt*65)
 			world.moving=true

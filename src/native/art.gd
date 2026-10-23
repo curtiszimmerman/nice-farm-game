@@ -158,6 +158,7 @@ static func building(c: CanvasItem,b: Dictionary) -> void:
 			tile(c,component,Vector2i(x,y-rows-2),roof_tint(b.roof))
 			if b.get("season")=="winter": tile(c,"roof_snow",Vector2i(x,y-rows-2))
 	tile(c,"chimney",Vector2i(maxi(1,columns-2),-rows-3))
+	if b.kind=="store": sprite(c,"general_store_sign",Vector2(0,-(rows+1)*32),Vector2(columns*32,32))
 	for x in ([1] if b.kind=="store" else [1,columns-2]):
 		if x!=door: sprite(c,seasonal("tile_flowerbed0",b.get("season","spring")),Grid.origin(Vector2i(x,0)))
 	for x in [door-1,door+1]:
@@ -250,6 +251,7 @@ static func particles(w: Node2D,c: CanvasItem) -> void:
 
 static func effects(w: Node2D,c: CanvasItem) -> void:
 	for p in w.people:
+		if w.cutscene_hidden(): break
 		if w.villagers[p.id].visible and w.state.player_position.distance_to(w.villagers[p.id].position)<105:
 			c.draw_string(ThemeDB.fallback_font,w.villagers[p.id].position+Vector2(-29,-55),p.name,HORIZONTAL_ALIGNMENT_LEFT,-1,9,Color("e4d9b5"))
 	if w.nearest.get("type")=="plot": c.draw_rect(Rect2(w.plot_position(w.nearest.index)-Vector2(16,16),Vector2(32,30)),Color("eee0a5"),false,1)
@@ -271,6 +273,7 @@ static func indoor_effects(room: Node2D,c: CanvasItem) -> void:
 			sprite(c,"cable",origin-Vector2(16,60))
 			if fmod(room.elapsed+origin.x*.03,3.7)<.16: sprite(c,"spark"+str(int(room.elapsed*30)%6),origin-Vector2(8,8))
 	for actor in room.villagers.values():
+		if room.cutscene_hidden(): break
 		if actor.visible and actor.position.distance_to(room.state.player_position)<100:
 			c.draw_string(ThemeDB.fallback_font,actor.position+Vector2(-25,-55),"z z z" if actor.data.get("sleeping",false) else actor.data.name,HORIZONTAL_ALIGNMENT_LEFT,-1,9,Color("e4d9b5"))
 	particles(room,c)

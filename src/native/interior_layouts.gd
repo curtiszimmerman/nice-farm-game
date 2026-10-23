@@ -23,12 +23,12 @@ static func for_building(id: String) -> Dictionary:
 	return plan
 
 static func _farmhouse() -> Dictionary:
-	return {"size":Vector2i(13,14),"areas":[["bedroom",Rect2i(1,1,5,4)],["bathroom",Rect2i(9,1,3,4)],["hall",Rect2i(7,1,1,5)],["living",Rect2i(1,6,6,7)],["kitchen",Rect2i(8,6,4,7)]],
-		"doors":[["bedroom","hall",Vector2i(6,3)],["bathroom","hall",Vector2i(8,3)],["hall","living",Vector2i(6,5)],["living","kitchen",Vector2i(7,9)]],
-		"entry":Vector2i(6,12),"exit":Vector2i(6,13),"furniture":[["bed",Rect2i(1,1,2,2)],["bed",Rect2i(4,1,2,2)],["bookshelf",Rect2i(1,4,2,1)],["floor_lamp",Rect2i(5,4,1,1)],["floor_lamp",Rect2i(1,12,1,1)],
-		["bath",Rect2i(11,1,1,2)],["toilet",Rect2i(10,1,1,1)],["sink",Rect2i(9,1,1,1)],["sofa",Rect2i(1,7,3,1)],["table",Rect2i(3,9,2,1)],["chair",Rect2i(2,9,1,1)],["chair",Rect2i(5,9,1,1)],
-		["kitchen",Rect2i(8,6,4,1)],["cabinet",Rect2i(10,10,2,1)],["radio",Rect2i(1,6,1,1)],["rug",Rect2i(3,8,3,3)],["art",Rect2i(3,0,2,1)]],
-		"sites":[["bed",Vector2i(3,2)],["radio",Vector2i(2,6)],["cabinet",Vector2i(10,11)],["stove",Vector2i(9,7)],["uncover_sofa",Vector2i(2,8)],["uncover_guest_bed",Vector2i(5,3)],["living_light",Vector2i(2,12)],["bathroom_light",Vector2i(4,4)]],"work":[Vector2i(6,10),Vector2i(8,9),Vector2i(5,11)]}
+	return {"size":Vector2i(13,14),"areas":[["bedroom",Rect2i(1,1,5,4)],["bathroom",Rect2i(9,1,3,4)],["hall",Rect2i(7,1,1,12)],["living",Rect2i(1,6,5,7)],["kitchen",Rect2i(9,6,3,7)]],
+		"doors":[["bedroom","hall",Vector2i(6,3)],["bathroom","hall",Vector2i(8,3)],["hall","living",Vector2i(6,9)],["hall","kitchen",Vector2i(8,9)]],
+		"entry":Vector2i(7,12),"exit":Vector2i(7,13),"furniture":[["bed",Rect2i(1,1,2,2)],["bed",Rect2i(4,1,2,2)],["bookshelf",Rect2i(1,4,2,1)],["floor_lamp",Rect2i(5,4,1,1)],["floor_lamp",Rect2i(1,12,1,1)],
+		["bath",Rect2i(11,1,1,2)],["toilet",Rect2i(10,1,1,1)],["sink",Rect2i(9,1,1,1)],["sofa",Rect2i(1,7,3,1)],["table",Rect2i(3,9,2,1)],["chair",Rect2i(2,9,1,1)],["chair",Rect2i(3,10,1,1)],
+		["kitchen",Rect2i(9,6,3,1)],["cabinet",Rect2i(10,10,2,1)],["radio",Rect2i(1,6,1,1)],["rug",Rect2i(3,8,3,3)],["art",Rect2i(3,0,2,1)]],
+		"sites":[["bed",Vector2i(3,2)],["radio",Vector2i(2,6)],["cabinet",Vector2i(10,11)],["stove",Vector2i(9,7)],["uncover_sofa",Vector2i(2,8)],["uncover_guest_bed",Vector2i(5,3)],["living_light",Vector2i(2,12)],["bathroom_light",Vector2i(4,4)]],"work":[Vector2i(7,10),Vector2i(9,9),Vector2i(5,11)]}
 
 static func _lighthouse() -> Dictionary:
 	return {"size":Vector2i(12,16),"areas":[["lamp_workshop",Rect2i(1,1,10,4)],
@@ -79,7 +79,7 @@ static func _finch() -> Dictionary:
 		["kitchen",Rect2i(10,1,3,5)],["hall",Rect2i(1,7,12,1)],["hall",Rect2i(8,8,1,4)],
 		["bedroom",Rect2i(1,9,5,3)],["bathroom",Rect2i(10,9,3,3)]],
 		"doors":[["living","hall",Vector2i(3,6)],["kitchen","hall",Vector2i(11,6)],
-		["bedroom","hall",Vector2i(3,8)],["bathroom","hall",Vector2i(10,8)]],
+		["bedroom","hall",Vector2i(3,8)],["bathroom","hall",Vector2i(9,10)]],
 		"entry":Vector2i(8,11),"exit":Vector2i(8,12),"furniture":[
 		["bed",Rect2i(1,9,2,2)],["bookshelf",Rect2i(4,9,2,1)],
 		["sofa",Rect2i(1,2,3,1)],["radio",Rect2i(5,1,3,1)],["desk",Rect2i(5,4,2,1)],
@@ -99,11 +99,11 @@ static func _alder() -> Dictionary:
 		["living","office",Vector2i(3,6)],["living","kitchen",Vector2i(7,6)],["office","kitchen",Vector2i(6,9)]],
 		"entry":Vector2i(10,11),"exit":Vector2i(10,12),"furniture":[
 		["bed",Rect2i(12,1,2,2)],["bath",Rect2i(14,7,1,2)],
-		["toilet",Rect2i(12,7,1,1)],["sink",Rect2i(13,7,1,1)],["kitchen",Rect2i(7,7,2,1)],
+		["toilet",Rect2i(12,7,1,1)],["sink",Rect2i(13,7,1,1)],["kitchen",Rect2i(7,11,2,1)],
 		["sofa",Rect2i(1,2,3,1)],["table",Rect2i(5,3,3,1)],["chair",Rect2i(4,4,1,1)],
-		["chair",Rect2i(8,2,1,1)],["radio",Rect2i(1,1,1,1)],["bookshelf",Rect2i(1,7,3,1)],
+		["chair",Rect2i(8,2,1,1)],["radio",Rect2i(1,1,1,1)],["bookshelf",Rect2i(1,11,3,1)],
 		["desk",Rect2i(2,9,3,1)],["chair",Rect2i(2,10,1,1)],
-		["plant",Rect2i(8,11,1,1)],["rug",Rect2i(4,2,4,3)],["art",Rect2i(3,0,2,1)]],
+		["plant",Rect2i(5,11,1,1)],["rug",Rect2i(4,2,4,3)],["art",Rect2i(3,0,2,1)]],
 		"sites":[["bed",Vector2i(14,2)],["radio",Vector2i(2,1)]],
 		"work":[Vector2i(3,8),Vector2i(7,9),Vector2i(7,4)]}
 
@@ -162,28 +162,28 @@ static func _open_house(h: int,guest: bool) -> Dictionary:
 
 static func _cabin() -> Dictionary:
 	return {"size":Vector2i(11,11),"areas":[["bedroom",Rect2i(1,1,3,3)],
-		["hall",Rect2i(5,1,1,4)],["bathroom",Rect2i(7,1,3,3)],["living",Rect2i(1,6,9,4)]],
-		"doors":[["bedroom","hall",Vector2i(4,3)],["bathroom","hall",Vector2i(6,3)],["hall","living",Vector2i(5,5)]],
+		["hall",Rect2i(5,1,1,4)],["bathroom",Rect2i(7,1,3,3)],["living",Rect2i(1,6,5,4)],["kitchen",Rect2i(7,6,3,4)]],
+		"doors":[["bedroom","hall",Vector2i(4,3)],["bathroom","hall",Vector2i(6,3)],["hall","living",Vector2i(5,5)],["living","kitchen",Vector2i(6,8)]],
 		"entry":Vector2i(5,9),"exit":Vector2i(5,10),"furniture":[
 		["bed",Rect2i(1,1,2,2)],["bookshelf",Rect2i(3,1,1,1)],
 		["toilet",Rect2i(7,1,1,1)],["sink",Rect2i(8,1,1,1)],["bath",Rect2i(9,1,1,2)],
 		["kitchen",Rect2i(7,6,3,1)],["sofa",Rect2i(1,7,2,1)],
-		["table",Rect2i(4,7,2,1)],["chair",Rect2i(6,7,1,1)],["radio",Rect2i(1,6,1,1)],
-		["rug",Rect2i(3,7,4,3)],["tools",Rect2i(1,9,2,1)],["art",Rect2i(2,0,1,1)]],
+		["table",Rect2i(4,7,2,1)],["chair",Rect2i(3,8,1,1)],["radio",Rect2i(1,6,1,1)],
+		["rug",Rect2i(3,7,3,3)],["tools",Rect2i(1,9,2,1)],["art",Rect2i(2,0,1,1)]],
 		"sites":[["bed",Vector2i(3,2)],["radio",Vector2i(2,6)]],
 		"work":[Vector2i(3,6),Vector2i(7,8),Vector2i(4,9)]}
 
 static func _tower() -> Dictionary:
 	return {"size":Vector2i(9,11),"areas":[["bedroom",Rect2i(1,1,2,3)],
-		["hall",Rect2i(4,1,1,4)],["bathroom",Rect2i(6,1,2,3)],["study",Rect2i(1,6,7,4)]],
-		"doors":[["bedroom","hall",Vector2i(3,3)],["bathroom","hall",Vector2i(5,3)],["hall","study",Vector2i(4,5)]],
+		["hall",Rect2i(4,1,1,4)],["bathroom",Rect2i(6,1,2,3)],["study",Rect2i(1,6,4,4)],["kitchen",Rect2i(6,6,2,4)]],
+		"doors":[["bedroom","hall",Vector2i(3,3)],["bathroom","hall",Vector2i(5,3)],["hall","study",Vector2i(4,5)],["study","kitchen",Vector2i(5,8)]],
 		"entry":Vector2i(4,9),"exit":Vector2i(4,10),"furniture":[
 		["bed",Rect2i(1,1,1,2)],["toilet",Rect2i(6,1,1,1)],["sink",Rect2i(6,2,1,1)],["bath",Rect2i(7,1,1,2)],
 		["bookshelf",Rect2i(1,6,2,1)],["kitchen",Rect2i(6,6,2,1)],["sofa",Rect2i(1,7,2,1)],
-		["table",Rect2i(4,7,1,1)],["rug",Rect2i(3,7,3,3)],["telescope",Rect2i(6,8,1,1)],
+		["table",Rect2i(4,7,1,1)],["rug",Rect2i(3,7,2,3)],["telescope",Rect2i(1,9,1,1)],
 		["radio",Rect2i(7,9,1,1)],["art",Rect2i(1,0,1,1)]],
 		"sites":[["bed",Vector2i(2,3)],["radio",Vector2i(6,9)]],
-		"work":[Vector2i(4,6),Vector2i(5,8),Vector2i(3,9)]}
+		"work":[Vector2i(4,6),Vector2i(4,8),Vector2i(3,9)]}
 
 static func _club() -> Dictionary:
 	return {"size":Vector2i(16,12),"areas":[["workshop",Rect2i(1,1,9,6)],

@@ -30,7 +30,7 @@ func run() -> void:
 	var before=game.state.energy
 	check(not cave.mine_rock(ore.id) and game.state.energy==before,"mining requires the selected carried pickaxe")
 	var ore_position=game.state.player_position
-	game.state.player_position=cave.site_position("cave_pickaxe")
+	preload("fixture.gd").face_site(game,"cave_pickaxe")
 	game.interact()
 	game.state.player_position=ore_position
 	check(game.state.quick_slots.all(func(id): return id==""),"taking the pickaxe never assigns a quick slot")

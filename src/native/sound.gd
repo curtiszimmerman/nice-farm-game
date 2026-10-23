@@ -1,6 +1,7 @@
 extends Node
 
-const TRACKS = ["music","birds","crickets","drips","wildgrowth","ship","crash"]
+const TRACKS = ["music","birds","crickets","drips","wildgrowth","ship","crash","laser","laser_hit","explosion"]
+var battle: Dictionary={}
 var crash: AudioStreamPlayer
 var cinematic=false
 var ship: AudioStreamPlayer
@@ -22,7 +23,7 @@ var current_mix = {"birds":0.0,"crickets":0.0,"drips":0.0}
 func _ready() -> void:
 	for name in TRACKS:
 		var stream=AudioStreamWAV.load_from_file("res://audio/"+name+".wav")
-		if name not in ["wildgrowth","crash"]:
+		if name not in ["wildgrowth","crash","laser","laser_hit","explosion"]:
 			stream.loop_mode=AudioStreamWAV.LOOP_FORWARD
 			stream.loop_end=stream.data.size()/2
 		streams[name]=stream
@@ -34,6 +35,9 @@ func _ready() -> void:
 	crash=_player("crash")
 	spell=_player("wildgrowth")
 	spell.max_polyphony=4
+	for name in ["laser","laser_hit","explosion"]:
+		battle[name]=_player(name)
+		battle[name].max_polyphony=8
 	if not testing: load_preferences()
 	_apply_volumes()
 
@@ -72,6 +76,7 @@ func _apply_volumes() -> void:
 	crickets.volume_db=_db(ambience_level*current_mix.crickets if not cinematic else 0.0)
 	drips.volume_db=_db(ambience_level*current_mix.drips if not cinematic else 0.0)
 	spell.volume_db=_db(effects_level)
+	for player in battle.values(): player.volume_db=_db(effects_level)
 
 func set_cinematic(value: bool) -> void:
 	cinematic=value
@@ -85,6 +90,7 @@ func start() -> void:
 func stop() -> void:
 	active=false
 	for player in [music,birds,crickets,drips,ship,spell,crash]: player.stop()
+	for player in battle.values(): player.stop()
 
 func shutdown() -> void:
 	# Playback can be queued until the next frame, including a just-cast spell.
@@ -108,6 +114,11 @@ func play_spell(id: String) -> bool:
 	if id!="wildgrowth" or effects_level<=0.0: return false
 	spell.play()
 	return true
+
+func play_battle(id: String,friendly: bool=false) -> void:
+	if not battle.has(id) or effects_level<=0: return
+	battle[id].pitch_scale=1.06 if id=="laser" and friendly else 0.93 if id=="laser" else 1.0
+	battle[id].play()
 
 func preferences_path() -> String:
 	return ProjectSettings.globalize_path("res://../../internal/audio.cfg").simplify_path()

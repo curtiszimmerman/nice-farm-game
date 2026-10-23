@@ -181,10 +181,13 @@ func attack() -> bool:
 		var offset=rat.position-state.player_position
 		if not rat.visible or offset.length()>54 or offset.normalized().dot(direction)<0.25: continue
 		rat.info.health-=1
+		combat_text("-1",rat.position+Vector2(0,30),Color("ffe7a0"))
 		rat.modulate=Color("ffc4aa")
 		if rat.info.health<=0:
 			rat.visible=false
 			state.cave_defeated.append(rat.info.id)
+			state.experience+=10
+			combat_text("+10xp",state.player_position,Color("8aee83"))
 		break
 	return true
 
@@ -201,7 +204,9 @@ func update_enemies(dt: float) -> void:
 			var step=rat.position.move_toward(target,minf(dt,0.5)*55)
 			if not blocked(step): rat.position=step
 		if rat.position.distance_to(state.player_position)<=26 and rat.info.bite<=0:
+			var damage=minf(4,state.health)
 			state.health=maxf(0,state.health-4)
+			if damage>0: combat_text("-%d" % int(damage),state.player_position,Color("ff8e7b"))
 			rat.info.bite=1.0
 		rat.queue_redraw()
 

@@ -10,6 +10,9 @@ var game: Node2D
 var elapsed=0.0
 var animation_time=0.0
 var impact_played=false
+var explosion_played=false
+var battle_clock=0.0
+var battle_started=false
 var finished=false
 var view: Control
 
@@ -56,6 +59,21 @@ func scene_at(time: float) -> String:
 func battle_at(time: float) -> Dictionary:
 	return {"enemy_fire":time>=3 and time<18,"return_fire":time>=9 and time<18,"destroyed":time>=18}
 
+func battle_events(from: float,to: float) -> Array:
+	var events=[]
+	for cycle in range(maxi(0,floori(from/15)),floori(to/15)+1):
+		for friendly in [false,true]:
+			var first=9.25 if friendly else 3.4
+			var interval=2.15 if friendly else 1.85
+			for index in range(8):
+				var launch=first+index*interval
+				if launch>=17.1: break
+				for sound in ["laser","laser_hit"]:
+					var time=cycle*15+launch-3.4+(0.82 if sound=="laser_hit" else 0.0)
+					if time>from and time<=to: events.append({"time":time,"sound":sound,"friendly":friendly})
+	events.sort_custom(func(a,b):return a.time<b.time)
+	return events
+
 func caption_at(time: float) -> String:
 	if time>=21: return "CAPTAIN: All hands! Brace for impact!"
 	if time>=18: return "The attacker is destroyed. The crew's damaged ship falls toward the planet."
@@ -70,6 +88,16 @@ func _process(dt: float) -> void:
 	animation_time+=dt
 	if caption_step<CAPTION_TIMES.size()-1: elapsed=minf(elapsed+dt,CAPTION_TIMES[caption_step+1]-0.001)
 	else: elapsed+=dt
+	if battle_at(elapsed).enemy_fire:
+		var previous=battle_clock if battle_started else -0.001
+		battle_started=true
+		battle_clock+=dt
+		for event in battle_events(previous,battle_clock):
+			if event.friendly and not battle_at(elapsed).return_fire: continue
+			game.sound.play_battle(event.sound,event.friendly)
+	if elapsed>=18 and not explosion_played:
+		explosion_played=true
+		game.sound.play_battle("explosion")
 	if elapsed>=24 and not impact_played:
 		impact_played=true
 		game.sound.crash.play()
@@ -199,7 +227,7 @@ func bolt(c: CanvasItem,start: Vector2,target: Vector2,t: float,friendly: bool) 
 
 func paint_shots(c: CanvasItem,center: Vector2,enemy: Vector2) -> void:
 	if not battle_at(elapsed).enemy_fire: return
-	for shot in shots_at(3.4+fposmod(animation_time,15)):
+	for shot in shots_at(3.4+fposmod(battle_clock,15)):
 		if shot.friendly and not battle_at(elapsed).return_fire: continue
 		var start=center+Vector2(-110,-30) if shot.friendly else enemy+Vector2(75,5)
 		var target=enemy+Vector2(25,10-shot.index%3*12) if shot.friendly else center+Vector2(-65,shot.index%3*22-20)

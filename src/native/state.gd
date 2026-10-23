@@ -95,6 +95,7 @@ var outdoor_position = Grid.center(Grid.SPAWN_CELL)
 var harvested = 0
 var mana = 60.0
 var energy = 100.0
+var experience=0
 var invited = false
 var met_mayor = false
 var delivered = false
@@ -474,6 +475,7 @@ func to_dict() -> Dictionary:
 	var supplies={}
 	for id in EXTRA_ITEMS: supplies[id]=get(id)
 	return {"version": 12,"inventory_order":inventory_order.duplicate(),"woodcutter_axe_given":woodcutter_axe_given,"cave_pickaxe_taken":cave_pickaxe_taken,"cave_intro_seen":cave_intro_seen,"auxiliary_selection":auxiliary_selection,"world_seed":world_seed,"inventory_selection":inventory_selection,"firewood_requested":firewood_requested,"firewood_given":firewood_given,"felled_trees":felled_trees.duplicate(),"day": day, "minute": minute, "money": money,"magic_learned":magic_learned,
+		"experience":experience,
 		"cave_seed":cave_seed,"cave_broken":cave_broken.duplicate(),"cave_defeated":cave_defeated.duplicate(),"cave_chrysalis_taken":cave_chrysalis_taken,"sparkfire_picked_day":sparkfire_picked_day,"cave_barrel":cave_barrel.duplicate(true),
 		"ship_departed":ship_departed,"welcome_phase":welcome_phase,"welcome_elapsed":welcome_elapsed,
 		"intro_complete":intro_complete,"briefing_complete":briefing_complete,"mayor_due":mayor_due,"house_tasks":house_tasks.duplicate(),
@@ -492,6 +494,7 @@ func restore(data: Variant) -> bool:
 		return false
 	if not data.get("inventory_order") is Array or data.inventory_order.size()!=INVENTORY_SLOTS: return false
 	var ordered=[]
+	if not _number(data.get("experience")) or data.experience<0 or data.experience!=floor(data.experience): return false
 	for id in data.inventory_order:
 		if not id is String or (id!="" and (not Items.CATALOG.has(id) or id in ordered)): return false
 		if id!="": ordered.append(id)
@@ -601,6 +604,7 @@ func restore(data: Variant) -> bool:
 	quick_slots=data.quick_slots.duplicate()
 	inventory_selection=data.inventory_selection
 	inventory_order=data.inventory_order.duplicate()
+	experience=int(data.experience)
 	auxiliary_selection=data.auxiliary_selection
 	world_seed=int(data.world_seed)
 	firewood_requested=data.firewood_requested

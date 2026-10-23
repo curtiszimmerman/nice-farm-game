@@ -38,7 +38,7 @@ func run() -> void:
 	game.interact()
 	check(game.current_room=="cave" and game.state.copper==0,"outdoor activation enters the cave instead of generating copper")
 	game.close_window()
-	game.state.player_position=game.world.site_position("cave_pickaxe")
+	preload("fixture.gd").face_site(game,"cave_pickaxe")
 	game.interact()
 	game.state.assign_slot(0,"pickaxe")
 	var deposits=game.world.rocks.values().filter(func(rock): return rock.ore)

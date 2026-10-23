@@ -10,14 +10,23 @@ func _initialize() -> void:
 
 func drag_inventory_item(id: String,index: int,channel: String="",source_slot: int=-1) -> void:
 	game.inventory()
+	game.ui.inventory_tabs.current_tab=0
 	await process_frame
 	var sources=game.ui.skill_buttons if game.state.Skills.CATALOG.has(id) else game.ui.inventory_slots
 	var slots=sources.filter(func(slot): return slot.get_meta("item_id","")==id)
 	if source_slot>=0: slots=[game.ui.quick_buttons[source_slot]]
 	assert(not slots.is_empty(),"Drag source must be carried")
-	var start: Vector2=slots[0].get_global_rect().get_center()
 	var target=game.ui.quick_buttons[index] if channel=="" else game.ui.active_button if channel=="primary" else game.ui.auxiliary_button
-	var end: Vector2=target.get_global_rect().get_center()
+	await drag_controls(slots[0],target)
+	if (game.state.quick_slots[index] if channel=="" else game.state.active_item(channel))!=id:
+		failed=true
+		push_error("FAIL: real GUI drag of "+id+" did not assign its destination")
+		return
+	print("NATIVE DRAG PASSED: ",id," to ",str(index+1) if channel=="" else channel)
+
+func drag_controls(source: Control,target: Control) -> void:
+	var start=source.get_global_rect().get_center()
+	var end=target.get_global_rect().get_center()
 	var down=InputEventMouseButton.new()
 	down.button_index=MOUSE_BUTTON_LEFT
 	down.pressed=true
@@ -38,11 +47,14 @@ func drag_inventory_item(id: String,index: int,channel: String="",source_slot: i
 	up.position=end
 	Input.parse_input_event(up)
 	await process_frame
-	if (game.state.quick_slots[index] if channel=="" else game.state.active_item(channel))!=id:
-		failed=true
-		push_error("FAIL: real GUI drag of "+id+" did not assign its destination")
-		return
-	print("NATIVE DRAG PASSED: ",id," to ",str(index+1) if channel=="" else channel)
+
+func press_key(code: int) -> void:
+	for pressed in [true,false]:
+		var key=InputEventKey.new()
+		key.physical_keycode=code
+		key.pressed=pressed
+		Input.parse_input_event(key)
+		await process_frame
 
 func capture(label: String) -> void:
 	if label!="status-banner": game.ui.message.text=""
@@ -73,12 +85,16 @@ func run() -> void:
 	for shot in [[2.0,"opening-space"],[6.0,"opening-bridge"],[11.0,"opening-attack"],[18.5,"opening-enemy-explodes"],[24.2,"opening-whiteout"],[26.5,"opening-aftermath"]]:
 		game.opening.elapsed=shot[0]
 		game.opening.animation_time=shot[0]
+		game.opening.battle_clock=maxf(0,shot[0]-3)
 		game.opening.caption_step=7 if shot[0]>=24 else 0
 		game.opening.view.queue_redraw()
 		await capture(shot[1])
 	game.opening.finish()
 	await capture("opening-status-report")
 	while game.window_open: game.ui.modal_box.get_child(3).pressed.emit()
+	game.inventory()
+	await capture("inventory-none-known")
+	game.close_window()
 	game.leave_building()
 	game.state.player_position=game.world.Grid.center(Vector2i(13,28))
 	await capture("mountain-descent")
@@ -162,6 +178,24 @@ func run() -> void:
 	await capture("cave-entrance")
 	game.state.player_position=game.Grid.center(game.world.chambers[2].get_center()+Vector2i(-1,2))
 	await capture("cave-rats")
+	game.state.rusty_sword=1
+	game.state.select_inventory("rusty_sword")
+	var rat=game.world.rats[0]
+	game.state.player_position=rat.position+Vector2(0,30)
+	game.world.facing="up"
+	game.world.attack()
+	for entry in game.world.combat_texts: entry.age=0.2
+	await capture("enemy-damage-text")
+	game.world.swing_cooldown=0
+	game.world.attack()
+	for entry in game.world.combat_texts: entry.age=0.2
+	await capture("experience-gain")
+	for motion in [["pickaxe","left"],["watering_can","up"],["hoe","down"],["sickle","right"],["axe","up"]]:
+		game.world.elapsed=game.elapsed
+		game.world.facing=motion[1]
+		preload("res://tool_motion.gd").start(game.world,motion[0])
+		game.world.elapsed+=preload("res://tool_motion.gd").DURATION*0.6
+		await capture("tool-"+motion[0]+"-"+motion[1])
 	game.leave_building()
 	game.state.player_position=game.world.Grid.center(game.world.SHIP_CELL)+Vector2(64,64)
 	await capture("ship")
@@ -256,6 +290,37 @@ func run() -> void:
 	await drag_inventory_item("wildgrowth",-1,"aux")
 	assert(game.state.active_item("primary")==primary,"Dragging an auxiliary spell must preserve the primary item")
 	await capture("inventory-two-actions")
+	game.close_window()
+	var turnips_before=game.state.turnips
+	game.state.chest[10]={"id":"turnips","count":3}
+	game.open_storage("chest")
+	await process_frame
+	await drag_controls(game.ui.chest_slots[10],game.ui.inventory_slots[11])
+	assert(game.ui.quantity_control!=null,"Dragging a storage stack must offer quantity selection")
+	game.ui.quantity_control.value=2
+	game.ui.modal_box.get_child(4).pressed.emit()
+	assert(game.state.turnips==turnips_before+2 and game.state.chest[10].count==1,"Real storage drag must transfer the chosen quantity")
+	await process_frame
+	await drag_controls(game.ui.inventory_slots[11],game.ui.chest_slots[11])
+	game.ui.quantity_control.value=1
+	game.ui.modal_box.get_child(4).pressed.emit()
+	assert(game.state.turnips==turnips_before+1 and game.state.chest[11].count==1,"Real inventory drag must deposit its chosen quantity")
+	print("NATIVE DRAG PASSED: storage quantities in both directions")
+	await process_frame
+	await drag_controls(game.ui.auxiliary_button,game.ui.quick_buttons[4])
+	assert(game.state.quick_slots[4]=="wildgrowth","An active spell must also drag into a quick slot")
+	print("NATIVE DRAG PASSED: active spell to quick slot")
+	game.close_window()
+	game.inventory()
+	game.ui.inventory_tabs.current_tab=1
+	await capture("character-stats-quests")
+	var paused_time=game.state.total()
+	await press_key(game.controls.keys.pause)
+	game._process(0.5)
+	await press_key(game.controls.keys.pause)
+	game._process(0.5)
+	assert(game.window_open and game.state.total()==paused_time,"Real Space input must preserve the inventory pause")
+	print("NATIVE PAUSE PASSED: inventory remains paused across Space toggles")
 	game.close_window()
 	game.control_settings()
 	await capture("control-bindings")

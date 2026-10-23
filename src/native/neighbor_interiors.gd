@@ -2,7 +2,10 @@ extends RefCounted
 
 static func layout(id: String) -> Dictionary:
 	if id=="observatory": return observatory()
-	if id=="tavern": return tavern()
+	if id=="tavern":
+		var bar=tavern()
+		bar.sites.append(["private_door",Vector2i(7,7)])
+		return bar
 	if id=="woodcutter": return woodcutter()
 	if id in ["reed_farm","mill_home"]:
 		var family=family_home(id=="reed_farm")
@@ -40,7 +43,7 @@ static func layout(id: String) -> Dictionary:
 			plan.areas[2][1]=Rect2i(1,1,5,4)
 			plan.areas[4][1]=Rect2i(9,6,7,6)
 			plan.doors[0][2]=Vector2i(8,3)
-			plan.doors[1][2]=Vector2i(6,2)
+			plan.doors[1][2]=Vector2i(6,3)
 			for item in plan.furniture:
 				if item[0]=="bed": item[1]=Rect2i(12,1,2,3)
 				elif item[0]=="bookshelf": item[1]=Rect2i(9,1,2,1)
@@ -49,20 +52,29 @@ static func layout(id: String) -> Dictionary:
 				elif item[0]=="bath": item[1]=Rect2i(5,1,1,2)
 			plan.furniture.append_array([["oven",Rect2i(9,6,2,2)],["table",Rect2i(12,7,3,1)],["flour",Rect2i(13,6,2,1)],["table",Rect2i(9,10,1,1)],["chair",Rect2i(10,10,1,1)],["bookshelf",Rect2i(15,9,1,2)]])
 			plan.work=[Vector2i(11,6),Vector2i(13,8),Vector2i(12,10)]
+	plan.areas[3][1]=Rect2i(1,9,5,depth-10)
+	plan.areas.append(["kitchen",Rect2i(1,6,5,2)])
+	plan.doors[2][2]=Vector2i(6,10)
+	plan.doors.append_array([["kitchen","hall",Vector2i(6,7)],["kitchen","living",Vector2i(3,8)]])
 	return plan
 
 static func tavern() -> Dictionary:
-	return {"size":Vector2i(19,15),"areas":[["bedroom",Rect2i(1,1,5,4)],["hall",Rect2i(7,1,1,5)],["kitchen",Rect2i(9,1,4,3)],["bathroom",Rect2i(15,1,3,3)],["back_hall",Rect2i(9,5,9,1)],["taproom",Rect2i(1,7,17,7)]],"doors":[["bedroom","hall",Vector2i(6,3)],["hall","back_hall",Vector2i(8,5)],["kitchen","back_hall",Vector2i(10,4)],["bathroom","back_hall",Vector2i(16,4)],["hall","taproom",Vector2i(7,6)]],"private_doors":[Vector2i(7,6)],"entry":Vector2i(9,13),"exit":Vector2i(9,14),"furniture":[["bed",Rect2i(1,1,2,3)],["sofa",Rect2i(3,4,3,1)],["kitchen",Rect2i(9,1,4,1)],["table",Rect2i(9,3,2,1)],["toilet",Rect2i(15,1,1,1)],["sink",Rect2i(17,1,1,1)],["bath",Rect2i(17,2,1,2)],["counter",Rect2i(4,8,7,1)],["barrels",Rect2i(1,7,2,1)],["table",Rect2i(2,11,2,1)],["chair",Rect2i(1,11,1,1)],["chair",Rect2i(4,11,1,1)],["table",Rect2i(13,11,2,1)],["chair",Rect2i(12,11,1,1)],["chair",Rect2i(15,11,1,1)],["table",Rect2i(15,8,2,1)],["chair",Rect2i(14,8,1,1)],["chair",Rect2i(17,8,1,1)],["radio",Rect2i(17,13,1,1)]],"sites":[["radio",Vector2i(16,13)],["private_door",Vector2i(7,7)]],"work":[Vector2i(6,7),Vector2i(8,7),Vector2i(10,7)]}
+	return {"size":Vector2i(19,15),"areas":[["bedroom",Rect2i(1,1,5,4)],["hall",Rect2i(7,1,1,5)],["kitchen",Rect2i(9,1,4,3)],["bathroom",Rect2i(15,1,3,3)],["back_hall",Rect2i(9,5,9,1)],["taproom",Rect2i(1,7,17,7)]],"doors":[["bedroom","hall",Vector2i(6,3)],["hall","back_hall",Vector2i(8,5)],["kitchen","back_hall",Vector2i(12,4)],["bathroom","back_hall",Vector2i(16,4)],["hall","taproom",Vector2i(7,6)]],"private_doors":[Vector2i(7,6)],"entry":Vector2i(9,13),"exit":Vector2i(9,14),"furniture":[["bed",Rect2i(1,1,2,3)],["sofa",Rect2i(3,4,3,1)],["kitchen",Rect2i(9,1,4,1)],["table",Rect2i(9,3,2,1)],["toilet",Rect2i(15,1,1,1)],["sink",Rect2i(17,1,1,1)],["bath",Rect2i(17,2,1,2)],["counter",Rect2i(4,8,7,1)],["barrels",Rect2i(1,7,2,1)],["table",Rect2i(2,11,2,1)],["chair",Rect2i(1,11,1,1)],["chair",Rect2i(4,11,1,1)],["table",Rect2i(13,11,2,1)],["chair",Rect2i(12,11,1,1)],["chair",Rect2i(15,11,1,1)],["table",Rect2i(15,8,2,1)],["chair",Rect2i(14,8,1,1)],["chair",Rect2i(17,8,1,1)],["radio",Rect2i(17,13,1,1)]],"sites":[["radio",Vector2i(16,13)]],"work":[Vector2i(6,7),Vector2i(8,7),Vector2i(10,7)]}
 
 static func woodcutter() -> Dictionary:
-	return {"size":Vector2i(12,13),"areas":[["bedroom",Rect2i(1,1,4,4)],["hall",Rect2i(6,1,1,11)],["bathroom",Rect2i(8,1,3,3)],["living",Rect2i(1,6,4,6)],["workshop",Rect2i(8,5,3,7)]],"doors":[["bedroom","hall",Vector2i(5,3)],["bathroom","hall",Vector2i(7,2)],["living","hall",Vector2i(5,9)],["workshop","hall",Vector2i(7,8)]],"entry":Vector2i(6,11),"exit":Vector2i(6,12),"furniture":[["bed",Rect2i(1,1,2,3)],["tools",Rect2i(8,5,1,2)],["table",Rect2i(8,9,2,1)],["cabinet",Rect2i(8,11,2,1)],["sofa",Rect2i(1,6,3,1)],["kitchen",Rect2i(1,10,3,1)],["radio",Rect2i(4,8,1,1)],["toilet",Rect2i(8,1,1,1)],["sink",Rect2i(10,1,1,1)],["bath",Rect2i(10,2,1,2)]],"sites":[["radio",Vector2i(3,8)]],"work":[Vector2i(9,7),Vector2i(3,8)]}
+	return {"size":Vector2i(12,13),
+		"areas":[["bedroom",Rect2i(1,1,4,4)],["hall",Rect2i(6,1,1,11)],["bathroom",Rect2i(8,1,3,3)],["living",Rect2i(1,6,4,3)],["kitchen",Rect2i(1,10,4,2)],["workshop",Rect2i(8,5,3,7)]],
+		"doors":[["bedroom","hall",Vector2i(5,3)],["bathroom","hall",Vector2i(7,2)],["living","hall",Vector2i(5,8)],["workshop","hall",Vector2i(7,8)],["kitchen","hall",Vector2i(5,11)],["living","kitchen",Vector2i(4,9)]],
+		"entry":Vector2i(6,11),"exit":Vector2i(6,12),
+		"furniture":[["bed",Rect2i(1,1,2,3)],["tools",Rect2i(8,5,1,2)],["table",Rect2i(8,9,2,1)],["cabinet",Rect2i(8,11,2,1)],["sofa",Rect2i(1,6,3,1)],["kitchen",Rect2i(1,10,3,1)],["radio",Rect2i(1,8,1,1)],["toilet",Rect2i(8,1,1,1)],["sink",Rect2i(10,1,1,1)],["bath",Rect2i(10,2,1,2)]],
+		"sites":[["radio",Vector2i(2,8)]],"work":[Vector2i(9,7),Vector2i(3,8)]}
 
 static func observatory() -> Dictionary:
-	return {"size":Vector2i(15,14),"areas":[["observing",Rect2i(1,1,13,6)],["hall",Rect2i(7,8,1,5)],["bedroom",Rect2i(1,8,5,5)],["bathroom",Rect2i(9,8,5,5)]],
-		"doors":[["observing","hall",Vector2i(7,7)],["bedroom","hall",Vector2i(6,10)],["bathroom","hall",Vector2i(8,11)]],"entry":Vector2i(7,12),"exit":Vector2i(7,13),
-		"furniture":[["great_telescope",Rect2i(5,2,4,3)],["desk",Rect2i(1,1,3,1)],["bookshelf",Rect2i(10,1,3,1)],["chair",Rect2i(2,2,1,1)],["table",Rect2i(10,5,2,1)],
-		["bed",Rect2i(1,8,2,3)],["kitchen",Rect2i(3,8,3,1)],["radio",Rect2i(1,12,1,1)],["rug",Rect2i(3,10,2,2)],["toilet",Rect2i(9,8,1,1)],["sink",Rect2i(11,8,1,1)],["bath",Rect2i(13,9,1,2)]],
-		"sites":[["radio",Vector2i(2,12)]],"beds":{"astronomer":0},"work":[Vector2i(4,3),Vector2i(9,4),Vector2i(10,6)]}
+	return {"size":Vector2i(15,14),"areas":[["observing",Rect2i(1,1,8,6)],["kitchen",Rect2i(10,1,4,6)],["hall",Rect2i(7,8,1,5)],["bedroom",Rect2i(1,8,5,5)],["bathroom",Rect2i(9,8,5,5)]],
+		"doors":[["observing","hall",Vector2i(7,7)],["bedroom","hall",Vector2i(6,10)],["bathroom","hall",Vector2i(8,11)],["observing","kitchen",Vector2i(9,5)]],"entry":Vector2i(7,12),"exit":Vector2i(7,13),
+		"furniture":[["great_telescope",Rect2i(5,2,4,3)],["desk",Rect2i(1,1,3,1)],["bookshelf",Rect2i(1,5,3,1)],["chair",Rect2i(2,2,1,1)],["table",Rect2i(11,5,2,1)],
+		["bed",Rect2i(1,8,2,3)],["kitchen",Rect2i(10,1,4,1)],["radio",Rect2i(1,12,1,1)],["rug",Rect2i(3,10,2,2)],["toilet",Rect2i(9,8,1,1)],["sink",Rect2i(11,8,1,1)],["bath",Rect2i(13,9,1,2)]],
+		"sites":[["radio",Vector2i(2,12)]],"beds":{"astronomer":0},"work":[Vector2i(4,3),Vector2i(8,5),Vector2i(10,6)]}
 
 static func family_home(farm: bool) -> Dictionary:
 	var h=15 if farm else 14

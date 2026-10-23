@@ -199,12 +199,49 @@ def crash():
     return track
 
 
+def laser():
+    track = buffer(.23)
+    noise = Random(721)
+    phase = 0.0
+    for i in range(len(track)):
+        t = i / RATE
+        phase += TAU * (170 + 2100 * exp(-t * 22)) / RATE
+        envelope = min(1, t * 600) * exp(-t * 20)
+        track[i] = (sin(phase) * .52 + sin(phase * 2.03) * .16 + noise.uniform(-1, 1) * .08) * envelope
+    return track
+
+
+def laser_hit():
+    track = buffer(.35)
+    noise = Random(722)
+    low = 0.0
+    for i in range(len(track)):
+        t = i / RATE
+        low += (noise.uniform(-1, 1) - low) * .24
+        track[i] = (low * .55 + sin(TAU * (105 * t - 95 * t * t)) * .45) * min(1, t * 900) * exp(-t * 17)
+    return track
+
+
+def explosion():
+    track = buffer(2.1)
+    noise = Random(723)
+    low = 0.0
+    for i in range(len(track)):
+        t = i / RATE
+        sample = noise.uniform(-1, 1)
+        low += (sample - low) * .075
+        crack = sample * exp(-t * 13) * .32
+        rumble = low * .8 + sin(TAU * (51 * t - 4 * t * t)) * .27
+        track[i] = (crack + rumble) * min(1, t * 700) * exp(-t * 2.5)
+    return track
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--only", choices=["music", "birds", "crickets", "drips", "wildgrowth", "ship", "crash"], help="Rebuild one sound instead of all assets.")
+    parser.add_argument("--only", choices=["music", "birds", "crickets", "drips", "wildgrowth", "ship", "crash", "laser", "laser_hit", "explosion"], help="Rebuild one sound instead of all assets.")
     args = parser.parse_args()
     OUTPUT.mkdir(parents=True, exist_ok=True)
-    for name, build in {"music": music, "birds": birds, "crickets": crickets, "drips": drips, "wildgrowth": wildgrowth, "ship": ship, "crash": crash}.items():
+    for name, build in {"music": music, "birds": birds, "crickets": crickets, "drips": drips, "wildgrowth": wildgrowth, "ship": ship, "crash": crash, "laser": laser, "laser_hit": laser_hit, "explosion": explosion}.items():
         if args.only is None or args.only == name:
             write(name, build())
 

@@ -15,7 +15,7 @@ func run() -> void:
 	var outside=game.world
 	check(game.camera.zoom.is_equal_approx(Vector2.ONE*1.9125),"camera zoom reflects the latest 15 percent reduction")
 	var home=outside.buildings[0]
-	game.state.player_position=outside.Grid.center(home.cell+Vector2i(home.tiles.x/2,home.tiles.y))
+	preload("fixture.gd").face_site(game,"door_home")
 	game.interact()
 	check(game.world!=outside and not outside.visible,"E at the farmhouse door enters a separate interior map")
 	check(not game.world.blocked(game.state.player_position),"interior entrance places the player on walkable floor")
@@ -25,7 +25,7 @@ func run() -> void:
 	var kinds={}
 	for furniture in game.world.furnishings: kinds[furniture.kind]=true
 	check(["sofa","table","chair","bed","kitchen","bath","bookshelf","art","radio","rug"].all(func(kind): return kinds.has(kind)),"home includes living bedroom kitchen bathroom and personal furnishings")
-	game.state.player_position=game.world.site_position("exit")
+	preload("fixture.gd").face_site(game,"exit")
 	game.interact()
 	check(game.world==outside and outside.visible,"the interior exit returns to the same outdoor world")
 	var reached=true
