@@ -11,7 +11,11 @@ func run() -> void:
 	root.add_child(game)
 	game.set_process(false)
 	preload("fixture.gd").explore(game,true)
+	game.state.firewood_requested=true
+	game.ui.quest_lines()
 	game.state.met_mayor=true
+	var ordered=game.ui.quest_lines().map(func(quest):return quest.id)
+	check(ordered.find("keeper_firewood")<ordered.find("first_harvest"),"quest history follows assignment order within active quests")
 	game.state.harvested=1
 	game.state.experience=30
 	game.ui.update()
@@ -26,6 +30,8 @@ func run() -> void:
 		for slot in game.ui.equipment_slots.values(): sizes.append(slot.size)
 		check(sizes.all(func(size):return size==Vector2(64,64)),"all equipment slots have identical square dimensions")
 		check(game.ui.character_quests.get_children().any(func(row):return row is Button and row.get_meta("quest_id","")=="first_harvest"),"completed quests remain available in character history")
+	var loaded=game.State.new()
+	check(loaded.restore(game.state.to_dict()) and loaded.get("quest_order") is Array and loaded.quest_order==game.state.quest_order,"quest assignment order survives saving")
 	await game.sound.shutdown()
 	game.queue_free()
 	await process_frame

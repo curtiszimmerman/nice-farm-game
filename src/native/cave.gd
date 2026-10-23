@@ -270,7 +270,7 @@ func paint_effects(c: CanvasItem) -> void:
 
 func paint_object(c: CanvasItem,info: Dictionary) -> void:
 	if info.kind=="pickaxe":
-		if not state.cave_pickaxe_taken: Art.sprite(c,"item_pickaxe",Vector2(5,-22),Vector2(25,25))
+		if not state.cave_pickaxe_taken: Art.sprite(c,"item_pickaxe",Vector2(-15,-24),Vector2(25,25))
 		return
 	if Art.option==2:
 		var id="copper" if info.kind=="rock" and info.ore else "rock" if info.kind=="rock" else "rat"+str(int(elapsed*6)%3) if info.kind=="rat" else info.kind

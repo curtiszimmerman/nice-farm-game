@@ -168,7 +168,7 @@ static func _cabin() -> Dictionary:
 		["bed",Rect2i(1,1,2,2)],["bookshelf",Rect2i(3,1,1,1)],
 		["toilet",Rect2i(7,1,1,1)],["sink",Rect2i(8,1,1,1)],["bath",Rect2i(9,1,1,2)],
 		["kitchen",Rect2i(7,6,3,1)],["sofa",Rect2i(1,7,2,1)],
-		["table",Rect2i(4,7,2,1)],["chair",Rect2i(3,8,1,1)],["radio",Rect2i(1,6,1,1)],
+		["table",Rect2i(4,7,2,1)],["chair",Rect2i(4,8,1,1)],["radio",Rect2i(1,6,1,1)],
 		["rug",Rect2i(3,7,3,3)],["tools",Rect2i(1,9,2,1)],["art",Rect2i(2,0,1,1)]],
 		"sites":[["bed",Vector2i(3,2)],["radio",Vector2i(2,6)]],
 		"work":[Vector2i(3,6),Vector2i(7,8),Vector2i(4,9)]}

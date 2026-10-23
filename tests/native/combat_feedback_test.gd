@@ -30,6 +30,14 @@ func run() -> void:
 	check(game.state.get("experience")==10,"defeated rats cannot award experience twice")
 	var loaded=game.State.new()
 	check(loaded.restore(game.state.to_dict()) and loaded.get("experience")==10,"experience survives saving")
+	var attacker=game.world.rats[1]
+	attacker.position=game.state.player_position+Vector2(0,20)
+	var before=game.state.health
+	game.world.update_enemies(0.01)
+	check(game.state.health==before-4 and game.world.combat_texts.any(func(entry):return entry.text=="-4" and entry.color==Color("ff8e7b")),"rat bites display actual player damage in red")
+	for enemy in game.world.rats: enemy.visible=false
+	game._process(1.4)
+	check(game.world.combat_texts.is_empty(),"combat values disappear when their rise and fade finish")
 	await game.sound.shutdown()
 	game.queue_free()
 	await process_frame

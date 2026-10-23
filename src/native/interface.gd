@@ -781,6 +781,9 @@ func quest_lines() -> Array:
 	if s.met_mayor: lines.append({"id":"first_harvest","title":"Putting down roots","description":"Moss left tools and seeds. Work a small garden to provide for yourselves.","tasks":[{"text":"Harvest a moon turnip","done":s.harvested>0}]})
 	if s.welcome_phase=="complete": lines.append({"id":"meet_wizard","title":"Gentler magic","description":"Visit Iona at the northern tower after noon to learn local magic.","tasks":[{"text":"Learn Wildgrowth from Iona","done":s.magic_learned}]})
 	if s.firewood_requested: lines.append({"id":"keeper_firewood","title":"A warm western light","description":"Oren needs firewood for his lighthouse stove. Ask the forest woodcutter about an axe.","tasks":[{"text":"Bring Oren six firewood","done":s.firewood_given}]})
+	for quest in lines:
+		if quest.id not in s.quest_order: s.quest_order.append(quest.id)
+	lines.sort_custom(func(a,b):return s.quest_order.find(a.id)<s.quest_order.find(b.id))
 	var active=[]
 	var completed=[]
 	for quest in lines:
