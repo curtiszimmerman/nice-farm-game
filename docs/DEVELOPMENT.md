@@ -258,6 +258,10 @@ The Crew Log is left-aligned; season, weekday/year and clock labels are larger a
 
 The bounded artwork run produced fifteen sprites for a reported API-equivalent cost of $0.2733368. One additional wet bare-soil sprite was added locally. Both packs contain 792 sprites. Public prompting, tool traffic, replies and usage are exported under internal/claude-review/harvest/; private reasoning is excluded. The first --bare invocation could not use OAuth; normal OAuth succeeded without reauthentication. No new tools or dependencies were installed. Native screenshots cover the calendar, crossroads, tool shed, sky exit, existing spider, bright night glints and both seasonal fruits. All writes remain inside the project; the preexisting launcher mode modification is excluded from commits.
 
+The clean full run passed 2,033 native checks, four asset checks and startup smoke in internal/verification/harvest-clean-suite.log. Final focused checks add four day/night cave-opening checks across both packs and two ladder-save assertions. The opening art was widened locally so both usable tile centers show clear ground. Seven native visual scenes passed with clean output in internal/verification/harvest-visual-verified.log. Both atlas generators reproduced identical PNG and catalog hashes, recorded in internal/verification/harvest-atlas-hashes.json.
+
+Review also caught a one-frame fruit pickup after felling a tree and unsafe calendar arithmetic in corrupt fruit saves; regressions now pass. Existing test expectations were updated for the left-side Crew Log and the nonresidential tool shed, while retaining the private-bathroom checks on every existing home and public interior. All fourteen requested points are handled. Only the preexisting scripts/play.sh executable-bit change remains uncommitted; no push was performed.
+
 ## Next discussion
 
 Play and critique the slice before expanding it. Decide the next milestone, combat controls and feel, art direction, calendar/lunar rules, and the first actual networked cooperative interaction. Do not mistake placeholder content for approved final story or mechanics.

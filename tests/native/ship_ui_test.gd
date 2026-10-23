@@ -25,7 +25,7 @@ func run() -> void:
 	game.ui.log_toggle.pressed.emit()
 	check(game.ui.quest_scroll.visible and game.ui.quest_rows.get_child_count()>0,"crew log opens its quest list when clicked")
 	game.ui.log_toggle.pressed.emit()
-	check(not game.ui.quest_scroll.visible and game.ui.log_panel.position.x>900,"crew log collapses below the clock")
+	check(not game.ui.quest_scroll.visible and game.ui.log_panel.position.x<100,"crew log collapses on the left beneath the location heading")
 	game.open_storage("ship_storage")
 	game.ui.chest_slots[0].pressed.emit()
 	game.ui.quantity_control.value=2
