@@ -9,6 +9,8 @@ var chambers: Array[Rect2i]=[]
 var floor_cells: Dictionary={}
 var rocks: Dictionary={}
 var rats: Array=[]
+var spider: Node2D
+var combat_rng=RandomNumberGenerator.new()
 var swing_cooldown=0.0
 
 class CaveObject extends Node2D:
@@ -18,6 +20,7 @@ class CaveObject extends Node2D:
 		cave.paint_object(self,info)
 
 func _ready() -> void:
+	combat_rng.randomize()
 	y_sort_enabled=true
 	night_tint=CanvasModulate.new()
 	night_tint.color=Color("b6c2cb")
@@ -40,6 +43,8 @@ func _ready() -> void:
 		var rat=object({"kind":"rat","cell":cell,"id":i,"health":2,"bite":0.0})
 		rat.visible=not state.cave_defeated.has(i)
 		rats.append(rat)
+	spider=object({"kind":"spider","cell":chambers.back().get_center(),"id":2,"health":4,"bite":0.0})
+	spider.visible=not state.cave_defeated.has(2)
 	crops=Node2D.new()
 	add_child(crops)
 	player=_prop("player",state.player_position,{"coat":"6f9793","hair":"5c5045","skin":"d0a981","id":"player"})
@@ -96,7 +101,7 @@ func generate() -> void:
 			candidates[k]=candidates[other]
 			candidates[other]=value
 		var selected=[]
-		var amount=3 if i<2 else rng.randi_range(1,3)
+		var amount=3 if i<3 else rng.randi_range(1,3)
 		for cell in candidates:
 			if selected.any(func(other): return absi(cell.x-other.x)+absi(cell.y-other.y)<3): continue
 			selected.append(cell)
@@ -104,7 +109,7 @@ func generate() -> void:
 		for j in range(selected.size()):
 			var id=str(i*3+j)
 			var cell: Vector2i=selected[j]
-			var ore=(i<2 and j<2) or rng.randf()<0.6
+			var ore=(i<3 and j<2) or rng.randf()<0.6
 			if state.cave_broken.has(id): continue
 			var info={"kind":"rock","id":id,"cell":cell,"ore":ore}
 			info.node=object(info)
@@ -179,7 +184,7 @@ func attack() -> bool:
 	if swing_cooldown>0 or not super.attack(): return false
 	swing_cooldown=0.35
 	var direction={"up":Vector2.UP,"down":Vector2.DOWN,"left":Vector2.LEFT,"right":Vector2.RIGHT}[facing]
-	for rat in rats:
+	for rat in creatures():
 		var offset=rat.position-state.player_position
 		if not rat.visible or offset.length()>54 or offset.normalized().dot(direction)<0.25: continue
 		rat.info.health-=1
@@ -188,14 +193,17 @@ func attack() -> bool:
 		if rat.info.health<=0:
 			rat.visible=false
 			state.cave_defeated.append(rat.info.id)
-			state.experience+=10
-			combat_text("+10xp",state.player_position,Color("8aee83"))
+			var earned=20 if rat.info.kind=="spider" else 10
+			state.experience+=earned
+			combat_text("+%dxp" % earned,state.player_position,Color("8aee83"))
 		break
 	return true
 
+func creatures() -> Array: return rats+([spider] if spider!=null else [])
+
 func update_enemies(dt: float) -> void:
 	swing_cooldown=maxf(0,swing_cooldown-dt)
-	for rat in rats:
+	for rat in creatures():
 		if not rat.visible: continue
 		rat.modulate=rat.modulate.lerp(Color.WHITE,minf(1,dt*5))
 		rat.info.bite=maxf(0,rat.info.bite-dt)
@@ -209,6 +217,7 @@ func update_enemies(dt: float) -> void:
 			var damage=minf(4,state.health)
 			state.health=maxf(0,state.health-4)
 			if damage>0: combat_text("-%d" % int(damage),state.player_position,Color("ff8e7b"))
+			if rat.info.kind=="spider" and combat_rng.randf()<0.2: state.apply_poison()
 			rat.info.bite=1.0
 		rat.queue_redraw()
 
@@ -276,7 +285,7 @@ func paint_object(c: CanvasItem,info: Dictionary) -> void:
 		if not state.cave_pickaxe_taken: Art.sprite(c,"item_pickaxe",Vector2(-12,-16),Vector2(24,24))
 		return
 	if Art.option==2:
-		var id="copper" if info.kind=="rock" and info.ore else "rock" if info.kind=="rock" else "rat"+str(int(elapsed*6)%3) if info.kind=="rat" else info.kind
+		var id="copper" if info.kind=="rock" and info.ore else "rock" if info.kind=="rock" else info.kind+str(int(elapsed*6)%3) if info.kind in ["rat","spider"] else info.kind
 		var size=Art.sprite_size(id)
 		Art.sprite(c,id,Vector2(-size.x/2,-size.y+8))
 		return

@@ -26,6 +26,8 @@ var sea_sprat=0
 var blue_mackerel=0
 var storm_eel=0
 var copper = 0
+var copper_bars=0
+var bread=0
 var star_seeds = 0
 var star_bulbs = 0
 var rusty_sword = 0
@@ -82,7 +84,7 @@ var golden_sparkfire_bloom=0
 var mayor_due=-1.0
 var house_tasks={"sofa":false,"bed":false,"guest_bed":false,"radio":false,"living_light":false,"bathroom_light":false}
 const INVENTORY_SLOTS=12
-const EXTRA_ITEMS=["pot","pan","fish_sticks","fish_stew","health_elixir","rations","light_bulbs","moon_pike","sea_sprat","blue_mackerel","storm_eel","pickaxe","stones","cave_moth_chrysalis","golden_sparkfire_bloom","lantern_ray","axe","wood"]
+const EXTRA_ITEMS=["pot","pan","fish_sticks","fish_stew","health_elixir","rations","light_bulbs","moon_pike","sea_sprat","blue_mackerel","storm_eel","pickaxe","stones","cave_moth_chrysalis","golden_sparkfire_bloom","lantern_ray","axe","wood","bread","copper_bars"]
 const CROP_MINUTES=4320.0
 const RECIPES={"fish_sticks":{"utensil":"pan","ingredients":{"fish":1}},"fish_stew":{"utensil":"pot","ingredients":{"turnips":1,"star_bulbs":1,"fish":1}}}
 var invitation_day=1
@@ -98,6 +100,15 @@ var energy = 100.0
 var experience=0
 var quest_order: Array=[]
 var weather_override=""
+var awake_minutes=0.0
+var sleep_minutes=0.0
+var status_effects: Dictionary={}
+var damage_events: Array=[]
+const CRUCIBLE_STONE=10
+const ORE_PER_BAR=2
+const SMELT_MINUTES=30.0
+var crucible_known=false
+var crucibles: Array=[]
 var invited = false
 var met_mayor = false
 var delivered = false
@@ -148,16 +159,106 @@ func deliver_firewood() -> bool:
 	clear_empty_slots()
 	return true
 
-func advance(minutes: float, window_open = false) -> void:
+func is_tired() -> bool: return awake_minutes>1440.0
+
+func energy_cost(base: float) -> float: return base*(2.0 if is_tired() else 1.0)
+
+func spend_energy(base: float) -> bool:
+	var cost=energy_cost(base)
+	if energy<cost: return false
+	energy-=cost
+	return true
+
+func energy_recovery(base: float) -> float: return base*(0.5 if is_tired() else 1.0)
+
+func restore_energy(base: float) -> void:
+	energy=minf(100,energy+energy_recovery(base))
+
+func active_statuses() -> Array:
+	return (["tired"] if is_tired() else [])+status_effects.keys()
+
+func apply_poison() -> void:
+	if status_effects.has("poison"): status_effects.poison.remaining=60.0
+	else: status_effects.poison={"remaining":60.0,"tick":5.0}
+
+func advance_statuses(minutes: float,sleeping: bool) -> void:
+	if sleeping:
+		var reduced=minf(minutes,maxf(0,preload("res://statuses.gd").REST_MINUTES-sleep_minutes)) if is_tired() else 0.0
+		restore_energy(reduced*0.2)
+		sleep_minutes+=minutes
+		if sleep_minutes>=preload("res://statuses.gd").REST_MINUTES: awake_minutes=0
+		restore_energy((minutes-reduced)*0.2)
+	else:
+		awake_minutes+=minutes
+		sleep_minutes=0
+	if status_effects.has("poison"):
+		var poison=status_effects.poison
+		var elapsed=minf(minutes,poison.remaining)
+		poison.remaining-=elapsed
+		poison.tick-=elapsed
+		while poison.tick<=0.000001:
+			var damage=minf(2,health)
+			health=maxf(0,health-damage)
+			if damage>0: damage_events.append(damage)
+			poison.tick+=5
+		if poison.remaining<=0.000001: status_effects.erase("poison")
+
+func buy_bread() -> bool:
+	if money<6 or not can_carry("bread"): return false
+	sync_inventory()
+	money-=6
+	bread+=1
+	return true
+
+func learn_crucible() -> bool:
+	if crucible_known or star_bulbs<10: return false
+	star_bulbs-=10
+	crucible_known=true
+	clear_empty_slots()
+	return true
+
+func build_crucible(cell: Vector2i) -> bool:
+	if not crucible_known or stones<CRUCIBLE_STONE or not Grid.BUILD_AREA.has_point(cell): return false
+	if crucibles.any(func(station):return Vector2i(station.x,station.y)==cell): return false
+	stones-=CRUCIBLE_STONE
+	crucibles.append({"x":cell.x,"y":cell.y,"ready_at":-1.0,"bars":0})
+	clear_empty_slots()
+	return true
+
+func start_smelting(index: int) -> bool:
+	if index<0 or index>=crucibles.size() or copper<ORE_PER_BAR: return false
+	var station=crucibles[index]
+	if station.ready_at>=0 or station.bars>0: return false
+	copper-=ORE_PER_BAR
+	station.ready_at=total()+SMELT_MINUTES
+	clear_empty_slots()
+	return true
+
+func update_crucibles() -> void:
+	for station in crucibles:
+		if station.ready_at>=0 and total()+0.000001>=station.ready_at:
+			station.ready_at=-1.0
+			station.bars=1
+
+func collect_copper_bar(index: int) -> bool:
+	if index<0 or index>=crucibles.size() or crucibles[index].bars<1 or not can_carry("copper_bars"): return false
+	sync_inventory()
+	crucibles[index].bars-=1
+	copper_bars+=1
+	return true
+
+func advance(minutes: float, window_open = false,sleeping: bool=false) -> void:
 	if window_open and pause_mode == "all":
 		return
 	mana = minf(60.0, mana + minutes * 0.12)
 	if window_open and pause_mode == "clock":
 		return
+	advance_statuses(minutes,sleeping)
 	var elapsed = total() + minutes
 	var previous_day=day
 	day = int(elapsed / 1440.0) + 1
 	minute = fmod(elapsed, 1440.0)
+	update_crucibles()
 	for crop_day in range(previous_day,day):
 		for plot in plots:
 			if plot.planted>=0 and (plot.watered or weather_name(crop_day)=="rainy"):
@@ -245,7 +346,7 @@ func tend(index: int) -> String:
 		return "There is no garden patch here."
 	var p = plots[index]
 	var tool="sickle" if ripe(index) else "hoe" if not p.tilled else "watering_can" if p.planted>=0 and not p.watered else ""
-	var cost=1.0 if tool in ["sickle","watering_can"] else 2.0 if tool=="hoe" else 0.0
+	var cost=energy_cost(1.0 if tool in ["sickle","watering_can"] else 2.0 if tool=="hoe" else 0.0)
 	if tool!="" and int(get(tool))==0: return "Carry your %s from the farmhouse chest." % Items.CATALOG[tool].name.to_lower()
 	if tool=="watering_can" and water<1: return "Empty watering can. Refill it at the pond."
 	if energy<cost: return "Too tired. Sleep in your own bed or eat something restorative."
@@ -312,10 +413,15 @@ func buy_seeds() -> bool:
 	return true
 
 func mine(resource: String="copper") -> bool:
-	if resource not in ["copper","stones"] or active_item()!="pickaxe" or pickaxe<1 or energy < 5.0 or not can_carry(resource):
+	if resource not in ["copper","stones"] or active_item()!="pickaxe" or pickaxe<1 or not can_carry(resource):
 		return false
-	energy -= 5.0
-	set(resource,int(get(resource))+1)
+	var drops=["copper","stones"] if resource=="copper" else ["stones"]
+	var slots=carried_slots()
+	for id in drops:
+		if int(get(id))==0: slots+=1
+	if slots>INVENTORY_SLOTS: return false
+	if not spend_energy(5): return false
+	for id in drops: set(id,int(get(id))+1)
 	return true
 
 func consume(id: String) -> bool:
@@ -325,7 +431,7 @@ func consume(id: String) -> bool:
 	set(id,int(get(id))-1)
 	clear_empty_slots()
 	health=minf(100,health+food.health)
-	energy=minf(100,energy+food.energy)
+	restore_energy(food.energy)
 	mana=minf(60,mana+food.mana)
 	return true
 
@@ -495,7 +601,9 @@ func to_dict() -> Dictionary:
 	sync_inventory()
 	var supplies={}
 	for id in EXTRA_ITEMS: supplies[id]=get(id)
-	return {"version": 13,"inventory_order":inventory_order.duplicate(),"woodcutter_axe_given":woodcutter_axe_given,"cave_pickaxe_taken":cave_pickaxe_taken,"cave_intro_seen":cave_intro_seen,"auxiliary_selection":auxiliary_selection,"world_seed":world_seed,"inventory_selection":inventory_selection,"firewood_requested":firewood_requested,"firewood_given":firewood_given,"felled_trees":felled_trees.duplicate(),"day": day, "minute": minute, "money": money,"magic_learned":magic_learned,
+	return {"version": 14,"inventory_order":inventory_order.duplicate(),"woodcutter_axe_given":woodcutter_axe_given,"cave_pickaxe_taken":cave_pickaxe_taken,"cave_intro_seen":cave_intro_seen,"auxiliary_selection":auxiliary_selection,"world_seed":world_seed,"inventory_selection":inventory_selection,"firewood_requested":firewood_requested,"firewood_given":firewood_given,"felled_trees":felled_trees.duplicate(),"day": day, "minute": minute, "money": money,"magic_learned":magic_learned,
+		"awake_minutes":awake_minutes,"sleep_minutes":sleep_minutes,"status_effects":status_effects.duplicate(true),
+		"crucible_known":crucible_known,"crucibles":crucibles.duplicate(true),
 		"experience":experience,"quest_order":quest_order.duplicate(),"weather_override":weather_override,
 		"cave_seed":cave_seed,"cave_broken":cave_broken.duplicate(),"cave_defeated":cave_defeated.duplicate(),"cave_chrysalis_taken":cave_chrysalis_taken,"sparkfire_picked_day":sparkfire_picked_day,"cave_barrel":cave_barrel.duplicate(true),
 		"ship_departed":ship_departed,"welcome_phase":welcome_phase,"welcome_elapsed":welcome_elapsed,
@@ -511,8 +619,28 @@ func to_dict() -> Dictionary:
 		"plots": plots.duplicate(true)}
 
 func restore(data: Variant) -> bool:
-	if not data is Dictionary or data.get("version") != 13:
+	if not data is Dictionary or data.get("version") != 14:
 		return false
+	for field in ["awake_minutes","sleep_minutes"]:
+		if not _number(data.get(field)) or data[field]<0: return false
+	if not data.get("status_effects") is Dictionary: return false
+	if not data.get("crucible_known") is bool or not data.get("crucibles") is Array: return false
+	if not data.crucible_known and not data.crucibles.is_empty(): return false
+	var stations=[]
+	for station in data.crucibles:
+		if not station is Dictionary: return false
+		for field in ["x","y","bars"]:
+			if not _number(station.get(field)) or station[field]!=floor(station[field]): return false
+		var cell=Vector2i(station.x,station.y)
+		if not Grid.BUILD_AREA.has_point(cell) or cell in stations: return false
+		stations.append(cell)
+		if station.bars not in [0,1] or not _number(station.get("ready_at")) or station.ready_at< -1: return false
+		if station.ready_at>=0 and station.bars>0: return false
+	for id in data.status_effects:
+		if id!="poison" or not data.status_effects[id] is Dictionary: return false
+		var effect=data.status_effects[id]
+		if not _number(effect.get("remaining")) or effect.remaining<=0 or effect.remaining>60: return false
+		if not _number(effect.get("tick")) or effect.tick<=0 or effect.tick>5: return false
 	if not data.get("inventory_order") is Array or data.inventory_order.size()!=INVENTORY_SLOTS: return false
 	var ordered=[]
 	if not _number(data.get("experience")) or data.experience<0 or data.experience!=floor(data.experience): return false
@@ -545,7 +673,7 @@ func restore(data: Variant) -> bool:
 	for id in data.cave_broken:
 		if not id is String or not id.is_valid_int() or int(id)<0 or int(id)>=18: return false
 	for id in data.cave_defeated:
-		if not _number(id) or id not in [0,1]: return false
+		if not _number(id) or id not in [0,1,2]: return false
 	if not data.get("cave_barrel") is Array or data.cave_barrel.size()!=4: return false
 	for stack in data.cave_barrel:
 		if not valid_stack(stack): return false
@@ -635,6 +763,12 @@ func restore(data: Variant) -> bool:
 	experience=int(data.experience)
 	quest_order=data.quest_order.duplicate()
 	weather_override=data.weather_override
+	awake_minutes=float(data.awake_minutes)
+	sleep_minutes=float(data.sleep_minutes)
+	status_effects=data.status_effects.duplicate(true)
+	crucible_known=data.crucible_known
+	crucibles=data.crucibles.duplicate(true)
+	damage_events.clear()
 	auxiliary_selection=data.auxiliary_selection
 	world_seed=int(data.world_seed)
 	firewood_requested=data.firewood_requested

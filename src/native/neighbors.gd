@@ -68,5 +68,8 @@ static func talk(game: Node2D,id: String) -> bool:
 	var working=game.current_room==WORKPLACES.get(id,"unused")
 	if id.begins_with("farmer_"): working=game.world==game.outdoors and game.state.player_position.x>95*32
 	var text=story[1] if working else OFF_DUTY.get(id,story[1])
-	game.dialog(story[0],PEOPLE.filter(func(p):return p.id==id)[0].role,text)
+	var choices=[]
+	if id=="baker" and working:
+		choices=[["Buy fresh bread · 6 crowns · 20 energy",game.buy_bread],["Nothing today, thank you.",func(): pass]]
+	game.dialog(story[0],PEOPLE.filter(func(p):return p.id==id)[0].role,text,choices)
 	return true

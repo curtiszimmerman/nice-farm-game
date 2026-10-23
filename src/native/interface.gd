@@ -19,6 +19,9 @@ var quest_signature=0
 var quick_tray: Panel
 var hint_panel: PanelContainer
 var pulse_time=0.0
+var status_strip: HBoxContainer
+var status_icons: Dictionary={}
+var shown_statuses: Array=[]
 var pause_shield: Control
 var pause_badge: PanelContainer
 var active_button: ItemButton
@@ -271,6 +274,10 @@ func _ready() -> void:
 	pause_layer.add_child(pause_badge)
 	var pause_text=_label("PAUSED · Space to resume",Vector2.ZERO,14,GOLD,false,pause_badge)
 	pause_text.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
+	status_strip=HBoxContainer.new()
+	status_strip.add_theme_constant_override("separation",4)
+	status_strip.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	root.add_child(status_strip)
 	for child in root.get_children():
 		if child!=pause_shield and child!=title_screen: hud_nodes.append(child)
 
@@ -692,7 +699,7 @@ func item_slot(stack: Dictionary,pixels: int) -> Button:
 	slot.tooltip_text="%s\n%s\n%s" % [item.name,item.description,item.action]
 	if Items.FOOD.has(stack.id):
 		var food=Items.FOOD[stack.id]
-		slot.tooltip_text+="\n+%d HP · +%d energy · +%d mana" % [food.health,food.energy,food.mana]
+		slot.tooltip_text+="\n+%d HP · +%s energy · +%d mana" % [food.health,str(game.state.energy_recovery(food.energy)),food.mana]
 	var picture=TextureRect.new()
 	picture.texture=Items.icon(stack.id)
 	picture.texture_filter=CanvasItem.TEXTURE_FILTER_NEAREST
@@ -839,6 +846,45 @@ func quest_pulse(time: float) -> float:
 	if phase<=1.7: return pow(phase/1.7,5)
 	return 0.84*exp(-12*(phase-1.7))+0.16*exp(-0.7*(phase-1.7))
 
+func status_picture(id: String) -> TextureRect:
+	var picture=TextureRect.new()
+	var texture=AtlasTexture.new()
+	texture.atlas=Items.Art.atlas
+	texture.region=Items.Art.region(id)
+	picture.texture=texture
+	picture.position=Vector2(6,6)
+	picture.size=Vector2(32,32)
+	picture.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	return picture
+
+func update_statuses() -> void:
+	var active=game.state.active_statuses()
+	if active!=shown_statuses:
+		shown_statuses=active.duplicate()
+		for child in status_strip.get_children():
+			status_strip.remove_child(child)
+			child.queue_free()
+		status_icons.clear()
+		for id in active:
+			var button=Button.new()
+			button.custom_minimum_size=Vector2(44,44)
+			_button_style(button,false,true)
+			button.add_child(status_picture("status_"+id))
+			if id=="poison":
+				var eyes=status_picture("status_poison_eyes")
+				eyes.name="PoisonEyes"
+				button.add_child(eyes)
+			status_strip.add_child(button)
+			status_icons[id]=button
+	for id in active:
+		var status=preload("res://statuses.gd").CATALOG[id]
+		status_icons[id].tooltip_text=status.name+"\n"+status.description
+		if id=="poison": status_icons[id].tooltip_text+="\n%d game minutes remaining" % ceili(game.state.status_effects.poison.remaining)
+	var width=maxi(0,active.size()*48-4)
+	status_strip.size=Vector2(width,44)
+	status_strip.position=Vector2(640-width/2.0,14)
+	status_strip.visible=not active.is_empty()
+
 func _process(dt: float) -> void:
 	if game==null or quick_tray==null: return
 	update_hud()
@@ -846,6 +892,7 @@ func _process(dt: float) -> void:
 		var panel=modal.get_child(1)
 		panel.size.y=clampf(modal_box.get_combined_minimum_size().y+24,80,690-panel.position.y)
 	pulse_time+=dt
+	if status_icons.has("poison"): status_icons.poison.get_node("PoisonEyes").modulate.a=0.3+(sin(pulse_time*3)+1)*0.35
 	var glow=quest_pulse(pulse_time) if quest_unread else 0.0
 	log_toggle.modulate=Color.WHITE.lerp(Color("fff2a1"),0.2+glow*0.3) if quest_unread else Color.WHITE
 	var background: StyleBoxFlat=log_panel.get_theme_stylebox("panel")
@@ -858,6 +905,7 @@ func _process(dt: float) -> void:
 
 func update() -> void:
 	game.state.clear_empty_slots()
+	update_statuses()
 	message_panel.visible=not message.text.is_empty()
 	message_panel.size=Vector2(440,0)
 	pause_shield.visible=game.world_paused

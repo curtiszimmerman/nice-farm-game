@@ -161,15 +161,17 @@ func _process(dt: float) -> void:
 	var frozen = (window_open and state.pause_mode=="all") or staged
 	if not frozen:
 		var minutes = dt
-		if resting>0.0 and not window_open:
+		var sleeping=resting>0.0 and not window_open
+		if sleeping:
 			minutes = minf(resting,dt*90.0)
 			resting -= minutes
-			state.energy = minf(100.0,state.energy+minutes*0.2)
 			if resting<=0.0:
 				state.player_position=rest_return_position
 				save_visit()
 				toast("A little rest. A new angle on the same day.")
-		state.advance(minutes,window_open)
+		state.advance(minutes,window_open,sleeping)
+		for damage in state.damage_events: world.combat_text("-%d" % int(damage),state.player_position,Color("c895ed"))
+		state.damage_events.clear()
 		var walking_dt=dt*maxf(1.0,minutes/maxf(dt,0.001))
 		for room in rooms.values():
 			if room is Interior: room.prepare_departures()
@@ -178,10 +180,11 @@ func _process(dt: float) -> void:
 			if room is Interior: room.update_villagers(walking_dt)
 		if current_room=="cave":
 			world.update_enemies(dt)
-			if state.health<=0:
-				state.player_position=world.entry_position()
-				state.health=25
-				toast("You stagger back to the cave entrance. Eat or rest before returning.",6)
+		if state.health<=0:
+			state.player_position=world.entry_position() if world!=outdoors else Grid.center(Grid.SPAWN_CELL)
+			state.health=25
+			resting=0
+			toast("You stagger back to the cave entrance. Eat or rest before returning." if current_room=="cave" else "You find a safe place to catch your breath. Eat or rest before carrying on.",6)
 		_move(dt)
 		_update_activity(dt)
 		for p in world.particles:
@@ -502,7 +505,7 @@ func choose_dialogue(action: Callable) -> void:
 func dialog(title: String,role: String,text: String,choices: Array = []) -> void:
 	if not conversation_members.is_empty():
 		conversation_steps+=1
-		if conversation_steps>1 and conversation_members!=["tavi"]: conversation_sequence=true
+		if conversation_steps>1 and not (conversation_members.size()==1 and conversation_members[0] in ["tavi","baker"]): conversation_sequence=true
 	window_open = true
 	if choices.is_empty(): choices=[["See you around.",func(): pass]]
 	ui.open_modal(title,role,text,choices)
@@ -930,6 +933,11 @@ func buy_cookware(id: String) -> void:
 		return
 	save_visit()
 	dialog("Tavi","A LITTLE HOME COOKING","There you are. That old stove in your kitchen should serve you well. Leave your food and cookware in the kitchen cabinet and you can cook straight from there. Anything you're carrying works too; no need to haul the whole cupboard about.",[["Thanks. What else have you got?",func(): talk("tavi")]])
+
+func buy_bread() -> void:
+	toast("A fresh loaf, still warm from Corin's oven." if state.buy_bread() else "You need six crowns and room for a loaf.")
+	save_visit()
+	talk("baker")
 
 func offer_tool(id: String,person: String) -> void:
 	var flag="woodcutter_axe_given" if id=="axe" else "cave_pickaxe_taken"

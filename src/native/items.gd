@@ -2,10 +2,12 @@ extends RefCounted
 
 const Art=preload("res://art.gd")
 
-const FOOD={"lantern_ray":{"health":10,"energy":16,"mana":0},"turnips":{"health":8,"energy":12,"mana":0},"fish":{"health":5,"energy":8,"mana":0},"star_bulbs":{"health":0,"energy":0,"mana":15},"health_elixir":{"health":25,"energy":0,"mana":0},"fish_sticks":{"health":12,"energy":20,"mana":0},"fish_stew":{"health":20,"energy":30,"mana":15},"rations":{"health":0,"energy":15,"mana":0},"moon_pike":{"health":7,"energy":10,"mana":0},"sea_sprat":{"health":4,"energy":6,"mana":0},"blue_mackerel":{"health":5,"energy":8,"mana":0},"storm_eel":{"health":8,"energy":12,"mana":0}}
+const FOOD={"bread":{"health":0,"energy":20,"mana":0},"lantern_ray":{"health":10,"energy":16,"mana":0},"turnips":{"health":8,"energy":12,"mana":0},"fish":{"health":5,"energy":8,"mana":0},"star_bulbs":{"health":0,"energy":0,"mana":15},"health_elixir":{"health":25,"energy":0,"mana":0},"fish_sticks":{"health":12,"energy":20,"mana":0},"fish_stew":{"health":20,"energy":30,"mana":15},"rations":{"health":0,"energy":15,"mana":0},"moon_pike":{"health":7,"energy":10,"mana":0},"sea_sprat":{"health":4,"energy":6,"mana":0},"blue_mackerel":{"health":5,"energy":8,"mana":0},"storm_eel":{"health":8,"energy":12,"mana":0}}
 const FISH={"lantern_ray":{"habitat":"ocean_tip","hard":true,"price":90,"weight":1,"color":"e4cf8b"},"fish":{"habitat":"pond","hard":false,"price":10,"color":"9dbcc0"},"moon_pike":{"habitat":"pond","hard":true,"price":35,"color":"a8ad7b"},"sea_sprat":{"habitat":"ocean","hard":false,"price":12,"color":"c1c7b2"},"blue_mackerel":{"habitat":"ocean","hard":false,"price":16,"color":"729ab6"},"storm_eel":{"habitat":"ocean","hard":true,"price":50,"color":"a58bb6"}}
 
 const CATALOG={
+	"bread":{"name":"Fresh bread","description":"Corin's warm, crusty loaf. Restores 20 energy.","action":"Eat"},
+	"copper_bars":{"name":"Copper bar","description":"Refined copper for Chief Vale's crew-link repair.","action":"Crafting material"},
 	"axe":{"name":"Axe","description":"Oren's spare axe. Three blows fell a tree; each costs 4 energy.","action":"Chop a tree in front of you"},
 	"wood":{"name":"Firewood","description":"Freshly chopped wood. Oren needs six for his lighthouse stove.","action":"Building material"},
 	"lantern_ray":{"name":"Lantern ray","description":"A rare deep-water ray found only at the sea end of the stone jetty.","action":"Cooking ingredient · sell for 90 crowns"},
@@ -32,7 +34,7 @@ const CATALOG={
 	"turnips":{"name":"Moon turnip","description":"A crisp, sweet root. Restores a little health and energy.","action":"Eat one"},
 	"fish":{"name":"Pond silverfin","description":"A small freshwater fish. Restores a little health and energy.","action":"Eat one"},
 	"star_bulbs":{"name":"Star bulb","description":"Cool and peppery, with a faint light beneath its skin. Restores mana.","action":"Eat one"},
-	"copper":{"name":"Copper ore","description":"Local copper for Chief Vale's crew-link repair.","action":"Crafting material"},
+	"copper":{"name":"Copper ore","description":"Smelt in a stone crucible to make copper bars.","action":"Smelting material"},
 	"rusty_sword":{"name":"Rusty sword","description":"Bram's old army blade. Select and activate to swing in caves. Costs 2 energy.","action":"Weapon"}
 }
 static var textures: Dictionary={}

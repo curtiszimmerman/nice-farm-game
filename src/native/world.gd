@@ -222,16 +222,15 @@ func _claim(footprint: Rect2i,kind: String) -> void:
 			solid_cells[cell]=kind
 
 func attack() -> bool:
-	if state.active_item()!="rusty_sword" or state.rusty_sword<1 or state.energy<2: return false
-	state.energy-=2
+	if state.active_item()!="rusty_sword" or state.rusty_sword<1 or not state.spend_energy(2): return false
 	preload("res://tool_motion.gd").start(self,"rusty_sword")
 	return true
 
 func chop_tree(cell: Vector2i) -> bool:
-	if state.active_item()!="axe" or state.axe<1 or state.energy<4 or not state.can_carry("wood"): return false
+	if state.active_item()!="axe" or state.axe<1 or not state.can_carry("wood"): return false
 	var found=trees.filter(func(tree): return tree.cell==cell)
 	if found.is_empty(): return false
-	state.energy-=4
+	if not state.spend_energy(4): return false
 	preload("res://tool_motion.gd").start(self,"axe")
 	tree_damage[cell]=tree_damage.get(cell,0)+1
 	if tree_damage[cell]<3: return true

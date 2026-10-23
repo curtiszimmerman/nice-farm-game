@@ -7,6 +7,74 @@ import math
 
 def sprites(Pixels):
     result = {}
+    bread = Pixels(16, 16)
+    bread.oval(8, 10, 7, 4, "815033")
+    bread.oval(8, 8, 7, 5, "c58b47")
+    bread.oval(7, 7, 6, 4, "e9bc74")
+    for x in (4, 8, 12): bread.line(x, 5, x - 2, 9, "fff0b8")
+    bread.hline(3, 12, 12, "9c6238")
+    result["item_bread"] = bread
+    bar = Pixels(16, 16)
+    bar.polygon([(2, 6), (11, 3), (14, 6), (14, 11), (5, 14), (2, 11)], "8d4d38")
+    bar.polygon([(2, 6), (11, 3), (14, 6), (5, 9)], "efb177")
+    bar.polygon([(5, 9), (14, 6), (14, 11), (5, 14)], "c6774d")
+    bar.line(3, 6, 10, 4, "ffe0a1")
+    result["item_copper_bars"] = bar
+    blueprint = Pixels(16, 16)
+    blueprint.box(1, 1, 14, 14, "557a9b")
+    blueprint.box(2, 2, 12, 12, "759bb4")
+    blueprint.box(4, 6, 8, 6, "d3e5d7")
+    blueprint.oval(8, 6, 4, 2, "d3e5d7")
+    blueprint.oval(8, 6, 2, 1, "557a9b")
+    result["item_build_crucible"] = blueprint
+    for hot in (False, True):
+        crucible = Pixels(16, 16)
+        crucible.box(2, 6, 12, 8, "4d5357")
+        crucible.box(3, 7, 10, 6, "858a87")
+        crucible.oval(8, 6, 6, 4, "a9aca0")
+        crucible.oval(8, 6, 4, 2, "e89d4d" if hot else "353c43")
+        crucible.line(4, 9, 4, 12, "b8b7a5")
+        crucible.hline(6, 11, 12, "646d72")
+        crucible.dot(11, 8, "c8c5ac")
+        if hot:
+            crucible.polygon([(6, 6), (7, 1), (9, 4), (10, 2), (11, 6)], "e7ad5c")
+            crucible.line(8, 5, 8, 3, "ffe5a0")
+        result["crucible_hot" if hot else "crucible"] = crucible
+    for frame in range(3):
+        spider = Pixels(16, 16)
+        for side in (-1, 1):
+            for leg in range(4):
+                x = 8 + side * (5 + leg % 2)
+                y = 4 + leg * 3 + (1 if (frame + leg) % 3 == 0 else 0)
+                spider.line(8 + side * 3, 7 + leg, x, y, "3f374b")
+                spider.line(x, y, x + side * 2, y + 2, "89768b")
+        spider.oval(8, 7, 4, 5, "4d455e")
+        spider.oval(7, 5, 3, 3, "756083")
+        spider.oval(8, 11, 3, 3, "5f536d")
+        spider.dot(6, 11, "eeae9b"); spider.dot(9, 11, "eeae9b")
+        spider.dot(7, 3, "b0a0b1")
+        result["spider" + str(frame)] = spider
+    poison = Pixels(16, 16)
+    poison.box(0, 0, 16, 16, "392d50")
+    poison.box(1, 1, 14, 14, "695078")
+    poison.oval(8, 7, 5, 5, "c9c9bf")
+    poison.oval(7, 6, 4, 4, "eeead9")
+    poison.box(5, 10, 6, 3, "d1d2c6")
+    poison.box(4, 6, 3, 3, "3c3047"); poison.box(9, 6, 3, 3, "3c3047")
+    poison.dot(8, 9, "5c4b61")
+    for x in (6, 8, 10): poison.dot(x, 12, "736678")
+    result["status_poison"] = poison
+    eyes = Pixels(16, 16)
+    eyes.box(5, 7, 2, 2, "ff5c66"); eyes.box(9, 7, 2, 2, "ff5c66")
+    result["status_poison_eyes"] = eyes
+    tired = Pixels(16, 16)
+    tired.box(0, 0, 16, 16, "373f55")
+    tired.box(1, 1, 14, 14, "56627a")
+    for x, y, size in [(2, 3, 5), (8, 7, 3), (12, 10, 2)]:
+        tired.hline(x, x + size - 1, y, "f5dfaa")
+        tired.line(x + size - 1, y, x, y + size - 1, "f5dfaa")
+        tired.hline(x, x + size - 1, y + size - 1, "f5dfaa")
+    result["status_tired"] = tired
     cloud = Pixels(80, 40)
     for x, y, rx, ry in [(15, 23, 14, 10), (31, 17, 20, 14), (53, 18, 18, 13), (66, 25, 12, 9)]:
         cloud.oval(x, y, rx, ry, "ffffff55")

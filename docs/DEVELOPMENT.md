@@ -236,6 +236,14 @@ Weather uses a reproducible daily forecast with development previews. Separate r
 
 Final verification passed 1,836 native checks, four Python asset checks and startup smoke with clean output in internal/verification/door-weather-final.log. Four additional cave-exit approach checks passed in internal/verification/every-door-final.log. The native visual/audio run passed in internal/verification/door-weather-visual.log, including weather screenshots, equipment layout, real drags and pause input. Loading during cleanup now reconstructs every visitor's approach, and the entire visible ship hull is solid. Player-facing farming guidance explains daily watering. Both sprite packs and new weather audio rebuild reproducibly. No push was performed.
 
+## Bread, statuses and copper refining in progress
+
+Branch: wip/statuses-and-copper-smelting. Z requested bread sales at Corin's bakery, fatigue after more than twenty-four hours awake, timed poison and top-center status indicators, a stronger spider guarding the final cave chamber, a farmhouse crossroads sign, copper bars for Vale's first repair and player-built one-square stone crucibles. Z confirmed six consecutive game hours asleep to clear tiredness, and crucible tuning of ten stone to build, two ore per bar, thirty game minutes per batch and no fuel.
+
+Core status tests pass. Fatigue doubles energy spending and halves energy recovery through shared state helpers; food HP/mana remain unchanged. Sleeping tracks uninterrupted time. Poison deals two HP every five game minutes for sixty minutes; refreshes extend duration without postponing the next tick. Status timers pause with the world and persist. Status icons use atlas sprites, including a purple skull with pulsing red eyes, and follow cutscene HUD visibility. Poison reaching zero HP outdoors uses the existing safe recovery behavior too.
+
+Corin sells bread for six crowns, restoring twenty base energy. Trading conversations do not trigger story-abandonment behavior. The final-room spider takes four sword hits, awards twenty experience and has a twenty-percent poison chance per bite; seeded live-attack checks pass. Sixty cave seeds provide enough resources for the first crucible and three bars. Copper rocks yield both ore and stone, with atomic inventory-space and energy checks. Save schema 14 is strict; no migration is introduced. Construction UI, the sign, copper-bar dialogue, complete regression and native visual review remain in progress. The preexisting launcher mode change stays uncommitted. No journal tool is available; findings are recorded here.
+
 ## Next discussion
 
 Play and critique the slice before expanding it. Decide the next milestone, combat controls and feel, art direction, calendar/lunar rules, and the first actual networked cooperative interaction. Do not mistake placeholder content for approved final story or mechanics.
