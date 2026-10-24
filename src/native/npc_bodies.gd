@@ -42,6 +42,9 @@ static func step(world: Node2D,actor: Node2D,target: Vector2,distance: float) ->
 	if next.distance_to(world.state.player_position)>=RADIUS: return next
 	return actor.position
 
+static func facing_for(motion: Vector2) -> String:
+	return ("right" if motion.x>0 else "left") if absf(motion.x)>absf(motion.y) else ("down" if motion.y>0 else "up")
+
 static func walk_to(world: Node2D,id: String,cell: Vector2i,dt: float,speed: float) -> bool:
 	var actor: Node2D=world.villagers[id]
 	var target=world.Grid.center(cell)
@@ -78,6 +81,6 @@ static func walk_to(world: Node2D,id: String,cell: Vector2i,dt: float,speed: flo
 		if actor.position.distance_to(waypoint)<0.1: route.path.pop_front()
 	var motion=actor.position-previous
 	actor.data.walking=motion.length()>0.01
-	if not motion.is_zero_approx(): actor.data.direction=("right" if motion.x>0 else "left") if absf(motion.x)>absf(motion.y) else ("down" if motion.y>0 else "up")
+	if not motion.is_zero_approx(): actor.data.direction=facing_for(motion)
 	actor.queue_redraw()
 	return actor.position.distance_to(target)<1

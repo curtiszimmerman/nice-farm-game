@@ -21,7 +21,7 @@ const BRIEFING=[
 	["Captain","Then we'll get what you need. First order of business: the cloak."],
 	["Chief Vale","Already on it. I'm bringing the emergency gravitic power sink online. As long as this planet keeps its gravity well, the cloak should hold. Rather counting on that. It leaves us precious little power for anything else."],
 	["Captain","Keeping that cloak running is our main priority until rescue arrives. Outside of that, the basics: food and water, and our local commlink repeater so we can stay in contact."],
-	["Chief Vale","Three copper bars would get our local repeater talking again. Raw ore won't do; we'll need it refined. The last scan showed a deposit southeast of a settlement below us. A couple of kilometers, give or take. Perhaps the local smith can help us turn it into something useful."],
+	["Chief Vale","Three copper bars would get our local repeater talking again. Raw ore won't do; we'll need it refined. The last scan showed a deposit southeast of a settlement below us. A couple of kilometers, give or take. If there's a smith in that settlement, perhaps they can help. With the scanners gone, I can't tell you any more than that."],
 	["Captain","What have we got for food?"],
 	["Chief Vale","Six emergency rations stowed by the bunks. One a day for each of us doesn't leave much breathing room. We'll need fresh water and something local to eat. And if you find a kitchen, I'd dearly love a meal that doesn't come out of a foil packet. Leave me something in the locker while I'm working, would you?"],
 	["Captain","We'll find water, food, and the supplies you need. Keep the cloak stable, Vale. We'll start by seeing who's down the mountain."]]
@@ -89,6 +89,7 @@ func _ready() -> void:
 	sound = Sound.new()
 	sound.testing = testing
 	add_child(sound)
+	sound.lightning.connect(func(): outdoors.weather_effects.strike())
 	ui = Interface.new()
 	ui.game = self
 	add_child(ui)
@@ -244,7 +245,7 @@ func update_escort(dt: float) -> void:
 	while distance>0 and not escort_path.is_empty():
 		var target: Vector2=escort_path[0]
 		var step=state.player_position.distance_to(target)
-		world.facing="right" if target.x>state.player_position.x else "left" if target.x<state.player_position.x else "down"
+		if target.distance_to(state.player_position)>0.1: world.facing=World.Bodies.facing_for(target-state.player_position)
 		state.player_position=state.player_position.move_toward(target,distance)
 		distance-=step
 		if state.player_position.distance_to(target)<0.1: escort_path.pop_front()
@@ -371,7 +372,7 @@ func _input(event: InputEvent) -> void:
 			opening.advance()
 			get_viewport().set_input_as_handled()
 			return
-		if window_open and clock_held() and ui.advance_dialogue():
+		if window_open and ui.dialogue_open and advance_key:
 			get_viewport().set_input_as_handled()
 			return
 	if started and controls.matches(event,"pause"):
@@ -975,8 +976,8 @@ func talk(id: String) -> void:
 		"vale":
 			if not state.briefing_complete: show_briefing(); return
 			if state.delivered: dialog("Chief Vale","CHIEF ENGINEER · SECURE CREW LINK","Give your commlink a try. Hear that? Much better than shouting down a mountain. The cloak's holding, too. "+("Thanks for seeing to supper. I'll try to earn it before the day's out." if state.crew_fed_day==state.day else "I meant to stop for breakfast, but the locker was empty. If you find something to cook, save me a helping?"))
-			else: dialog("Chief Vale","CHIEF ENGINEER · SECURE CREW LINK","The cloak's behaving. Wish I could say the same for the engines. Bring me three copper bars and we'll at least have our crew link back. The ore is in that southeast cave, but it'll need refining. Try the town smith; he may know how to build a crucible. How's the search for supper going? Leave me a cooked meal in the locker if you can. I'll try not to get engine grease on it.",[
-				["Hand over three copper bars." if state.copper_bars>=3 else "I'll ask the smith about refining copper.",func():
+			else: dialog("Chief Vale","CHIEF ENGINEER · SHIPBOARD CONVERSATION","The cloak's behaving. Wish I could say the same for the engines. Three copper bars should get our crew link back. That deposit on the last scan was southeast of the settlement, but the ore will need refining. Might be worth asking whether anyone down there works metal. I'm rather in the dark up here with the scanners dead. Any luck finding supper? Leave me a cooked meal in the locker if you can. I'll try not to get engine grease on it.",[
+				["Hand over three copper bars." if state.copper_bars>=3 else "I'll look for someone who works metal.",func():
 					if state.copper_bars>=3:
 						state.copper_bars-=3
 						state.delivered=true
@@ -1043,6 +1044,7 @@ func mayor() -> void:
 		state.welcome_phase="meeting"
 		resting=0
 		activity=""
+		face_welcome_party()
 	begin_conversation(["mayor","assistant","moss"],true)
 	dialog("Mayor Alder","BRIAR GLEN · AT YOUR FARM","Well, look at that. The lamps are working again! Moss says you're travelers in need of a roof. It's been a long time since anyone called this place home. You're welcome to stay, so long as you look after it. Keep it clean, and we'll get along nicely.",[
 		["We can promise that.",func(): dialog("Neral","MAYOR'S ASSISTANT · DARK ELF","Alder, a long stay? With matters as they stand with Veyr, oughtn't we find out a little more before handing over a house? We have their word that they're travelers, and a flash on the mountain. That's a rather thin introduction.",[
@@ -1071,6 +1073,15 @@ func place_welcome_party() -> void:
 		actor.data.sleeping=false
 		actor.position=Grid.center(WELCOME_POSITIONS[i])
 		actor.queue_redraw()
+	face_welcome_party()
+
+func face_welcome_party() -> void:
+	for actor in world.villagers.values():
+		if not actor.visible: continue
+		actor.data.direction=World.Bodies.facing_for(state.player_position-actor.position)
+		actor.data.walking=false
+		actor.queue_redraw()
+	world.facing=World.Bodies.facing_for(world.villagers.mayor.position-state.player_position)
 
 func walk_visitor(id: String,cell: Vector2i,dt: float) -> bool:
 	return world.walk_actor(id,cell,dt,100)
@@ -1080,6 +1091,7 @@ func update_welcome_arrival(dt: float) -> void:
 	if state.player_position.distance_to(Grid.center(Vector2i(4,11)))>1:
 		var path=world._route(Grid.world_to_cell(state.player_position),Vector2i(4,11))
 		if not path.is_empty():
+			world.facing=World.Bodies.facing_for(path[0]-state.player_position)
 			state.player_position=state.player_position.move_toward(path[0],dt*120)
 			world.moving=true
 			return
@@ -1096,6 +1108,9 @@ func update_welcome_arrival(dt: float) -> void:
 			actor.position=world.entry_position()
 			actor.visible=true
 		if not walk_visitor(id,WELCOME_POSITIONS[i],dt): arrived=false
+		else:
+			actor.data.direction=World.Bodies.facing_for(state.player_position-actor.position)
+			actor.queue_redraw()
 	if arrived: mayor()
 
 func update_welcome_departure(dt: float,members: Array=["mayor","assistant"]) -> void:

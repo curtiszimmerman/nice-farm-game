@@ -549,6 +549,7 @@ func refresh() -> void:
 				child.queue_redraw()
 	var daylight=smoothstep(330.0,420.0,state.minute)*(1.0-smoothstep(1110.0,1200.0,state.minute))
 	night_tint.color=Color(0.32,0.42,0.92).lerp(Color.WHITE,daylight)
+	if state.weather_name()=="rainy": night_tint.color*=Color(0.64,0.73,0.86)
 	var ripe_mask=0
 	for i in range(state.plots.size()):
 		if state.ripe(i): ripe_mask|=1<<i

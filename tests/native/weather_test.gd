@@ -26,7 +26,9 @@ func run() -> void:
 		check(game.sound.rain.volume_db>-79,"rain reaches the ambience mix outdoors")
 		game.sound.thunder_wait=0
 		game.sound.update_weather("rainy",true,0.1)
-		check(game.sound.thunder.playing,"rain occasionally plays gentle thunder")
+		check(not game.sound.thunder.playing and effects.lightning_frames==2,"rain occasionally flashes lightning before thunder")
+		game.sound.update_weather("rainy",true,2.1)
+		check(game.sound.thunder.playing,"rain plays gentle thunder after the lightning delay")
 		s.plots[0].tilled=true
 		s.plots[0].planted=s.total()
 		s.advance(0.1)

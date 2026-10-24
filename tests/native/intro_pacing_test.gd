@@ -36,7 +36,9 @@ func run() -> void:
 	var before=game.ui.modal_box.get_child(2).text
 	key.physical_keycode=KEY_E
 	game._input(key)
-	check(game.ui.modal_box.get_child(2).text!=before,"briefing dialogue advances on E")
+	check(game.ui.modal_box.get_child(2).text==before,"briefing dialogue with a Continue button ignores E")
+	game.ui.modal_box.get_child(3).pressed.emit()
+	check(game.ui.modal_box.get_child(2).text!=before,"briefing dialogue advances through its Continue button")
 	game.close_window(true)
 	await game.sound.shutdown()
 	game.queue_free()

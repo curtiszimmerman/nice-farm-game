@@ -1,10 +1,13 @@
 extends Node
 
+signal lightning
+
 const TRACKS = ["music","birds","crickets","drips","wildgrowth","ship","crash","laser","laser_hit","explosion","rain","thunder"]
 var rain: AudioStreamPlayer
 var thunder: AudioStreamPlayer
 var rain_weight=0.0
 var thunder_wait=18.0
+var thunder_pending=-1.0
 var battle: Dictionary={}
 var crash: AudioStreamPlayer
 var cinematic=false
@@ -78,13 +81,20 @@ func update_weather(mode: String,outdoors: bool,dt: float) -> void:
 	var wet=outdoors and mode=="rainy" and not cinematic
 	rain_weight=lerpf(rain_weight,1.0 if wet else 0.0,1-exp(-dt*1.8))
 	if wet and active:
+		if thunder_pending>=0:
+			thunder_pending-=dt
+			if thunder_pending<=0:
+				thunder.play()
+				thunder_pending=-1
 		thunder_wait-=dt
 		if thunder_wait<=0:
-			thunder.play()
+			thunder_pending=2.0
+			lightning.emit()
 			thunder_wait=24+absf(sin(Time.get_ticks_msec()*0.001))*18
 	elif not wet:
 		thunder.stop()
 		thunder_wait=18
+		thunder_pending=-1
 	_apply_volumes()
 
 func _apply_volumes() -> void:

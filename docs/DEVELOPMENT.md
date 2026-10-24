@@ -262,6 +262,14 @@ The clean full run passed 2,033 native checks, four asset checks and startup smo
 
 Review also caught a one-frame fruit pickup after felling a tree and unsafe calendar arithmetic in corrupt fruit saves; regressions now pass. Existing test expectations were updated for the left-side Crew Log and the nonresidential tool shed, while retaining the private-bathroom checks on every existing home and public interior. All fourteen requested points are handled. Only the preexisting scripts/play.sh executable-bit change remains uncommitted; no push was performed.
 
+## Dialogue, welcome facing and rain
+
+Global opening input was activating the sole button of held-clock dialogue. That shortcut is now restricted to buttonless opening captions; button dialogue consumes the global advance keys and receives normal GUI clicks. The captain's guided motion now updates facing through the same directional helper as NPC walking. Arrived visitors face the captain, including restored welcome scenes. Vale's briefing and shipboard conversation only suggest that a settlement might have a metalworker; the starting crew quest no longer reveals Dain before learning his blueprint.
+
+The Crew Log responds to its content's minimum size and grows downward as quest details open, capped above the action bar. Updates are deferred to avoid changing controls during their signals. Rain multiplies the normal day/night tint with a cooler, darker color. The weather sound scheduler emits a lightning event and delays its thunder two real seconds. A separate sky overlay flashes for exactly two rendered frames, without invalidating retained terrain. Leaving the rain cancels pending thunder.
+
+The full native suite passed 2,054 checks, four asset checks and startup smoke in internal/verification/dialogue-weather-suite.log. Focused checks after the final quest-wording change pass for dialogue/weather, quest expansion, character quest history and copper delivery. Native GUI verification uses real Space/E events, a click outside dialogue and a click on Continue; it confirms only the actual button advances the briefing. Pixel samples across three consecutive captured frames confirm exactly two bright frames. Screenshots also cover rain, expanded quests and the welcome group facing the captain. Clean native visual output is in internal/verification/weather-dialogue-visual-final.log. No save-format change, additional dependencies or external artwork pass was needed. The existing launcher mode change remains untouched.
+
 ## Next discussion
 
 Play and critique the slice before expanding it. Decide the next milestone, combat controls and feel, art direction, calendar/lunar rules, and the first actual networked cooperative interaction. Do not mistake placeholder content for approved final story or mechanics.

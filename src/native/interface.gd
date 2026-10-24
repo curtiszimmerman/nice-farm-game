@@ -151,6 +151,7 @@ func _ready() -> void:
 	quest_rows.size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	quest_rows.add_theme_constant_override("separation",12)
 	quest_scroll.add_child(quest_rows)
+	quest_rows.minimum_size_changed.connect(func(): call_deferred("fit_quest_log"))
 	toggle_log()
 	var tray = _panel(Vector2(140,602),Vector2(1000,88),Color("172b2bf5"))
 	quick_tray=tray
@@ -787,12 +788,21 @@ func toggle_log() -> void:
 	log_expanded=not log_expanded
 	for child in log_panel.get_children():
 		if child!=log_toggle: child.visible=log_expanded and child not in [objective,next_task]
-	log_panel.size.y=278 if log_expanded else 55
+	fit_quest_log()
 	log_toggle.text=("▾" if log_expanded else "▸")+" CREW LOG"
+
+func fit_quest_log() -> void:
+	if not log_expanded:
+		log_panel.size.y=55
+		return
+	var bottom=quick_tray.position.y-12 if is_instance_valid(quick_tray) else 602.0
+	var height=minf(bottom-log_panel.position.y,maxf(104,quest_rows.get_combined_minimum_size().y+64))
+	log_panel.size.y=height
+	quest_scroll.size.y=height-64
 
 func quest_lines() -> Array:
 	var s=game.state
-	var lines=[{"id":"crew_supplies","title":"A quiet signal home","description":"Vale needs refined copper. Ask Dain at the smithy about a crucible blueprint, then build one east of your garden and smelt the cave ore. Keep food in the ship locker too.","tasks":[{"text":"Learn Dain's crucible blueprint · 10 star bulbs","done":s.crucible_known},{"text":"Build a stone crucible · 10 stone","done":not s.crucibles.is_empty()},{"text":"Bring Vale three copper bars","done":s.delivered},{"text":"Leave food in the ship locker","done":s.crew_fed_day>=s.day}]}]
+	var lines=[{"id":"crew_supplies","title":"A quiet signal home","description":"Vale needs three copper bars for the repeater. Find someone in the settlement who can help refine ore, and keep food in the ship locker.","tasks":[{"text":"Learn Dain's crucible blueprint" if s.crucible_known else "Find a way to refine copper","done":s.crucible_known},{"text":"Build a stone crucible · 10 stone","done":not s.crucibles.is_empty()},{"text":"Bring Vale three copper bars","done":s.delivered},{"text":"Leave food in the ship locker","done":s.crew_fed_day>=s.day}]}]
 	if s.ladder_requested: lines.append({"id":"bells_ladder","title":"A ladder with legs","description":"Nessa borrowed Mrs. Bell's ladder for her radio aerial. Look in the tool shed east of the Bell family home, then return it to Mara.","tasks":[{"text":"Find the ladder in the Bell tool shed","done":s.ladder_taken},{"text":"Return the ladder to Mrs. Bell","done":s.ladder_returned}]})
 	if s.invited:
 		lines.append({"id":"restore_farmhouse","title":"A place to begin","description":"Make the abandoned farmhouse welcoming before Moss brings the mayor.","tasks":[{"text":"Remove the covers from the furniture","done":["sofa","bed","guest_bed","radio"].all(func(id):return s.house_tasks[id])},{"text":"Change the lightbulbs around the house","done":s.house_tasks.living_light and s.house_tasks.bathroom_light}]})
@@ -851,6 +861,7 @@ func render_quest_list(container: VBoxContainer,lines: Array,opened: Dictionary,
 			row.add_theme_font_size_override("font_size",20)
 			row.add_theme_color_override("font_color",GOLD if task.done else CREAM)
 			content.add_child(row)
+	if container==quest_rows: call_deferred("fit_quest_log")
 
 func quest_pulse(time: float) -> float:
 	var phase=fposmod(time,5.0)

@@ -24,8 +24,13 @@ func run() -> void:
 	var seen=[]
 	var separated=true
 	var overlapping_arrival=false
+	var followed_motion=true
+	game.world.facing="up"
 	for i in range(600):
+		var previous=game.state.player_position
 		game._process(0.05)
+		var motion=game.state.player_position-previous
+		if motion.y>0.1 and absf(motion.y)>absf(motion.x) and game.world.facing!="down": followed_motion=false
 		if game.world.villagers.moss.visible and game.world.villagers.mayor.position.distance_to(game.Grid.center(game.WELCOME_POSITIONS[0]))>1: overlapping_arrival=true
 		var visible=[]
 		for id in game.WELCOME_MEMBERS:
@@ -42,6 +47,14 @@ func run() -> void:
 	check(seen==game.WELCOME_MEMBERS and separated,"visitors enter in order and remain physically separated")
 	check(overlapping_arrival,"the next visitor enters before the leader reaches his final meeting position")
 	check(game.state.welcome_phase=="meeting","all visitors reach their meeting positions")
+	check(followed_motion,"the guided captain faces the direction he is walking")
+	var facing_player=true
+	for id in game.WELCOME_MEMBERS:
+		var actor=game.world.villagers[id]
+		var delta=game.state.player_position-actor.position
+		var expected=("right" if delta.x>0 else "left") if absf(delta.x)>absf(delta.y) else ("down" if delta.y>0 else "up")
+		if actor.data.get("direction","")!=expected: facing_player=false
+	check(facing_player,"all welcome visitors turn toward the captain after arriving")
 	await game.sound.shutdown()
 	game.queue_free()
 	await process_frame

@@ -6,6 +6,7 @@ var world: Node2D
 var sky: Node2D
 var shadow_signature=""
 var sky_signature=""
+var lightning_frames=0
 
 class SkyOverlay extends Node2D:
 	var weather: Node2D
@@ -23,12 +24,23 @@ func _ready() -> void:
 	sky.weather=self
 	sky.z_index=8
 	add_child(sky)
+	RenderingServer.frame_post_draw.connect(finish_frame)
+
+func strike() -> void:
+	lightning_frames=2
+	sky.queue_redraw()
+
+func finish_frame() -> void:
+	if lightning_frames<=0: return
+	lightning_frames-=1
+	sky.queue_redraw()
 
 func daylight() -> float:
 	return smoothstep(330.0,420.0,world.state.minute)*(1-smoothstep(1110.0,1200.0,world.state.minute))
 
 func refresh() -> void:
 	var mode=world.state.weather_name()
+	if mode!="rainy": lightning_frames=0
 	var next="%s/%d" % [mode,int(world.state.minute/10)]
 	if next!=shadow_signature:
 		shadow_signature=next
@@ -72,3 +84,6 @@ func paint_sky(canvas: CanvasItem) -> void:
 			if phase<0.3:
 				var point=world.state.player_position+Vector2((i*97)%740-370,(i*137)%430-215)
 				Art.sprite(canvas,"rain_splash",point,Vector2(12,5),Color(0.7,0.8,0.9,(0.3-phase)*1.5))
+		if lightning_frames>0:
+			var tint=world.night_tint.color
+			canvas.draw_rect(Rect2(world.state.player_position-Vector2(800,600),Vector2(1600,1200)),Color(1/tint.r,1/tint.g,1/tint.b,0.75))

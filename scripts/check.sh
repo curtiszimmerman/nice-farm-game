@@ -29,5 +29,6 @@ done
 for test_file in audit_regressions_test unrestricted_watering_test seasonal_forage_test bell_ladder_test state_test integration_test save_test audio_test development_test readability_test outcrop_test grid_test schedule_test landscape_test geography_test interior_test inventory_test interior_layout_test farming_chest_test conversation_test interior_depth_test supplies_test ship_ui_test starting_supplies_test arrival_test welcome_sequence_test fishing_species_test cave_test render_layers_test; do
     run_native --headless --script "../../tests/native/$test_file.gd"
 done
+run_native --headless --script "../../tests/native/dialogue_weather_revision_test.gd"
 run_native --headless --script "../../tests/native/cave_opening_art_test.gd"
 run_native --headless -- --smoke-test
