@@ -24,4 +24,11 @@ func _initialize() -> void:
 		for x in range(-1,2):
 			if x!=0 or y!=0: ring[Vector2i(x,y)]=true
 	check(borders.mask(ring,Vector2i.ZERO)==255,"all eight surrounding tiles remove every border")
+	var coast=load("res://coast.gd")
+	check(coast.has_method("connection"),"jetty borders consider water and the landward join")
+	if coast.has_method("connection"):
+		var dock=coast.dock_cells()
+		check(coast.call("connection",dock,Vector2i(-26,54),1)==19,"the jetty's southwest end has its own convex corner")
+		check(coast.call("connection",dock,Vector2i(-20,53),1)==223,"the wide platform's narrowing creates the missing southeast inner corner")
+		check(coast.call("connection",dock,Vector2i(0,52),1)==255,"the stone approach joins the mainland without a curb across the path")
 	quit(1 if failed else 0)

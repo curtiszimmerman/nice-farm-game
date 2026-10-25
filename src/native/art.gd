@@ -1,6 +1,7 @@
 extends RefCounted
 
 const Grid=preload("res://grid.gd")
+const Borders=preload("res://terrain_borders.gd")
 static var option=2
 static var atlas: ImageTexture
 static var pixels: Image
@@ -86,6 +87,17 @@ static func sprite(c: CanvasItem,id: String,p: Vector2,size: Vector2=Vector2.ZER
 
 static func tile(c: CanvasItem,id: String,cell: Vector2i,tint: Color=Color.WHITE) -> void:
 	sprite(c,"tile_"+id,Grid.origin(cell),Vector2.ZERO,tint)
+
+static func border(c: CanvasItem,material: String,cells: Dictionary,cell: Vector2i,state: RefCounted,seed_value: int,tint: Color=Color.WHITE) -> void:
+	var id=Borders.sprite_id(material,Borders.mask(cells,cell),state.season_name(),state.weather_name(),Borders.variant(cell,seed_value))
+	tile(c,id.trim_prefix("tile_"),cell,tint)
+
+static func tile_strip(c: CanvasItem,id: String,cell: Vector2i,source_band: Rect2i) -> void:
+	var base=region("tile_"+id)
+	var scale=tile_size/16.0
+	var source=Rect2(base.position+Vector2(source_band.position)*scale,Vector2(source_band.size)*scale)
+	var destination=Rect2(Grid.origin(cell)+Vector2(source_band.position)*2,Vector2(source_band.size)*2)
+	c.draw_texture_rect_region(atlas,destination,source)
 
 static func furniture_id(item: Dictionary) -> String:
 	if item.kind in ["shed_ladder","shed_workbench"]: return item.kind
@@ -194,26 +206,14 @@ static func cliff(c: CanvasItem,cell: Vector2i,cells: Dictionary) -> void:
 static func outdoors(w: Node2D) -> void:
 	w.draw_texture(w.terrain,Vector2.ZERO)
 	w.Coast.draw(w)
-	for cell in w.mountain_cells: cliff(w,cell,w.mountain_cells)
-	for y in range(w.SHIP_MOUNTAIN.position.y,w.SHIP_MOUNTAIN.end.y):
-		for x in range(w.SHIP_MOUNTAIN.position.x,w.SHIP_MOUNTAIN.end.x):
-			var cell=Vector2i(x,y)
-			if w.ship_mountain_cell(cell) and not w.mountain_cells.has(cell): tile(w,"trail",cell)
-	for bounds in [w.OUTCROP_CELLS,w.MINE_RIDGE]:
-		var rock_cells={}
-		for y in range(bounds.position.y,bounds.end.y):
-			for x in range(bounds.position.x,bounds.end.x): rock_cells[Vector2i(x,y)]=true
-		for cell in rock_cells: cliff(w,cell,rock_cells)
+	var docks=w.Coast.dock_cells()
+	for cell in w.trail_cells:
+		if not docks.has(cell): border(w,"dirt",w.path_cells,cell,w.state,w.state.world_seed,Color(1,1,1,0.45))
+	for cell in w.cliff_cells: border(w,"cliff",w.cliff_cells,cell,w.state,w.state.world_seed)
 	for y in range(w.CAVE_MOUTH.position.y,w.CAVE_MOUTH.end.y):
 		for x in range(w.CAVE_MOUTH.position.x,w.CAVE_MOUTH.end.x): tile(w,"void",Vector2i(x,y))
 	tile(w,"cave_arch_left",w.CAVE_MOUTH.position)
 	tile(w,"cave_arch_right",w.CAVE_MOUTH.position+Vector2i.RIGHT)
-	for y in range(w.SQUARE.position.y,w.SQUARE.end.y):
-		for x in range(w.SQUARE.position.x,w.SQUARE.end.x): tile(w,"paving"+str(posmod(x+y,4)),Vector2i(x,y))
-	for y in range(w.SQUARE.position.y-1,w.SQUARE.end.y+1):
-		for x in range(w.SQUARE.position.x-1,w.SQUARE.end.x+1):
-			var cell=Vector2i(x,y)
-			if not w.solid_cells.has(cell): tile(w,"paving"+str(posmod(x+y,2)),cell)
 	for cell in w.Neighbors.FLOWERS+w.garden_cells.keys(): sprite(w,seasonal("tile_flowerbed"+str(posmod(cell.x+cell.y,2)),w.state.season_name()),Grid.origin(cell))
 	for cell in w.yard_fences: tile(w,"town_"+w.yard_fences[cell]+"_mask"+str(w.TownPaths.fence_mask(w,cell)),cell)
 	for cell in w.yard_gates: tile(w,"town_"+w.yard_gates[cell]+"_gate",cell)
@@ -221,8 +221,12 @@ static func outdoors(w: Node2D) -> void:
 	for cell in w.fence_cells: tile(w,"fence_mask"+str(w.fence_mask(cell)),cell)
 	for cell in w.gate_cells: tile(w,"gate_h_open",cell)
 	for garden in w.DECORATIVE_FIELDS+w.Neighbors.FIELDS:
+		var field=Borders.rect_cells(garden)
 		for y in range(garden.position.y,garden.end.y):
-			for x in range(garden.position.x,garden.end.x): sprite(w,"crop_turnip" if (x+y)%3 else "crop_sprout",Grid.origin(Vector2i(x,y)))
+			for x in range(garden.position.x,garden.end.x):
+				var cell=Vector2i(x,y)
+				border(w,"tilled",field,cell,w.state,w.state.world_seed)
+				sprite(w,"plant_overlay_turnip" if (x+y)%3 else "plant_overlay_sprout",Grid.origin(cell))
 	sprite(w,"chest",w.site_position("chest")-Vector2(16,40))
 	sprite(w,"cart",Grid.origin(w.CART_CELLS.position)-Vector2(0,32))
 	sprite(w,"crossroads_sign",w.site_position("sign")-Vector2(16,40),Vector2(32,48))
@@ -254,13 +258,16 @@ static func interior(room: Node2D) -> void:
 static func crops(w: Node2D,c: CanvasItem) -> void:
 	for i in range(w.state.plots.size()):
 		var p=w.state.plots[i]
-		var id="soil" if not p.tilled else "tilled"
-		if p.planted>=0: id="bulb" if w.state.ripe(i) and p.crop=="star_bulbs" else "turnip" if w.state.ripe(i) else "sprout"
-		sprite(c,"crop_"+id,w.plot_position(i)-Vector2(16,16))
+		var cell=Grid.world_to_cell(w.plot_position(i))
+		var material="tilled" if p.tilled else "soil"
+		border(c,material,w.farm_cells,cell,w.state,w.state.world_seed)
 		var moisture=w.state.plot_moisture(i)
-		if moisture>0:
-			var wet=id+"_wet" if p.planted>=0 or not p.tilled else "wet"
-			sprite(c,"crop_"+wet,w.plot_position(i)-Vector2(16,16),Vector2.ZERO,Color(1,1,1,moisture))
+		if moisture>0 and w.state.weather_name()!="rainy":
+			var wet=Borders.sprite_id(material,Borders.mask(w.farm_cells,cell),w.state.season_name(),"rainy",Borders.variant(cell,w.state.world_seed))
+			sprite(c,wet,Grid.origin(cell),Vector2.ZERO,Color(1,1,1,moisture))
+		if p.planted>=0:
+			var plant="bulb" if w.state.ripe(i) and p.crop=="star_bulbs" else "turnip" if w.state.ripe(i) else "sprout"
+			sprite(c,"plant_overlay_"+plant,Grid.origin(cell))
 
 static func particles(w: Node2D,c: CanvasItem) -> void:
 	for p in w.particles:

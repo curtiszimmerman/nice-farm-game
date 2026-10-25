@@ -7,6 +7,7 @@ const Coast=preload("res://coast.gd")
 const Bodies=preload("res://npc_bodies.gd")
 const Neighbors=preload("res://neighbors.gd")
 const TownPaths=preload("res://town_paths.gd")
+const Borders=preload("res://terrain_borders.gd")
 const SQUARE = Rect2i(59,44,6,6)
 const SIZE = Grid.WORLD_SIZE
 const FARM_CELL = Vector2i(9,48)
@@ -91,6 +92,11 @@ var buildings: Array = []
 var sites: Array = []
 var road_segments: Array = []
 var road_cells: Dictionary = {}
+var path_cells: Dictionary={}
+var trail_cells: Dictionary={}
+var dirt_cells: Dictionary={}
+var cliff_cells: Dictionary={}
+var farm_cells: Dictionary={}
 var paved_cells: Dictionary={}
 var yard_fences: Dictionary={}
 var yard_gates: Dictionary={}
@@ -110,6 +116,7 @@ const Foraging=preload("res://foraging.gd")
 var terrain: ImageTexture
 var west_terrain: ImageTexture
 var rendered_season=""
+var rendered_weather=""
 var road_mask: Image
 var night_tint: CanvasModulate
 var state: RefCounted
@@ -294,7 +301,7 @@ func rebuild_visit(new_state: RefCounted) -> void:
 	tree_population.clear()
 	forage_nodes={"berries":{},"apples":{}}
 	for child in get_children(): child.free()
-	for field in [people,villagers,routes,buildings,sites,road_segments,road_cells,paved_cells,yard_fences,yard_gates,garden_cells,water_cells,mountain_cells,solid_cells,reserved_cells,fence_cells,gate_cells,trees,bushes,particles,story_destinations,conversation_holds,indoor_departures,tree_damage]: field.clear()
+	for field in [people,villagers,routes,buildings,sites,road_segments,road_cells,path_cells,trail_cells,dirt_cells,cliff_cells,farm_cells,paved_cells,yard_fences,yard_gates,garden_cells,water_cells,mountain_cells,solid_cells,reserved_cells,fence_cells,gate_cells,trees,bushes,particles,story_destinations,conversation_holds,indoor_departures,tree_damage]: field.clear()
 	scenery_layer=null
 	moving_layer=null
 	crop_signature=0
@@ -415,6 +422,40 @@ func _build_layout() -> void:
 	for i in range(approach.size()-1): road_segments.append([Grid.center(approach[i]),Grid.center(approach[i+1]),7.0])
 	for path in Coast.PATHS:
 		for i in range(path.size()-1): road_segments.append([Grid.center(path[i]),Grid.center(path[i+1]),6.0])
+	prepare_terrain_cells()
+
+func prepare_terrain_cells() -> void:
+	path_cells=road_cells.duplicate()
+	path_cells.merge(paved_cells)
+	for segment in road_segments:
+		if segment[2]>=10: continue
+		var a=Grid.world_to_cell(segment[0])
+		var b=Grid.world_to_cell(segment[1])
+		for y in range(mini(a.y,b.y),maxi(a.y,b.y)+1):
+			for x in range(mini(a.x,b.x),maxi(a.x,b.x)+1):
+				var cell=Vector2i(x,y)
+				if solid_cells.has(cell): continue
+				path_cells[cell]=true
+				if not road_cells.has(cell) and not paved_cells.has(cell): trail_cells[cell]=true
+	for y in range(SHIP_MOUNTAIN.position.y,SHIP_MOUNTAIN.end.y):
+		for x in range(SHIP_MOUNTAIN.position.x,SHIP_MOUNTAIN.end.x):
+			var cell=Vector2i(x,y)
+			if ship_mountain_cell(cell) and not mountain_cells.has(cell): path_cells[cell]=true; trail_cells.erase(cell)
+	for cell in path_cells:
+		if not paved_cells.has(cell) and not trail_cells.has(cell): dirt_cells[cell]=true
+	cliff_cells=mountain_cells.duplicate()
+	for bounds in [OUTCROP_CELLS,MINE_RIDGE]: cliff_cells.merge(Borders.rect_cells(bounds))
+	farm_cells=Borders.rect_cells(Rect2i(FARM_CELL,Vector2i(5,4)))
+
+func terrain_tile_id(material: String,cell: Vector2i,cells: Dictionary,weather: String="") -> String:
+	return Borders.sprite_id(material,Borders.mask(cells,cell),state.season_name(),state.weather_name() if weather=="" else weather,Borders.variant(cell,state.world_seed))
+
+func water_connection(cell: Vector2i) -> int:
+	var neighbors={}
+	for pair in Borders.NEIGHBORS:
+		var adjacent=cell+pair[0]
+		if water_cells.has(adjacent) or Coast.is_ocean(adjacent,state.world_seed): neighbors[adjacent]=true
+	return Borders.mask(neighbors,cell)
 
 func site_position(id: String) -> Vector2:
 	for site in sites:
@@ -540,9 +581,10 @@ func refresh() -> void:
 	if night_effects!=null: night_effects.refresh()
 	if weather_effects!=null: weather_effects.refresh()
 	var season=state.season_name()
-	if rendered_season!=season:
-		rendered_season=season
+	var season_changed=rendered_season!=season
+	if season_changed or rendered_weather!=state.weather_name():
 		_build_terrain()
+	if season_changed:
 		for child in scenery_layer.get_children():
 			if child is Prop:
 				child.data.season=season
@@ -553,7 +595,7 @@ func refresh() -> void:
 	var ripe_mask=0
 	for i in range(state.plots.size()):
 		if state.ripe(i): ripe_mask|=1<<i
-	var signature=hash(state.plots)^ripe_mask^(int(state.minute/5) if state.minute<360 and state.plots.any(func(plot):return plot.water_day==state.day-1) else 0)
+	var signature=hash(state.plots)^ripe_mask^hash(season+state.weather_name())^(int(state.minute/5) if state.minute<360 and state.plots.any(func(plot):return plot.water_day==state.day-1) else 0)
 	if signature!=crop_signature:
 		crop_signature=signature
 		crops.queue_redraw()
@@ -712,6 +754,7 @@ func _clearing(p: Vector2) -> bool:
 
 func _build_terrain() -> void:
 	rendered_season=state.season_name()
+	rendered_weather=state.weather_name()
 	var image = Image.create(int(SIZE.x),int(SIZE.y),false,Image.FORMAT_RGBA8)
 	image.fill(Color("748c53"))
 	var random = RandomNumberGenerator.new()
@@ -724,9 +767,14 @@ func _build_terrain() -> void:
 			for x in range(Grid.MAP_SIZE.x): image.blit_rect(Art.tile_image(Art.seasonal("tile_grass"+str(random.randi_range(0,3)),state.season_name()).trim_prefix("tile_")),Rect2i(0,0,32,32),Vector2i(x,y)*32)
 	_paint_grounding(image,random)
 	_paint_roads(image,random)
+	if Art.option==2:
+		for cell in dirt_cells:
+			if cell.x<0: continue
+			image.blend_rect(Art.tile_image(terrain_tile_id("dirt",cell,path_cells).trim_prefix("tile_")),Rect2i(0,0,32,32),cell*32)
 	for cell in paved_cells:
 		if cell.x<0 or solid_cells.has(cell): continue
-		image.blit_rect(Art.tile_image("paving"+str(posmod(cell.x+cell.y,2))),Rect2i(0,0,32,32),cell*32)
+		var paving="paving"+str(posmod(cell.x+cell.y,2)) if Art.option==1 else Borders.surface_id("paving",state.season_name(),state.weather_name(),Borders.variant(cell,state.world_seed)).trim_prefix("tile_")
+		image.blit_rect(Art.tile_image(paving),Rect2i(0,0,32,32),cell*32)
 	_paint_water(image)
 	var decorated_cells={}
 	for i in range(8400):
@@ -767,6 +815,12 @@ func _paint_grounding(image: Image,random: RandomNumberGenerator) -> void:
 			image.fill_rect(Rect2i(x+2,y,17,2),Color("b4b59b"))
 
 func _paint_water(image: Image) -> void:
+	if Art.option==2:
+		for cell in water_cells:
+			if cell.x<0: continue
+			var id=Borders.sprite_id("pond",water_connection(cell),state.season_name(),state.weather_name(),Borders.variant(cell,state.world_seed))
+			image.blend_rect(Art.tile_image(id.trim_prefix("tile_")),Rect2i(0,0,32,32),cell*32)
+		return
 	for cell in water_cells:
 		if cell.x<0: continue
 		var origin=Vector2i(Grid.origin(cell))
@@ -810,6 +864,7 @@ func _paint_roads(image: Image,random: RandomNumberGenerator) -> void:
 					road_mask.fill_rect(Rect2i(x,y,2,2),Color(coverage,coverage,coverage))
 				var rut=maxf(0.0,1.0-absf(distance-segment[2]*0.43)/2.0)*0.08
 				if rut>tracks.get_pixel(x,y).r: tracks.fill_rect(Rect2i(x,y,2,2),Color(rut,rut,rut))
+	if Art.option==2: return
 	for y in range(0,int(SIZE.y),2):
 		for x in range(0,int(SIZE.x),2):
 			var coverage=road_mask.get_pixel(x,y).r

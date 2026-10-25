@@ -222,7 +222,12 @@ func update_enemies(dt: float) -> void:
 		rat.queue_redraw()
 
 var exit_night=false
+var border_signature=""
 func refresh() -> void:
+	var signature=state.season_name()+"/"+state.weather_name()
+	if signature!=border_signature:
+		border_signature=signature
+		queue_redraw()
 	var night=state.minute<360 or state.minute>=1140
 	if night!=exit_night:
 		exit_night=night
@@ -244,8 +249,12 @@ func _draw() -> void:
 	if Art.option==2:
 		draw_rect(Rect2(-400,-400,ROOM_SIZE.x+800,ROOM_SIZE.y+800),Color("20282e"))
 		for cell in floor_cells: Art.tile(self,"cave"+str(posmod(cell.x+cell.y,4)),cell)
+		var walls={}
 		for cell in solid_cells:
-			if solid_cells[cell]=="wall" and floor_cells.has(cell+Vector2i.DOWN): Art.tile(self,"cliff8",cell)
+			if solid_cells[cell]=="wall": walls[cell]=true
+		for cell in walls:
+			if Borders.NEIGHBORS.any(func(pair):return floor_cells.has(cell+pair[0])):
+				Art.border(self,"cave",walls,cell,state,state.cave_seed)
 		Art.sprite(self,"cave_exit_night" if state.minute<360 or state.minute>=1140 else "cave_exit_day",Grid.origin(layout.exit+Vector2i(-1,-1)),Vector2(64,64))
 		return
 	r(self,-400,-400,ROOM_SIZE.x+800,ROOM_SIZE.y+800,"20282e")

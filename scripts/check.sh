@@ -10,6 +10,8 @@ if [[ "${1:-}" == "--help" ]]; then
 fi
 bash -n scripts/play.sh scripts/check.sh
 python3 -B tests/test_sprite_assets.py
+python3 -B tests/test_border_surfaces.py
+python3 -B tests/test_terrain_edges.py
 mkdir -p internal/verification
 run_native() {
     local check_log="$project_dir/internal/verification/check-current.log"
@@ -31,4 +33,7 @@ for test_file in audit_regressions_test unrestricted_watering_test seasonal_fora
 done
 run_native --headless --script "../../tests/native/dialogue_weather_revision_test.gd"
 run_native --headless --script "../../tests/native/cave_opening_art_test.gd"
+for test_file in terrain_borders_test border_atlas_test terrain_art_integration_test; do
+    run_native --headless --script "../../tests/native/$test_file.gd"
+done
 run_native --headless -- --smoke-test

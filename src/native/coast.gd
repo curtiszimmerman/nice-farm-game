@@ -2,6 +2,7 @@ extends RefCounted
 
 const Grid=preload("res://grid.gd")
 const Art=preload("res://art.gd")
+const Borders=preload("res://terrain_borders.gd")
 const MIN_X=-28
 const JETTY=Rect2i(-22,51,23,3)
 const PLATFORM=Rect2i(-26,48,7,7)
@@ -27,6 +28,14 @@ static func dock_cells() -> Dictionary:
 			for x in range(bounds.position.x,bounds.end.x): cells[Vector2i(x,y)]=true
 	return cells
 
+static func connection(cells: Dictionary,cell: Vector2i,seed_value: int) -> int:
+	var neighbors={}
+	var borders=preload("res://terrain_borders.gd")
+	for pair in borders.NEIGHBORS:
+		var adjacent=cell+pair[0]
+		if cells.has(adjacent) or not is_ocean(adjacent,seed_value): neighbors[adjacent]=true
+	return borders.mask(neighbors,cell)
+
 static func fishing_site(world: Node2D,p: Vector2) -> Dictionary:
 	if world.blocked(p): return {}
 	var cell=Grid.world_to_cell(p)
@@ -40,6 +49,7 @@ static func fishing_site(world: Node2D,p: Vector2) -> Dictionary:
 	return {"type":"site","id":habitat,"cell":cell,"label":"Fish from the jetty's sea end" if habitat=="ocean_tip" else "Fish from the shore"}
 
 static func build_texture(world: Node2D) -> ImageTexture:
+	if Art.option==2: return build_connected_texture(world)
 	var width=-MIN_X*32
 	var image=Image.create(width,int(world.SIZE.y),false,Image.FORMAT_RGBA8)
 	image.fill(Color("51868a"))
@@ -68,10 +78,26 @@ static func build_texture(world: Node2D) -> ImageTexture:
 				image.fill_rect(Rect2i(pixel,Vector2i(2,2)),image.get_pixelv(pixel).lerp(Color("b8a47a"),coverage))
 	return ImageTexture.create_from_image(image)
 
+static func build_connected_texture(world: Node2D) -> ImageTexture:
+	var image=Image.create(-MIN_X*32,int(world.SIZE.y),false,Image.FORMAT_RGBA8)
+	for y in range(Grid.MAP_SIZE.y):
+		for x in range(MIN_X,0):
+			var cell=Vector2i(x,y)
+			var position=Vector2i((x-MIN_X)*32,y*32)
+			var variation=Borders.variant(cell,world.state.world_seed)
+			var grass=Art.seasonal("tile_grass"+str(variation),world.state.season_name()).trim_prefix("tile_")
+			image.blit_rect(Art.tile_image(grass),Rect2i(0,0,32,32),position)
+			if is_ocean(cell,world.state.world_seed):
+				var id=Borders.sprite_id("ocean",world.water_connection(cell),world.state.season_name(),world.state.weather_name(),variation)
+				image.blend_rect(Art.tile_image(id.trim_prefix("tile_")),Rect2i(0,0,32,32),position)
+	return ImageTexture.create_from_image(image)
+
 static func draw(world: Node2D) -> void:
 	if world.west_terrain!=null: world.draw_texture(world.west_terrain,Vector2(MIN_X*32,0))
 	var cells=dock_cells()
 	for cell in cells:
-		Art.tile(world,"stone_jetty",cell)
-		for edge in [[Vector2i.UP,"n"],[Vector2i.RIGHT,"e"],[Vector2i.DOWN,"s"],[Vector2i.LEFT,"w"]]:
-			if not cells.has(cell+edge[0]) and is_ocean(cell+edge[0],world.state.world_seed): Art.tile(world,"stone_jetty_edge_"+edge[1],cell)
+		var id=Borders.surface_id("jetty",world.state.season_name(),world.state.weather_name(),Borders.variant(cell,world.state.world_seed))
+		Art.tile(world,id.trim_prefix("tile_"),cell)
+		var mask=connection(cells,cell,world.state.world_seed)
+		for edge in [[1,"n",Rect2i(0,0,16,5)],[2,"e",Rect2i(11,0,5,16)],[4,"s",Rect2i(0,10,16,6)],[8,"w",Rect2i(0,0,5,16)]]:
+			if (mask&edge[0])==0: Art.tile_strip(world,"stone_jetty_edge_"+edge[1],cell,edge[2])
