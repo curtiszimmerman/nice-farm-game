@@ -2164,7 +2164,9 @@ def main():
     from calendar_sprites16 import sprites as calendar_sprites, write_font
     from observatory_sprites16 import sprites as observatory_sprites
     from harvest_sprites16 import sprites as harvest_sprites
-    additions = dict(sprites(Pixels), **calendar_sprites(Pixels), **observatory_sprites(Pixels), **harvest_sprites(Pixels))
+    from border_surfaces16 import sprites as border_surfaces
+    from terrain_edges16 import sprites as terrain_edges
+    additions = dict(sprites(Pixels), **calendar_sprites(Pixels), **observatory_sprites(Pixels), **harvest_sprites(Pixels), **border_surfaces(Pixels), **terrain_edges(Pixels))
     write_font(ROOT / "src/native/art/ui", Pixels)
     for name, image in additions.items():
         if name.startswith("tile_mill_sails"): name = name.removeprefix("tile_")
@@ -2177,7 +2179,7 @@ def main():
         w, h = ASSETS[key][0].w, ASSETS[key][0].h
         if (w, h) != ((value["rect"][2] + 1) // 2, (value["rect"][3] + 1) // 2):
             raise SystemExit(f"Size mismatch for {key}: {w}x{h}")
-    width, x, y, row = 1024, 1, 1, 0
+    width, x, y, row = 2048, 1, 1, 0
     manifest = {}
     for name, (image, metadata) in ASSETS.items():
         if x + image.w + 1 > width: x, y, row = 1, y + row + 2, 0

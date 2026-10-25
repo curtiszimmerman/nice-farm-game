@@ -632,7 +632,9 @@ def main():
     from calendar_sprites16 import sprites as calendar_sprites, write_font
     from observatory_sprites16 import sprites as observatory_sprites
     from harvest_sprites16 import sprites as harvest_sprites
-    additions = dict(sprites(SmallPixels), **calendar_sprites(SmallPixels), **observatory_sprites(SmallPixels), **harvest_sprites(SmallPixels))
+    from border_surfaces16 import sprites as border_surfaces
+    from terrain_edges16 import sprites as terrain_edges
+    additions = dict(sprites(SmallPixels), **calendar_sprites(SmallPixels), **observatory_sprites(SmallPixels), **harvest_sprites(SmallPixels), **border_surfaces(SmallPixels), **terrain_edges(SmallPixels))
     write_font(ROOT / "src/native/art/ui", SmallPixels)
     for name, small in additions.items():
         if name.startswith("tile_mill_sails"): name = name.removeprefix("tile_")
@@ -642,7 +644,7 @@ def main():
                 image.box(xx * 2, yy * 2, 2, 2, small.get(xx, yy))
         metadata = ASSETS.get(name.rsplit("_",1)[0], (None, {}))[1] if name.startswith("tree_") else {}
         add(name, image, **metadata)
-    width, x, y, row = 2048, 1, 1, 0
+    width, x, y, row = 4096, 1, 1, 0
     manifest = {}
     for name, (image, metadata) in ASSETS.items():
         if x + image.w + 1 > width: x, y, row = 1, y + row + 2, 0
