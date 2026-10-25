@@ -28,6 +28,8 @@ Click the farmhouse oven while standing nearby, or press E beside it, to cook. I
 
 Rustic 16-pixel artwork is the default. Settings → Artwork also offers the 32-pixel modular pack, the preserved original artwork, and installed player packs. Houses, trees, cliffs, furniture, actors and other objects use the atlas; see [ART.md](ART.md) for component rules, pack installation and reproducible asset builders. Status notifications use a compact framed panel.
 
+Connected terrain borders now follow neighboring grid cells, including diagonal corners, and select seasonal/weather artwork. Paving and the stone jetty use new material surfaces; their dedicated corner set remains on the [artwork to-do list](ART_TODO.md).
+
 Enter the cloaked ship along its three southern boarding squares. Its hull blocks walking. Vale works in engineering among damaged equipment, hanging sparking cables and three glitching displays. The crew section has usable bunks and three-wide locker shelves: face any shelf square to open the twelve-slot supplies with six rations. Vale consumes one ration per new day, then a cooked fish-sticks or fish-stew meal when rations are gone. Leave meals in that locker. A late delivery feeds him that day if he has not eaten. Missed meals appear in the crew log and dialogue; there is no starvation penalty in this slice.
 
 The project-local launcher is `scripts/play.sh`. It starts the pinned Godot executable under `vendor/godot/`. F11 toggles fullscreen. The game opens at its title screen.
