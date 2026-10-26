@@ -102,7 +102,29 @@ func _ready() -> void:
 		begin()
 	if OS.get_cmdline_user_args().has("--smoke-test"): _smoke_screenshot()
 
+func update_weather_sound(dt: float) -> void:
+	var snow=state.season_name()=="winter"
+	var lightning=not snow or preload("res://weather.gd").thundersnow(state.world_seed,state.day)
+	sound.update_weather(state.weather_name(),world==outdoors,dt,lightning,snow)
+
+func choose_journey_mode() -> void:
+	panel("Before we begin","YOUR JOURNEY","Choose how you want to live here. Hardcore adds hunger and thirst: drink before three days pass, and eat before three weeks. Going without blocks energy and mana recovery and costs health. You can change this in Settings.",[["A gentler journey",func(): start_journey(false)],["Hardcore · food and water matter",func(): start_journey(true)]])
+
+func start_journey(hardcore: bool) -> void:
+	state.needs.hardcore=hardcore
+	state.needs.mode_chosen=true
+	close_window()
+	begin()
+
+func drink_freshwater() -> void:
+	state.needs.drink()
+	toast("A long, cool drink. Hydration restored.")
+	save_visit()
+
 func begin() -> void:
+	if not testing and not state.intro_complete and not state.needs.mode_chosen:
+		choose_journey_mode()
+		return
 	started = true
 	sound.start()
 	if not state.intro_complete:
@@ -224,7 +246,7 @@ func _process(dt: float) -> void:
 	if elapsed>message_until: ui.message.text=""
 	var context=world.audio_context(state.player_position)
 	sound.update_context(state.minute,context.environment,context.season,context.cave_weight,dt)
-	sound.update_weather(state.weather_name(),world==outdoors,dt)
+	update_weather_sound(dt)
 	world.refresh()
 	camera.position = state.player_position.round()+Vector2(20,-5)
 	ui.update()
@@ -532,17 +554,26 @@ func dialog(title: String,role: String,text: String,choices: Array = []) -> void
 		conversation_steps+=1
 		if conversation_steps>1 and not (conversation_members.size()==1 and conversation_members[0] in ["tavi","baker"]): conversation_sequence=true
 	window_open = true
-	if choices.is_empty(): choices=[["See you around.",func(): pass]]
-	if state.met_mayor and conversation_members.size()==1 and state.welcome_phase=="complete":
+	if choices.is_empty(): choices=[[neutral_reply(text),func(): pass]]
+	if conversation_members.size()==1 and not cutscene_active():
 		var person=conversation_members[0]
-		choices.append(["I haven't time for your problems. [Rude]",func():
-			state.change_friendship(person,-10)
-			save_visit()
-			toast("That came out harshly.")])
+		var item=state.active_item()
+		if state.Items.CATALOG.has(item) and int(state.get(item))>0 and int(state.gift_weeks.get(person,-1))!=int((state.day-1)/7):
+			choices=choices.duplicate()
+			choices.append(["Give "+state.Items.CATALOG[item].name,func():
+				var preference=state.gift_preference(person,item)
+				if state.give_gift(person,item):
+					save_visit()
+					dialog(title,"A GIFT", "Oh, that's wonderful. Thank you!" if preference==5 else "That's kind of you. Thank you." if preference==1 else "Thank you for thinking of me." if preference==0 else "Oh. I'm afraid this isn't really for me." if preference== -1 else "Please don't bring me anything like that again.")])
 	ui.open_modal(title,role,text,choices)
 	ui.dialogue_open=true
 	ui.update_hud()
 	if state.welcome_phase in ["meeting","moss_lesson"] or ("moss" in conversation_members and not state.invited): ui.modal.get_child(1).position.y=35
+
+func neutral_reply(text: String) -> String:
+	if "thank" in text.to_lower(): return "You're welcome."
+	if "?" in text: return "I'll keep that in mind."
+	return ["Sounds good.","Have a nice day.","See you around.","Take care."][posmod(hash(text)+state.day,4)]
 
 func panel(title: String,eyebrow: String,text: String,choices: Array = []) -> void:
 	if welcome_control_locked(): return
@@ -582,9 +613,17 @@ func interact() -> void:
 		toast("Watering can filled · 20 / 20" if state.refill_water() else "Take your watering can from storage first.")
 		save_visit()
 		return
+	if world==outdoors and (world.at_pond_edge(state.player_position) or world.solid_cells.get(world.front_cell(),"")=="fountain"):
+		panel("Fresh water","TAKE A MOMENT","Cool, clear water. A welcome pause.",[["Drink",drink_freshwater],["Leave it for now",func(): pass]])
+		return
 	if nearest.get("type")=="rock":
 		var position=Grid.center(world.rocks[nearest.id].cell)
-		if world.mine_rock(nearest.id): burst(position,"c6a47b",12); save_visit(); toast("Rock mined. %d energy spent." % int(state.energy_cost(5)))
+		if world.mine_rock(nearest.id):
+			sound.mining.volume_db=sound._db(sound.effects_level)
+			sound.mining.play()
+			burst(position,"c6a47b",12)
+			save_visit()
+			toast("Rock mined. %d energy spent." % int(state.energy_cost(5)))
 		else: toast("Select a carried pickaxe. Mining costs %d energy and needs room in your satchel." % int(state.energy_cost(5)))
 		return
 	if nearest.is_empty():
@@ -700,7 +739,7 @@ func cast_local_spell(id: String) -> void:
 			var point=state.player_position+direction*step*24
 			if world.blocked(point): break
 			burst(point,"ec9b55",5)
-			if world is Cave and world.burn_at(point): break
+			if world is Cave and world.burn_at(point,2*state.magic_strength("fire")): break
 	sound.play_spell(id)
 	save_visit()
 
@@ -915,7 +954,7 @@ func build_crucible() -> void:
 func crucible_menu(index: int) -> void:
 	var station=state.crucibles[index]
 	var choices=[]
-	var description="%d copper ore becomes one bar in %d game minutes. No fuel needed." % [State.ORE_PER_BAR,int(State.SMELT_MINUTES)]
+	var description="%d copper ore and %d coal become one bar in %d game minutes." % [State.ORE_PER_BAR,State.COAL_PER_BAR,int(State.SMELT_MINUTES)]
 	if station.bars>0:
 		choices.append(["Collect copper bar",func():
 			toast("Copper bar collected." if state.collect_copper_bar(index) else "Make room in your satchel for the copper bar.")
@@ -924,8 +963,8 @@ func crucible_menu(index: int) -> void:
 	elif station.ready_at>=0:
 		description+="\n\nSmelting: %d game minutes remaining. Leave it working while you get on with your day." % ceili(station.ready_at-state.total())
 	else:
-		choices.append(["Smelt %d copper ore · %d minutes" % [State.ORE_PER_BAR,int(State.SMELT_MINUTES)],func():
-			toast("The copper begins to melt." if state.start_smelting(index) else "You need %d copper ore in your satchel." % State.ORE_PER_BAR)
+		choices.append(["Smelt %d copper ore + %d coal · %d minutes" % [State.ORE_PER_BAR,State.COAL_PER_BAR,int(State.SMELT_MINUTES)],func():
+			toast("The copper begins to melt." if state.start_smelting(index) else "You need %d copper ore and %d coal in your satchel." % [State.ORE_PER_BAR,State.COAL_PER_BAR])
 			save_visit()
 			crucible_menu(index)])
 	choices.append(["Leave the crucible",func(): pass])
@@ -936,7 +975,7 @@ func learn_crucible() -> void:
 		dialog("Dain Rusk","A FAIR EXCHANGE","Bring me ten star bulbs and I'll show you how to build a stone crucible. I use them to check the temper of a blade; that little glow shows up a crack beautifully.")
 		return
 	save_visit()
-	dialog("Dain Rusk","CRUCIBLE BLUEPRINT LEARNED","There you are. Ten pieces of stone make a small crucible. Select the blueprint from your inventory's abilities, then face a clear square in the yard east of your garden and activate it. Two lumps of copper ore will make a bar in half an hour. Set it going and get on with your day. Three bars for your engineer, was it? That should do nicely.")
+	dialog("Dain Rusk","CRUCIBLE BLUEPRINT LEARNED","There you are. Ten pieces of stone make a small crucible. Select the plans, then face a clear patch near your farmhouse. Five pieces of ore and two coal make a bar in half an hour. Set it going and get on with your day. Good metal's useful wherever your travels take you.")
 
 func cooking() -> void:
 	if current_room!="home" or world.front_cell() not in world.activation_cells(world.sites.filter(func(site):return site.id=="stove")[0]):
@@ -961,7 +1000,7 @@ func cooking() -> void:
 	panel("Farmhouse stove","COOKING","Recipes draw ingredients from your satchel and the connected twelve-slot kitchen cabinet. Tavi sells pots and pans for 20 crowns each.",choices)
 
 func talk(id: String) -> void:
-	state.meet_person(id)
+	state.chat_with(id)
 	begin_conversation([id],id in ["veteran","finch","vale"] or (id=="moss" and not state.invited))
 	if id not in ["smith","woodcutter"] and preload("res://neighbors.gd").talk(self,id): return
 	match id:
@@ -1037,6 +1076,7 @@ func talk(id: String) -> void:
 					else: toast("Out of stock. Delivery next season." if state.stock("health_elixir")==0 else "You need 15 crowns and room in your satchel.")
 					talk("tavi")],
 				["Where can I get tools?",tool_directions],
+				["Sugar and butter for baking",baking_supplies],
 				["Just passing through.",func(): pass]])
 			ui.modal.get_child(1).position.y=125
 		"iona":
@@ -1046,6 +1086,7 @@ func talk(id: String) -> void:
 				dialog("Iona","MAGIC OF BRIAR GLEN","You'll find our deities gentler than the ones near the Veyr border. Mostly they want things to grow. I can show you Wildgrowth, if you like. Water a seed first, then give it a little encouragement. Fifteen mana, and no fee for the lesson. For something more adventurous, bring me a Cave Moth Chrysalis from deep underground, or a Golden Sparkfire Bloom. Mind you, that flower only opens while the sun is rising. Walk past at noon and you'd never give it a second glance.",[
 					["Learn the basics" if not state.magic_learned else "Practice Wildgrowth",func(): state.magic_learned=true; save_visit(); toast("Wildgrowth learned. Assign it yourself under Actions → Spells and skills.",7)],
 					["Hearthmend · one Golden Sparkfire Bloom",func(): learn_local_spell("hearthmend")],
+					["Tell me about the seven days",weekday_lore],
 					["Emberthread · one Cave Moth Chrysalis + 10 logs",func(): learn_local_spell("emberthread")]])
 		"finch": dialog("Finch","RADIO CLUB SECRETARY","Come in, come in. Mind that cable. Last week we picked up a dance band from Veyr, clear as anything. Governments can argue all they like; the air doesn't stop at a checkpoint." if current_room=="radio" else "Good to give my eyes a rest from the wiring. Nessa's coming along nicely with that receiver. Her mother will have river weather reports in the kitchen before long.",[["What's on the air today?",radio],["I'll come back sometime.",func(): pass]])
 		"vale":
@@ -1061,6 +1102,29 @@ func talk(id: String) -> void:
 						burst(state.player_position,"a3d4d0")
 						toast("Crew link restored. One small connection home.",6.0)],
 				["How long do we have?",func(): dialog("Chief Vale","CHIEF ENGINEER","As long as the cloak holds, we have room to breathe. No signals. No active scans. I'll keep the lights off. You keep us fed.")]])
+
+func buy_ingredient(id: String) -> void:
+	if state.purchase(id):
+		save_visit()
+		toast("Bought "+state.Items.CATALOG[id].name+".")
+	else: toast("Out of stock. Delivery next season." if state.stock(id)==0 else "You need enough crowns and room in your satchel.")
+
+func baking_supplies() -> void:
+	var choices=[]
+	for id in ["sugar","butter"]:
+		var ingredient=id
+		choices.append(["%s · %d crowns · %d available"%[state.Items.CATALOG[id].name,preload("res://shop_stock.gd").CATALOG[id].price,state.stock(id)],func(): buy_ingredient(ingredient); baking_supplies()])
+	choices.append(["Back",func(): talk("tavi")])
+	dialog("Tavi","SOMETHING SWEET","Preserves need berries and sugar in a pot. For cobbler, add flour and butter and fetch your pan. Tomas sells flour at the mill.",choices)
+
+func weekday_lore() -> void:
+	var faith=preload("res://weekday_magic.gd")
+	var choices=[]
+	for index in range(7):
+		var selected=index
+		choices.append([faith.DAYS[index]+" · "+faith.DEITIES[index][0],func():
+			dialog("Iona",faith.DAYS[selected].to_upper(),faith.DEITIES[selected][1],[["And the other days?",weekday_lore],["Thank you. I'll remember that.",func(): pass]])])
+	dialog("Iona","SEVEN TURNS OF THE SKY","The day matters as much as the words. Which of the seven would you like to hear about?",choices)
 
 func buy_cookware(id: String) -> void:
 	if state.stock(id)==0:
@@ -1294,6 +1358,7 @@ func quit_menu() -> void:
 func preferences() -> void:
 	var selected = state.pause_mode
 	var choices = [
+		[("✓ " if state.needs.hardcore else "")+"Hardcore · hunger and thirst",func(): state.needs.hardcore=not state.needs.hardcore; save_visit(); preferences()],
 		[("✓ " if selected=="none" else "")+"Time continues",func(): state.pause_mode="none"; preferences()],
 		[("✓ " if selected=="clock" else "")+"Stop calendar · simulation continues",func(): state.pause_mode="clock"; preferences()],
 		[("✓ " if selected=="all" else "")+"Pause entire world · single-player default",func(): state.pause_mode="all"; preferences()],
@@ -1365,7 +1430,7 @@ func development_weather() -> void:
 		choices.append(["Follow the daily forecast" if mode=="" else mode.replace("_"," ").capitalize(),func():
 			state.weather_override=weather
 			world.refresh()
-			sound.update_weather(state.weather_name(),world==outdoors,1)
+			update_weather_sound(1)
 			save_visit()
 			development_tools()])
 	panel("Weather","DEVELOPMENT PREVIEW","Preview sunshine, passing clouds or gentle rain. The daily forecast is reproducible for this visit.",choices)

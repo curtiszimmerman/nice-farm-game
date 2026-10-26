@@ -2167,7 +2167,9 @@ def main():
     from border_surfaces16 import sprites as border_surfaces
     from terrain_edges16 import sprites as terrain_edges
     from town_additions16 import sprites as town_additions
+    from journey_sprites16 import sprites as journey_sprites
     additions = dict(sprites(Pixels), **calendar_sprites(Pixels), **observatory_sprites(Pixels), **harvest_sprites(Pixels), **border_surfaces(Pixels), **terrain_edges(Pixels), **town_additions(Pixels))
+    additions.update(journey_sprites(Pixels))
     copper_bar = additions["item_copper_bars"]
     silver_bar = Pixels(copper_bar.w, copper_bar.h)
     for yy in range(copper_bar.h):

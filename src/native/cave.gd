@@ -2,8 +2,8 @@ extends "res://world.gd"
 
 var building: Dictionary
 var outdoors: Node2D
-var ROOM_CELLS=Vector2i(94,70)
-var ROOM_SIZE=Vector2(3008,2240)
+var ROOM_CELLS=Vector2i(81,61)
+var ROOM_SIZE=Vector2(2592,1952)
 var level=0
 var layout={"entry":Vector2i(5,3),"exit":Vector2i(5,1)}
 var chambers: Array[Rect2i]=[]
@@ -65,10 +65,10 @@ func generate() -> void:
 	var rng=RandomNumberGenerator.new()
 	var corridors={}
 	rng.seed=hash(Vector2i(state.cave_seed,level))
-	for i in range(12):
+	for i in range(9):
 		var row=int(i/3.0)
 		var col=i%3 if row%2==0 else 2-i%3
-		var room=Rect2i(col*30+rng.randi_range(2,6),row*17+rng.randi_range(1,3),rng.randi_range(14,19),rng.randi_range(11,14))
+		var room=Rect2i(col*25+rng.randi_range(2,4),row*19+rng.randi_range(1,3),rng.randi_range(14,23),rng.randi_range(10,17))
 		if i==0: room=Rect2i(2,2,16,12)
 		chambers.append(room)
 		for y in range(room.position.y,room.end.y):
@@ -112,9 +112,14 @@ func generate() -> void:
 			candidates[k]=candidates[other]
 			candidates[other]=value
 		var selected=[]
+		var clusters=[room.position+Vector2i(rng.randi_range(2,room.size.x-3),rng.randi_range(2,room.size.y-3)),room.position+Vector2i(rng.randi_range(2,room.size.x-3),rng.randi_range(2,room.size.y-3))]
+		var weights={}
+		for cell in candidates:
+			weights[cell]=minf(Vector2(cell).distance_to(clusters[0]),Vector2(cell).distance_to(clusters[1]))*0.45+rng.randf_range(0,6)
+		candidates.sort_custom(func(a,b):return weights[a]<weights[b])
 		var amount=roundi(room.size.x*room.size.y*0.13)
 		for cell in candidates:
-			if selected.any(func(other): return absi(cell.x-other.x)+absi(cell.y-other.y)<3): continue
+			if selected.any(func(other): return absi(cell.x-other.x)+absi(cell.y-other.y)<2): continue
 			selected.append(cell)
 			if selected.size()==amount: break
 		deposits.append_array(selected)
@@ -213,9 +218,9 @@ func attack() -> bool:
 
 func creatures() -> Array: return rats+([spider] if spider!=null else [])
 
-func damage_creature(creature: Node2D,amount: int) -> void:
+func damage_creature(creature: Node2D,amount: float) -> void:
 	creature.info.health-=amount
-	combat_text("-%d" % amount,creature.position+Vector2(0,30),Color("ffe7a0"))
+	combat_text("-%s" % snappedf(amount,0.01),creature.position+Vector2(0,30),Color("ffe7a0"))
 	creature.modulate=Color("ffc4aa")
 	if creature.info.health<=0:
 		creature.visible=false
@@ -224,10 +229,10 @@ func damage_creature(creature: Node2D,amount: int) -> void:
 		state.experience+=earned
 		combat_text("+%dxp" % earned,state.player_position,Color("8aee83"))
 
-func burn_at(point: Vector2) -> bool:
+func burn_at(point: Vector2,damage: float=2.0) -> bool:
 	for creature in creatures():
 		if creature.visible and creature.position.distance_to(point)<24:
-			damage_creature(creature,2)
+			damage_creature(creature,damage)
 			return true
 	return false
 

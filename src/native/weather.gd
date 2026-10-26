@@ -16,8 +16,15 @@ static func for_day(seed_value: int,day: int) -> String:
 	if day==1: return "sunny"
 	var rng=RandomNumberGenerator.new()
 	rng.seed=seed_value+day*7919
-	var roll=rng.randi_range(0,9)
-	return "sunny" if roll<5 else "partly_cloudy" if roll<8 else "rainy"
+	var roll=rng.randf()
+	var rainfall=[0.3,0.2,0.1,0.2][posmod(int((day-1)/28),4)]
+	return "rainy" if roll<rainfall else "partly_cloudy" if roll<rainfall+0.3 else "sunny"
+
+static func thundersnow(seed_value: int,day: int) -> bool:
+	if posmod(int((day-1)/28),4)!=3 or for_day(seed_value,day)!="rainy": return false
+	var rng=RandomNumberGenerator.new()
+	rng.seed=hash("winter lightning:%d:%d"%[seed_value,day])
+	return rng.randf()<0.1
 
 func _ready() -> void:
 	sky=SkyOverlay.new()
@@ -77,9 +84,14 @@ func paint_sky(canvas: CanvasItem) -> void:
 			if point.distance_to(world.state.player_position)<850:
 				Art.sprite(canvas,"cloud_shadow",point,Vector2(480,240),Color(0.15,0.2,0.29,0.2*daylight()))
 	elif mode=="rainy":
+		var snow=world.state.season_name()=="winter"
 		for point in rain_positions(world.elapsed):
-			Art.sprite(canvas,"rain_streak",point,Vector2(3,11),Color(0.75,0.85,0.94,0.42))
+			if snow:
+				var drift=Vector2(sin(point.y*0.04+world.elapsed)*8,-world.elapsed*120)
+				canvas.draw_rect(Rect2(point+drift,Vector2(2,2)),Color(0.9,0.94,1,0.72))
+			else: Art.sprite(canvas,"rain_streak",point,Vector2(3,11),Color(0.75,0.85,0.94,0.42))
 		for i in range(20):
+			if snow: break
 			var phase=fposmod(world.elapsed*2+i*0.17,1)
 			if phase<0.3:
 				var point=world.state.player_position+Vector2((i*97)%740-370,(i*137)%430-215)

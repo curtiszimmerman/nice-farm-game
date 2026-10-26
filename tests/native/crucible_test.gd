@@ -21,8 +21,11 @@ func run() -> void:
 		s.stones=20
 		check(not s.build_crucible(Vector2i(0,0)),"construction stays within the farmhouse building yard")
 		check(s.build_crucible(cell) and s.stones==10 and not s.build_crucible(cell),"a crucible occupies one unique grid square and costs ten stone")
-		s.copper=6
-		check(s.start_smelting(0) and s.copper==4 and not s.start_smelting(0),"a batch consumes two ore and cannot be started twice")
+		s.copper=12
+		s.coal=1
+		check(not s.start_smelting(0) and s.copper==12,"smelting requires two coal without consuming a partial payment")
+		s.coal=4
+		check(s.start_smelting(0) and s.copper==7 and s.coal==2 and not s.start_smelting(0),"a batch consumes five ore and two coal and cannot be started twice")
 		s.advance(29.9)
 		check(s.crucibles[0].bars==0,"copper needs thirty game minutes in the crucible")
 		s.advance(0.1)

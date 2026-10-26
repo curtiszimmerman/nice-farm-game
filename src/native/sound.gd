@@ -2,12 +2,14 @@ extends Node
 
 signal lightning
 
-const TRACKS = ["music","birds","crickets","drips","wildgrowth","ship","crash","laser","laser_hit","explosion","rain","thunder"]
+const TRACKS = ["music","birds","crickets","drips","wildgrowth","ship","crash","laser","laser_hit","explosion","rain","thunder","mining"]
+var mining: AudioStreamPlayer
 var rain: AudioStreamPlayer
 var thunder: AudioStreamPlayer
 var rain_weight=0.0
 var thunder_wait=18.0
 var thunder_pending=-1.0
+var weather_rng=RandomNumberGenerator.new()
 var battle: Dictionary={}
 var crash: AudioStreamPlayer
 var cinematic=false
@@ -28,9 +30,10 @@ var active = false
 var current_mix = {"birds":0.0,"crickets":0.0,"drips":0.0}
 
 func _ready() -> void:
+	weather_rng.randomize()
 	for name in TRACKS:
 		var stream=AudioStreamWAV.load_from_file("res://audio/"+name+".wav")
-		if name not in ["wildgrowth","crash","laser","laser_hit","explosion","thunder"]:
+		if name not in ["wildgrowth","crash","laser","laser_hit","explosion","thunder","mining"]:
 			stream.loop_mode=AudioStreamWAV.LOOP_FORWARD
 			stream.loop_end=stream.data.size()/2
 		streams[name]=stream
@@ -43,6 +46,8 @@ func _ready() -> void:
 	spell=_player("wildgrowth")
 	rain=_player("rain")
 	thunder=_player("thunder")
+	mining=_player("mining")
+	mining.max_polyphony=4
 	spell.max_polyphony=4
 	for name in ["laser","laser_hit","explosion"]:
 		battle[name]=_player(name)
@@ -77,10 +82,10 @@ func update_context(minute: float,environment: String,season: String,cave_weight
 func _db(value: float) -> float:
 	return linear_to_db(value) if value>0.0001 else -80.0
 
-func update_weather(mode: String,outdoors: bool,dt: float) -> void:
+func update_weather(mode: String,outdoors: bool,dt: float,allow_lightning: bool=true,snow: bool=false) -> void:
 	var wet=outdoors and mode=="rainy" and not cinematic
-	rain_weight=lerpf(rain_weight,1.0 if wet else 0.0,1-exp(-dt*1.8))
-	if wet and active:
+	rain_weight=lerpf(rain_weight,1.0 if wet and not snow else 0.0,1-exp(-dt*1.8))
+	if wet and active and allow_lightning:
 		if thunder_pending>=0:
 			thunder_pending-=dt
 			if thunder_pending<=0:
@@ -88,10 +93,10 @@ func update_weather(mode: String,outdoors: bool,dt: float) -> void:
 				thunder_pending=-1
 		thunder_wait-=dt
 		if thunder_wait<=0:
-			thunder_pending=2.0
+			thunder_pending=weather_rng.randf_range(1.0,3.0)
 			lightning.emit()
-			thunder_wait=24+absf(sin(Time.get_ticks_msec()*0.001))*18
-	elif not wet:
+			thunder_wait=weather_rng.randf_range(24,45)
+	else:
 		thunder.stop()
 		thunder_wait=18
 		thunder_pending=-1

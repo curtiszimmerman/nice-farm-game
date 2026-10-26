@@ -14,6 +14,7 @@ func run() -> void:
 	game.enter_building("cave")
 	game.close_window()
 	var first=game.world
+	check(first.ROOM_CELLS.x*first.ROOM_CELLS.y<=94*70*0.76 and first.chambers.size()<12,"cave levels have a smaller footprint and fewer chambers")
 	check(first.floor_cells.size()>1800,"each cave floor has several times the old walkable area")
 	var resources={"copper":0,"coal":0,"stones":0}
 	for rock in first.rocks.values(): resources[rock.resource]+=1

@@ -90,20 +90,23 @@ def music():
 
 
 def birds():
-    track = buffer(31)
+    track = buffer(67)
     random = Random(79)
-    for start in [1.1, 4.6, 8.3, 12.8, 17.2, 21.5, 26.9]:
-        for chirp in range(random.randint(2, 4)):
-            seconds = random.uniform(.08, .17)
-            hz = random.uniform(2300, 3300)
+    for start in [3.7, 19.3, 38.6, 55.2]:
+        onset = start
+        for chirp in range(random.randint(2, 5)):
+            seconds = random.uniform(.09, .24)
+            hz = random.uniform(2100, 3700)
+            bend = random.uniform(-1100, 1400)
             sample = buffer(seconds)
             phase = 0.0
             for i in range(len(sample)):
                 t = i / RATE
-                phase += TAU * (hz + 520 * sin(pi * t / seconds)) / RATE
+                phase += TAU * (hz + bend*t/seconds + 170*sin(TAU*27*t)) / RATE
                 envelope = sin(pi * t / seconds) ** 2
-                sample[i] = (sin(phase) + .13 * sin(phase * 2)) * envelope * .18
-            add(track, start + chirp * .23, sample, random.uniform(.55, 1))
+                sample[i] = (sin(phase) + .06*sin(phase*2) + random.uniform(-.025,.025)) * envelope * .1
+            add(track, onset, sample, random.uniform(.35, .7))
+            onset += seconds + random.uniform(.06,.28)
     return track
 
 
@@ -258,12 +261,22 @@ def thunder():
     return track
 
 
+def mining():
+    track = buffer(.42)
+    noise = Random(861)
+    for i in range(len(track)):
+        t = i / RATE
+        attack = min(1, t*1600)
+        ring = sum(sin(TAU*hz*t)*exp(-t*decay)*gain for hz,decay,gain in [(1260,18,.25),(2197,24,.14),(3421,35,.07)])
+        track[i] = attack*(ring+noise.uniform(-1,1)*exp(-t*110)*.22)
+    return track
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--only", choices=["music", "birds", "crickets", "drips", "wildgrowth", "ship", "crash", "laser", "laser_hit", "explosion", "rain", "thunder"], help="Rebuild one sound instead of all assets.")
+    parser.add_argument("--only", choices=["music", "birds", "crickets", "drips", "wildgrowth", "ship", "crash", "laser", "laser_hit", "explosion", "rain", "thunder", "mining"], help="Rebuild one sound instead of all assets.")
     args = parser.parse_args()
     OUTPUT.mkdir(parents=True, exist_ok=True)
-    for name, build in {"music": music, "birds": birds, "crickets": crickets, "drips": drips, "wildgrowth": wildgrowth, "ship": ship, "crash": crash, "laser": laser, "laser_hit": laser_hit, "explosion": explosion, "rain": rain, "thunder": thunder}.items():
+    for name, build in {"music": music, "birds": birds, "crickets": crickets, "drips": drips, "wildgrowth": wildgrowth, "ship": ship, "crash": crash, "laser": laser, "laser_hit": laser_hit, "explosion": explosion, "rain": rain, "thunder": thunder, "mining": mining}.items():
         if args.only is None or args.only == name:
             write(name, build())
 

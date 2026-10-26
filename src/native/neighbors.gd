@@ -78,6 +78,17 @@ static func talk(game: Node2D,id: String) -> bool:
 	if id.begins_with("farmer_"): working=game.world==game.outdoors and game.state.player_position.x>95*32
 	var text=story[1] if working else OFF_DUTY.get(id,story[1])
 	var choices=[]
+	if id=="miller" and working:
+		choices.append(["Buy flour · 5 crowns · %d available"%game.state.stock("flour"),func(): game.buy_ingredient("flour")])
+	if id=="astronomer" and working:
+		choices.append(["You're right. Our ship fell on the mountain.",func():
+			game.state.record_star_origin(true)
+			game.save_visit()
+			game.dialog("Saeren","A CONFIDENCE KEPT","Thank you for trusting me. I won't pretend I understand your vessel. But I know what it costs to entrust someone with a truth like that.")])
+		choices.append(["We were traveling on foot. You must have seen something else.",func():
+			game.state.record_star_origin(false)
+			game.save_visit()
+			game.dialog("Saeren","AN OBSERVER'S PATIENCE","Perhaps. Fifty years at the eyepiece have taught me to be patient with questions. You're welcome here, either way.")])
 	if id=="priest" and not game.state.beehive_known:
 		choices.append(["Learn beehive blueprint · 2 silver ingots",func():
 			if game.state.silver_bars<2:

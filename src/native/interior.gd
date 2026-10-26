@@ -381,6 +381,14 @@ func _draw() -> void:
 		r(self,p.x,p.y+11,28,2,"e3d4ab")
 
 func paint_furniture(c: CanvasItem,item: Dictionary) -> void:
+	if building.id=="temple" and item.kind=="table" and item.bounds.position==Vector2i(2,1) and Art.catalog.has("temple_altar"):
+		Art.sprite(c,"temple_altar",Vector2(-4,-56))
+		return
+	if building.id=="ship" and Art.option==2:
+		var sprite_id={"bed":"ship_bunk_2x3","cabinet":"ship_locker_3x1","table":"ship_table_2x1"}.get(item.kind,"")
+		if sprite_id!="" and Art.catalog.has(sprite_id):
+			Art.sprite(c,sprite_id,Vector2(-4,-item.bounds.size.y*32-24))
+			return
 	if item.kind.begins_with("shed_"):
 		Art.furniture(c,item)
 		return

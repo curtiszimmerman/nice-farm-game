@@ -41,6 +41,9 @@ var shop_season=-1
 var shop_remaining: Dictionary={}
 var met_people: Array=["vale"]
 var friendships: Dictionary={}
+var chat_days: Dictionary={}
+var gift_weeks: Dictionary={}
+var star_origin_reply=""
 var learned_spells: Array=[]
 var bloom_harvests: Dictionary={}
 var bloom_cells: Array=[]
@@ -85,6 +88,7 @@ var fish_stew=0
 var health_elixir=0
 var rations=0
 var crew_fed_day=1
+var crew_food_delivered=false
 var crew_hungry_days=0
 var purchased_utensils: Array=[]
 var light_bulbs=0
@@ -104,12 +108,18 @@ var pickaxe=0
 var stones=0
 var cave_moth_chrysalis=0
 var golden_sparkfire_bloom=0
+var winter_sparkbloom=0
+var berry_preserves=0
+var berry_cobbler=0
+var flour=0
+var sugar=0
+var butter=0
 var mayor_due=-1.0
 var house_tasks={"sofa":false,"bed":false,"guest_bed":false,"radio":false,"living_light":false,"bathroom_light":false}
 const INVENTORY_SLOTS=16
-const EXTRA_ITEMS=["pot","pan","fish_sticks","fish_stew","health_elixir","rations","light_bulbs","moon_pike","sea_sprat","blue_mackerel","storm_eel","pickaxe","stones","cave_moth_chrysalis","golden_sparkfire_bloom","lantern_ray","axe","wood","bread","copper_bars","berries","apples","ladder","fishing_pole","coal","silver_bars"]
+const EXTRA_ITEMS=["pot","pan","fish_sticks","fish_stew","health_elixir","rations","light_bulbs","moon_pike","sea_sprat","blue_mackerel","storm_eel","pickaxe","stones","cave_moth_chrysalis","golden_sparkfire_bloom","lantern_ray","axe","wood","bread","copper_bars","berries","apples","ladder","fishing_pole","coal","silver_bars","winter_sparkbloom","berry_preserves","berry_cobbler","flour","sugar","butter"]
 const CROP_MINUTES=4320.0
-const RECIPES={"fish_sticks":{"utensil":"pan","ingredients":{"fish":1}},"fish_stew":{"utensil":"pot","ingredients":{"turnips":1,"star_bulbs":1,"fish":1}}}
+const RECIPES={"fish_sticks":{"utensil":"pan","ingredients":{"fish":1}},"fish_stew":{"utensil":"pot","ingredients":{"turnips":1,"star_bulbs":1,"fish":1}},"berry_preserves":{"utensil":"pot","ingredients":{"berries":2,"sugar":1}},"berry_cobbler":{"utensil":"pan","ingredients":{"berry_preserves":1,"flour":1,"sugar":1,"butter":1}}}
 var invitation_day=1
 var abandoned_day: Dictionary={}
 var equipped = ""
@@ -126,9 +136,11 @@ var weather_override=""
 var awake_minutes=0.0
 var sleep_minutes=0.0
 var status_effects: Dictionary={}
+var needs=preload("res://journey_needs.gd").new()
 var damage_events: Array=[]
 const CRUCIBLE_STONE=10
-const ORE_PER_BAR=2
+const ORE_PER_BAR=5
+const COAL_PER_BAR=2
 const SMELT_MINUTES=30.0
 var crucible_known=false
 var crucibles: Array=[]
@@ -198,10 +210,14 @@ func spend_energy(base: float) -> bool:
 func energy_recovery(base: float) -> float: return base/(tired_days()+1)
 
 func restore_energy(base: float) -> void:
+	if needs.deprived(): return
 	energy=minf(100,energy+energy_recovery(base))
 
+func restore_mana(base: float) -> void:
+	if not needs.deprived(): mana=minf(60,mana+base)
+
 func active_statuses() -> Array:
-	return (["tired"] if is_tired() else [])+status_effects.keys()
+	return (["tired"] if is_tired() else [])+(["thirsty"] if needs.thirsty() else [])+(["starving"] if needs.starving() else [])+status_effects.keys()
 
 func learn_spell(id: String) -> bool:
 	if id in learned_spells: return false
@@ -221,8 +237,11 @@ func learn_spell(id: String) -> bool:
 func cast_healing() -> bool:
 	if "hearthmend" not in learned_spells or mana<10 or health>=100: return false
 	mana-=10
-	health=minf(100,health+15)
+	health=minf(100,health+15*magic_strength("light"))
 	return true
+
+func magic_strength(school: String) -> float:
+	return preload("res://weekday_magic.gd").strength(day,world_seed,school)
 
 func apply_poison() -> void:
 	if status_effects.has("poison"): status_effects.poison.remaining=60.0
@@ -281,10 +300,11 @@ func build_crucible(cell: Vector2i) -> bool:
 	return true
 
 func start_smelting(index: int) -> bool:
-	if index<0 or index>=crucibles.size() or copper<ORE_PER_BAR: return false
+	if index<0 or index>=crucibles.size() or copper<ORE_PER_BAR or coal<COAL_PER_BAR: return false
 	var station=crucibles[index]
 	if station.ready_at>=0 or station.bars>0: return false
 	copper-=ORE_PER_BAR
+	coal-=COAL_PER_BAR
 	station.ready_at=total()+SMELT_MINUTES
 	clear_empty_slots()
 	return true
@@ -305,9 +325,11 @@ func collect_copper_bar(index: int) -> bool:
 func advance(minutes: float, window_open = false,sleeping: bool=false) -> void:
 	if window_open and pause_mode == "all":
 		return
-	mana = minf(60.0, mana + minutes * 0.12)
 	if window_open and pause_mode == "clock":
+		restore_mana(minutes*0.12)
 		return
+	var recoverable=needs.advance(minutes,self)
+	mana=minf(60,mana+recoverable*0.12)
 	advance_statuses(minutes,sleeping)
 	var elapsed = total() + minutes
 	var previous_day=day
@@ -330,7 +352,7 @@ func advance(minutes: float, window_open = false,sleeping: bool=false) -> void:
 		else: crew_hungry_days+=1
 
 func take_crew_meal() -> bool:
-	for food in ["rations","fish_sticks","fish_stew"]:
+	for food in Items.PREPARED_FOOD:
 		for stack in ship_storage:
 			if stack.get("id","")!=food or stack.get("count",0)<1: continue
 			stack.count-=1
@@ -471,7 +493,7 @@ func grow(index: int) -> bool:
 	if mana < 15.0 or p.planted < 0.0 or not p.watered or ripe(index):
 		return false
 	mana -= 15.0
-	p.growth=CROP_MINUTES
+	p.growth=minf(CROP_MINUTES,p.growth+CROP_MINUTES*magic_strength("nature"))
 	return true
 
 func sell() -> bool:
@@ -507,12 +529,15 @@ func mine(resource: String="copper") -> bool:
 func consume(id: String) -> bool:
 	if not Items.FOOD.has(id) or int(get(id))<=0: return false
 	var food=Items.FOOD[id]
-	if (health>=100 or food.health==0) and (energy>=100 or food.energy==0) and (mana>=60 or food.mana==0): return false
+	var restores_need=needs.hardcore and (needs.without_water>0 if id=="health_elixir" else id in Items.PREPARED_FOOD and needs.without_food>0)
+	if not restores_need and (health>=100 or food.health==0) and (energy>=100 or food.energy==0) and (mana>=60 or food.mana==0): return false
 	set(id,int(get(id))-1)
+	if id=="health_elixir": needs.drink()
+	elif id in Items.PREPARED_FOOD: needs.eat()
 	clear_empty_slots()
 	health=minf(100,health+food.health)
 	restore_energy(food.energy)
-	mana=minf(60,mana+food.mana)
+	restore_mana(food.mana)
 	return true
 
 func accept_sword() -> bool:
@@ -551,6 +576,7 @@ func storage_transfer(storage_name: String,index: int,carried_id: String="",quan
 		if not stored.is_empty() and stored.id==carried_id: amount+=int(stored.count)
 		elif not stored.is_empty(): set(stored.id,int(get(stored.id))+int(stored.count))
 		storage[index]={"id":carried_id,"count":amount}
+		if storage_name=="ship_storage" and carried_id in Items.PREPARED_FOOD: crew_food_delivered=true
 	if equipped!="" and int(get(equipped))==0: equipped=""
 	clear_empty_slots()
 	if storage_name=="ship_storage" and crew_fed_day<day and take_crew_meal():
@@ -572,10 +598,7 @@ func sync_inventory() -> void:
 		if inventory_order[i]!="" and not available_action(inventory_order[i]): inventory_order[i]=""
 	for id in Items.CATALOG:
 		if int(get(id))<=0 or id in inventory_order: continue
-		var last=-1
-		for i in range(inventory_order.size()):
-			if inventory_order[i]!="": last=i
-		var slot=last+1 if last+1<INVENTORY_SLOTS else inventory_order.find("")
+		var slot=inventory_order.find("")
 		if slot>=0: inventory_order[slot]=id
 
 func inventory_cells() -> Array:
@@ -626,6 +649,32 @@ func purchase(id: String) -> bool:
 
 func meet_person(id: String) -> void:
 	if id not in met_people: met_people.append(id)
+
+func chat_with(id: String) -> void:
+	meet_person(id)
+	if int(chat_days.get(id,0))==day: return
+	chat_days[id]=day
+	change_friendship(id,1)
+
+func gift_preference(id: String,item: String) -> int:
+	if item in ["coal","stones"]: return 1 if id in ["smith","miller"] else -1
+	if item in ["cave_moth_chrysalis","golden_sparkfire_bloom","star_bulbs"]: return 5 if id in ["iona","astronomer"] else -5 if id=="assistant" else 0
+	if item in ["fish_stew","fish_sticks","bread","berry_cobbler"]: return 5 if id in ["vale","keeper","veteran","barkeep"] else 1
+	if item in ["berries","apples","turnips"]: return 5 if id in ["moss","farmer_mother","baker"] else 1
+	return 0
+
+func give_gift(id: String,item: String) -> bool:
+	if not preload("res://villager_schedule.gd").ROUTINES.has(id) or not Items.CATALOG.has(item) or int(get(item))<1: return false
+	var week=int((day-1)/7)
+	if int(gift_weeks.get(id,-1))==week: return false
+	set(item,int(get(item))-1)
+	gift_weeks[id]=week
+	change_friendship(id,gift_preference(id,item))
+	clear_empty_slots()
+	return true
+
+func record_star_origin(truth: bool) -> void:
+	star_origin_reply="truth" if truth else "lie"
 
 func change_friendship(id: String,amount: int) -> void:
 	meet_person(id)
@@ -706,7 +755,7 @@ func to_dict() -> Dictionary:
 	clear_empty_slots()
 	var supplies={}
 	for id in EXTRA_ITEMS: supplies[id]=get(id)
-	return {"version":16,"town":preload("res://town_progress.gd").snapshot(self),"inventory_order":inventory_order.duplicate(),"woodcutter_axe_given":woodcutter_axe_given,"cave_pickaxe_taken":cave_pickaxe_taken,"cave_intro_seen":cave_intro_seen,"auxiliary_selection":auxiliary_selection,"world_seed":world_seed,"inventory_selection":inventory_selection,"firewood_requested":firewood_requested,"firewood_given":firewood_given,"felled_trees":felled_trees.duplicate(),"day": day, "minute": minute, "money": money,"magic_learned":magic_learned,
+	return {"version":17,"needs":needs.to_dict(),"crew_food_delivered":crew_food_delivered,"town":preload("res://town_progress.gd").snapshot(self),"inventory_order":inventory_order.duplicate(),"woodcutter_axe_given":woodcutter_axe_given,"cave_pickaxe_taken":cave_pickaxe_taken,"cave_intro_seen":cave_intro_seen,"auxiliary_selection":auxiliary_selection,"world_seed":world_seed,"inventory_selection":inventory_selection,"firewood_requested":firewood_requested,"firewood_given":firewood_given,"felled_trees":felled_trees.duplicate(),"day": day, "minute": minute, "money": money,"magic_learned":magic_learned,
 		"forage_harvests":forage_harvests.duplicate(),"ladder_requested":ladder_requested,"ladder_taken":ladder_taken,"ladder_returned":ladder_returned,
 		"awake_minutes":awake_minutes,"sleep_minutes":sleep_minutes,"status_effects":status_effects.duplicate(true),
 		"crucible_known":crucible_known,"crucibles":crucibles.duplicate(true),
@@ -725,8 +774,9 @@ func to_dict() -> Dictionary:
 		"plots": plots.duplicate(true)}
 
 func restore(data: Variant) -> bool:
-	if not data is Dictionary or data.get("version") != 16:
+	if not data is Dictionary or data.get("version") != 17:
 		return false
+	if not needs.valid(data.get("needs")) or not data.get("crew_food_delivered") is bool: return false
 	if not preload("res://town_progress.gd").valid(data.get("town")): return false
 	for field in ["ladder_requested","ladder_taken","ladder_returned"]:
 		if not data.get(field) is bool: return false
@@ -874,6 +924,8 @@ func restore(data: Variant) -> bool:
 	for field in ["minute", "mana", "energy", "invited", "met_mayor", "delivered", "pause_mode","health","equipped","selected_seed","location"]:
 		set(field, data[field])
 	player_position = Vector2(data.x, data.y)
+	needs.restore(data.needs)
+	crew_food_delivered=data.crew_food_delivered
 	preload("res://town_progress.gd").restore(self,data.town)
 	outdoor_position=Vector2(data.outdoor_x,data.outdoor_y)
 	plots = data.plots.duplicate(true)

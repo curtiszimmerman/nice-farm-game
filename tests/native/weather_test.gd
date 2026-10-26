@@ -27,7 +27,8 @@ func run() -> void:
 		game.sound.thunder_wait=0
 		game.sound.update_weather("rainy",true,0.1)
 		check(not game.sound.thunder.playing and effects.lightning_frames==2,"rain occasionally flashes lightning before thunder")
-		game.sound.update_weather("rainy",true,2.1)
+		check(game.sound.thunder_pending>=1 and game.sound.thunder_pending<=3,"thunder follows lightning after a varied one-to-three-second delay")
+		game.sound.update_weather("rainy",true,game.sound.thunder_pending+0.1)
 		check(game.sound.thunder.playing,"rain plays gentle thunder after the lightning delay")
 		s.plots[0].tilled=true
 		s.plots[0].planted=s.total()

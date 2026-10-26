@@ -1,11 +1,18 @@
 extends RefCounted
 
 const Art=preload("res://art.gd")
+const PREPARED_FOOD=["rations","fish_sticks","fish_stew","bread","berry_preserves","berry_cobbler"]
 
-const FOOD={"bread":{"health":0,"energy":20,"mana":0},"lantern_ray":{"health":10,"energy":16,"mana":0},"turnips":{"health":8,"energy":12,"mana":0},"fish":{"health":5,"energy":8,"mana":0},"star_bulbs":{"health":0,"energy":0,"mana":15},"health_elixir":{"health":25,"energy":0,"mana":0},"fish_sticks":{"health":12,"energy":20,"mana":0},"fish_stew":{"health":20,"energy":30,"mana":15},"rations":{"health":0,"energy":15,"mana":0},"moon_pike":{"health":7,"energy":10,"mana":0},"sea_sprat":{"health":4,"energy":6,"mana":0},"blue_mackerel":{"health":5,"energy":8,"mana":0},"storm_eel":{"health":8,"energy":12,"mana":0}}
+const FOOD={"berry_preserves":{"health":4,"energy":15,"mana":0},"berry_cobbler":{"health":12,"energy":35,"mana":0},"bread":{"health":0,"energy":20,"mana":0},"lantern_ray":{"health":10,"energy":16,"mana":0},"turnips":{"health":8,"energy":12,"mana":0},"fish":{"health":5,"energy":8,"mana":0},"star_bulbs":{"health":0,"energy":0,"mana":15},"health_elixir":{"health":25,"energy":0,"mana":0},"fish_sticks":{"health":12,"energy":20,"mana":0},"fish_stew":{"health":20,"energy":30,"mana":15},"rations":{"health":0,"energy":15,"mana":0},"moon_pike":{"health":7,"energy":10,"mana":0},"sea_sprat":{"health":4,"energy":6,"mana":0},"blue_mackerel":{"health":5,"energy":8,"mana":0},"storm_eel":{"health":8,"energy":12,"mana":0}}
 const FISH={"lantern_ray":{"habitat":"ocean_tip","hard":true,"price":90,"weight":1,"color":"e4cf8b"},"fish":{"habitat":"pond","hard":false,"price":10,"color":"9dbcc0"},"moon_pike":{"habitat":"pond","hard":true,"price":35,"color":"a8ad7b"},"sea_sprat":{"habitat":"ocean","hard":false,"price":12,"color":"c1c7b2"},"blue_mackerel":{"habitat":"ocean","hard":false,"price":16,"color":"729ab6"},"storm_eel":{"habitat":"ocean","hard":true,"price":50,"color":"a58bb6"}}
 
 const CATALOG={
+	"berry_preserves":{"name":"Berry preserves","description":"Sweet fruit simmered in a pot. Restores 15 energy and 4 HP.","action":"Eat"},
+	"berry_cobbler":{"name":"Berry cobbler","description":"Warm berries under a buttery crust. Restores 35 energy and 12 HP.","action":"Eat"},
+	"flour":{"name":"Flour","description":"Fine grain flour from the Bells' windmill.","action":"Cooking ingredient"},
+	"sugar":{"name":"Sugar","description":"A small bag of sugar for preserves and baking.","action":"Cooking ingredient"},
+	"butter":{"name":"Butter","description":"Creamy butter for a crisp cobbler crust.","action":"Cooking ingredient"},
+	"winter_sparkbloom":{"name":"Winter sparkbloom","description":"A rare flower awakened by lightning in falling snow.","action":"Rare ingredient"},
 	"fishing_pole":{"name":"Fishing pole","description":"Oren's well-kept spare pole. Select it before casting from shore or a dock.","action":"Fishing tool"},
 	"coal":{"name":"Coal","description":"A dark combustible mineral from the copper caverns.","action":"Crafting material"},
 	"silver_bars":{"name":"Silver ingot","description":"Refined silver, prized for sacred work and delicate mechanisms.","action":"Crafting material"},

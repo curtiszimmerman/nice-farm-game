@@ -1,5 +1,5 @@
 extends RefCounted
-const FIELDS=["ladder_clue","ladder_located","shop_season","shop_remaining","met_people","friendships","learned_spells","bloom_harvests","bloom_cells","cave_level","quick_row","beehive_known"]
+const FIELDS=["ladder_clue","ladder_located","shop_season","shop_remaining","met_people","friendships","learned_spells","bloom_harvests","bloom_cells","cave_level","quick_row","beehive_known","chat_days","gift_weeks","star_origin_reply"]
 static func integer(value: Variant) -> bool:
 	return (value is int or value is float) and is_finite(value) and value==floor(value)
 static func snapshot(state: RefCounted) -> Dictionary:
@@ -10,6 +10,11 @@ static func snapshot(state: RefCounted) -> Dictionary:
 	return data
 static func valid(data: Variant) -> bool:
 	if not data is Dictionary or not data.has_all(FIELDS): return false
+	if data.star_origin_reply not in ["","truth","lie"]: return false
+	for field in ["chat_days","gift_weeks"]:
+		if not data[field] is Dictionary: return false
+		for id in data[field]:
+			if not preload("res://villager_schedule.gd").ROUTINES.has(id) or not integer(data[field][id]) or data[field][id]<0: return false
 	if not data.ladder_clue is bool or not data.ladder_located is bool or not data.beehive_known is bool: return false
 	if not integer(data.shop_season) or data.shop_season< -1: return false
 	if not integer(data.cave_level) or data.cave_level<0 or data.cave_level>2: return false

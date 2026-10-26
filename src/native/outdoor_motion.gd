@@ -16,7 +16,7 @@ static func setup(world: Node2D) -> void:
 	for cell in world.water_cells:
 		if rng.randf()<0.12: water.append({"position":Grid.center(cell)+Vector2(rng.randf_range(-8,8),rng.randf_range(-8,8)),"phase":rng.randf_range(0,TAU),"speed":rng.randf_range(0.35,0.65)})
 	var birds=[]
-	for i in range(7): birds.append({"position":world.state.player_position+Vector2(rng.randf_range(-500,500),rng.randf_range(-300,250)),"speed":rng.randf_range(135,195),"phase":rng.randf_range(0,TAU)})
+	for i in range(3): birds.append({"position":world.state.player_position+Vector2(rng.randf_range(-500,500),rng.randf_range(-300,250)),"speed":rng.randf_range(135,195),"phase":rng.randf_range(0,TAU)})
 	world.ambient={"rng":rng,"water":water,"birds":birds,"night":-100,"flashes":[],"last":world.elapsed}
 
 static func update(world: Node2D) -> void:

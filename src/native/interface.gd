@@ -4,6 +4,26 @@ const CREAM = Color("f1e7c9")
 const GOLD = Color("dfba72")
 const MUTED = Color("b6c3ad")
 const Items = preload("res://items.gd")
+class StatusButton extends Button:
+	func _make_custom_tooltip(text: String) -> Object:
+		var frame=PanelContainer.new()
+		var box=StyleBoxFlat.new()
+		box.bg_color=Color("172b2bf5")
+		box.border_color=Color("dfba72")
+		box.set_border_width_all(2)
+		box.content_margin_left=14
+		box.content_margin_right=14
+		box.content_margin_top=12
+		box.content_margin_bottom=12
+		frame.add_theme_stylebox_override("panel",box)
+		var label=Label.new()
+		label.text=text
+		label.custom_minimum_size.x=minf(get_viewport_rect().size.x*0.66,560)
+		label.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
+		label.add_theme_font_override("font",preload("res://pixel_ui.gd").font())
+		label.add_theme_font_size_override("font_size",20)
+		frame.add_child(label)
+		return frame
 var inventory_slots: Array=[]
 var chest_slots: Array=[]
 var quick_buttons: Array=[]
@@ -12,6 +32,7 @@ var log_toggle: Button
 var log_expanded=true
 var quest_unread=false
 var known_quests: Array=[]
+var completed_tasks: Array=[]
 var quest_scroll: ScrollContainer
 var quest_rows: VBoxContainer
 var quest_opened: Dictionary={}
@@ -89,6 +110,9 @@ var purse: Label
 var energy_bar: ProgressBar
 var mana_bar: ProgressBar
 var health_bar: ProgressBar
+var needs_panel: Control
+var hydration_bar: ProgressBar
+var nourishment_bar: ProgressBar
 var health_label: Label
 var modal: Control
 var modal_box: VBoxContainer
@@ -128,9 +152,13 @@ func _ready() -> void:
 	season_word.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
 	date = _label("01",Vector2(1127,180),26,CREAM)
 	date.size.x = 40
-	clock = calendar_window("08:00",Vector2(1060,310),Vector2(136,40),26)
-	var moons = calendar_window("Root · year one",Vector2(1028,274),Vector2(200,34),16)
-	calendar_details = moons
+	calendar_details=calendar_window("Rift · year one",Vector2(1028,274),Vector2(200,76),16)
+	calendar_details.position=Vector2(0,0)
+	calendar_details.size=Vector2(190,30)
+	clock=_label("08:00",Vector2(0,30),26,CREAM,false,calendar_details.get_parent())
+	clock.size=Vector2(190,36)
+	clock.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
+	clock.vertical_alignment=VERTICAL_ALIGNMENT_CENTER
 	log_panel = _panel(Vector2(30,128),Vector2(280,278),Color("182d2bf5"))
 	log_toggle=Button.new()
 	log_toggle.text="▾ CREW LOG"
@@ -277,6 +305,15 @@ func _ready() -> void:
 	status_strip.add_theme_constant_override("separation",4)
 	status_strip.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	root.add_child(status_strip)
+	needs_panel=Panel.new()
+	needs_panel.position=Vector2(350,18)
+	needs_panel.size=Vector2(180,62)
+	needs_panel.add_theme_stylebox_override("panel",style(Color("172b2be8")))
+	root.add_child(needs_panel)
+	_label("WATER",Vector2(10,5),12,CREAM,false,needs_panel)
+	hydration_bar=_bar(Vector2(10,25),Vector2(160,5),Color("90b9d2"),needs_panel)
+	_label("FOOD",Vector2(10,32),12,CREAM,false,needs_panel)
+	nourishment_bar=_bar(Vector2(10,52),Vector2(160,5),Color("c4b16c"),needs_panel)
 	for child in root.get_children():
 		if child!=pause_shield and child!=title_screen: hud_nodes.append(child)
 
@@ -288,6 +325,7 @@ func update_hud() -> void:
 		for node in hud_nodes: node.visible=hud_visibility.get(node,true)
 		hud_visibility.clear()
 	hud_hidden=hidden
+	needs_panel.visible=game.state.needs.hardcore and not hidden
 	if hidden:
 		for node in hud_nodes: node.hide()
 
@@ -593,7 +631,11 @@ func open_character_inventory() -> void:
 	abilities.add_child(scroll)
 	var list=VBoxContainer.new()
 	list.size_flags_horizontal=Control.SIZE_EXPAND_FILL
-	scroll.add_child(list)
+	var padding=MarginContainer.new()
+	for edge in ["left","right","top","bottom"]: padding.add_theme_constant_override("margin_"+edge,16)
+	padding.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	scroll.add_child(padding)
+	padding.add_child(list)
 	if Skills.learned(game.state).is_empty():
 		var empty=Label.new()
 		empty.text="[ None Known ]"
@@ -624,7 +666,11 @@ func add_relationships() -> void:
 	inventory_tabs.add_child(scroll)
 	var list=VBoxContainer.new()
 	list.size_flags_horizontal=Control.SIZE_EXPAND_FILL
-	scroll.add_child(list)
+	var padding=MarginContainer.new()
+	for edge in ["left","right","top","bottom"]: padding.add_theme_constant_override("margin_"+edge,16)
+	padding.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	scroll.add_child(padding)
+	padding.add_child(list)
 	var names={}
 	for person in game.outdoors.people: names[person.id]=person.name
 	if game.state.met_people.is_empty():
@@ -632,10 +678,24 @@ func add_relationships() -> void:
 		empty.text="[ No one met yet ]"
 		list.add_child(empty)
 	for id in game.state.met_people:
+		var person_row=HBoxContainer.new()
+		person_row.add_theme_constant_override("separation",16)
+		list.add_child(person_row)
+		var portrait=TextureRect.new()
+		var image_id="actor_%s_down0"%id
+		if not Items.Art.catalog.has(image_id): image_id="actor_mayor_down0"
+		var image=AtlasTexture.new()
+		image.atlas=Items.Art.atlas
+		image.region=Items.Art.region(image_id)
+		portrait.texture=image
+		portrait.custom_minimum_size=Vector2(48,64)
+		portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE
+		portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		person_row.add_child(portrait)
 		var entry=Label.new()
 		entry.text="%s    ·    %s" % [names.get(id,id.capitalize()),game.state.relationship(id)]
 		entry.custom_minimum_size.y=36
-		list.add_child(entry)
+		person_row.add_child(entry)
 
 func add_character_stats() -> void:
 	var row=HBoxContainer.new()
@@ -832,7 +892,7 @@ func fit_quest_log() -> void:
 
 func quest_lines() -> Array:
 	var s=game.state
-	var lines=[{"id":"crew_supplies","title":"A quiet signal home","description":"Vale needs three copper bars for the repeater. Find someone in the settlement who can help refine ore, and keep food in the ship locker.","tasks":[{"text":"Learn Dain's crucible blueprint" if s.crucible_known else "Find a way to refine copper","done":s.crucible_known},{"text":"Build a stone crucible · 10 stone","done":not s.crucibles.is_empty()},{"text":"Bring Vale three copper bars","done":s.delivered},{"text":"Leave food in the ship locker","done":s.crew_fed_day>=s.day}]}]
+	var lines=[{"id":"crew_supplies","title":"A quiet signal home","description":"Vale needs three copper bars for the repeater. Find someone in the settlement who can help refine ore, and keep prepared food in the ship locker.","tasks":[{"text":"Learn Dain's crucible blueprint" if s.crucible_known else "Find a way to refine copper","done":s.crucible_known},{"text":"Build a stone crucible · 10 stone","done":not s.crucibles.is_empty()},{"text":"Bring Vale three copper bars","done":s.delivered},{"text":"Leave food in the ship locker","done":s.crew_food_delivered}]}]
 	if s.ladder_requested: lines.append({"id":"bells_ladder","title":"A ladder with legs","description":"Nessa borrowed the ladder for her aerial. Look in the Bell tool shed, then return it to Mara." if s.ladder_located else "Mrs. Bell's ladder has gone missing. Nessa was asking about radio aerials; ask whether she has seen it.","tasks":[{"text":"Find Mrs. Bell's ladder","done":s.ladder_taken},{"text":"Return the ladder to Mrs. Bell","done":s.ladder_returned}]})
 	if s.invited:
 		lines.append({"id":"restore_farmhouse","title":"A place to begin","description":"Make the abandoned farmhouse welcoming before Moss brings the mayor.","tasks":[{"text":"Remove the covers from the furniture","done":["sofa","bed","guest_bed","radio"].all(func(id):return s.house_tasks[id])},{"text":"Change the lightbulbs around the house","done":s.house_tasks.living_light and s.house_tasks.bathroom_light}]})
@@ -918,7 +978,7 @@ func update_statuses() -> void:
 			child.queue_free()
 		status_icons.clear()
 		for id in active:
-			var button=Button.new()
+			var button=StatusButton.new()
 			button.custom_minimum_size=Vector2(44,44)
 			_button_style(button,false,true)
 			button.add_child(status_picture("status_"+id))
@@ -973,6 +1033,12 @@ func update() -> void:
 	for slot in inventory_slots:
 		if is_instance_valid(slot): _button_style(slot,slot.get_meta("item_id","")==active and active!="",true)
 	for quest in quest_lines():
+		for index in range(quest.tasks.size()):
+			var task_key="%s:%d"%[quest.id,index]
+			if quest.tasks[index].done and task_key not in completed_tasks:
+				completed_tasks.append(task_key)
+				quest_unread=true
+				pulse_time=0
 		if quest.id not in known_quests:
 			known_quests.append(quest.id)
 			quest_unread=true
@@ -997,6 +1063,8 @@ func update() -> void:
 	attunement.text = "MANA  %d" % int(s.mana)
 	energy_bar.value = s.energy
 	mana_bar.value = s.mana/60.0*100.0
+	hydration_bar.value=s.needs.hydration()*100
+	nourishment_bar.value=s.needs.nourishment()*100
 	var p = s.player_position
 	region.text = "Briar Glen town" if game.world.Grid.rect(game.world.SQUARE.position,game.world.SQUARE.size).grow(350).has_point(p) else "The south meadow" if p.y>1850 else "The hidden clearing" if p.distance_to(game.world.Grid.center(game.world.SHIP_CELL))<220 else "The old south farm"
 	if game.world.Grid.rect(game.world.SQUARE.position,game.world.SQUARE.size).has_point(p): region.text="Briar Glen town square"

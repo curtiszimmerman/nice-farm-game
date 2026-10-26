@@ -1,7 +1,7 @@
 extends Control
 
 const Art=preload("res://art.gd")
-const DAYS=["Root","Ember","Tide","Stone","Gale","Star","Veil"]
+const DAYS=preload("res://weekday_magic.gd").DAYS
 const PURPLE_NAME="Sael"
 const WHITE_NAME="Iri"
 const YEAR_DAYS=112.0
@@ -50,11 +50,13 @@ func _draw() -> void:
 		draw_set_transform(Vector2(128,168),eased*TAU/7.0)
 		Art.sprite(self,"calendar_ring"+str(weekday(previous_day)),Vector2(-96,-96),Vector2(192,192),Color(1,1,1,1-eased))
 		draw_set_transform(Vector2.ZERO)
-	Art.sprite(self,"calendar_ring"+str(weekday(state.day)),Vector2(32,72),Vector2(192,192),Color(1,1,1,smoothstep(0.0,1.0,transition)))
+	draw_set_transform(Vector2(128,168),(smoothstep(0.0,1.0,transition)-1)*TAU/7.0)
+	Art.sprite(self,"calendar_ring"+str(weekday(state.day)),Vector2(-96,-96),Vector2(192,192),Color(1,1,1,smoothstep(0.0,1.0,transition)))
+	draw_set_transform(Vector2.ZERO)
 	Art.sprite(self,"season_"+state.season_name(),Vector2(88,162),Vector2(20,20))
 	var font=preload("res://pixel_ui.gd").font()
 	draw_string(font,Vector2(64,62),PURPLE_NAME,HORIZONTAL_ALIGNMENT_LEFT,-1,12,Color("ccb0ef"))
 	draw_string(font,Vector2(158,62),WHITE_NAME,HORIZONTAL_ALIGNMENT_LEFT,-1,12,Color("f5eccc"))
-	draw_set_transform(Vector2(128,345),pendulum_angle(state.minute))
-	Art.sprite(self,"clock_pendulum",Vector2(-8,0),Vector2(16,32))
+	draw_set_transform(Vector2(128,342-128*cos(0.5)),pendulum_angle(state.minute))
+	Art.sprite(self,"clock_pendulum",Vector2(-32,0),Vector2(64,128))
 	draw_set_transform(Vector2.ZERO)
