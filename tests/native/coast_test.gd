@@ -28,6 +28,8 @@ func run() -> void:
 	game.state.minute=1260
 	check("lantern_ray" in game.fish_pool("ocean_tip") and "lantern_ray" not in game.fish_pool("ocean"),"the rare lantern ray is exclusive to the jetty's sea end at night")
 	var catches={}
+	game.state.fishing_pole=1
+	game.state.assign_active("primary","fishing_pole")
 	game.fishing_rng.seed=31
 	for i in range(500):
 		game.start_fishing("ocean_tip")

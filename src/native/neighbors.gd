@@ -1,6 +1,7 @@
 extends RefCounted
 
 const PEOPLE=[
+	{"id":"priest","name":"Brother Aven","role":"KEEPER OF THE TEMPLE GARDEN","cell":Vector2i(53,57),"coat":"c4c2a3","hair":"49372d","skin":"75523d"},
 	{"id":"astronomer","name":"Saeren","role":"MASTER OBSERVER","cell":Vector2i(31,14),"coat":"586b9b","hair":"d0cdc4","skin":"b3927d"},
 	{"id":"farmer_mother","name":"Elin Reed","role":"ORCHARD GRAFTER","cell":Vector2i(103,47),"coat":"a88558","hair":"41332d","skin":"a77b59"},
 	{"id":"farmer_father","name":"Jory Reed","role":"EAST FARMER","cell":Vector2i(104,47),"coat":"71855b","hair":"775439","skin":"c59a76"},
@@ -14,6 +15,9 @@ const PEOPLE=[
 	{"id":"woodcutter","name":"Rowan","role":"FOREST WOODCUTTER","cell":Vector2i(29,79),"coat":"59764d","hair":"8d4e36","skin":"b98b67"}
 ]
 const BUILDINGS=[
+	{"cell":Vector2i(50,52),"tiles":Vector2i(7,5),"roof":"667e78","kind":"temple"},
+	{"cell":Vector2i(43,54),"tiles":Vector2i(4,3),"roof":"7c8270","kind":"cottage","resident":"priest"},
+	{"cell":Vector2i(43,59),"tiles":Vector2i(2,2),"roof":"7c8270","kind":"cabin","resident":"priest_outhouse"},
 	{"cell":Vector2i(28,10),"tiles":Vector2i(6,4),"roof":"65808c","kind":"observatory","visual_height":224},
 	{"cell":Vector2i(100,42),"tiles":Vector2i(7,5),"roof":"9d6c4b","kind":"reed_farm"},
 	{"cell":Vector2i(88,24),"tiles":Vector2i(5,5),"roof":"827058","kind":"windmill","visual_height":240},
@@ -28,6 +32,9 @@ const FIELDS=[Rect2i(99,50,5,6),Rect2i(106,50,5,6)]
 const BENCHES=[Vector2i(59,44),Vector2i(62,44)]
 const FLOWERS=[Vector2i(58,46),Vector2i(58,47),Vector2i(65,46),Vector2i(65,47),Vector2i(62,50)]
 const ROUTES=[
+	[Vector2i(53,46),Vector2i(53,57)],
+	[Vector2i(53,57),Vector2i(45,57)],
+	[Vector2i(45,57),Vector2i(45,61),Vector2i(44,61)],
 	[Vector2i(69,38),Vector2i(64,38),Vector2i(64,44)],
 	[Vector2i(79,48),Vector2i(79,50),Vector2i(72,50),Vector2i(72,57)],
 	[Vector2i(75,65),Vector2i(75,67),Vector2i(83,67),Vector2i(83,57)],
@@ -37,6 +44,7 @@ const ROUTES=[
 ]
 const NAMES={"observatory":"Saeren's observatory","reed_farm":"Reed family farm","windmill":"Bell's windmill","mill_home":"Bell family home","smithy":"Dain's smithy","tavern":"The Wayward Wren","bakery":"Corin's bakery","woodcutter":"Rowan's cabin"}
 const STORIES={
+	"priest":"Brother Aven|The bees don't care whether a hymn's in tune. I find that comforting. I keep the garden here, and a light for anyone who needs somewhere quiet. Before I came to Briar Glen I tended the roadside shrines. These days a shorter walk suits me, though I still keep a kettle ready for travelers.",
 	"astronomer":"Saeren|You came from the stars. No, don't look so alarmed. I was at the eyepiece when your light crossed the sky. It turned against the fall, twice. Stones don't do that. I don't pretend to understand what carried you, but I've spent fifty years learning the difference between what I see and what I expect to see. Your secret is safe in this room.",
 	"woodcutter":"Rowan|My mother taught me these woods. I'd like somebody else's daughter to know them too.",
 	"farmer_mother":"Elin Reed|Grafting trees is mostly persuading two stubborn things to get along. Jory says that's how we met. We brought a handful of cuttings when the river took our old orchard. Corin kept them alive in his warm back room that first winter. These trees have quite a few people to thank.",
@@ -70,14 +78,29 @@ static func talk(game: Node2D,id: String) -> bool:
 	if id.begins_with("farmer_"): working=game.world==game.outdoors and game.state.player_position.x>95*32
 	var text=story[1] if working else OFF_DUTY.get(id,story[1])
 	var choices=[]
+	if id=="priest" and not game.state.beehive_known:
+		choices.append(["Learn beehive blueprint · 2 silver ingots",func():
+			if game.state.silver_bars<2:
+				game.dialog("Brother Aven","A HOME FOR THE BEES","Two silver ingots for the temple fund, when you can spare them. I'll show you how to give a swarm a sound home. No hurry; the bees have their own calendar.")
+			else:
+				game.state.silver_bars-=2
+				game.state.beehive_known=true
+				game.state.change_friendship("priest",20)
+				game.save_visit()
+				game.dialog("Brother Aven","A HOME FOR THE BEES","Here are the plans. Keep the entrance out of the prevailing wind and leave room to work behind the hive. Most of beekeeping is learning when to leave them alone.")])
 	if id=="miller_wife":
 		if game.state.ladder_returned: text="There you are! That ladder's back where it belongs. Next time Nessa needs to borrow it, she can try asking."
 		elif game.state.ladder>0:
 			choices.append(["I found your ladder.",game.return_bell_ladder])
-		else: choices.append(["I heard you're missing a ladder?",game.ask_bell_ladder])
-	if id=="miller_daughter" and not game.state.ladder_returned:
+		elif game.state.ladder_clue: choices.append(["I heard you're missing a ladder?",game.ask_bell_ladder])
+		else:
+			text+=" You haven't happened to see a ladder, have you? Mine's gone missing. Nessa was asking about aerials this morning. Perhaps she knows something."
+			game.state.ladder_clue=true
+			game.state.ladder_requested=true
+	if id=="miller_daughter" and game.state.ladder_requested and not game.state.ladder_returned:
 		choices.append(["Have you seen your mother's ladder?",func():
 			game.state.ladder_requested=true
+			game.state.ladder_located=true
 			game.dialog("Nessa Bell","A BORROWED LADDER","Oh. Mum noticed? I needed it to get the aerial above the shed roof. Meant to put it back before she missed it. It's leaning inside our tool shed, east of the house. Would you take it back? I'll go and apologise.")
 		])
 	if id=="baker" and working:

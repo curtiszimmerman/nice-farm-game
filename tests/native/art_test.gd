@@ -41,6 +41,7 @@ func run() -> void:
 	check(game.outdoors.bushes.size()>5,"bush sprites soften the foot of the mountain")
 	check(game.outdoors.bushes.any(func(cell): return cell.distance_to(game.outdoors.MOSS_ENCOUNTER_CELL)<=4),"bushes are visible around the first trail encounter")
 	for building in game.outdoors.buildings:
+		game.state.minute=780
 		game.enter_building(building.id)
 		for item in game.world.furnishings:
 			var id=Art.furniture_id(item)

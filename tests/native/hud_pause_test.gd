@@ -43,7 +43,8 @@ func run() -> void:
 	check(game.ui.quick_tray.modulate.a<0.3,"quick slots fade when they cover the avatar")
 	var w=game.outdoors
 	game.state.watering_can=1
-	game.state.assign_slot(0,"watering_can")
+	game.state.fishing_pole=1
+	game.state.assign_slot(0,"fishing_pole")
 	game.select_quick_slot(0)
 	var dock_clear=true
 	for x in range(w.JETTY_CELLS.position.x,w.JETTY_CELLS.end.x):
@@ -52,7 +53,7 @@ func run() -> void:
 		game.interact()
 		if game.activity!="fishing" or game.state.water!=0 or w.at_pond_edge(game.state.player_position): dock_clear=false
 		game.activity=""
-	check(dock_clear,"every dock cell fishes while an armed can cannot steal the action")
+	check(dock_clear,"every dock cell supports pole fishing without triggering a can refill")
 	check(w.fence_mask(Vector2i(9,46))==3 and not w.blocked(w.Grid.center(Vector2i(14,46))),"fence rails connect across an open walkable gate")
 	var minute=game.state.minute
 	var elapsed=game.elapsed

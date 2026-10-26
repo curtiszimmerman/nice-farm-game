@@ -24,10 +24,11 @@ func run() -> void:
 	check(enough,"sixty cave seeds provide enough ore and stone for the first crucible and three bars")
 	var s=game.State.new()
 	s.pickaxe=1
+	s.bread=1
 	s.assign_active("primary","pickaxe")
 	for id in s.Items.CATALOG:
 		if id in ["copper","stones"]: continue
-		if s.carried_slots()<11: s.set(id,1)
+		if s.carried_slots()<s.INVENTORY_SLOTS-1: s.set(id,1)
 	var energy=s.energy
 	check(not s.mine("copper") and s.copper==0 and s.stones==0 and s.energy==energy,"ore mining reserves room for both ore and its stone before spending energy")
 	s.bread=0

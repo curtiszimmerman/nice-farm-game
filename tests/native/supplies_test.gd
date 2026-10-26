@@ -13,16 +13,16 @@ func _initialize() -> void:
 	s.chest_transfer(4,"",2)
 	check(s.seeds==8 and s.chest[4].count==2,"withdraw only the selected quantity")
 	check(not s.chest_transfer(4,"",9),"reject quantities above the available stack")
-	s.quick_slots[0]="watering_can"
+	s.assign_active("primary","")
 	s.farm(0)
 	check(not s.plots[0].tilled,"a carried hoe cannot till unless selected")
-	s.quick_slots[0]="hoe"
+	s.assign_active("primary","hoe")
 	s.farm(0)
 	check(s.plots[0].tilled and s.energy==98,"selected hoe tills at doubled energy cost")
-	s.quick_slots[0]="seeds"
+	s.assign_active("primary","seeds")
 	s.farm(0)
 	s.chest_transfer(1)
-	s.quick_slots[0]="watering_can"
+	s.assign_active("primary","watering_can")
 	s.water=0
 	s.farm(0)
 	check(not s.plots[0].watered,"an empty watering can cannot water")

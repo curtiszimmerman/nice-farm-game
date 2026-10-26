@@ -3,7 +3,7 @@ extends RefCounted
 const Grid = preload("res://grid.gd")
 const Items = preload("res://items.gd")
 
-# Provisional calendar length for development time jumps, pending final design.
+# Four weeks in every season.
 const DEVELOPMENT_SEASON_DAYS = 28
 
 func season_name() -> String:
@@ -34,6 +34,22 @@ var ladder=0
 var ladder_requested=false
 var ladder_taken=false
 var ladder_returned=false
+var ladder_clue=false
+var ladder_located=false
+const Shop=preload("res://shop_stock.gd")
+var shop_season=-1
+var shop_remaining: Dictionary={}
+var met_people: Array=["vale"]
+var friendships: Dictionary={}
+var learned_spells: Array=[]
+var bloom_harvests: Dictionary={}
+var bloom_cells: Array=[]
+var cave_level=0
+var quick_row=0
+var fishing_pole=0
+var coal=0
+var silver_bars=0
+var beehive_known=false
 var forage_harvests: Dictionary={}
 var star_seeds = 0
 var star_bulbs = 0
@@ -90,8 +106,8 @@ var cave_moth_chrysalis=0
 var golden_sparkfire_bloom=0
 var mayor_due=-1.0
 var house_tasks={"sofa":false,"bed":false,"guest_bed":false,"radio":false,"living_light":false,"bathroom_light":false}
-const INVENTORY_SLOTS=12
-const EXTRA_ITEMS=["pot","pan","fish_sticks","fish_stew","health_elixir","rations","light_bulbs","moon_pike","sea_sprat","blue_mackerel","storm_eel","pickaxe","stones","cave_moth_chrysalis","golden_sparkfire_bloom","lantern_ray","axe","wood","bread","copper_bars","berries","apples","ladder"]
+const INVENTORY_SLOTS=16
+const EXTRA_ITEMS=["pot","pan","fish_sticks","fish_stew","health_elixir","rations","light_bulbs","moon_pike","sea_sprat","blue_mackerel","storm_eel","pickaxe","stones","cave_moth_chrysalis","golden_sparkfire_bloom","lantern_ray","axe","wood","bread","copper_bars","berries","apples","ladder","fishing_pole","coal","silver_bars"]
 const CROP_MINUTES=4320.0
 const RECIPES={"fish_sticks":{"utensil":"pan","ingredients":{"fish":1}},"fish_stew":{"utensil":"pot","ingredients":{"turnips":1,"star_bulbs":1,"fish":1}}}
 var invitation_day=1
@@ -159,16 +175,19 @@ func accept_tool(id: String) -> bool:
 	return true
 
 func deliver_firewood() -> bool:
-	if not firewood_requested or firewood_given or wood<6: return false
+	if not firewood_requested or firewood_given or wood<6 or (not can_carry("fishing_pole") and wood!=6): return false
 	wood-=6
 	money+=25
+	fishing_pole+=1
+	change_friendship("keeper",25)
 	firewood_given=true
 	clear_empty_slots()
 	return true
 
-func is_tired() -> bool: return awake_minutes>1440.0
+func tired_days() -> int: return int(floor(awake_minutes/1440.0))
+func is_tired() -> bool: return tired_days()>0
 
-func energy_cost(base: float) -> float: return base*(2.0 if is_tired() else 1.0)
+func energy_cost(base: float) -> float: return base*(tired_days()+1)
 
 func spend_energy(base: float) -> bool:
 	var cost=energy_cost(base)
@@ -176,7 +195,7 @@ func spend_energy(base: float) -> bool:
 	energy-=cost
 	return true
 
-func energy_recovery(base: float) -> float: return base*(0.5 if is_tired() else 1.0)
+func energy_recovery(base: float) -> float: return base/(tired_days()+1)
 
 func restore_energy(base: float) -> void:
 	energy=minf(100,energy+energy_recovery(base))
@@ -184,17 +203,46 @@ func restore_energy(base: float) -> void:
 func active_statuses() -> Array:
 	return (["tired"] if is_tired() else [])+status_effects.keys()
 
+func learn_spell(id: String) -> bool:
+	if id in learned_spells: return false
+	if id=="hearthmend":
+		if golden_sparkfire_bloom<1: return false
+		golden_sparkfire_bloom-=1
+	elif id=="emberthread":
+		if cave_moth_chrysalis<1 or wood<10: return false
+		cave_moth_chrysalis-=1
+		wood-=10
+	else: return false
+	learned_spells.append(id)
+	change_friendship("iona",15)
+	clear_empty_slots()
+	return true
+
+func cast_healing() -> bool:
+	if "hearthmend" not in learned_spells or mana<10 or health>=100: return false
+	mana-=10
+	health=minf(100,health+15)
+	return true
+
 func apply_poison() -> void:
 	if status_effects.has("poison"): status_effects.poison.remaining=60.0
 	else: status_effects.poison={"remaining":60.0,"tick":5.0}
 
 func advance_statuses(minutes: float,sleeping: bool) -> void:
 	if sleeping:
-		var reduced=minf(minutes,maxf(0,preload("res://statuses.gd").REST_MINUTES-sleep_minutes)) if is_tired() else 0.0
-		restore_energy(reduced*0.2)
-		sleep_minutes+=minutes
-		if sleep_minutes>=preload("res://statuses.gd").REST_MINUTES: awake_minutes=0
-		restore_energy((minutes-reduced)*0.2)
+		var remaining=minutes
+		while remaining>0.000001:
+			if sleep_minutes>=preload("res://statuses.gd").REST_MINUTES:
+				awake_minutes=0
+				restore_energy(remaining*0.2)
+				sleep_minutes+=remaining
+				break
+			var span=minf(remaining,minf(360-sleep_minutes,1440-fmod(awake_minutes,1440)))
+			restore_energy(span*0.2)
+			awake_minutes+=span
+			sleep_minutes+=span
+			remaining-=span
+			if sleep_minutes>=360: awake_minutes=0
 	else:
 		awake_minutes+=minutes
 		sleep_minutes=0
@@ -295,14 +343,16 @@ func ripe(index: int) -> bool:
 
 func plot_moisture(index: int) -> float:
 	var plot=plots[index]
-	if plot.watered: return 1.0
-	return 1.0-minute/360.0 if plot.water_day>0 and plot.water_day==day-1 and minute<360 else 0.0
+	if not plot.watered or plot.water_day!=day: return 0.0
+	return 1.0-clampf((minute-1140.0)/300.0,0.0,1.0)
 
 func clear_empty_slots() -> void:
 	if inventory_selection!="" and not available_action(inventory_selection): inventory_selection=""
 	if auxiliary_selection!="" and not available_action(auxiliary_selection): auxiliary_selection=""
 	for i in range(quick_slots.size()):
 		if quick_slots[i]!="" and not available_action(quick_slots[i]): quick_slots[i]=""
+	sync_inventory()
+	for i in range(8): quick_slots[i]=inventory_order[quick_row*8+i]
 
 func active_item(channel: String="") -> String:
 	clear_empty_slots()
@@ -321,17 +371,34 @@ func assign_active(channel: String,id: String) -> bool:
 	return true
 
 func select_inventory(id: String) -> bool:
-	if not Items.CATALOG.has(id) or int(get(id))<1: return false
+	if not available_action(id): return false
 	inventory_selection=id
 	selected_slot=8
 	return true
 
 func assign_slot(index: int,id: String) -> bool:
 	if index<0 or index>=8 or (id!="" and not available_action(id)): return false
-	if id!="":
-		for i in range(quick_slots.size()):
-			if quick_slots[i]==id: quick_slots[i]=""
-	quick_slots[index]=id
+	sync_inventory()
+	var target=quick_row*8+index
+	if id=="": inventory_order[target]=""
+	elif not move_inventory(id,target):
+		if not place_shortcut(id,target): return false
+	clear_empty_slots()
+	return true
+
+func cycle_inventory_row() -> void:
+	quick_row=1-quick_row
+	clear_empty_slots()
+
+func place_shortcut(id: String,index: int) -> bool:
+	if not Skills.known(self,id) or index<0 or index>=INVENTORY_SLOTS: return false
+	sync_inventory()
+	if id in inventory_order: return move_inventory(id,index)
+	if inventory_order[index]!="":
+		var empty=inventory_order.find("")
+		if empty<0: return false
+		inventory_order[empty]=inventory_order[index]
+	inventory_order[index]=id
 	return true
 
 func farm(index: int) -> String:
@@ -378,6 +445,7 @@ func tend(index: int) -> String:
 		p.watered = false
 		set(p.crop,int(get(p.crop))+1)
 		harvested += 1
+		if harvested==1: change_friendship("moss",20)
 		return "+1 %s. A small, very real victory." % Items.CATALOG[p.crop].name.to_lower()
 	if not p.tilled:
 		energy-=cost
@@ -422,17 +490,13 @@ func sale_value() -> int:
 	return earned
 
 func buy_seeds() -> bool:
-	if money < 10 or not can_carry("seeds"):
-		return false
-	money -= 10
-	seeds += 5
-	return true
+	return purchase("seeds")
 
 func mine(resource: String="copper") -> bool:
-	if resource not in ["copper","stones"] or active_item()!="pickaxe" or pickaxe<1 or not can_carry(resource):
+	if resource not in ["copper","stones","coal"] or active_item()!="pickaxe" or pickaxe<1 or not can_carry(resource):
 		return false
-	var drops=["copper","stones"] if resource=="copper" else ["stones"]
-	var slots=carried_slots()
+	var drops=["copper","stones"] if resource=="copper" else [resource]
+	var slots=occupied_inventory_slots()
 	for id in drops:
 		if int(get(id))==0: slots+=1
 	if slots>INVENTORY_SLOTS: return false
@@ -472,7 +536,7 @@ func storage_transfer(storage_name: String,index: int,carried_id: String="",quan
 	var amount=available if quantity==-1 else quantity
 	if amount<1 or amount>available: return false
 	var incoming=stored.get("id","")
-	var slots=carried_slots()
+	var slots=occupied_inventory_slots()
 	if incoming!="" and int(get(incoming))==0: slots+=1
 	if carried_id!="" and amount==available: slots-=1
 	if slots>INVENTORY_SLOTS: return false
@@ -500,9 +564,12 @@ func carried_slots() -> int:
 		if int(get(id))>0: count+=1
 	return count
 
+func occupied_inventory_slots() -> int:
+	return carried_slots()+inventory_order.filter(func(id):return Skills.CATALOG.has(id)).size()
+
 func sync_inventory() -> void:
 	for i in range(inventory_order.size()):
-		if inventory_order[i]!="" and int(get(inventory_order[i]))<=0: inventory_order[i]=""
+		if inventory_order[i]!="" and not available_action(inventory_order[i]): inventory_order[i]=""
 	for id in Items.CATALOG:
 		if int(get(id))<=0 or id in inventory_order: continue
 		var last=-1
@@ -514,7 +581,7 @@ func sync_inventory() -> void:
 func inventory_cells() -> Array:
 	sync_inventory()
 	var cells=[]
-	for id in inventory_order: cells.append({} if id=="" else {"id":id,"count":int(get(id))})
+	for id in inventory_order: cells.append({} if id=="" else {"id":id,"count":0 if Skills.CATALOG.has(id) else int(get(id))})
 	return cells
 
 func move_inventory(id: String,index: int) -> bool:
@@ -526,7 +593,7 @@ func move_inventory(id: String,index: int) -> bool:
 	return true
 
 func can_carry(id: String) -> bool:
-	return Items.CATALOG.has(id) and (int(get(id))>0 or carried_slots()<INVENTORY_SLOTS)
+	return Items.CATALOG.has(id) and (int(get(id))>0 or occupied_inventory_slots()<INVENTORY_SLOTS)
 
 func tidy_house(task: String) -> bool:
 	if not house_tasks.has(task) or house_tasks[task]: return false
@@ -538,11 +605,35 @@ func tidy_house(task: String) -> bool:
 	return true
 
 func buy_utensil(id: String) -> bool:
-	if id not in ["pot","pan"] or money<20 or id in purchased_utensils or not can_carry(id): return false
-	money-=20
-	set(id,1)
-	purchased_utensils.append(id)
+	return id in ["pot","pan"] and purchase(id)
+
+func stock(id: String) -> int:
+	var season=int((day-1)/28.0)
+	if shop_season!=season:
+		shop_season=season
+		shop_remaining=Shop.amounts()
+	return int(shop_remaining.get(id,0))
+
+func purchase(id: String) -> bool:
+	if not Shop.CATALOG.has(id) or stock(id)<=0: return false
+	var offer=Shop.CATALOG[id]
+	if money<offer.price or not can_carry(id): return false
+	sync_inventory()
+	money-=offer.price
+	set(id,int(get(id))+offer.count)
+	shop_remaining[id]-=1
 	return true
+
+func meet_person(id: String) -> void:
+	if id not in met_people: met_people.append(id)
+
+func change_friendship(id: String,amount: int) -> void:
+	meet_person(id)
+	friendships[id]=clampi(int(friendships.get(id,0))+amount,-100,100)
+
+func relationship(id: String) -> String:
+	var score=int(friendships.get(id,0))
+	return "Hated" if score<=-60 else "Disliked" if score<=-20 else "Loved" if score>=60 else "Liked" if score>=20 else "Neutral"
 
 func ingredient_count(id: String) -> int:
 	var count=0
@@ -602,22 +693,20 @@ func mayor_available() -> bool:
 	return invited and not met_mayor and start>=0 and total()>=start and total()<start+240 and abandoned_day.get("mayor",0)!=day
 
 func buy_star_seeds() -> bool:
-	if money<12 or not can_carry("star_seeds"): return false
-	money-=12
-	star_seeds+=3
-	return true
+	return purchase("star_seeds")
 
 func meet_mayor() -> bool:
 	if not mayor_available():
 		return false
 	met_mayor = true
+	change_friendship("mayor",10)
 	return true
 
 func to_dict() -> Dictionary:
-	sync_inventory()
+	clear_empty_slots()
 	var supplies={}
 	for id in EXTRA_ITEMS: supplies[id]=get(id)
-	return {"version": 15,"inventory_order":inventory_order.duplicate(),"woodcutter_axe_given":woodcutter_axe_given,"cave_pickaxe_taken":cave_pickaxe_taken,"cave_intro_seen":cave_intro_seen,"auxiliary_selection":auxiliary_selection,"world_seed":world_seed,"inventory_selection":inventory_selection,"firewood_requested":firewood_requested,"firewood_given":firewood_given,"felled_trees":felled_trees.duplicate(),"day": day, "minute": minute, "money": money,"magic_learned":magic_learned,
+	return {"version":16,"town":preload("res://town_progress.gd").snapshot(self),"inventory_order":inventory_order.duplicate(),"woodcutter_axe_given":woodcutter_axe_given,"cave_pickaxe_taken":cave_pickaxe_taken,"cave_intro_seen":cave_intro_seen,"auxiliary_selection":auxiliary_selection,"world_seed":world_seed,"inventory_selection":inventory_selection,"firewood_requested":firewood_requested,"firewood_given":firewood_given,"felled_trees":felled_trees.duplicate(),"day": day, "minute": minute, "money": money,"magic_learned":magic_learned,
 		"forage_harvests":forage_harvests.duplicate(),"ladder_requested":ladder_requested,"ladder_taken":ladder_taken,"ladder_returned":ladder_returned,
 		"awake_minutes":awake_minutes,"sleep_minutes":sleep_minutes,"status_effects":status_effects.duplicate(true),
 		"crucible_known":crucible_known,"crucibles":crucibles.duplicate(true),
@@ -636,8 +725,9 @@ func to_dict() -> Dictionary:
 		"plots": plots.duplicate(true)}
 
 func restore(data: Variant) -> bool:
-	if not data is Dictionary or data.get("version") != 15:
+	if not data is Dictionary or data.get("version") != 16:
 		return false
+	if not preload("res://town_progress.gd").valid(data.get("town")): return false
 	for field in ["ladder_requested","ladder_taken","ladder_returned"]:
 		if not data.get(field) is bool: return false
 	if data.ladder_returned and (not data.ladder_taken or not data.ladder_requested): return false
@@ -679,7 +769,7 @@ func restore(data: Variant) -> bool:
 		if not id is String or id not in ["crew_supplies","restore_farmhouse","first_harvest","meet_wizard","keeper_firewood","bells_ladder"] or id in quests: return false
 		quests.append(id)
 	for id in data.inventory_order:
-		if not id is String or (id!="" and (not Items.CATALOG.has(id) or id in ordered)): return false
+		if not id is String or (id!="" and ((not Items.CATALOG.has(id) and not Skills.CATALOG.has(id)) or id in ordered)): return false
 		if id!="": ordered.append(id)
 	if not _number(data.get("world_seed")) or data.world_seed<1 or data.world_seed>2147483646 or data.world_seed!=floor(data.world_seed): return false
 	for field in ["inventory_selection","auxiliary_selection"]:
@@ -700,9 +790,9 @@ func restore(data: Variant) -> bool:
 	if not data.get("cave_chrysalis_taken") is bool or not _number(data.get("sparkfire_picked_day")) or data.sparkfire_picked_day<0 or data.sparkfire_picked_day!=floor(data.sparkfire_picked_day): return false
 	if not data.get("cave_broken") is Array or not data.get("cave_defeated") is Array: return false
 	for id in data.cave_broken:
-		if not id is String or not id.is_valid_int() or int(id)<0 or int(id)>=18: return false
+		if not id is String or not id.is_valid_int() or int(id)<0 or int(id)>=30000: return false
 	for id in data.cave_defeated:
-		if not _number(id) or id not in [0,1,2]: return false
+		if not _number(id) or id!=floor(id) or int(id)<0 or int(id)>299: return false
 	if not data.get("cave_barrel") is Array or data.cave_barrel.size()!=4: return false
 	for stack in data.cave_barrel:
 		if not valid_stack(stack): return false
@@ -748,7 +838,8 @@ func restore(data: Variant) -> bool:
 		var quantity=data.supplies[id] if id in EXTRA_ITEMS else data[id]
 		if quantity>0: occupied+=1
 	if occupied>INVENTORY_SLOTS: return false
-	if not data.get("location") in ["","home","moss","finch","mayor","tavi","iona","radio","store","hall","veteran","assistant","ship","cave","keeper","reed_farm","windmill","mill_home","mill_shed","smithy","tavern","bakery","woodcutter","observatory"]: return false
+	if occupied+data.inventory_order.filter(func(id):return Skills.CATALOG.has(id)).size()>INVENTORY_SLOTS: return false
+	if not data.get("location") in ["","home","moss","finch","mayor","tavi","iona","radio","store","hall","veteran","assistant","ship","cave","keeper","reed_farm","windmill","mill_home","mill_shed","smithy","tavern","bakery","woodcutter","observatory","temple","priest","priest_outhouse"]: return false
 	if not data.get("chest") is Array or data.chest.size()!=18 or not data.get("abandoned_day") is Dictionary: return false
 	for stack in data.chest:
 		if not stack is Dictionary: return false
@@ -783,6 +874,7 @@ func restore(data: Variant) -> bool:
 	for field in ["minute", "mana", "energy", "invited", "met_mayor", "delivered", "pause_mode","health","equipped","selected_seed","location"]:
 		set(field, data[field])
 	player_position = Vector2(data.x, data.y)
+	preload("res://town_progress.gd").restore(self,data.town)
 	outdoor_position=Vector2(data.outdoor_x,data.outdoor_y)
 	plots = data.plots.duplicate(true)
 	chest=data.chest.duplicate(true)
@@ -822,7 +914,7 @@ func restore(data: Variant) -> bool:
 	magic_learned=data.magic_learned
 	cave_seed=int(data.cave_seed)
 	cave_broken=data.cave_broken.duplicate()
-	cave_defeated=data.cave_defeated.duplicate()
+	cave_defeated=data.cave_defeated.map(func(id):return int(id))
 	cave_barrel=data.cave_barrel.duplicate(true)
 	cave_chrysalis_taken=data.cave_chrysalis_taken
 	sparkfire_picked_day=int(data.sparkfire_picked_day)

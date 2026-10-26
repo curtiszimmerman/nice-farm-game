@@ -1,0 +1,70 @@
+extends SceneTree
+const Game=preload("res://game.gd")
+const Motion=preload("res://outdoor_motion.gd")
+var failed=false
+func check(ok: bool,label: String) -> void:
+	if ok: print("PASS: "+label)
+	else: failed=true; push_error("FAIL: "+label)
+func _initialize() -> void: call_deferred("run")
+func run() -> void:
+	var game=Game.new()
+	game.testing=true
+	root.add_child(game)
+	game.set_process(false)
+	preload("fixture.gd").explore(game,true)
+	game.state.met_mayor=true
+	game.state.minute=780
+	game.talk("miller_daughter")
+	check(not game.ui.modal_box.get_children().any(func(node):return node is Button and node.text.contains("ladder")),"Nessa has no unearned ladder question")
+	game.close_window()
+	game.ask_bell_ladder()
+	check(not game.ui.modal_box.get_child(2).text.to_lower().contains("shed"),"the initial ladder clue points to Nessa without giving away the shed")
+	game.close_window()
+	game.talk("miller_daughter")
+	var clue=game.ui.modal_box.get_children().filter(func(node):return node is Button and node.text.contains("ladder"))
+	check(clue.size()==1,"the ladder question unlocks after hearing the request")
+	if not clue.is_empty(): clue[0].pressed.emit()
+	check(game.state.ladder_located,"asking Nessa discovers where she left the ladder")
+	game.close_window()
+	for id in ["temple","priest","priest_outhouse"]:
+		game.enter_building(id)
+		check(game.current_room==id and not game.world.blocked(game.state.player_position),"new building has a clear entrance: "+id)
+		for cell in game.world.layout.work: check(not game.world._route(game.world.layout.entry,cell).is_empty(),"new building has reachable working space: "+id)
+		game.leave_building()
+	game.state.silver_bars=2
+	game.talk("priest")
+	var blueprint=game.ui.modal_box.get_children().filter(func(node):return node is Button and node.text.contains("beehive"))
+	if not blueprint.is_empty(): blueprint[0].pressed.emit()
+	check(game.state.beehive_known and game.state.silver_bars==0,"the priest teaches beehive plans for exactly two silver ingots")
+	game.close_window()
+	game.state.minute=1380
+	game.outdoors.update_villagers(0,true)
+	game.enter_building("moss")
+	check(game.current_room=="","a sleeping neighbor's front door stays locked")
+	game.state.change_friendship("moss",60)
+	game.enter_building("moss")
+	check(game.current_room=="moss","a loved neighbor permits entry at bedtime")
+	game.leave_building()
+	check(game.current_room=="","night locks never prevent leaving")
+	game.outdoors.refresh()
+	var flashes=game.outdoors.ambient.flashes.map(func(flash):return flash.position)
+	game.state.day+=1
+	game.outdoors.refresh()
+	check(flashes!=game.outdoors.ambient.flashes.map(func(flash):return flash.position),"a new night chooses new glint positions")
+	check(Motion.flash_alpha(-0.1)==0 and Motion.flash_alpha(0)==0 and Motion.flash_alpha(0.1)>0 and Motion.flash_alpha(0.5)==0,"each rotating flash is visible for less than half a second")
+	check(game.outdoors.sites.filter(func(site):return site.id=="sparkfire").size()==12,"rare dawn plants are distributed across the world")
+	check(game.outdoors.sites.filter(func(site):return site.id=="sparkfire").all(func(site):return not game.outdoors._route(game.Grid.SPAWN_CELL,site.cell).is_empty()),"every dawn plant can actually be reached")
+	check(game.outdoors.bushes.any(func(cell):return cell.x>80) and game.outdoors.bushes.any(func(cell):return cell.y>65),"bushes extend well beyond the mountain base")
+	game.state.wood=6
+	game.state.accept_firewood_task()
+	check(game.state.deliver_firewood() and game.state.fishing_pole==1,"the keeper rewards firewood with a fishing pole")
+	game.state.assign_active("primary","")
+	game.start_fishing("pond")
+	check(game.activity=="","fishing cannot start without selecting the pole")
+	game.state.assign_active("primary","fishing_pole")
+	game.start_fishing("pond")
+	check(game.activity=="fishing","selecting the rewarded pole permits fishing")
+	await game.sound.shutdown()
+	game.queue_free()
+	await process_frame
+	quit(1 if failed else 0)

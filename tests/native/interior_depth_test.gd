@@ -35,6 +35,7 @@ func run() -> void:
 	game.resting=0
 	game.leave_building()
 	game.state.minute=60
+	game.state.change_friendship("finch",60)
 	game.outdoors.update_villagers(0,true)
 	game.enter_building("finch")
 	var sleeper=game.world.villagers.finch

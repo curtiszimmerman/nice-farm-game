@@ -513,8 +513,11 @@ func open_character_inventory() -> void:
 	row.add_theme_constant_override("separation",26)
 	inventory_tabs.add_child(row)
 	var equipment=Control.new()
-	equipment.custom_minimum_size=Vector2(440,470)
-	row.add_child(equipment)
+	var equipment_frame=Control.new()
+	equipment_frame.custom_minimum_size=Vector2(330,355)
+	row.add_child(equipment_frame)
+	equipment_frame.add_child(equipment)
+	equipment.scale=Vector2.ONE*0.75
 	_label("EQUIPMENT",Vector2(160,0),12,GOLD,false,equipment)
 	for points in [[Vector2(96,334),Vector2(150,326)],[Vector2(344,334),Vector2(296,326)],[Vector2(344,178),Vector2(220,204)]]:
 		var line=Line2D.new()
@@ -556,11 +559,11 @@ func open_character_inventory() -> void:
 	var supplies=VBoxContainer.new()
 	row.add_child(supplies)
 	var heading=Label.new()
-	heading.text="SATCHEL · 12 SLOTS"
+	heading.text="SATCHEL · 16 SLOTS · TAB switches the active row"
 	heading.add_theme_color_override("font_color",GOLD)
 	supplies.add_child(heading)
 	var grid=GridContainer.new()
-	grid.columns=4
+	grid.columns=8
 	grid.add_theme_constant_override("h_separation",9)
 	grid.add_theme_constant_override("v_separation",9)
 	supplies.add_child(grid)
@@ -580,13 +583,13 @@ func open_character_inventory() -> void:
 					slot.accept_event())
 	var abilities=VBoxContainer.new()
 	abilities.custom_minimum_size.x=260
-	row.add_child(abilities)
+	supplies.add_child(abilities)
 	var title=Label.new()
 	title.text="SPELLS & SKILLS"
 	title.add_theme_color_override("font_color",GOLD)
 	abilities.add_child(title)
 	var scroll=ScrollContainer.new()
-	scroll.custom_minimum_size=Vector2(260,260)
+	scroll.custom_minimum_size=Vector2(600,170)
 	abilities.add_child(scroll)
 	var list=VBoxContainer.new()
 	list.size_flags_horizontal=Control.SIZE_EXPAND_FILL
@@ -611,8 +614,28 @@ func open_character_inventory() -> void:
 		list.add_child(button)
 		skill_buttons.append(button)
 	add_character_stats()
+	add_relationships()
 	inventory_tabs.current_tab=inventory_tab
 	inventory_tabs.tab_changed.connect(func(index): inventory_tab=index)
+
+func add_relationships() -> void:
+	var scroll=ScrollContainer.new()
+	scroll.name="People"
+	inventory_tabs.add_child(scroll)
+	var list=VBoxContainer.new()
+	list.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	scroll.add_child(list)
+	var names={}
+	for person in game.outdoors.people: names[person.id]=person.name
+	if game.state.met_people.is_empty():
+		var empty=Label.new()
+		empty.text="[ No one met yet ]"
+		list.add_child(empty)
+	for id in game.state.met_people:
+		var entry=Label.new()
+		entry.text="%s    ·    %s" % [names.get(id,id.capitalize()),game.state.relationship(id)]
+		entry.custom_minimum_size.y=36
+		list.add_child(entry)
 
 func add_character_stats() -> void:
 	var row=HBoxContainer.new()
@@ -629,6 +652,10 @@ func add_character_stats() -> void:
 		label.text=text
 		if text.begins_with("Experience"): stats_experience=label
 		stats.add_child(label)
+	if state.beehive_known:
+		var blueprint=Label.new()
+		blueprint.text="Beehive plans: learned"
+		stats.add_child(blueprint)
 	var scroll=ScrollContainer.new()
 	scroll.custom_minimum_size=Vector2(730,420)
 	row.add_child(scroll)
@@ -705,9 +732,9 @@ func item_slot(stack: Dictionary,pixels: int) -> Button:
 	slot.custom_minimum_size=Vector2.ONE*pixels
 	_button_style(slot)
 	if stack.is_empty(): return slot
-	var item=Items.CATALOG[stack.id]
+	var item=Items.CATALOG[stack.id] if Items.CATALOG.has(stack.id) else Skills.CATALOG[stack.id]
 	slot.set_meta("item_id",stack.id)
-	slot.tooltip_text="%s\n%s\n%s" % [item.name,item.description,item.action]
+	slot.tooltip_text="%s\n%s\n%s" % [item.name,item.description,item.get("action",item.get("kind",""))]
 	if Items.FOOD.has(stack.id):
 		var food=Items.FOOD[stack.id]
 		slot.tooltip_text+="\n+%d HP · +%s energy · +%d mana" % [food.health,str(game.state.energy_recovery(food.energy)),food.mana]
@@ -734,8 +761,9 @@ func open_chest(selected: String) -> void:
 	modal.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	modal.get_child(0).mouse_filter=Control.MOUSE_FILTER_IGNORE
 	root.move_child(quick_tray,-1)
-	modal.get_child(1).position=Vector2(160,100)
-	modal_box.get_child(2).custom_minimum_size.x=920
+	modal.get_child(1).position=Vector2(70,80)
+	modal.get_child(1).custom_minimum_size.x=1140
+	modal_box.get_child(2).custom_minimum_size.x=1080
 	if selected!="": modal_box.get_child(2).text="Selected: %s. Choose a chest slot to move or swap this stack." % Items.CATALOG[selected].name
 	var row=HBoxContainer.new()
 	row.add_theme_constant_override("separation",30)
@@ -748,10 +776,10 @@ func open_chest(selected: String) -> void:
 		var column=VBoxContainer.new()
 		row.add_child(column)
 		var label=Label.new()
-		label.text="CARRIED · 12 SLOTS" if side==0 else "STORAGE · %d SLOTS" % storage.size()
+		label.text="CARRIED · 16 SLOTS" if side==0 else "STORAGE · %d SLOTS" % storage.size()
 		column.add_child(label)
 		var grid=GridContainer.new()
-		grid.columns=6
+		grid.columns=8 if side==0 else 6
 		column.add_child(grid)
 		for i in range(game.State.INVENTORY_SLOTS if side==0 else storage.size()):
 			var stack: Dictionary=(carried[i] if i<carried.size() else {}) if side==0 else storage[i]
@@ -761,7 +789,9 @@ func open_chest(selected: String) -> void:
 				inventory_slots.append(button)
 				button.inventory_index=i
 				button.inventory_source=true
-				if not stack.is_empty(): button.pressed.connect(func(): game.chest_selected=stack.id; game.open_chest())
+				if not stack.is_empty():
+					if Skills.CATALOG.has(stack.id): button.pressed.connect(func():game.state.assign_active("primary",stack.id); update())
+					else: button.pressed.connect(func(): game.chest_selected=stack.id; game.open_chest())
 			else:
 				button.storage_source=game.storage_name
 				button.storage_index=i
@@ -803,7 +833,7 @@ func fit_quest_log() -> void:
 func quest_lines() -> Array:
 	var s=game.state
 	var lines=[{"id":"crew_supplies","title":"A quiet signal home","description":"Vale needs three copper bars for the repeater. Find someone in the settlement who can help refine ore, and keep food in the ship locker.","tasks":[{"text":"Learn Dain's crucible blueprint" if s.crucible_known else "Find a way to refine copper","done":s.crucible_known},{"text":"Build a stone crucible · 10 stone","done":not s.crucibles.is_empty()},{"text":"Bring Vale three copper bars","done":s.delivered},{"text":"Leave food in the ship locker","done":s.crew_fed_day>=s.day}]}]
-	if s.ladder_requested: lines.append({"id":"bells_ladder","title":"A ladder with legs","description":"Nessa borrowed Mrs. Bell's ladder for her radio aerial. Look in the tool shed east of the Bell family home, then return it to Mara.","tasks":[{"text":"Find the ladder in the Bell tool shed","done":s.ladder_taken},{"text":"Return the ladder to Mrs. Bell","done":s.ladder_returned}]})
+	if s.ladder_requested: lines.append({"id":"bells_ladder","title":"A ladder with legs","description":"Nessa borrowed the ladder for her aerial. Look in the Bell tool shed, then return it to Mara." if s.ladder_located else "Mrs. Bell's ladder has gone missing. Nessa was asking about radio aerials; ask whether she has seen it.","tasks":[{"text":"Find Mrs. Bell's ladder","done":s.ladder_taken},{"text":"Return the ladder to Mrs. Bell","done":s.ladder_returned}]})
 	if s.invited:
 		lines.append({"id":"restore_farmhouse","title":"A place to begin","description":"Make the abandoned farmhouse welcoming before Moss brings the mayor.","tasks":[{"text":"Remove the covers from the furniture","done":["sofa","bed","guest_bed","radio"].all(func(id):return s.house_tasks[id])},{"text":"Change the lightbulbs around the house","done":s.house_tasks.living_light and s.house_tasks.bathroom_light}]})
 	if s.met_mayor: lines.append({"id":"first_harvest","title":"Putting down roots","description":"Moss left tools and seeds. Work a small garden to provide for yourselves.","tasks":[{"text":"Harvest a moon turnip","done":s.harvested>0}]})
@@ -901,6 +931,7 @@ func update_statuses() -> void:
 	for id in active:
 		var status=preload("res://statuses.gd").CATALOG[id]
 		status_icons[id].tooltip_text=status.name+"\n"+status.description
+		if id=="tired": status_icons[id].tooltip_text+="\n%d days awake · costs ×%d · recovery ÷%d" % [game.state.tired_days(),game.state.tired_days()+1,game.state.tired_days()+1]
 		if id=="poison": status_icons[id].tooltip_text+="\n%d game minutes remaining" % ceili(game.state.status_effects.poison.remaining)
 	var width=maxi(0,active.size()*48-4)
 	status_strip.size=Vector2(width,44)

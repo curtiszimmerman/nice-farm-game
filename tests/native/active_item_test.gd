@@ -15,7 +15,7 @@ func run() -> void:
 	game.inventory()
 	check(game.ui.modal.mouse_filter==Control.MOUSE_FILTER_IGNORE,"inventory overlay lets drag events reach the quick bar")
 	game.ui.inventory_slots[0].pressed.emit()
-	check(game.window_open and game.state.active_item()=="hoe" and game.state.quick_slots.all(func(id):return id==""),"left click selects a carried item without assigning a quick slot or opening another menu")
+	check(game.window_open and game.state.active_item()=="hoe" and game.state.quick_slots[0]=="hoe","left click selects the carried item while its inventory position supplies the matching quick slot")
 	var target=game.ui.quick_buttons[3]
 	check(target.has_method("_drop_data"),"quick slots accept inventory drag data")
 	if target.has_method("_drop_data"):

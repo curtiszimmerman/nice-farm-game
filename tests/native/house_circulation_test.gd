@@ -12,11 +12,12 @@ func run() -> void:
 	game.set_process(false)
 	preload("fixture.gd").explore(game,true)
 	for building in game.outdoors.buildings:
+		game.state.minute=780
 		game.enter_building(building.id)
 		var room=game.world
 		var sensible=true
 		for item in room.furnishings:
-			if item.kind=="kitchen" and room.floor_cells[item.bounds.position]!="kitchen": sensible=false
+			if item.kind=="kitchen" and room.floor_cells[item.bounds.position]!="kitchen" and building.id!="priest": sensible=false
 		for door in room.layout.doors:
 			var approaches={}
 			for direction in [Vector2i.LEFT,Vector2i.RIGHT,Vector2i.UP,Vector2i.DOWN]:

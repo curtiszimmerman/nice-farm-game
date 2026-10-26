@@ -1,6 +1,9 @@
 extends RefCounted
 
 static func layout(id: String) -> Dictionary:
+	if id=="temple": return {"size":Vector2i(14,13),"areas":[["nave",Rect2i(1,1,6,11)],["hall",Rect2i(8,1,1,11)],["vestry",Rect2i(10,1,3,5)],["bathroom",Rect2i(10,7,3,5)]],"doors":[["nave","hall",Vector2i(7,9)],["vestry","hall",Vector2i(9,3)],["bathroom","hall",Vector2i(9,9)]],"entry":Vector2i(8,11),"exit":Vector2i(8,12),"furniture":[["table",Rect2i(2,1,3,1)],["chair",Rect2i(2,4,1,1)],["chair",Rect2i(4,4,1,1)],["chair",Rect2i(2,6,1,1)],["chair",Rect2i(4,6,1,1)],["chair",Rect2i(2,8,1,1)],["chair",Rect2i(4,8,1,1)],["bookshelf",Rect2i(10,1,2,1)],["desk",Rect2i(10,4,2,1)],["toilet",Rect2i(10,7,1,1)],["sink",Rect2i(12,7,1,1)],["bath",Rect2i(12,9,1,2)],["rug",Rect2i(3,3,2,3)],["art",Rect2i(2,0,2,1)]],"sites":[],"work":[Vector2i(3,2),Vector2i(5,10),Vector2i(11,3)]}
+	if id=="priest": return {"size":Vector2i(11,9),"areas":[["living",Rect2i(1,1,9,7)]],"doors":[],"entry":Vector2i(5,7),"exit":Vector2i(5,8),"furniture":[["bed",Rect2i(1,1,2,3)],["kitchen",Rect2i(8,1,2,1)],["table",Rect2i(5,4,2,1)],["chair",Rect2i(4,4,1,1)],["bookshelf",Rect2i(1,6,2,1)],["radio",Rect2i(9,6,1,1)],["rug",Rect2i(4,4,3,3)]],"sites":[["bed",Vector2i(3,2)],["radio",Vector2i(9,7)]],"work":[Vector2i(6,2),Vector2i(8,5)]}
+	if id=="priest_outhouse": return {"size":Vector2i(4,5),"areas":[["bathroom",Rect2i(1,1,2,3)]],"doors":[],"entry":Vector2i(2,3),"exit":Vector2i(2,4),"furniture":[["toilet",Rect2i(1,1,1,1)],["sink",Rect2i(2,1,1,1)]],"sites":[],"work":[Vector2i(1,2)]}
 	if id=="mill_shed": return {"size":Vector2i(8,7),"areas":[["workshop",Rect2i(1,1,6,5)]],"doors":[],"entry":Vector2i(4,5),"exit":Vector2i(4,6),"furniture":[["shed_rack",Rect2i(1,1,3,1)],["shed_workbench",Rect2i(1,4,2,1)],["shed_ladder",Rect2i(6,2,1,1)],["tools",Rect2i(1,2,1,2)],["cabinet",Rect2i(5,5,2,1)]],"sites":[["ladder",Vector2i(6,2)]],"work":[Vector2i(4,3)]}
 	if id=="observatory": return observatory()
 	if id=="tavern":

@@ -30,6 +30,7 @@ func run() -> void:
 	check(game.world==outside and outside.visible,"the interior exit returns to the same outdoor world")
 	var reached=true
 	for b in outside.buildings:
+		game.state.minute=780
 		game.enter_building(b.id)
 		if game.world.blocked(game.state.player_position): reached=false
 		game.leave_building()
@@ -50,6 +51,7 @@ func run() -> void:
 	check(game.world.villagers.has("finch") and game.world.villagers.finch.visible,"Finch works inside the radio club during club hours")
 	game.leave_building()
 	game.state.minute=60
+	game.state.change_friendship("finch",60)
 	outside.update_villagers(0.0,true)
 	game.enter_building("finch")
 	check(game.world.villagers.finch.visible and game.world.villagers.finch.data.sleeping,"Finch is asleep in his own bedroom at night")

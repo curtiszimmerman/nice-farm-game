@@ -35,6 +35,8 @@ func run() -> void:
 		else: easy+=1
 	check(easy==2 and hard==1,"the ocean offers two easy fish and one hard fish")
 	game.fishing_rng.seed=31
+	game.state.fishing_pole=1
+	game.state.assign_active("primary","fishing_pole")
 	game.start_fishing("pond")
 	var first_marker=game.fishing_position()
 	game.start_fishing("pond")

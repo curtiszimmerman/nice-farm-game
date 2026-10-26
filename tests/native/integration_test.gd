@@ -72,6 +72,8 @@ func run() -> void:
 	game.leave_building()
 	game.select_quick_slot(0)
 	game.state.player_position=game.world.site_position("pond")
+	game.state.fishing_pole=1
+	game.state.assign_active("primary","fishing_pole")
 	game.interact()
 	game.activity_time=1.2
 	var caught=game.fishing_species

@@ -21,6 +21,7 @@ func run() -> void:
 	for label in ["Sunny","Partly cloudy","Rainy"]:
 		check(game.ui.modal_box.get_children().any(func(node):return node is Button and node.text.to_lower()==label.to_lower()),"development weather selection already offers "+label)
 	game.close_window()
+	game.state.cave_level=2
 	game.enter_building("cave")
 	check(game.world.spider!=null and game.world.spider.visible and game.world.chambers.back().has_point(game.Grid.world_to_cell(game.world.spider.position)),"the spider already exists in the final cave room")
 	game.close_window()

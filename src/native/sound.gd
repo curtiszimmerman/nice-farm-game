@@ -142,7 +142,8 @@ func set_level(channel: String,value: float) -> void:
 	_apply_volumes()
 
 func play_spell(id: String) -> bool:
-	if id!="wildgrowth" or effects_level<=0.0: return false
+	if id not in ["wildgrowth","hearthmend","emberthread"] or effects_level<=0.0: return false
+	spell.pitch_scale={"wildgrowth":1.0,"hearthmend":0.85,"emberthread":1.3}[id]
 	spell.play()
 	return true
 

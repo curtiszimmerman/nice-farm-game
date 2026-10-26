@@ -64,6 +64,7 @@ func _ready() -> void:
 		for x in range(ROOM_CELLS.x):
 			if not floor_cells.has(Vector2i(x,y)): solid_cells[Vector2i(x,y)]="wall"
 	for cell in solid_cells:
+		if not [Vector2i.UP,Vector2i.RIGHT,Vector2i.DOWN,Vector2i.LEFT].any(func(direction):return floor_cells.has(cell+direction)): continue
 		var wall=Wall.new()
 		wall.room=self
 		wall.front=floor_cells.has(cell+Vector2i.DOWN)
@@ -147,6 +148,9 @@ func bed_position(resident: String="") -> Vector2:
 	return entry_position()
 
 func room_name() -> String:
+	if building.id=="temple": return "Village temple"
+	if building.id=="priest": return "Brother Aven's home"
+	if building.id=="priest_outhouse": return "Temple outhouse"
 	if building.id=="mill_shed": return "Bell family tool shed"
 	if Neighbors.NAMES.has(building.id): return Neighbors.NAMES[building.id]
 	match building.id:
@@ -240,10 +244,21 @@ func update_villagers(dt: float,snap: bool=false) -> void:
 			cell=layout.work[(int(state.minute/25)+Neighbors.STORIES.keys().find(id))%layout.work.size()]
 		if building.id=="hall":
 			cell=[Vector2i(14,9),Vector2i(14,10)][int(state.minute/35)%2] if id=="mayor" else [Vector2i(6,3),Vector2i(6,4),Vector2i(2,3)][int(state.minute/30)%3]
+		if building.id=="tavern" and id!="barkeep": cell=tavern_guest_spot(id)
 		var target=Grid.center(cell)
 		if snap: actor.position=target
 		else: walk_actor(id,cell,dt)
 		actor.queue_redraw()
+
+func tavern_guest_spot(id: String) -> Vector2i:
+	var guests=outdoors.people.filter(func(person):return person.id!="barkeep" and outdoors.stop_for(person.id).room=="tavern").map(func(person):return person.id)
+	guests.sort()
+	var spots=[]
+	for y in [10,12]:
+		for x in range(2,18,2):
+			var cell=Vector2i(x,y)
+			if not blocked(Grid.center(cell)): spots.append(cell)
+	return spots[posmod(guests.find(id),spots.size())] if not spots.is_empty() else layout.entry
 
 func find_nearest() -> Dictionary:
 	var person=preload("res://npc_bodies.gd").nearby(self)
@@ -260,6 +275,11 @@ func find_nearest() -> Dictionary:
 			best={"id":id,"type":"person","label":"Talk to "+actor.data.name}
 			distance=d
 	for site in sites:
+		if building.id=="home":
+			var task=site.id.trim_prefix("uncover_")
+			if task in ["sofa","living_light","bathroom_light"] and (state.met_mayor or state.house_tasks[task]): continue
+			if site.id=="uncover_guest_bed":
+				if state.house_tasks.guest_bed or state.met_mayor: continue
 		if front_cell() not in activation_cells(site): continue
 		var d=state.player_position.distance_to(Vector2(site.x,site.y))
 		if best.is_empty() or d<distance:
@@ -279,7 +299,6 @@ func activation_cells(site: Dictionary) -> Array:
 		if item.kind!=kind: continue
 		if site.id=="stove": return [item.bounds.position]
 		if site.id=="uncover_guest_bed" and item.get("task","")!="guest_bed": continue
-		if site.id=="bed" and item.get("task","")=="guest_bed": continue
 		if kind=="floor_lamp" and (floor_cells[item.bounds.position]=="living")!=(site.id=="living_light"): continue
 		for y in range(item.bounds.position.y,item.bounds.end.y):
 			for x in range(item.bounds.position.x,item.bounds.end.x): cells.append(Vector2i(x,y))

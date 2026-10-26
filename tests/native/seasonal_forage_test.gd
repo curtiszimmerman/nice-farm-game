@@ -19,7 +19,7 @@ func run() -> void:
 		check(float(berries.size())/w.bushes.size()>=0.05 and float(berries.size())/w.bushes.size()<=0.1,"five to ten percent of bushes bear berries")
 		check(float(apples.size())/oaks>=0.05 and float(apples.size())/oaks<=0.1,"five to ten percent of oaks bear apples")
 		var cell=berries[0]
-		var carried=game.state.Items.CATALOG.keys().filter(func(id):return id not in ["berries","apples","ladder"]).slice(0,12)
+		var carried=game.state.Items.CATALOG.keys().filter(func(id):return id not in ["berries","apples","ladder"]).slice(0,game.State.INVENTORY_SLOTS)
 		for id in carried: game.state.set(id,1)
 		check(not w.harvest_forage("berries",cell) and game.state.forage_harvests.is_empty(),"a full satchel leaves fruit and its regrowth timer untouched")
 		for id in carried: game.state.set(id,0)

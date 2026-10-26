@@ -33,7 +33,7 @@ func run() -> void:
 		s.advance(30)
 		s.storage_transfer("chest",4,"copper_bars")
 		for id in s.Items.CATALOG:
-			if id!="copper_bars" and int(s.get(id))==0 and s.carried_slots()<12: s.set(id,1)
+			if id!="copper_bars" and int(s.get(id))==0 and s.carried_slots()<s.INVENTORY_SLOTS: s.set(id,1)
 		check(not s.collect_copper_bar(0) and s.crucibles[0].bars==1,"a full satchel leaves the finished bar safely inside the crucible")
 		s.storage_transfer("chest",5,"bread")
 		check(s.collect_copper_bar(0),"the finished bar can be collected after making room")

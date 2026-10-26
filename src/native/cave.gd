@@ -2,8 +2,9 @@ extends "res://world.gd"
 
 var building: Dictionary
 var outdoors: Node2D
-var ROOM_CELLS=Vector2i(43,28)
-var ROOM_SIZE=Vector2(1376,896)
+var ROOM_CELLS=Vector2i(94,70)
+var ROOM_SIZE=Vector2(3008,2240)
+var level=0
 var layout={"entry":Vector2i(5,3),"exit":Vector2i(5,1)}
 var chambers: Array[Rect2i]=[]
 var floor_cells: Dictionary={}
@@ -20,31 +21,40 @@ class CaveObject extends Node2D:
 		cave.paint_object(self,info)
 
 func _ready() -> void:
+	level=state.cave_level
 	combat_rng.randomize()
 	y_sort_enabled=true
 	night_tint=CanvasModulate.new()
 	night_tint.color=Color("b6c2cb")
 	add_child(night_tint)
 	generate()
-	var barrel={"kind":"barrel","cell":Vector2i(3,4)}
-	object(barrel)
-	solid_cells[barrel.cell]="barrel"
-	add_site("exit",layout.exit,"Leave cave")
-	add_site("cave_barrel",Vector2i(4,4),"Search entrance barrel")
-	add_site("cave_pickaxe",Vector2i(4,5),"Take the leaning pickaxe")
-	if not state.cave_pickaxe_taken: object({"kind":"pickaxe","cell":Vector2i(4,4)})
-	if not state.cave_chrysalis_taken:
+	if level==0:
+		var barrel={"kind":"barrel","cell":Vector2i(3,4)}
+		object(barrel)
+		solid_cells[barrel.cell]="barrel"
+		add_site("exit",layout.exit,"Leave cave")
+		add_site("cave_barrel",Vector2i(4,4),"Search entrance barrel")
+		add_site("cave_pickaxe",Vector2i(4,5),"Take the leaning pickaxe")
+		if not state.cave_pickaxe_taken: object({"kind":"pickaxe","cell":Vector2i(4,4)})
+	else:
+		add_site("stairs_up",layout.entry,"Ascend to level %d" % level)
+		object({"kind":"stairs_up","cell":layout.entry})
+	if level<2:
+		add_site("stairs_down",chambers.back().get_center(),"Descend to level %d" % (level+2))
+		object({"kind":"stairs_down","cell":chambers.back().get_center()})
+	if level==2 and not state.cave_chrysalis_taken:
 		var cell=chambers.back().position+Vector2i(1,1)
 		var chrysalis=object({"kind":"chrysalis","cell":cell})
 		add_site("chrysalis",cell,"Collect Cave Moth Chrysalis")
 		chrysalis.name="Chrysalis"
-	for i in range(2):
-		var cell=chambers[2+i*2].get_center()+Vector2i(0,1)
-		var rat=object({"kind":"rat","cell":cell,"id":i,"health":2,"bite":0.0})
-		rat.visible=not state.cave_defeated.has(i)
+	for i in range(6):
+		var cell=chambers[2+i].get_center()+Vector2i(0,1)
+		var rat=object({"kind":"rat","cell":cell,"id":level*100+i,"health":2,"bite":0.0})
+		rat.visible=not state.cave_defeated.has(level*100+i)
 		rats.append(rat)
-	spider=object({"kind":"spider","cell":chambers.back().get_center(),"id":2,"health":4,"bite":0.0})
-	spider.visible=not state.cave_defeated.has(2)
+	if level==2:
+		spider=object({"kind":"spider","cell":chambers.back().get_center(),"id":299,"health":4,"bite":0.0})
+		spider.visible=not state.cave_defeated.has(299)
 	crops=Node2D.new()
 	add_child(crops)
 	player=_prop("player",state.player_position,{"coat":"6f9793","hair":"5c5045","skin":"d0a981","id":"player"})
@@ -54,12 +64,12 @@ func _ready() -> void:
 func generate() -> void:
 	var rng=RandomNumberGenerator.new()
 	var corridors={}
-	rng.seed=state.cave_seed
-	for i in range(6):
-		var col=i if i<3 else 5-i
-		var row=0 if i<3 else 1
-		var room=Rect2i(col*14+rng.randi_range(1,4),row*13+rng.randi_range(1,3),rng.randi_range(7,10),rng.randi_range(7,10))
-		if i==0: room=Rect2i(2,2,8,8)
+	rng.seed=hash(Vector2i(state.cave_seed,level))
+	for i in range(12):
+		var row=int(i/3.0)
+		var col=i%3 if row%2==0 else 2-i%3
+		var room=Rect2i(col*30+rng.randi_range(2,6),row*17+rng.randi_range(1,3),rng.randi_range(14,19),rng.randi_range(11,14))
+		if i==0: room=Rect2i(2,2,16,12)
 		chambers.append(room)
 		for y in range(room.position.y,room.end.y):
 			for x in range(room.position.x,room.end.x):
@@ -86,6 +96,7 @@ func generate() -> void:
 			var cell=Vector2i(x,y)
 			if not floor_cells.has(cell): solid_cells[cell]="wall"
 	# Deposits avoid passageways, entrances, and the room centers used by creatures.
+	var deposits=[]
 	for i in range(chambers.size()):
 		var room=chambers[i]
 		var candidates=[]
@@ -101,20 +112,26 @@ func generate() -> void:
 			candidates[k]=candidates[other]
 			candidates[other]=value
 		var selected=[]
-		var amount=3 if i<3 else rng.randi_range(1,3)
+		var amount=roundi(room.size.x*room.size.y*0.13)
 		for cell in candidates:
 			if selected.any(func(other): return absi(cell.x-other.x)+absi(cell.y-other.y)<3): continue
 			selected.append(cell)
 			if selected.size()==amount: break
-		for j in range(selected.size()):
-			var id=str(i*3+j)
-			var cell: Vector2i=selected[j]
-			var ore=(i<3 and j<2) or rng.randf()<0.6
-			if state.cave_broken.has(id): continue
-			var info={"kind":"rock","id":id,"cell":cell,"ore":ore}
-			info.node=object(info)
-			rocks[id]=info
-			solid_cells[cell]="rock"
+		deposits.append_array(selected)
+	var resource_order=[]
+	for i in range(deposits.size()): resource_order.append("copper" if i<roundi(deposits.size()*0.1) else "coal" if i<roundi(deposits.size()*0.15) else "stones")
+	for i in range(resource_order.size()-1,0,-1):
+		var other=rng.randi_range(0,i)
+		var resource=resource_order[i]
+		resource_order[i]=resource_order[other]
+		resource_order[other]=resource
+	for i in range(deposits.size()):
+		var id=str(level*10000+i)
+		if state.cave_broken.has(id): continue
+		var info={"kind":"rock","id":id,"cell":deposits[i],"ore":resource_order[i]=="copper","resource":resource_order[i]}
+		info.node=object(info)
+		rocks[id]=info
+		solid_cells[info.cell]="rock"
 
 func object(info: Dictionary) -> Node2D:
 	var prop=CaveObject.new()
@@ -129,7 +146,7 @@ func add_site(id: String,cell: Vector2i,label: String) -> void:
 	sites.append({"id":id,"cell":cell,"x":p.x,"y":p.y,"label":label})
 
 func entry_position() -> Vector2: return Grid.center(layout.entry)
-func room_name() -> String: return "Southeast copper cave"
+func room_name() -> String: return "Copper caverns · level %d" % (level+1)
 func target_plot() -> int: return -1
 func in_water(_p: Vector2) -> bool: return false
 func audio_context(_p: Vector2) -> Dictionary:
@@ -142,7 +159,7 @@ func find_nearest() -> Dictionary:
 	if state.active_item()=="pickaxe":
 		var front=Grid.world_to_cell(state.player_position)+{"up":Vector2i.UP,"down":Vector2i.DOWN,"left":Vector2i.LEFT,"right":Vector2i.RIGHT}[facing]
 		for rock in rocks.values():
-			if rock.cell==front: return {"id":rock.id,"type":"rock","label":"Mine copper · pickaxe" if rock.ore else "Break rock · pickaxe"}
+			if rock.cell==front: return {"id":rock.id,"type":"rock","label":rock_label(rock)}
 	var best={}
 	var distance=46.0
 	for site in sites:
@@ -154,12 +171,15 @@ func find_nearest() -> Dictionary:
 		if rock.cell!=front_cell(): continue
 		var d=state.player_position.distance_to(Grid.center(rock.cell))
 		if d<distance:
-			best={"id":rock.id,"type":"rock","label":"Mine copper · pickaxe" if rock.ore else "Break rock · pickaxe"}
+			best={"id":rock.id,"type":"rock","label":rock_label(rock)}
 			distance=d
 	if state.active_item()=="rusty_sword" and best.get("type")!="site":
 		best={"id":"swing","type":"weapon","label":"Swing sword · 2 energy"}
 	nearest=best
 	return best
+
+func rock_label(rock: Dictionary) -> String:
+	return "Break stone · pickaxe" if rock.resource=="stones" else "Mine %s · pickaxe" % rock.resource
 
 func activation_cells(site: Dictionary) -> Array:
 	if site.id=="exit": return [layout.exit,layout.exit+Vector2i.UP,layout.exit+Vector2i.LEFT,layout.exit+Vector2i.LEFT+Vector2i.UP]
@@ -171,7 +191,7 @@ func mine_rock(id: String) -> bool:
 	if not rocks.has(id) or state.active_item()!="pickaxe" or state.pickaxe<1 or state.energy<5: return false
 	var rock=rocks[id]
 	if state.player_position.distance_to(Grid.center(rock.cell))>46: return false
-	var resource="copper" if rock.ore else "stones"
+	var resource=rock.resource
 	if not state.mine(resource): return false
 	preload("res://tool_motion.gd").start(self,"pickaxe")
 	state.cave_broken.append(id)
@@ -187,19 +207,29 @@ func attack() -> bool:
 	for rat in creatures():
 		var offset=rat.position-state.player_position
 		if not rat.visible or offset.length()>54 or offset.normalized().dot(direction)<0.25: continue
-		rat.info.health-=1
-		combat_text("-1",rat.position+Vector2(0,30),Color("ffe7a0"))
-		rat.modulate=Color("ffc4aa")
-		if rat.info.health<=0:
-			rat.visible=false
-			state.cave_defeated.append(rat.info.id)
-			var earned=20 if rat.info.kind=="spider" else 10
-			state.experience+=earned
-			combat_text("+%dxp" % earned,state.player_position,Color("8aee83"))
+		damage_creature(rat,1)
 		break
 	return true
 
 func creatures() -> Array: return rats+([spider] if spider!=null else [])
+
+func damage_creature(creature: Node2D,amount: int) -> void:
+	creature.info.health-=amount
+	combat_text("-%d" % amount,creature.position+Vector2(0,30),Color("ffe7a0"))
+	creature.modulate=Color("ffc4aa")
+	if creature.info.health<=0:
+		creature.visible=false
+		state.cave_defeated.append(creature.info.id)
+		var earned=20 if creature.info.kind=="spider" else 10
+		state.experience+=earned
+		combat_text("+%dxp" % earned,state.player_position,Color("8aee83"))
+
+func burn_at(point: Vector2) -> bool:
+	for creature in creatures():
+		if creature.visible and creature.position.distance_to(point)<24:
+			damage_creature(creature,2)
+			return true
+	return false
 
 func update_enemies(dt: float) -> void:
 	swing_cooldown=maxf(0,swing_cooldown-dt)
@@ -255,7 +285,7 @@ func _draw() -> void:
 		for cell in walls:
 			if Borders.NEIGHBORS.any(func(pair):return floor_cells.has(cell+pair[0])):
 				Art.border(self,"cave",walls,cell,state,state.cave_seed)
-		Art.sprite(self,"cave_exit_night" if state.minute<360 or state.minute>=1140 else "cave_exit_day",Grid.origin(layout.exit+Vector2i(-1,-1)),Vector2(64,64))
+		if level==0: Art.sprite(self,"cave_exit_night" if state.minute<360 or state.minute>=1140 else "cave_exit_day",Grid.origin(layout.exit+Vector2i(-1,-1)),Vector2(64,64))
 		return
 	r(self,-400,-400,ROOM_SIZE.x+800,ROOM_SIZE.y+800,"20282e")
 	for y in range(ROOM_CELLS.y):
@@ -293,6 +323,13 @@ func paint_effects(c: CanvasItem) -> void:
 		c.draw_polyline(points,Color("ebd7a4aa"),2)
 
 func paint_object(c: CanvasItem,info: Dictionary) -> void:
+	if info.kind in ["stairs_up","stairs_down"]:
+		var id="cave_"+info.kind
+		Art.sprite(c,id if Art.catalog.has(id) else "tile_cave0",Vector2(-16,-16),Vector2(32,32))
+		return
+	if info.get("resource","")=="coal" and Art.catalog.has("cave_coal"):
+		Art.sprite(c,"cave_coal",Vector2(-16,-16),Vector2(32,32))
+		return
 	if info.kind=="pickaxe":
 		if not state.cave_pickaxe_taken: Art.sprite(c,"item_pickaxe",Vector2(-12,-16),Vector2(24,24))
 		return

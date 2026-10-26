@@ -48,6 +48,7 @@ func run() -> void:
 	preload("fixture.gd").explore(game,true)
 	var clear=true
 	for building in game.outdoors.buildings:
+		game.state.minute=780
 		game.enter_building(building.id)
 		if game.world.blocked(game.state.player_position): clear=false
 		game.world.refresh()

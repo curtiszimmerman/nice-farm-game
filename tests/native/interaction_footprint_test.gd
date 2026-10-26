@@ -32,6 +32,7 @@ func run() -> void:
 			game.outdoors.facing="up"
 			check(game.outdoors.find_nearest().get("door")=="ship","all lower boarding squares activate the ship")
 	for building in game.outdoors.buildings:
+		game.state.minute=780
 		game.enter_building(building.id)
 		var exit=game.world.sites.filter(func(site):return site.id=="exit")[0]
 		var cells=game.world.activation_cells(exit)

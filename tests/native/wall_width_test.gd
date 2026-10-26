@@ -9,6 +9,7 @@ func run() -> void:
 	game.set_process(false)
 	preload("fixture.gd").explore(game,true)
 	for building in game.outdoors.buildings:
+		game.state.minute=780
 		game.enter_building(building.id)
 		var room=game.world
 		var thin=true

@@ -24,7 +24,7 @@ func run() -> void:
 	var tabs=game.ui.get("inventory_tabs")
 	check(tabs!=null,"character screen has inventory and stats tabs")
 	if tabs!=null:
-		check(tabs.get_tab_count()==2 and game.ui.stats_experience.text.contains("30"),"stats tab lists earned experience")
+		check(tabs.get_tab_count()==3 and game.ui.stats_experience.text.contains("30"),"stats tab lists earned experience alongside inventory and people tabs")
 		check(game.ui.equipment_silhouette.size.x>192 and game.ui.equipment_silhouette.size.y>384,"equipment silhouette leaves more room to arrange armor")
 		check(game.ui.equipment_slots.values().all(func(slot):return not slot.tooltip_text.is_empty()),"every equipment position explains its purpose on hover")
 		var sizes=[]

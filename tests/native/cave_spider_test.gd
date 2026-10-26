@@ -11,6 +11,7 @@ func run() -> void:
 	root.add_child(game)
 	game.set_process(false)
 	preload("fixture.gd").explore(game,true)
+	game.state.cave_level=2
 	game.enter_building("cave")
 	game.close_window()
 	var cave=game.world
@@ -36,7 +37,7 @@ func run() -> void:
 			cave.swing_cooldown=0
 			cave.attack()
 			check(spider.visible==(hit<3),"the spider takes four sword strikes to defeat")
-		check(game.state.cave_defeated.has(2) and game.state.experience==20,"the defeated spider persists and grants experience once")
+		check(game.state.cave_defeated.has(299) and game.state.experience==20,"the defeated spider persists and grants experience once")
 	await game.sound.shutdown()
 	game.queue_free()
 	await process_frame

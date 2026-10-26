@@ -42,7 +42,7 @@ func run() -> void:
 	game.state.health=50
 	game.state.energy=50
 	game.inventory()
-	check(game.ui.inventory_slots.size()==12,"satchel displays twelve inventory slots")
+	check(game.ui.inventory_slots.size()==16,"satchel displays sixteen inventory slots")
 	var slot=null
 	for button in game.ui.inventory_slots:
 		if button.get_meta("item_id","")=="turnips": slot=button

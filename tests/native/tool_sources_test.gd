@@ -12,7 +12,8 @@ func run() -> void:
 	if s.has_method("accept_tool"):
 		check(s.accept_tool("axe") and s.axe==1 and not s.accept_tool("axe"),"Rowan gives an axe once")
 		check(s.accept_tool("pickaxe") and s.pickaxe==1 and not s.accept_tool("pickaxe"),"the cave pickaxe can be collected once")
-		check(s.quick_slots.all(func(id):return id==""),"gifted tools are never assigned automatically")
+		s.clear_empty_slots()
+		check("axe" in s.quick_slots and "pickaxe" in s.quick_slots,"gifted tools appear in their matching inventory-row positions")
 		var restored=State.new()
 		check(restored.restore(s.to_dict()) and not restored.accept_tool("axe") and not restored.accept_tool("pickaxe"),"tool handouts remain unique after saving")
 	quit(1 if failed else 0)

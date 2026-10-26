@@ -11,7 +11,7 @@ func _initialize() -> void:
 	if s.has_method("is_tired"):
 		preload("fixture.gd").tools(s)
 		s.advance(1440)
-		check(not s.is_tired(),"exactly twenty-four hours awake has not crossed the tired threshold")
+		check(s.is_tired(),"exactly one day awake applies the first tired tier")
 		s.advance(0.01)
 		check(s.is_tired(),"more than twenty-four hours awake applies tiredness")
 		var energy=s.energy

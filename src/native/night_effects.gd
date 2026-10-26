@@ -18,7 +18,7 @@ func house_lit(building: Dictionary) -> bool:
 	if building.id=="home": return world.state.house_tasks.living_light or world.state.house_tasks.bathroom_light
 	for person in world.people:
 		if world.Schedule.home_stop(person.id).room!=building.id: continue
-		if not world.Schedule.stop(person.id,world.state.minute).sleeping: return true
+		if not world.Schedule.stop(person.id,world.state.minute,world.state.day).sleeping: return true
 	return building.id=="store" and world.state.minute<1200
 
 func smoking(building: Dictionary) -> bool:

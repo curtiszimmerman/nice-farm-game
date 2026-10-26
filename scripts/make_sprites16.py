@@ -2168,6 +2168,14 @@ def main():
     from terrain_edges16 import sprites as terrain_edges
     from town_additions16 import sprites as town_additions
     additions = dict(sprites(Pixels), **calendar_sprites(Pixels), **observatory_sprites(Pixels), **harvest_sprites(Pixels), **border_surfaces(Pixels), **terrain_edges(Pixels), **town_additions(Pixels))
+    copper_bar = additions["item_copper_bars"]
+    silver_bar = Pixels(copper_bar.w, copper_bar.h)
+    for yy in range(copper_bar.h):
+        for xx in range(copper_bar.w):
+            red, green, blue, alpha = copper_bar.get(xx, yy)
+            value = (red + green + blue) // 3
+            silver_bar.dot(xx, yy, (value, min(255, value + 5), min(255, value + 12), alpha))
+    additions["item_silver_bars"] = silver_bar
     write_font(ROOT / "src/native/art/ui", Pixels)
     for name, image in additions.items():
         if name.startswith("tile_mill_sails"): name = name.removeprefix("tile_")

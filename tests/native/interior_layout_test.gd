@@ -23,6 +23,7 @@ func run() -> void:
 	var routes_clear=true
 	var exits_clear=true
 	for b in game.outdoors.buildings:
+		game.state.minute=780
 		game.enter_building(b.id)
 		var room=game.world
 		var beds=room.furnishings.filter(func(item):return item.kind=="bed").size()
@@ -45,7 +46,7 @@ func run() -> void:
 			if "bathroom" in [door[0],door[1]]:
 				bath_doors+=1
 				if "kitchen" in [door[0],door[1]]: private_baths=false
-		if bath_doors!=(0 if b.id=="mill_shed" else 1): private_baths=false
+		if bath_doors!=(0 if b.id in ["mill_shed","priest","priest_outhouse"] else 1): private_baths=false
 		for cell in room.floor_cells:
 			if room.floor_cells[cell]=="bathroom": room.solid_cells[cell]="closed bathroom"
 		for site in room.sites:

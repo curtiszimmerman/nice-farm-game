@@ -31,6 +31,8 @@ func run() -> void:
 	var radio=w.site_position("radio")
 	check(radio.y>=club.y+club.h+32 and radio.distance_to(Vector2(club.x+club.w/2,club.y+club.h))<80,"radio table clears the club foundation and stands immediately outside")
 	var fishable=true
+	game.state.fishing_pole=1
+	game.state.assign_active("primary","fishing_pole")
 	for x in range(w.JETTY_CELLS.position.x,w.JETTY_CELLS.end.x):
 		game.state.player_position=w.Grid.center(Vector2i(x,w.JETTY_CELLS.position.y))
 		if w.find_nearest().get("id","")!="pond": fishable=false

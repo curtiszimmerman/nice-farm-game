@@ -15,7 +15,7 @@ python3 -B tests/test_terrain_edges.py
 mkdir -p internal/verification
 run_native() {
     local check_log="$project_dir/internal/verification/check-current.log"
-    if bash scripts/play.sh "$@" > "$check_log" 2>&1; then
+    if timeout 120 bash scripts/play.sh "$@" > "$check_log" 2>&1; then
         cat "$check_log"
     else
         cat "$check_log"
@@ -33,7 +33,7 @@ for test_file in audit_regressions_test unrestricted_watering_test seasonal_fora
 done
 run_native --headless --script "../../tests/native/dialogue_weather_revision_test.gd"
 run_native --headless --script "../../tests/native/cave_opening_art_test.gd"
-for test_file in terrain_borders_test border_atlas_test terrain_art_integration_test; do
+for test_file in terrain_borders_test border_atlas_test terrain_art_integration_test town_life_state_test town_life_rules_test town_life_world_test town_life_content_test tavern_life_test calendar_transition_test spell_lessons_test cave_levels_test town_icons_test partial_pack_test; do
     run_native --headless --script "../../tests/native/$test_file.gd"
 done
 run_native --headless -- --smoke-test

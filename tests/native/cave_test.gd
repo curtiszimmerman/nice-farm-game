@@ -17,7 +17,7 @@ func run() -> void:
 	check(not game.state.grow(0),"untrained captains cannot cast magic")
 	game.enter_building("cave")
 	var cave=game.world
-	check(game.current_room=="cave" and cave.chambers.size()==6,"the southeast cave opens a generated six-room interior")
+	check(game.current_room=="cave" and cave.chambers.size()==12,"the southeast cave opens a generated twelve-room floor")
 	var paths=true
 	for room in cave.chambers:
 		if cave._route(cave.layout.entry,room.get_center()).is_empty(): paths=false
@@ -33,7 +33,8 @@ func run() -> void:
 	preload("fixture.gd").face_site(game,"cave_pickaxe")
 	game.interact()
 	game.state.player_position=ore_position
-	check(game.state.quick_slots.all(func(id): return id==""),"taking the pickaxe never assigns a quick slot")
+	game.state.clear_empty_slots()
+	check("pickaxe" in game.state.quick_slots,"the collected pickaxe appears in its matching inventory-row position")
 	game.state.assign_slot(0,"pickaxe")
 	game.state.selected_slot=0
 	game.interact()
@@ -69,7 +70,7 @@ func run() -> void:
 	loaded_cave.queue_free()
 	for field in ["cave_seed","cave_broken","cave_defeated","cave_barrel","day"]:
 		var bad=snapshot.duplicate(true)
-		bad[field]={"cave_seed":0,"cave_broken":["unknown"],"cave_defeated":[9],"cave_barrel":[{}],"day":"invalid"}[field]
+		bad[field]={"cave_seed":0,"cave_broken":["unknown"],"cave_defeated":[999],"cave_barrel":[{}],"day":"invalid"}[field]
 		check(not restored.restore(bad),"invalid %s is rejected without mutating progress" % field)
 	preload("fixture.gd").face_site(game,"exit")
 	game.interact()
@@ -77,6 +78,7 @@ func run() -> void:
 	game.enter_building("cave")
 	check(not cave.rocks.has(ore.id) and not rat.visible,"reentering preserves cleared cave objects")
 	game.leave_building()
+	game.state.minute=780
 	game.enter_building("iona")
 	game.talk("iona")
 	game.ui.modal_box.get_child(3).pressed.emit()
@@ -91,6 +93,8 @@ func run() -> void:
 	game.interact()
 	check(game.state.golden_sparkfire_bloom==1,"sunrise opens one harvestable bloom per day")
 	game.enter_building("cave")
+	game.change_cave_level(1)
+	game.change_cave_level(1)
 	game.state.selected_slot=0
 	preload("fixture.gd").face_site(game,"chrysalis")
 	game.interact()

@@ -58,6 +58,7 @@ static func select_pack(path: String) -> String:
 static func available_packs() -> Array:
 	var result=[]
 	for directory in ["res://art","res://art/packs"]:
+		if not DirAccess.dir_exists_absolute(directory): continue
 		for folder in DirAccess.get_directories_at(directory):
 			var path=directory.path_join(folder).path_join("pack.json")
 			var manifest=read_json(path)
@@ -133,6 +134,9 @@ static func tree(c: CanvasItem,data: Dictionary) -> void:
 static func person(c: CanvasItem,p: Dictionary,step: float,direction: String) -> void:
 	var frame=0 if absf(step)<0.3 else 1 if step>0 else 2
 	var id=p.get("id","player")
+	if id=="priest":
+		sprite(c,"actor_priest_down0" if catalog.has("actor_priest_down0") else "actor_mayor_down0",Vector2(-16,-60),Vector2(32,64))
+		return
 	if p.get("seated",false):
 		sprite(c,"actor_%s_down0" % id,Vector2(0,-68),Vector2(32,48))
 		return
@@ -141,6 +145,9 @@ static func person(c: CanvasItem,p: Dictionary,step: float,direction: String) ->
 	else: sprite(c,"actor_%s_%s%d" % [id,direction,frame],Vector2(-16,-60))
 
 static func building(c: CanvasItem,b: Dictionary) -> void:
+	if b.kind=="temple" and catalog.has("building_temple"):
+		sprite(c,"building_temple",Vector2(0,-224),Vector2(224,224))
+		return
 	if b.kind=="mill_shed":
 		for y in range(3):
 			for x in range(4):
@@ -186,13 +193,15 @@ static func building(c: CanvasItem,b: Dictionary) -> void:
 			tile(c,component,Vector2i(x,y-rows-2),roof_tint(b.roof))
 			if b.get("season")=="winter": tile(c,"roof_snow",Vector2i(x,y-rows-2))
 	tile(c,"chimney",Vector2i(maxi(1,columns-2),-rows-3))
-	if b.kind=="store": sprite(c,"general_store_sign",Vector2(0,-(rows+1)*32),Vector2(columns*32,32))
+	if b.kind=="store": sprite(c,"sign_general_store" if catalog.has("sign_general_store") else "general_store_sign",Vector2(columns*16-56,-(rows+1)*32+8),Vector2(112,24))
 	for x in ([1] if b.kind=="store" else [1,columns-2]):
 		if x!=door: sprite(c,seasonal("tile_flowerbed0",b.get("season","spring")),Grid.origin(Vector2i(x,0)))
 	for x in [door-1,door+1]:
 		if x>=0 and x<columns: tile(c,"light",Vector2i(x,-2))
 	if b.kind=="hall": tile(c,"civic_emblem",Vector2i(door,-rows-1))
-	if b.kind in ["smithy","bakery","tavern"]: tile(c,b.kind+"_sign",Vector2i(maxi(0,door-1),-2))
+	if b.kind in ["smithy","bakery"] and catalog.has("sign_smith" if b.kind=="smithy" else "sign_baker"):
+		sprite(c,"sign_smith" if b.kind=="smithy" else "sign_baker",Vector2(door*32-16,-88),Vector2(64,32))
+	elif b.kind in ["smithy","bakery","tavern"]: tile(c,b.kind+"_sign",Vector2i(maxi(0,door-1),-2))
 
 static func roof_tint(value: String) -> Color:
 	return Color(value).lerp(Color.WHITE,0.65)
@@ -227,7 +236,6 @@ static func outdoors(w: Node2D) -> void:
 				var cell=Vector2i(x,y)
 				border(w,"tilled",field,cell,w.state,w.state.world_seed)
 				sprite(w,"plant_overlay_turnip" if (x+y)%3 else "plant_overlay_sprout",Grid.origin(cell))
-	sprite(w,"chest",w.site_position("chest")-Vector2(16,40))
 	sprite(w,"cart",Grid.origin(w.CART_CELLS.position)-Vector2(0,32))
 	sprite(w,"crossroads_sign",w.site_position("sign")-Vector2(16,40),Vector2(32,48))
 	for cell in w.LAMP_CELLS: sprite(w,"lamp",Grid.center(cell)-Vector2(16,86))
@@ -276,22 +284,16 @@ static func particles(w: Node2D,c: CanvasItem) -> void:
 		sprite(c,"particle",p.pos,Vector2.ZERO,color)
 
 static func effects(w: Node2D,c: CanvasItem) -> void:
-	if w.state.minute<360 or w.state.minute>=1140:
-		for i in range(3):
-			var p=Grid.center([Vector2i(-27,52),Vector2i(-26,55),Vector2i(-27,54)][i])
-			var alpha=0.7+0.3*pow((sin(w.elapsed*2+i*2)+1)/2,2)
-			var tint=w.night_tint.color
-			sprite(c,"fish_glint",p-Vector2(16,16),Vector2(32,32),Color(1/tint.r,1/tint.g,1/tint.b,alpha))
+	preload("res://outdoor_motion.gd").draw(w,c)
 	for p in w.people:
 		if w.cutscene_hidden(): break
 		if w.villagers[p.id].visible and w.state.player_position.distance_to(w.villagers[p.id].position)<105:
 			c.draw_string(ThemeDB.fallback_font,w.villagers[p.id].position+Vector2(-29,-55),p.name,HORIZONTAL_ALIGNMENT_LEFT,-1,9,Color("e4d9b5"))
 	if w.nearest.get("type")=="plot": c.draw_rect(Rect2(w.plot_position(w.nearest.index)-Vector2(16,16),Vector2(32,30)),Color("eee0a5"),false,1)
 	sprite(c,"ship_crew",Grid.center(w.SHIP_CELL)-Vector2(96,68),Vector2.ZERO,Color(0.8,1,0.9,0.12+sin(w.elapsed)*0.03))
-	for i in range(12): sprite(c,"ripple",Grid.center(w.POND_CELL)+Vector2(-70+i*12,sin(w.elapsed*.6+i*3)*72))
 	for i in range(14):
 		var p=Vector2(500+(i*137)%1100+sin(w.elapsed*.4+i)*30,670+(i*79)%570+cos(w.elapsed*.6+i)*20)
-		sprite(c,"firefly" if w.state.minute>1140 or w.state.minute<330 else "bird"+str(int(w.elapsed*7+i)%3),p)
+		if w.state.minute>1140 or w.state.minute<330: sprite(c,"firefly",p)
 	particles(w,c)
 
 static func indoor_effects(room: Node2D,c: CanvasItem) -> void:

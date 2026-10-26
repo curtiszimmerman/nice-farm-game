@@ -6,6 +6,9 @@ const FOOD={"bread":{"health":0,"energy":20,"mana":0},"lantern_ray":{"health":10
 const FISH={"lantern_ray":{"habitat":"ocean_tip","hard":true,"price":90,"weight":1,"color":"e4cf8b"},"fish":{"habitat":"pond","hard":false,"price":10,"color":"9dbcc0"},"moon_pike":{"habitat":"pond","hard":true,"price":35,"color":"a8ad7b"},"sea_sprat":{"habitat":"ocean","hard":false,"price":12,"color":"c1c7b2"},"blue_mackerel":{"habitat":"ocean","hard":false,"price":16,"color":"729ab6"},"storm_eel":{"habitat":"ocean","hard":true,"price":50,"color":"a58bb6"}}
 
 const CATALOG={
+	"fishing_pole":{"name":"Fishing pole","description":"Oren's well-kept spare pole. Select it before casting from shore or a dock.","action":"Fishing tool"},
+	"coal":{"name":"Coal","description":"A dark combustible mineral from the copper caverns.","action":"Crafting material"},
+	"silver_bars":{"name":"Silver ingot","description":"Refined silver, prized for sacred work and delicate mechanisms.","action":"Crafting material"},
 	"berries":{"name":"Wild berries","description":"Sweet berries gathered in spring and summer.","action":"Foraged fruit"},
 	"apples":{"name":"Wild apple","description":"An autumn apple from an old oak-like fruit tree.","action":"Foraged fruit"},
 	"ladder":{"name":"Mrs. Bell's ladder","description":"Borrowed by Nessa for her radio antenna. Mara would like it back.","action":"Return to Mrs. Bell"},
@@ -43,6 +46,9 @@ const CATALOG={
 static var textures: Dictionary={}
 
 static func icon(id: String) -> Texture2D:
+	if id in ["hearthmend","emberthread","fishing_pole","coal","silver_bars"]:
+		Art.load_atlas()
+		if not Art.catalog.has("item_"+id): return icon({"hearthmend":"wildgrowth","emberthread":"golden_sparkfire_bloom","fishing_pole":"wood","coal":"stones","silver_bars":"copper_bars"}[id])
 	var sprite_only=id in ["bread","copper_bars","build_crucible","berries","apples","ladder"]
 	if sprite_only: Art.load_atlas()
 	if (Art.option==2 or sprite_only) and Art.catalog.has("item_"+id):

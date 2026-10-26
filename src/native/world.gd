@@ -135,6 +135,7 @@ var crop_signature=0
 var tree_damage: Dictionary={}
 var night_effects: Node2D
 var weather_effects: Node2D
+var ambient: Dictionary={}
 
 class Prop extends Node2D:
 	var owner_world: Node2D
@@ -147,6 +148,8 @@ class Prop extends Node2D:
 			owner_world.paint_tree(self, data)
 			if data.get("fruit_ready",false): Art.sprite(self,"apple_cluster",Vector2(-20,-82),Vector2(40,32))
 		elif kind == "building": owner_world.paint_building(self, data)
+		elif kind == "chest": Art.sprite(self,"chest",Vector2(-16,-40))
+		elif kind == "beehive": Art.sprite(self,"beehive" if Art.catalog.has("beehive") else "chest",Vector2(-16,-48),Vector2(32,48))
 		elif kind == "person": owner_world.paint_person(self, data, sin(owner_world.elapsed*10.0) if data.get("walking",false) else 0.0, data.get("direction","down"))
 		elif kind == "player":
 			owner_world.paint_person(self, data, sin(owner_world.elapsed * 14.0) if owner_world.moving else 0.0, owner_world.facing)
@@ -197,6 +200,11 @@ func _ready() -> void:
 			solid_cells[cell]="bush"
 			bushes.append(cell)
 			bush_nodes[cell]=_prop("bush",Grid.center(cell),{"variant":random.randi_range(0,3)})
+	for cell in scatter_cells(140,3,random):
+		reserved_cells[cell]=true
+		solid_cells[cell]="bush"
+		bushes.append(cell)
+		bush_nodes[cell]=_prop("bush",Grid.center(cell),{"variant":random.randi_range(0,3)})
 	var placed: Array=[]
 	for i in range(1800):
 		var cell=Vector2i(random.randi_range(4,Grid.MAP_SIZE.x-4),random.randi_range(5,Grid.MAP_SIZE.y-4))
@@ -219,6 +227,8 @@ func _ready() -> void:
 			if tree.cell==cell: forage_nodes.apples[cell]=tree.node
 	refresh_forage()
 	for b in buildings: _prop("building",Vector2(b.x,b.y+b.h),b)
+	_prop("chest",site_position("chest"),{})
+	for cell in [Vector2i(58,56),Vector2i(60,56)]: _prop("beehive",Grid.center(cell),{})
 	for index in range(state.crucibles.size()): add_crucible(index)
 	for p in people: villagers[p.id]=_prop("person",Vector2(p.x,p.y),p)
 	crops = _prop("crops",Vector2.ZERO,{})
@@ -234,7 +244,15 @@ func _ready() -> void:
 	weather_effects=preload("res://weather.gd").new()
 	weather_effects.world=self
 	add_child(weather_effects)
-	_prop("sparkfire",site_position("sparkfire"),{"bloom":false})
+	sites=sites.filter(func(site):return site.id!="sparkfire")
+	if state.bloom_cells.is_empty():
+		for cell in scatter_cells(12,14,random,true): state.bloom_cells.append("%d,%d" % [cell.x,cell.y])
+	for encoded in state.bloom_cells:
+		var pair=encoded.split(",")
+		var cell=Vector2i(int(pair[0]),int(pair[1]))
+		var p=Grid.center(cell)
+		sites.append({"id":"sparkfire","cell":cell,"x":p.x,"y":p.y,"label":"Gather dawn flower"})
+		_prop("sparkfire",p,{"bloom":false})
 	_prop("fountain",Grid.origin(SQUARE.position+Vector2i(2,4)),{"frame":-1})
 	_prop("bulletin_board",Grid.origin(Vector2i(60,51)),{})
 	for cell in Neighbors.BENCHES: _prop("bench",Grid.origin(cell+Vector2i.DOWN),{})
@@ -297,6 +315,7 @@ func chop_tree(cell: Vector2i) -> bool:
 	return true
 
 func rebuild_visit(new_state: RefCounted) -> void:
+	ambient.clear()
 	bush_nodes.clear()
 	tree_population.clear()
 	forage_nodes={"berries":{},"apples":{}}
@@ -368,6 +387,10 @@ func _build_layout() -> void:
 	_claim(CART_CELLS,"cart")
 	_claim(Rect2i(8,10,7,4),"ship hull")
 	_claim(Rect2i(Vector2i(17,44),Vector2i.ONE),"chest")
+	for cell in [Vector2i(58,56),Vector2i(60,56)]: _claim(Rect2i(cell,Vector2i.ONE),"beehive")
+	for cell in [Vector2i(58,54),Vector2i(59,54),Vector2i(60,54),Vector2i(58,58),Vector2i(60,58)]:
+		garden_cells[cell]=true
+		_claim(Rect2i(cell,Vector2i.ONE),"flowerbed")
 	for cell in LAMP_CELLS: _claim(Rect2i(cell,Vector2i.ONE),"lamp")
 	_claim(Rect2i(Grid.world_to_cell(site_position("sign")),Vector2i.ONE),"sign")
 	_claim(Rect2i(Grid.world_to_cell(site_position("radio")),Vector2i.ONE),"radio")
@@ -495,8 +518,19 @@ func _route(start: Vector2i,goal: Vector2i,avoid_player: bool=false) -> Array:
 		path.append(Grid.center(current))
 	return path
 
+func scatter_cells(amount: int,spacing: int,rng: RandomNumberGenerator,require_reachable: bool=false) -> Array:
+	var chosen=[]
+	for attempt in range(12000):
+		if chosen.size()>=amount: break
+		var cell=Vector2i(rng.randi_range(2,Grid.MAP_SIZE.x-3),rng.randi_range(2,Grid.MAP_SIZE.y-3))
+		if solid_cells.has(cell) or reserved_cells.has(cell) or water_cells.has(cell) or _clearing(Grid.center(cell)): continue
+		if chosen.any(func(other):return Vector2(other).distance_to(Vector2(cell))<spacing): continue
+		if require_reachable and _route(Grid.SPAWN_CELL,cell).is_empty(): continue
+		chosen.append(cell)
+	return chosen
+
 func stop_for(id: String) -> Dictionary:
-	var stop=Schedule.stop(id,state.minute)
+	var stop=Schedule.stop(id,state.minute,state.day)
 	if id=="vale": stop.room="ship"
 	if id=="moss" and not state.invited: stop={"cell":MOSS_ENCOUNTER_CELL,"sleeping":false,"room":""}
 	var visit=state.mayor_visit_start()
@@ -573,11 +607,12 @@ func _prop(kind: String, pos: Vector2, data: Dictionary) -> Prop:
 	p.kind = kind
 	p.data = data
 	p.position = pos
-	(scenery_layer if kind in ["tree","building","bush","stump","bench","crucible"] else moving_layer).add_child(p)
+	(scenery_layer if kind in ["tree","building","bush","stump","bench","crucible","chest","beehive"] else moving_layer).add_child(p)
 	return p
 
 func refresh() -> void:
 	refresh_forage()
+	preload("res://outdoor_motion.gd").update(self)
 	if night_effects!=null: night_effects.refresh()
 	if weather_effects!=null: weather_effects.refresh()
 	var season=state.season_name()
@@ -595,7 +630,7 @@ func refresh() -> void:
 	var ripe_mask=0
 	for i in range(state.plots.size()):
 		if state.ripe(i): ripe_mask|=1<<i
-	var signature=hash(state.plots)^ripe_mask^hash(season+state.weather_name())^(int(state.minute/5) if state.minute<360 and state.plots.any(func(plot):return plot.water_day==state.day-1) else 0)
+	var signature=hash(state.plots)^ripe_mask^hash(season+state.weather_name())^(int(state.minute/5) if state.minute>=1140 and state.plots.any(func(plot):return plot.watered) else 0)
 	if signature!=crop_signature:
 		crop_signature=signature
 		crops.queue_redraw()
@@ -608,7 +643,8 @@ func refresh() -> void:
 				if child.data.frame!=frame: child.data.frame=frame; child.queue_redraw()
 			elif child.kind in ["effects","crucible_heat"]: child.queue_redraw()
 			elif child.kind=="sparkfire":
-				var bloom=state.minute>=330 and state.minute<420 and state.sparkfire_picked_day!=state.day
+				var key="%d:%d" % [Grid.world_to_cell(child.position).x,Grid.world_to_cell(child.position).y]
+				var bloom=state.minute>=330 and state.minute<420 and state.bloom_harvests.get(key,0)!=state.day
 				if child.data.bloom!=bloom: child.data.bloom=bloom; child.queue_redraw()
 			elif child.kind in ["tree","building"]:
 				var hidden=prop_hides_player(child)
@@ -925,11 +961,6 @@ func _draw() -> void:
 			r(self,p.x+12,p.y+2,8,27,"b8a77a")
 		else: _fence(p.x,p.y+2,Grid.TILE_SIZE)
 	var field=Grid.rect(FARM_CELL,Vector2i(5,4))
-	var chest=site_position("chest")
-	r(self,chest.x-15,chest.y-21,30,22,"796345")
-	r(self,chest.x-15,chest.y-26,30,8,"baa06d")
-	r(self,chest.x+8,chest.y-19,7,20,"5e5741")
-	r(self,chest.x-2,chest.y-18,5,8,"e0c38c")
 	draw_rect(field.grow(3),Color("596341"))
 	draw_rect(field,Color("7b6446"))
 	for garden in DECORATIVE_FIELDS: paint_decorative_garden(garden)
@@ -1343,6 +1374,7 @@ func paint_combat_texts(canvas: CanvasItem) -> void:
 
 func paint_effects(c: CanvasItem) -> void:
 	if Art.option==2: Art.effects(self,c); return
+	preload("res://outdoor_motion.gd").draw(self,c)
 	for p in people:
 		if cutscene_hidden(): break
 		if not villagers[p.id].visible: continue
@@ -1357,12 +1389,9 @@ func paint_effects(c: CanvasItem) -> void:
 	c.draw_set_transform(Grid.center(SHIP_CELL)-Vector2(343,280))
 	c.draw_polyline(PackedVector2Array([Vector2(263,283),Vector2(313,258),Vector2(343,220),Vector2(373,258),Vector2(423,283),Vector2(370,303),Vector2(315,303),Vector2(263,283)]),cloak_color,1.0)
 	c.draw_set_transform(Vector2.ZERO)
-	for i in range(12):
-		var glint=Grid.center(POND_CELL)+Vector2(-70+i*12,sin(elapsed*0.6+i*3)*72)
-		r(c,glint.x,glint.y,6+sin(elapsed+i)*4,1,"9fc6b477")
 	for i in range(14):
 		var pos = Vector2(500+(i*137)%1100+sin(elapsed*0.4+i)*30,670+(i*79)%570+cos(elapsed*0.6+i)*20)
-		r(c,pos.x,pos.y,4 if sin(elapsed*8+i)>0 else 2,2,"e1db85" if state.minute>1140 or state.minute<330 else "e8d9aa")
+		if state.minute>1140 or state.minute<330: r(c,pos.x,pos.y,4 if sin(elapsed*8+i)>0 else 2,2,"e1db85")
 	for p in particles:
 		var color = Color(p.color)
 		color.a = minf(1.0,p.life)
