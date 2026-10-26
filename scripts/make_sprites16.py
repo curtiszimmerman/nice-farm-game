@@ -2166,7 +2166,8 @@ def main():
     from harvest_sprites16 import sprites as harvest_sprites
     from border_surfaces16 import sprites as border_surfaces
     from terrain_edges16 import sprites as terrain_edges
-    additions = dict(sprites(Pixels), **calendar_sprites(Pixels), **observatory_sprites(Pixels), **harvest_sprites(Pixels), **border_surfaces(Pixels), **terrain_edges(Pixels))
+    from town_additions16 import sprites as town_additions
+    additions = dict(sprites(Pixels), **calendar_sprites(Pixels), **observatory_sprites(Pixels), **harvest_sprites(Pixels), **border_surfaces(Pixels), **terrain_edges(Pixels), **town_additions(Pixels))
     write_font(ROOT / "src/native/art/ui", Pixels)
     for name, image in additions.items():
         if name.startswith("tile_mill_sails"): name = name.removeprefix("tile_")
