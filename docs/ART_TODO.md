@@ -2,6 +2,8 @@
 
 Claude calls are paused at Z's request after the session limit. Do not retry or resume automatically; wait for Z to say usage has reset. All new pixels remain Claude-authored. Integration, atlas packing and tests can continue without generating or repairing artwork.
 
+Z subsequently authorized one small, separate option-3 artwork request for the town-life additions. That pass is complete and cataloged in `SPRITE_INVENTORY.md`. The unfinished border work below remains deferred; the town request did not resume it.
+
 ## Available for this integration
 
 - Paving and stone-jetty center surfaces: 96 tiles covering both materials, four seasons, three weather states and four variants. The jetty's repeated recessed-box motif was revised; coverage, opaque centers, variant seam anchors and repeatability pass.

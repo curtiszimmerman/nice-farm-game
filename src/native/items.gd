@@ -14,7 +14,7 @@ const CATALOG={
 	"ladder":{"name":"Mrs. Bell's ladder","description":"Borrowed by Nessa for her radio antenna. Mara would like it back.","action":"Return to Mrs. Bell"},
 	"bread":{"name":"Fresh bread","description":"Corin's warm, crusty loaf. Restores 20 energy.","action":"Eat"},
 	"copper_bars":{"name":"Copper bar","description":"Refined copper for Chief Vale's crew-link repair.","action":"Crafting material"},
-	"axe":{"name":"Axe","description":"Oren's spare axe. Three blows fell a tree; each costs 4 energy.","action":"Chop a tree in front of you"},
+	"axe":{"name":"Axe","description":"Rowan's spare axe. Three blows fell a tree; each costs 4 energy.","action":"Chop a tree in front of you"},
 	"wood":{"name":"Firewood","description":"Freshly chopped wood. Oren needs six for his lighthouse stove.","action":"Building material"},
 	"lantern_ray":{"name":"Lantern ray","description":"A rare deep-water ray found only at the sea end of the stone jetty.","action":"Cooking ingredient · sell for 90 crowns"},
 	"pickaxe":{"name":"Pickaxe","description":"Select to break cave rocks and copper deposits. Costs 5 energy per rock.","action":"Mining tool"},
