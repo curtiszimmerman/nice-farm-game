@@ -30,6 +30,9 @@ func run() -> void:
 	game.state.player_position=game.Grid.center(Vector2i(5,3))
 	home.facing="up"
 	check(home.find_nearest().get("id")=="bed","uncovered guest bed offers sleep rather than a completed cover task")
+	game.begin_rest(60)
+	check(game.state.player_position.x>=4*32,"using the guest bed sleeps in that bed rather than the other one")
+	game.interact()
 	game.state.learned_spells.append("hearthmend")
 	game.state.assign_slot(3,"hearthmend")
 	game.open_storage("cabinet")

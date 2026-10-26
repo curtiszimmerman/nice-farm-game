@@ -143,6 +143,11 @@ func entry_position() -> Vector2: return Grid.center(layout.entry)
 func bed_position(resident: String="") -> Vector2:
 	var beds=furnishings.filter(func(item):return item.kind=="bed")
 	var index=int(layout.get("beds",{}).get(resident,0))
+	if resident=="":
+		for i in range(beds.size()):
+			if beds[i].bounds.has_point(front_cell()):
+				index=i
+				break
 	for item in beds.slice(index,index+1):
 		if item.kind=="bed": return Grid.origin(item.bounds.position)+Vector2(item.bounds.size.x*16+layout.get("bed_offsets",{}).get(resident,0),item.bounds.size.y*32-8)
 	return entry_position()
