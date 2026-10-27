@@ -52,10 +52,12 @@ func run() -> void:
 	check(not game.sound.thunder.playing,"lightning precedes thunder instead of playing it immediately")
 	var weather=game.world.weather_effects
 	check(weather.get("lightning_frames")==2,"a lightning strike requests two bright render frames")
-	game.sound.update_weather("rainy",true,1.9)
-	check(not game.sound.thunder.playing,"the thunder remains silent before its two-second delay")
+	var delay=game.sound.thunder_pending
+	check(delay>=1 and delay<=3,"the thunder delay stays within the requested one-to-three-second range")
+	game.sound.update_weather("rainy",true,delay-0.1)
+	check(not game.sound.thunder.playing,"the thunder remains silent until its sampled delay elapses")
 	game.sound.update_weather("rainy",true,0.2)
-	check(game.sound.thunder.playing,"thunder follows the lightning after two seconds")
+	check(game.sound.thunder.playing,"thunder follows the lightning after its sampled delay")
 	await game.sound.shutdown()
 	game.queue_free()
 	await process_frame

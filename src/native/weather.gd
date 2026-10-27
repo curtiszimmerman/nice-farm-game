@@ -70,6 +70,12 @@ func rain_positions(time: float) -> PackedVector2Array:
 		positions.append(world.state.player_position-Vector2(410,280)+Vector2(fposmod(i*127-time*25,820),fposmod(i*71+time*(150+i%4*20),560)))
 	return positions
 
+func snow_positions(time: float) -> PackedVector2Array:
+	var positions=PackedVector2Array()
+	for i in range(110):
+		positions.append(world.state.player_position-Vector2(410,280)+Vector2(fposmod(i*127+sin(time*0.7+i)*12,820),fposmod(i*71+time*(22+i%4*4),560)))
+	return positions
+
 func _draw() -> void:
 	if world.state.weather_name()!="sunny" or daylight()<=0: return
 	var shade=Color(0.12,0.16,0.24,0.26*daylight())
@@ -85,10 +91,9 @@ func paint_sky(canvas: CanvasItem) -> void:
 				Art.sprite(canvas,"cloud_shadow",point,Vector2(480,240),Color(0.15,0.2,0.29,0.2*daylight()))
 	elif mode=="rainy":
 		var snow=world.state.season_name()=="winter"
-		for point in rain_positions(world.elapsed):
+		for point in snow_positions(world.elapsed) if snow else rain_positions(world.elapsed):
 			if snow:
-				var drift=Vector2(sin(point.y*0.04+world.elapsed)*8,-world.elapsed*120)
-				canvas.draw_rect(Rect2(point+drift,Vector2(2,2)),Color(0.9,0.94,1,0.72))
+				canvas.draw_rect(Rect2(point,Vector2(2,2)),Color(0.9,0.94,1,0.72))
 			else: Art.sprite(canvas,"rain_streak",point,Vector2(3,11),Color(0.75,0.85,0.94,0.42))
 		for i in range(20):
 			if snow: break

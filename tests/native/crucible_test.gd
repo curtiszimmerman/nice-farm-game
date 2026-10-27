@@ -46,8 +46,8 @@ func run() -> void:
 		bad.crucibles.append(bad.crucibles[0].duplicate())
 		check(not loaded.restore(bad),"duplicate saved crucible footprints are rejected")
 		bad=s.to_dict()
-		bad.crucibles[0].x=0
-		check(not loaded.restore(bad),"saved construction outside the building yard is rejected")
+		bad.crucibles[0].x=-20
+		check(not loaded.restore(bad),"saved construction beyond the farmhouse radius is rejected")
 	var game=Game.new()
 	game.testing=true
 	root.add_child(game)

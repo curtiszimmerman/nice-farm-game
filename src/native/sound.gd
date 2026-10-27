@@ -110,6 +110,7 @@ func _apply_volumes() -> void:
 	crickets.volume_db=_db(ambience_level*current_mix.crickets if not cinematic else 0.0)
 	drips.volume_db=_db(ambience_level*current_mix.drips if not cinematic else 0.0)
 	spell.volume_db=_db(effects_level)
+	mining.volume_db=_db(effects_level if not cinematic else 0.0)
 	rain.volume_db=_db(ambience_level*rain_weight if not cinematic else 0.0)
 	thunder.volume_db=_db(ambience_level*0.65 if not cinematic else 0.0)
 	for player in battle.values(): player.volume_db=_db(effects_level)
@@ -125,7 +126,7 @@ func start() -> void:
 
 func stop() -> void:
 	active=false
-	for player in [music,birds,crickets,drips,ship,spell,crash,rain,thunder]: player.stop()
+	for player in [music,birds,crickets,drips,ship,spell,crash,rain,thunder,mining]: player.stop()
 	for player in battle.values(): player.stop()
 
 func shutdown() -> void:

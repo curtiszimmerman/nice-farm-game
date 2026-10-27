@@ -220,7 +220,8 @@ func creatures() -> Array: return rats+([spider] if spider!=null else [])
 
 func damage_creature(creature: Node2D,amount: float) -> void:
 	creature.info.health-=amount
-	combat_text("-%s" % snappedf(amount,0.01),creature.position+Vector2(0,30),Color("ffe7a0"))
+	var label=str(int(amount)) if is_equal_approx(amount,roundf(amount)) else "%.2f"%amount
+	combat_text("-"+label,creature.position+Vector2(0,30),Color("ffe7a0"))
 	creature.modulate=Color("ffc4aa")
 	if creature.info.health<=0:
 		creature.visible=false

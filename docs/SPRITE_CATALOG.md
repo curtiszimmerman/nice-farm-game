@@ -23,7 +23,7 @@ Seasons: spring, summer, autumn, winter. Weather: sunny, partly_cloudy, rainy. V
 - `tile_border_jetty_fill_<SEASON>_<WEATHER>_<VARIANT>`: 48 sprites
 - `tile_border_paving_fill_<SEASON>_<WEATHER>_<VARIANT>`: 48 sprites
 
-## Other sprites (811 exact names)
+## Other sprites (824 exact names)
 
 ```text
 actor_assistant_down0
@@ -483,9 +483,12 @@ general_store_sign
 item_apples
 item_axe
 item_berries
+item_berry_cobbler [option 3 only]
+item_berry_preserves [option 3 only]
 item_blue_mackerel
 item_bread
 item_build_crucible
+item_butter [option 3 only]
 item_cave_moth_chrysalis
 item_coal [option 3 only]
 item_copper
@@ -495,6 +498,7 @@ item_fish
 item_fish_stew
 item_fish_sticks
 item_fishing_pole [option 3 only]
+item_flour [option 3 only]
 item_golden_sparkfire_bloom
 item_health_elixir
 item_hearthmend [option 3 only]
@@ -517,9 +521,11 @@ item_star_bulbs
 item_star_seeds
 item_stones
 item_storm_eel
+item_sugar [option 3 only]
 item_turnips
 item_watering_can
 item_wildgrowth
+item_winter_sparkbloom [option 3 only]
 item_wood
 lamp
 lamp_halo
@@ -581,8 +587,11 @@ shadow_lamp
 shadow_tree
 shed_ladder
 shed_workbench
+ship_bunk_2x3 [option 3 only]
 ship_crew
 ship_enemy
+ship_locker_3x1 [option 3 only]
+ship_table_2x1 [option 3 only]
 sign
 sign_baker [option 3 only]
 sign_general_store [option 3 only]
@@ -600,8 +609,11 @@ spider1
 spider2
 status_poison
 status_poison_eyes
+status_starving [option 3 only]
+status_thirsty [option 3 only]
 status_tired
 stump
+temple_altar [option 3 only]
 tile_bakery_sign
 tile_bath
 tile_cap_center
@@ -836,5 +848,6 @@ wall_house_mask7
 wall_house_mask8
 wall_house_mask9
 window_warm
+winter_sparkbloom [option 3 only]
 woodpile
 ```

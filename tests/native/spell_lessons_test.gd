@@ -14,6 +14,7 @@ func _initialize() -> void:
 	s.golden_sparkfire_bloom=1
 	check(s.learn_spell("hearthmend"),"one dawn bloom teaches Hearthmend")
 	s.health=60
+	s.day=2
 	s.mana=30
 	check(s.cast_healing() and s.health==75 and s.mana==20,"Hearthmend spends mana to restore health")
 	quit(1 if failed else 0)

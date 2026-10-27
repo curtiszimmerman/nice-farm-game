@@ -4,6 +4,8 @@ Claude calls are paused at Z's request after the session limit. Do not retry or 
 
 Z subsequently authorized one small, separate option-3 artwork request for the town-life additions. That pass is complete and cataloged in `SPRITE_INVENTORY.md`. The unfinished border work below remains deferred; the town request did not resume it.
 
+The later authorized survival/faith pass is also complete: thirteen new sprites and seven revised weekday rings, cataloged in the same inventory. It did not resume the paused border work.
+
 ## Available for this integration
 
 - Paving and stone-jetty center surfaces: 96 tiles covering both materials, four seasons, three weather states and four variants. The jetty's repeated recessed-box motif was revised; coverage, opaque centers, variant seam anchors and repeatability pass.

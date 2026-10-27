@@ -250,9 +250,13 @@ func update_villagers(dt: float,snap: bool=false) -> void:
 		if building.id=="hall":
 			cell=[Vector2i(14,9),Vector2i(14,10)][int(state.minute/35)%2] if id=="mayor" else [Vector2i(6,3),Vector2i(6,4),Vector2i(2,3)][int(state.minute/30)%3]
 		if building.id=="tavern" and id!="barkeep": cell=tavern_guest_spot(id)
+		if building.id=="temple" and posmod(state.day-1,7)==6 and state.minute>=600 and state.minute<720:
+			var attendee=Schedule.COMMUNION.find(id)
+			cell=Vector2i(3,2) if id=="priest" else Vector2i(3+(attendee%2)*2,3+int(attendee/2)*2) if attendee>=0 else cell
 		var target=Grid.center(cell)
 		if snap: actor.position=target
 		else: walk_actor(id,cell,dt)
+		if building.id=="temple" and actor.position.distance_to(target)<1: actor.data.direction="down" if id=="priest" else "up"
 		actor.queue_redraw()
 
 func tavern_guest_spot(id: String) -> Vector2i:

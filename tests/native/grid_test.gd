@@ -68,8 +68,9 @@ func run() -> void:
 		if world.blocked(Grid.center(Vector2i(x,world.JETTY_CELLS.position.y))): jetty_clear=false
 	check(jetty_clear,"the jetty reserves walkable cells over pond water")
 	var edge_save=game.state.to_dict()
-	edge_save.x=100.0
-	edge_save.y=656.0
+	var boundary=Grid.origin(Grid.SPAWN_CELL)+Vector2(0.1,16)
+	edge_save.x=boundary.x
+	edge_save.y=boundary.y
 	var restored=game.state.get_script().new()
 	check(not world.blocked(Vector2(edge_save.x,edge_save.y)) and restored.restore(edge_save),"a valid position near the new tile boundary survives saving and loading")
 	game.state.player_position=world.plot_position(6)+Vector2(10,-8)

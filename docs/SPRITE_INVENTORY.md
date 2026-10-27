@@ -1,5 +1,7 @@
 # Sprite inventory for town-life expansion
 
+The survival/faith pass adds thirteen option-3 sprites and replaces the seven requested weekday-ring designs. `scripts/journey_sprites16.py` contains metal ship bunks/lockers/table, a temple altar, thirsty/starving icons, winter sparkbloom world/item sprites, and preserves/flour/sugar/butter/cobbler icons. Its small artwork request reported $0.4766336 API-equivalent usage. Public prompt and exchange records are in `internal/claude-review/borders/06-survival-faith/`. Border work remains deferred separately. The default atlas now has 23,432 entries.
+
 Existing assets are reused without pixel edits: all terrain borders, trees, bushes, flowers, fish, player/NPC frames, buildings, furniture, tools, calendar rings, waves, birds, ladder, telescope, copper and stone. The two existing generator catalogs remain the full machine-readable inventory; do not send them to artwork services as context.
 
 The town-life artwork request covered the temple facade, priest, decorative beehive, bee frames, fishing pole, coal deposit/icon, cave stairs, spell icons and three shop signs. These are complete, in a separate option-3 helper. Existing artwork stays unchanged. Exact names and dense border-family patterns are listed in [SPRITE_CATALOG.md](SPRITE_CATALOG.md), generated with `python3 -B scripts/sprite_inventory.py`.

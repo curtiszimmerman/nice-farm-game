@@ -1,7 +1,7 @@
 extends RefCounted
 
 const DAYS=["Rift","Bough","Ember","Gale","Tide","Gleam","Veil"]
-const SCHOOLS=["nature","fire","air","water"]
+const SCHOOLS=["nature","fire","air","water","light","darkness"]
 const DEITIES=[
 	["Oruven, the Unfinished","Oruven left a gap in the first sky so creation could keep surprising itself. Rift's violet spiral marks that opening. No two dawns promise the same blessing; sometimes a gift and its undoing arrive together."],
 	["Thessil, Keeper of the Small Roots","Thessil sheltered the first seed beneath a fallen leaf. Bough's green leaf honors the patient work of living things. Roots answer readily today, while the wandering winds grow quiet."],
@@ -14,7 +14,7 @@ const DEITIES=[
 static func chaos(day: int,world_seed: int) -> Dictionary:
 	var rng=RandomNumberGenerator.new()
 	rng.seed=hash("weekday:%s:%s"%[world_seed,day])
-	return {"favored":SCHOOLS[rng.randi_range(0,3)],"weakened":SCHOOLS[rng.randi_range(0,3)],"collision":2.0 if rng.randf()<0.5 else 0.0}
+	return {"favored":SCHOOLS[rng.randi_range(0,SCHOOLS.size()-1)],"weakened":SCHOOLS[rng.randi_range(0,SCHOOLS.size()-1)],"collision":2.0 if rng.randf()<0.5 else 0.0}
 
 static func strength(day: int,world_seed: int,school: String) -> float:
 	var weekday=posmod(day-1,7)

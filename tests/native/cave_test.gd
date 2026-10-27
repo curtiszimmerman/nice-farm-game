@@ -17,7 +17,7 @@ func run() -> void:
 	check(not game.state.grow(0),"untrained captains cannot cast magic")
 	game.enter_building("cave")
 	var cave=game.world
-	check(game.current_room=="cave" and cave.chambers.size()==12,"the southeast cave opens a generated twelve-room floor")
+	check(game.current_room=="cave" and cave.chambers.size()==9,"the southeast cave opens a generated nine-room floor")
 	var paths=true
 	for room in cave.chambers:
 		if cave._route(cave.layout.entry,room.get_center()).is_empty(): paths=false

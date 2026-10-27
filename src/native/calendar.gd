@@ -45,18 +45,19 @@ func _draw() -> void:
 	var days=state.day-1+state.minute/1440.0
 	Art.sprite(self,"moon_purple"+str(phase_index(days,56)),Vector2(60,0),Vector2(48,48))
 	Art.sprite(self,"moon_white"+str(phase_index(days,28)),Vector2(148,0),Vector2(48,48))
+	var turn=posmod(state.day-previous_day,7)*TAU/7.0 if previous_day>=0 else 0.0
 	if transition<1 and previous_day>=0:
 		var eased=smoothstep(0.0,1.0,transition)
-		draw_set_transform(Vector2(128,168),eased*TAU/7.0)
+		draw_set_transform(Vector2(128,168),eased*turn)
 		Art.sprite(self,"calendar_ring"+str(weekday(previous_day)),Vector2(-96,-96),Vector2(192,192),Color(1,1,1,1-eased))
 		draw_set_transform(Vector2.ZERO)
-	draw_set_transform(Vector2(128,168),(smoothstep(0.0,1.0,transition)-1)*TAU/7.0)
+	draw_set_transform(Vector2(128,168),(smoothstep(0.0,1.0,transition)-1)*turn)
 	Art.sprite(self,"calendar_ring"+str(weekday(state.day)),Vector2(-96,-96),Vector2(192,192),Color(1,1,1,smoothstep(0.0,1.0,transition)))
 	draw_set_transform(Vector2.ZERO)
 	Art.sprite(self,"season_"+state.season_name(),Vector2(88,162),Vector2(20,20))
 	var font=preload("res://pixel_ui.gd").font()
 	draw_string(font,Vector2(64,62),PURPLE_NAME,HORIZONTAL_ALIGNMENT_LEFT,-1,12,Color("ccb0ef"))
 	draw_string(font,Vector2(158,62),WHITE_NAME,HORIZONTAL_ALIGNMENT_LEFT,-1,12,Color("f5eccc"))
-	draw_set_transform(Vector2(128,342-128*cos(0.5)),pendulum_angle(state.minute))
+	draw_set_transform(Vector2(128,342-100*cos(0.5)+24),pendulum_angle(state.minute))
 	Art.sprite(self,"clock_pendulum",Vector2(-32,0),Vector2(64,128))
 	draw_set_transform(Vector2.ZERO)

@@ -39,8 +39,17 @@ def calendar_rings(P):
     out, saved = {}, cal.DAYS
     try:
         cal.DAYS = [DAYS[0], *reversed(DAYS[1:])]
+        base = cal.conv(P, cal.ring(0))
         for k in range(7):
-            out[f"calendar_ring{k}"] = cal.conv(P, cal.ring(-k))
+            image = P(64, 64)
+            angle = k * math.tau / 7
+            for y in range(64):
+                for x in range(64):
+                    sx = round(31.5 + (x - 31.5) * math.cos(angle) + (y - 31.5) * math.sin(angle))
+                    sy = round(31.5 - (x - 31.5) * math.sin(angle) + (y - 31.5) * math.cos(angle))
+                    if 0 <= sx < 64 and 0 <= sy < 64:
+                        image.dot(x, y, base.get(sx, sy))
+            out[f"calendar_ring{k}"] = image
     finally:
         cal.DAYS = saved
     return out

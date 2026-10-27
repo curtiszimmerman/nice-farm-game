@@ -37,3 +37,6 @@ for test_file in terrain_borders_test border_atlas_test terrain_art_integration_
     run_native --headless --script "../../tests/native/$test_file.gd"
 done
 run_native --headless -- --smoke-test
+for test_file in supply_dialogue_revision_test hardcore_needs_test journey_mode_test weekday_magic_test social_days_test berry_kitchen_test seasonal_weather_test farm_radius_test farm_radius_world_test temple_service_test temple_complex_test cave_generation_variation_test; do
+    run_native --headless --script "../../tests/native/$test_file.gd"
+done

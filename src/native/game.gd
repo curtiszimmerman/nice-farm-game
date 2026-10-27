@@ -594,6 +594,15 @@ func interact() -> void:
 	if not activity.is_empty(): return
 	nearest=world.find_nearest()
 	if nearest.get("type")=="person": talk(nearest.id); return
+	if world==outdoors and state.active_item()=="hoe" and world.target_plot()<0 and nearest.is_empty():
+		var cell=world.front_cell()
+		if world.can_build_crucible(cell) and state.prepare_plot(cell):
+			world.farm_cells[cell]=true
+			preload("res://tool_motion.gd").start(world,"hoe")
+			save_visit()
+			toast("Good earth. Select seeds to plant here.")
+		else: toast("Face clear ground within fifteen squares of the farmhouse, with enough energy to till.")
+		return
 	if nearest.get("type")=="build":
 		build_crucible()
 		return
@@ -619,7 +628,6 @@ func interact() -> void:
 	if nearest.get("type")=="rock":
 		var position=Grid.center(world.rocks[nearest.id].cell)
 		if world.mine_rock(nearest.id):
-			sound.mining.volume_db=sound._db(sound.effects_level)
 			sound.mining.play()
 			burst(position,"c6a47b",12)
 			save_visit()
@@ -687,6 +695,15 @@ func interact() -> void:
 				save_visit()
 			"sparkfire":
 				var key="%d:%d" % [nearest.cell.x,nearest.cell.y]
+				if state.winter_bloom_day():
+					if state.bloom_harvests.get(key,0)==state.day: toast("This winter sparkbloom has already been gathered.")
+					elif not state.can_carry("winter_sparkbloom"): toast("Make room in your satchel.")
+					else:
+						state.winter_sparkbloom+=1
+						state.bloom_harvests[key]=state.day
+						toast("Winter sparkbloom gathered. A little lightning kept in a flower.")
+						save_visit()
+					return
 				if state.minute<330 or state.minute>=420: toast("An ordinary-looking plant. Its golden flower opens only at sunrise.")
 				elif state.bloom_harvests.get(key,0)==state.day: toast("The dawn flower has already been gathered today.")
 				elif not state.can_carry("golden_sparkfire_bloom"): toast("Make room in your satchel.")
@@ -942,7 +959,7 @@ func perform_drop(data: Dictionary,destination: Dictionary,amount: int) -> bool:
 
 func build_crucible() -> void:
 	if world!=outdoors or not outdoors.can_build_crucible(world.front_cell()):
-		toast("Face a clear square in the building yard east of your garden.")
+		toast("Face a clear square within fifteen squares of your farmhouse.")
 		return
 	if not state.build_crucible(world.front_cell()):
 		toast("Learn Dain's blueprint and carry %d stone to build a crucible." % State.CRUCIBLE_STONE)

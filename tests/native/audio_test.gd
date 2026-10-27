@@ -83,6 +83,7 @@ func run() -> void:
 		game.select_quick_slot(slot)
 		game.interact()
 	game.select_quick_slot(5)
+	game.state.day=2
 	game.cast_growth()
 	check(game.sound.spell.playing,"successful gameplay cast triggers spell audio")
 	game.sound.spell.stop()

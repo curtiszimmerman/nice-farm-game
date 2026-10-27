@@ -34,6 +34,7 @@ static func home_stop(id: String) -> Dictionary:
 	return {"cell":Vector2i(home[1],home[2]),"sleeping":true,"room":home[4] if home.size()>4 else "ship" if id=="vale" else id}
 
 const SLEEP={"baker":[1320,240],"farmer_father":[1320,360],"farmer_mother":[1320,390],"farmer_son":[1320,420],"moss":[1320,360],"miller":[1350,390],"miller_wife":[1320,390],"miller_daughter":[1350,420],"smith":[1350,390],"finch":[1380,420],"mayor":[1350,420],"assistant":[1380,420],"tavi":[1380,420],"keeper":[1320,390],"veteran":[1320,390],"woodcutter":[1320,360],"astronomer":[1380,420],"vale":[1320,420],"barkeep":[1440,480],"priest":[1320,360]}
+const COMMUNION=["moss","mayor","miller_wife","farmer_mother","keeper","veteran"]
 const TAVERN_DAYS={"baker":[0,2],"moss":[0,2,4,6],"miller":[0,1,2,3,4,6],"miller_wife":[1,4,6],"miller_daughter":[2,5],"smith":[0,1,3,4,5],"finch":[0,2,4,6],"mayor":[1,3,5],"assistant":[3],"tavi":[0,2,4,6],"keeper":[2],"veteran":[1,4],"woodcutter":[0,3,5,6],"farmer_mother":[1,5],"farmer_father":[0,2,4,6],"farmer_son":[5],"astronomer":[1,4,6]}
 
 static func stop(id: String,minute: float,day: int=1) -> Dictionary:
@@ -54,6 +55,8 @@ static func stop(id: String,minute: float,day: int=1) -> Dictionary:
 		stop.sleeping=false
 	if id in ["tavi","smith","baker"] and minute>=hours[1] and minute<1140 and not (id=="tavi" and minute>=750 and minute<780):
 		stop={"cell":home_stop(id).cell if id!="tavi" else Vector2i(72,45),"room":{"tavi":"store","smith":"smithy","baker":"bakery"}[id],"sleeping":false}
+	if posmod(day-1,7)==6 and minute>=600 and minute<720 and (id in COMMUNION or id=="priest"):
+		return {"cell":Vector2i(53,57),"room":"temple","sleeping":false}
 	if id=="priest": return stop
 	if minute<1140 and stop.room=="tavern":
 		stop=home_stop(id)

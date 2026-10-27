@@ -543,6 +543,12 @@ func open_character_inventory() -> void:
 	skill_buttons.clear()
 	equipment_slots.clear()
 	inventory_tabs=TabContainer.new()
+	var tab_padding=style(Color("172b2bf0"))
+	tab_padding.content_margin_left=16
+	tab_padding.content_margin_right=16
+	tab_padding.content_margin_top=16
+	tab_padding.content_margin_bottom=16
+	inventory_tabs.add_theme_stylebox_override("panel",tab_padding)
 	inventory_tabs.custom_minimum_size=Vector2(1130,460)
 	modal_box.add_child(inventory_tabs)
 	modal_box.move_child(inventory_tabs,3)
@@ -687,6 +693,7 @@ func add_relationships() -> void:
 		var image=AtlasTexture.new()
 		image.atlas=Items.Art.atlas
 		image.region=Items.Art.region(image_id)
+		image.region.size.y=minf(image.region.size.y,Items.Art.tile_size*1.2)
 		portrait.texture=image
 		portrait.custom_minimum_size=Vector2(48,64)
 		portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE
@@ -962,7 +969,9 @@ func status_picture(id: String) -> TextureRect:
 	var picture=TextureRect.new()
 	var texture=AtlasTexture.new()
 	texture.atlas=Items.Art.atlas
-	texture.region=Items.Art.region(id)
+	var sprite_id=id
+	if not Items.Art.catalog.has(sprite_id): sprite_id="item_watering_can" if id=="status_thirsty" else "item_rations" if id=="status_starving" else id
+	texture.region=Items.Art.region(sprite_id)
 	picture.texture=texture
 	picture.position=Vector2(6,6)
 	picture.size=Vector2(32,32)

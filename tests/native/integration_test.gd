@@ -38,6 +38,7 @@ func run() -> void:
 		game.interact()
 	check(game.state.plots[0].watered and game.state.seeds==7,"contextual input tills plants and waters")
 	game.select_quick_slot(5)
+	game.state.day=2
 	game.cast_growth()
 	game.select_quick_slot(2)
 	game.interact()

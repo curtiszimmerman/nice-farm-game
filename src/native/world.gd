@@ -8,7 +8,8 @@ const Bodies=preload("res://npc_bodies.gd")
 const Neighbors=preload("res://neighbors.gd")
 const TownPaths=preload("res://town_paths.gd")
 const Borders=preload("res://terrain_borders.gd")
-const SQUARE = Rect2i(59,44,6,6)
+const SQUARE = Rect2i(59,44,8,7)
+const BOARD_CELL=Vector2i(63,43)
 const SIZE = Grid.WORLD_SIZE
 const FARM_CELL = Vector2i(9,48)
 const OUTCROP_CELLS = Rect2i(90,69,9,5)
@@ -163,7 +164,10 @@ class Prop extends Node2D:
 				var square=Rect2(Grid.origin(owner_world.front_cell()),Vector2.ONE*32)
 				draw_rect(square,Color("e4daa312"))
 				draw_rect(square,Color("e4daa399"),false,1)
-		elif kind == "sparkfire": owner_world.paint_sparkfire(self,data.get("bloom",false))
+		elif kind == "sparkfire":
+			if data.get("winter",false) and Art.catalog.has("winter_sparkbloom"):
+				Art.sprite(self,"winter_sparkbloom",Vector2(-16,-48))
+			else: owner_world.paint_sparkfire(self,data.get("bloom",false))
 		elif kind == "bush":
 			Art.sprite(self,Art.seasonal("bush"+str(data.variant),data.get("season","spring")),Vector2(-32,-42))
 			if data.get("fruit_ready",false): Art.sprite(self,"berry_cluster",Vector2(-24,-36),Vector2(48,32))
@@ -254,7 +258,7 @@ func _ready() -> void:
 		sites.append({"id":"sparkfire","cell":cell,"x":p.x,"y":p.y,"label":"Gather dawn flower"})
 		_prop("sparkfire",p,{"bloom":false})
 	_prop("fountain",Grid.origin(SQUARE.position+Vector2i(2,4)),{"frame":-1})
-	_prop("bulletin_board",Grid.origin(Vector2i(60,51)),{})
+	_prop("bulletin_board",Grid.origin(BOARD_CELL+Vector2i.DOWN),{})
 	for cell in Neighbors.BENCHES: _prop("bench",Grid.origin(cell+Vector2i.DOWN),{})
 	for b in buildings:
 		if b.kind=="windmill":
@@ -269,7 +273,7 @@ func _claim(footprint: Rect2i,kind: String) -> void:
 			solid_cells[cell]=kind
 
 func can_build_crucible(cell: Vector2i) -> bool:
-	if not Grid.BUILD_AREA.has_point(cell) or blocked(Grid.center(cell)) or road_cells.has(cell): return false
+	if not Grid.near_farmhouse(cell) or blocked(Grid.center(cell)): return false
 	return not villagers.values().any(func(actor):return actor.visible and actor.position.distance_to(Grid.center(cell))<Bodies.RADIUS)
 
 func add_crucible(index: int) -> void:
@@ -284,9 +288,10 @@ func add_crucible(index: int) -> void:
 func paint_build_preview(canvas: CanvasItem) -> void:
 	if get("building")!=null: return
 	if cutscene_hidden() or "build_crucible" not in [state.active_item("primary"),state.active_item("aux")]: return
-	for y in range(Grid.BUILD_AREA.position.y,Grid.BUILD_AREA.end.y):
-		for x in range(Grid.BUILD_AREA.position.x,Grid.BUILD_AREA.end.x):
+	for y in range(Grid.FARMHOUSE.position.y-Grid.BUILD_RADIUS,Grid.FARMHOUSE.end.y+Grid.BUILD_RADIUS):
+		for x in range(Grid.FARMHOUSE.position.x-Grid.BUILD_RADIUS,Grid.FARMHOUSE.end.x+Grid.BUILD_RADIUS):
 			var cell=Vector2i(x,y)
+			if not can_build_crucible(cell): continue
 			Art.sprite(canvas,"build_marker",Grid.origin(cell),Vector2(32,32),Color(0.75,0.9,0.8,0.3))
 	var valid=can_build_crucible(front_cell()) and state.stones>=state.CRUCIBLE_STONE
 	Art.sprite(canvas,"crucible",Grid.origin(front_cell()),Vector2(32,32),Color(0.7,1,0.8,0.65) if valid else Color(1,0.5,0.5,0.55))
@@ -328,6 +333,8 @@ func rebuild_visit(new_state: RefCounted) -> void:
 	_ready()
 
 func _build_layout() -> void:
+	for station in state.crucibles: reserved_cells[Vector2i(int(station.x),int(station.y))]=true
+	for index in range(20,state.plots.size()): reserved_cells[state.plot_cell(index)]=true
 	for y in range(Grid.BUILD_AREA.position.y,Grid.BUILD_AREA.end.y):
 		for x in range(Grid.BUILD_AREA.position.x,Grid.BUILD_AREA.end.x): reserved_cells[Vector2i(x,y)]=true
 	for y in range(Grid.MAP_SIZE.y):
@@ -395,9 +402,9 @@ func _build_layout() -> void:
 	_claim(Rect2i(Grid.world_to_cell(site_position("sign")),Vector2i.ONE),"sign")
 	_claim(Rect2i(Grid.world_to_cell(site_position("radio")),Vector2i.ONE),"radio")
 	_claim(Rect2i(SQUARE.position+Vector2i(2,3),Vector2i(2,1)),"fountain")
-	_claim(Rect2i(60,50,2,1),"bulletin board")
-	var board_position=Grid.center(Vector2i(61,51))
-	sites.append({"id":"bulletin_board","cell":Vector2i(61,51),"x":board_position.x,"y":board_position.y,"label":"Read local postings"})
+	_claim(Rect2i(BOARD_CELL,Vector2i(2,1)),"bulletin board")
+	var board_position=Grid.center(BOARD_CELL+Vector2i.ONE)
+	sites.append({"id":"bulletin_board","cell":BOARD_CELL+Vector2i.ONE,"x":board_position.x,"y":board_position.y,"label":"Read local postings"})
 	for cell in Neighbors.FLOWERS: _claim(Rect2i(cell,Vector2i.ONE),"flowerbed")
 	for cell in Neighbors.BENCHES:
 		_claim(Rect2i(cell,Vector2i(2,1)),"bench")
@@ -440,6 +447,7 @@ func _build_layout() -> void:
 	for y in range(FARM_CELL.y-1,FARM_CELL.y+5): fence_cells.append(Vector2i(FARM_CELL.x-1,y))
 	for cell in fence_cells: _claim(Rect2i(cell,Vector2i.ONE),"fence")
 	TownPaths.yards(self)
+	TownPaths.temple_fence(self)
 	TownPaths.build(self)
 	var approach=FARMHOUSE_APPROACH
 	for i in range(approach.size()-1): road_segments.append([Grid.center(approach[i]),Grid.center(approach[i+1]),7.0])
@@ -469,6 +477,7 @@ func prepare_terrain_cells() -> void:
 	cliff_cells=mountain_cells.duplicate()
 	for bounds in [OUTCROP_CELLS,MINE_RIDGE]: cliff_cells.merge(Borders.rect_cells(bounds))
 	farm_cells=Borders.rect_cells(Rect2i(FARM_CELL,Vector2i(5,4)))
+	for index in range(state.plots.size()): farm_cells[state.plot_cell(index)]=true
 
 func terrain_tile_id(material: String,cell: Vector2i,cells: Dictionary,weather: String="") -> String:
 	return Borders.sprite_id(material,Borders.mask(cells,cell),state.season_name(),state.weather_name() if weather=="" else weather,Borders.variant(cell,state.world_seed))
@@ -644,6 +653,8 @@ func refresh() -> void:
 			elif child.kind in ["effects","crucible_heat"]: child.queue_redraw()
 			elif child.kind=="sparkfire":
 				var key="%d:%d" % [Grid.world_to_cell(child.position).x,Grid.world_to_cell(child.position).y]
+				var winter=state.winter_bloom_day() and state.bloom_harvests.get(key,0)!=state.day
+				if child.data.get("winter",false)!=winter: child.data.winter=winter; child.queue_redraw()
 				var bloom=state.minute>=330 and state.minute<420 and state.bloom_harvests.get(key,0)!=state.day
 				if child.data.bloom!=bloom: child.data.bloom=bloom; child.queue_redraw()
 			elif child.kind in ["tree","building"]:
@@ -665,11 +676,9 @@ func prop_hides_player(prop: Prop) -> bool:
 	return bounds.intersects(Rect2(state.player_position-Vector2(12,44),Vector2(24,46)))
 
 func target_plot() -> int:
-	var direction={"up":Vector2.UP,"down":Vector2.DOWN,"left":Vector2.LEFT,"right":Vector2.RIGHT}[facing]
-	var point=Grid.world_to_cell(state.player_position)+Vector2i(direction)-FARM_CELL
-	var col=point.x
-	var row=point.y
-	return row*5+col if col>=0 and col<5 and row>=0 and row<4 else -1
+	for index in range(state.plots.size()):
+		if state.plot_cell(index)==front_cell(): return index
+	return -1
 
 func front_cell() -> Vector2i:
 	return Grid.world_to_cell(state.player_position)+{"up":Vector2i.UP,"down":Vector2i.DOWN,"left":Vector2i.LEFT,"right":Vector2i.RIGHT}[facing]
@@ -681,7 +690,7 @@ func should_highlight() -> bool:
 	return get_parent().has_method("cutscene_active") and get_parent().controls.show_target and not cutscene_hidden()
 
 func activation_cells(site: Dictionary) -> Array:
-	if site.id=="bulletin_board": return [Vector2i(60,50),Vector2i(61,50)]
+	if site.id=="bulletin_board": return [BOARD_CELL,BOARD_CELL+Vector2i.RIGHT]
 	if site.id=="ship_entry":
 		var cells=[]
 		for x in range(10,13):
@@ -692,7 +701,7 @@ func activation_cells(site: Dictionary) -> Array:
 	return [site.cell]
 
 func plot_position(i: int) -> Vector2:
-	return Grid.center(FARM_CELL+Vector2i(i%5,int(i/5.0)))
+	return Grid.center(state.plot_cell(i))
 
 func audio_context(player_position: Vector2) -> Dictionary:
 	# A future interior supplies cave/mine instead of an outdoor environment.
@@ -1331,7 +1340,7 @@ func paint_sparkfire(c: CanvasItem,bloom: bool) -> void:
 
 func paint_crops(c: CanvasItem) -> void:
 	if Art.option==2: Art.crops(self,c); return
-	for i in range(20):
+	for i in range(state.plots.size()):
 		var p = state.plots[i]
 		var pos = plot_position(i)
 		var x = pos.x

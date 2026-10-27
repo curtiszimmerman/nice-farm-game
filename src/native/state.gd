@@ -172,6 +172,9 @@ func total() -> float:
 func weather_name(on_day: int=0) -> String:
 	return weather_override if weather_override!="" else preload("res://weather.gd").for_day(world_seed,day if on_day==0 else on_day)
 
+func winter_bloom_day() -> bool:
+	return weather_name()=="rainy" and preload("res://weather.gd").thundersnow(world_seed,day)
+
 func accept_firewood_task() -> bool:
 	if firewood_given: return false
 	firewood_requested=true
@@ -292,7 +295,7 @@ func learn_crucible() -> bool:
 	return true
 
 func build_crucible(cell: Vector2i) -> bool:
-	if not crucible_known or stones<CRUCIBLE_STONE or not Grid.BUILD_AREA.has_point(cell): return false
+	if not crucible_known or stones<CRUCIBLE_STONE or not Grid.near_farmhouse(cell): return false
 	if crucibles.any(func(station):return Vector2i(station.x,station.y)==cell): return false
 	stones-=CRUCIBLE_STONE
 	crucibles.append({"x":cell.x,"y":cell.y,"ready_at":-1.0,"bars":0})
@@ -421,6 +424,18 @@ func place_shortcut(id: String,index: int) -> bool:
 		if empty<0: return false
 		inventory_order[empty]=inventory_order[index]
 	inventory_order[index]=id
+	return true
+
+func plot_cell(index: int) -> Vector2i:
+	var plot=plots[index]
+	return Vector2i(int(plot.x),int(plot.y)) if plot.has("x") else Vector2i(9+index%5,48+int(index/5))
+
+func prepare_plot(cell: Vector2i) -> bool:
+	if active_item()!="hoe" or hoe<1 or not Grid.near_farmhouse(cell): return false
+	for index in range(plots.size()):
+		if plot_cell(index)==cell: return false
+	if not spend_energy(2): return false
+	plots.append({"x":cell.x,"y":cell.y,"tilled":true,"planted":-1.0,"watered":false,"crop":"turnips","growth":0.0,"water_day":0})
 	return true
 
 func farm(index: int) -> String:
@@ -799,7 +814,7 @@ func restore(data: Variant) -> bool:
 		for field in ["x","y","bars"]:
 			if not _number(station.get(field)) or station[field]!=floor(station[field]): return false
 		var cell=Vector2i(station.x,station.y)
-		if not Grid.BUILD_AREA.has_point(cell) or cell in stations: return false
+		if not Grid.near_farmhouse(cell) or cell in stations: return false
 		stations.append(cell)
 		if station.bars not in [0,1] or not _number(station.get("ready_at")) or station.ready_at< -1: return false
 		if station.ready_at<0 and station.ready_at!= -1: return false
@@ -909,11 +924,21 @@ func restore(data: Variant) -> bool:
 			return false
 	if not data.get("pause_mode") in ["none", "clock", "all"]:
 		return false
-	if not data.get("plots") is Array or data.plots.size() != 20:
+	if not data.get("plots") is Array or data.plots.size()<20 or data.plots.size()>1500:
 		return false
-	for p in data.plots:
+	var plot_cells=[]
+	for index in range(data.plots.size()):
+		var p=data.plots[index]
 		if not p is Dictionary or not p.get("tilled") is bool or not p.get("watered") is bool or not _number(p.get("planted")):
 			return false
+		var cell=Vector2i(9+index%5,48+int(index/5))
+		if index<20 and (p.has("x") or p.has("y")): return false
+		if index>=20:
+			if not _number(p.get("x")) or not _number(p.get("y")) or p.x!=floor(p.x) or p.y!=floor(p.y): return false
+			cell=Vector2i(int(p.x),int(p.y))
+			if not Grid.near_farmhouse(cell): return false
+		if cell in plot_cells: return false
+		plot_cells.append(cell)
 		if p.planted < -1.0 or p.planted > (data.day - 1) * 1440.0 + data.minute:
 			return false
 		if not p.get("crop") in ["turnips","star_bulbs"]: return false

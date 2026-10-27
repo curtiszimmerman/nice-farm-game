@@ -17,7 +17,7 @@ const PEOPLE=[
 const BUILDINGS=[
 	{"cell":Vector2i(50,52),"tiles":Vector2i(7,5),"roof":"667e78","kind":"temple"},
 	{"cell":Vector2i(43,54),"tiles":Vector2i(4,3),"roof":"7c8270","kind":"cottage","resident":"priest"},
-	{"cell":Vector2i(43,59),"tiles":Vector2i(2,2),"roof":"7c8270","kind":"cabin","resident":"priest_outhouse"},
+	{"cell":Vector2i(41,62),"tiles":Vector2i(2,2),"roof":"7c8270","kind":"cabin","resident":"priest_outhouse"},
 	{"cell":Vector2i(28,10),"tiles":Vector2i(6,4),"roof":"65808c","kind":"observatory","visual_height":224},
 	{"cell":Vector2i(100,42),"tiles":Vector2i(7,5),"roof":"9d6c4b","kind":"reed_farm"},
 	{"cell":Vector2i(88,24),"tiles":Vector2i(5,5),"roof":"827058","kind":"windmill","visual_height":240},
@@ -30,7 +30,7 @@ const BUILDINGS=[
 ]
 const FIELDS=[Rect2i(99,50,5,6),Rect2i(106,50,5,6)]
 const BENCHES=[Vector2i(59,44),Vector2i(62,44)]
-const FLOWERS=[Vector2i(58,46),Vector2i(58,47),Vector2i(65,46),Vector2i(65,47),Vector2i(62,50)]
+const FLOWERS=[Vector2i(58,46),Vector2i(58,47),Vector2i(67,46),Vector2i(67,47),Vector2i(63,51)]
 const ROUTES=[
 	[Vector2i(53,46),Vector2i(53,57)],
 	[Vector2i(53,57),Vector2i(45,57)],
@@ -77,6 +77,8 @@ static func talk(game: Node2D,id: String) -> bool:
 	var working=game.current_room==WORKPLACES.get(id,"unused")
 	if id.begins_with("farmer_"): working=game.world==game.outdoors and game.state.player_position.x>95*32
 	var text=story[1] if working else OFF_DUTY.get(id,story[1])
+	if id=="priest" and posmod(game.state.day-1,7)==6 and game.state.minute>=600 and game.state.minute<720 and game.current_room=="temple":
+		text="A single lamp may tremble, but look how many we've brought together. Vorisel keeps the far mysteries; Elunai asks us to tend the light within reach. Let the darkness beyond the stars remind us to make room beside our own hearths. No neighbor should have to face this day alone."
 	var choices=[]
 	if id=="miller" and working:
 		choices.append(["Buy flour · 5 crowns · %d available"%game.state.stock("flour"),func(): game.buy_ingredient("flour")])

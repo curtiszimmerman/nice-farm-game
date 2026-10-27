@@ -53,6 +53,10 @@ const CATALOG={
 static var textures: Dictionary={}
 
 static func icon(id: String) -> Texture2D:
+	var related={"berry_preserves":"berries","berry_cobbler":"bread","flour":"rations","sugar":"rations","butter":"rations","winter_sparkbloom":"golden_sparkfire_bloom"}
+	if related.has(id):
+		Art.load_atlas()
+		if not Art.catalog.has("item_"+id): return icon(related[id])
 	if id in ["hearthmend","emberthread","fishing_pole","coal","silver_bars"]:
 		Art.load_atlas()
 		if not Art.catalog.has("item_"+id): return icon({"hearthmend":"wildgrowth","emberthread":"golden_sparkfire_bloom","fishing_pole":"wood","coal":"stones","silver_bars":"copper_bars"}[id])

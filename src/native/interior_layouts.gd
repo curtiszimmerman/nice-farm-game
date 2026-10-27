@@ -115,12 +115,12 @@ static func _neral() -> Dictionary:
 		["bathroom","hall",Vector2i(5,10)],["kitchen","hall",Vector2i(7,10)]],
 		"entry":Vector2i(6,12),"exit":Vector2i(6,13),"furniture":[
 		["sofa",Rect2i(1,4,2,1)],["desk",Rect2i(1,1,2,1)],["chair",Rect2i(1,2,1,1)],
-		["bookshelf",Rect2i(4,1,1,2)],["radio",Rect2i(3,1,1,1)],
+		["bookshelf",Rect2i(1,6,2,1)],["radio",Rect2i(4,7,1,1)],
 		["bed",Rect2i(8,1,2,2)],["bookshelf",Rect2i(10,1,1,1)],
 		["bath",Rect2i(1,9,1,2)],["sink",Rect2i(2,9,1,1)],["toilet",Rect2i(3,9,1,1)],
 		["kitchen",Rect2i(8,8,3,1)],["table",Rect2i(8,11,2,1)],["chair",Rect2i(10,11,1,1)],
 		["rug",Rect2i(2,2,2,3)],["art",Rect2i(1,0,2,1)]],
-		"sites":[["bed",Vector2i(10,2)],["radio",Vector2i(3,2)]],
+		"sites":[["bed",Vector2i(10,2)],["radio",Vector2i(3,7)]],
 		"work":[Vector2i(3,3),Vector2i(6,8),Vector2i(9,10)]}
 
 static func _council() -> Dictionary:

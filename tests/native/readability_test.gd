@@ -37,6 +37,7 @@ func run() -> void:
 		game.select_quick_slot(slot)
 		game.interact()
 	game.select_quick_slot(5)
+	game.state.day=2
 	game.cast_growth()
 	game.select_quick_slot(2)
 	game.interact()

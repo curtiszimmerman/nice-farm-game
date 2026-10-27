@@ -46,6 +46,22 @@ static func road_blocked(world: Node2D,cell: Vector2i) -> bool:
 		if field.has_point(cell): return true
 	return false
 
+const TEMPLE_GATES=[Vector2i(53,50),Vector2i(62,54),Vector2i(39,56),Vector2i(46,66)]
+
+static func temple_fence(world: Node2D) -> void:
+	var corners=[Vector2i(39,50),Vector2i(62,50),Vector2i(62,59),Vector2i(53,59),Vector2i(53,66),Vector2i(39,66)]
+	for index in range(corners.size()):
+		var cell: Vector2i=corners[index]
+		var end: Vector2i=corners[(index+1)%corners.size()]
+		while cell!=end:
+			world.reserved_cells[cell]=true
+			if cell in TEMPLE_GATES:
+				world.yard_gates[cell]="wood"
+			elif not world.solid_cells.has(cell):
+				world.yard_fences[cell]="wood"
+				world._claim(Rect2i(cell,Vector2i.ONE),"temple fence")
+			cell+=Vector2i(signi(end.x-cell.x),signi(end.y-cell.y))
+
 static func build(world: Node2D) -> void:
 	var parents={HUB:HUB}
 	var frontier=[HUB]
@@ -59,9 +75,12 @@ static func build(world: Node2D) -> void:
 			parents[next]=cell
 			frontier.append(next)
 	var doors=[]
+	var temple_doors=[]
 	for b in world.buildings:
 		if b.id in ["keeper","veteran","woodcutter"]: continue
 		doors.append(b.cell+Vector2i(int(b.tiles.x/2),b.tiles.y))
+		if b.id in ["temple","priest"]: temple_doors.append(doors.back())
+	doors.append_array(TEMPLE_GATES)
 	doors.append(world.Grid.world_to_cell(world.site_position("ore")))
 	doors.append(Vector2i(23,67))
 	for door in doors:
@@ -69,7 +88,7 @@ static func build(world: Node2D) -> void:
 		var path=[]
 		while parents.has(cell):
 			world.road_cells[cell]=true
-			if TOWN.has_point(cell) or cell.distance_to(door)<=1: world.paved_cells[cell]=true
+			if TOWN.has_point(cell) or cell.distance_to(door)<=1 or door in temple_doors: world.paved_cells[cell]=true
 			path.append(cell)
 			if cell==HUB: break
 			cell=parents[cell]
