@@ -33,6 +33,8 @@ func run() -> void:
 	check(game.state.firewood_requested,"reading Oren's notice activates his firewood mission")
 	game.close_window()
 	game.state.firewood_requested=true
+	game.state.bread=1
+	game.state.assign_active("primary","bread")
 	game.talk("keeper")
 	check(buttons().size()==1 and "need of some firewood" in buttons()[0].text,"Oren starts an active unfinished mission with exactly the firewood question")
 	choose("firewood")

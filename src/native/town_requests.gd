@@ -8,15 +8,18 @@ const POOL=[
 	["barkeep","fish",3,24], ["priest","berries",4,20], ["keeper","wood",4,18],
 	["veteran","turnips",3,24], ["woodcutter","stones",5,20], ["assistant","bread",2,20],
 	["mayor","apples",4,32], ["miller_daughter","copper",2,24]]
+const SUPPLIES={"fish":"pond silverfin","berries":"berries","star_bulbs":"star bulbs","turnips":"moon turnips","wood":"logs","apples":"apples","copper":"copper ore","coal":"coal","stones":"stone","bread":"loaves of bread"}
 var axe_due=-1.0
 var axe_paid=false
 var axe_failed=false
 var copper_advice=false
 var bram_requested=false
+var bram_traded=false
 var week=-1
 var jobs: Array=[]
 
 static func quest_id(job: Dictionary) -> String: return "board_%d_%d"%[int(job.week),int(job.template)]
+static func supplies(index: int) -> String: return "%d %s"%[POOL[index][2],SUPPLIES[POOL[index][1]]]
 
 func eligible(state: RefCounted,index: int) -> bool:
 	var item=POOL[index][1]
@@ -36,6 +39,7 @@ func refresh(state: RefCounted) -> void:
 		week=current
 	var capacity=4-(0 if state.firewood_given else 1)-(0 if state.ladder_returned else 1)
 	var live=jobs.filter(func(job):return int(job.week)==week and job.status in ["offered","active"])
+	if live.size()>=capacity: return
 	var candidates=[]
 	for index in range(POOL.size()):
 		if eligible(state,index) and not jobs.any(func(job):return int(job.week)==week and int(job.template)==index): candidates.append(index)
@@ -77,11 +81,11 @@ func update_deadline(state: RefCounted) -> void:
 		state.change_friendship("woodcutter",-5)
 
 func to_dict() -> Dictionary:
-	return {"axe_due":axe_due,"axe_paid":axe_paid,"axe_failed":axe_failed,"copper_advice":copper_advice,"bram_requested":bram_requested,"week":week,"jobs":jobs.duplicate(true)}
+	return {"axe_due":axe_due,"axe_paid":axe_paid,"axe_failed":axe_failed,"copper_advice":copper_advice,"bram_requested":bram_requested,"bram_traded":bram_traded,"week":week,"jobs":jobs.duplicate(true)}
 
 static func valid(data: Variant) -> bool:
 	if not data is Dictionary: return false
-	for field in ["axe_paid","axe_failed","copper_advice","bram_requested"]:
+	for field in ["axe_paid","axe_failed","copper_advice","bram_requested","bram_traded"]:
 		if not data.get(field) is bool: return false
 	if not preload("res://town_progress.gd").integer(data.get("week")) or data.week< -1: return false
 	var due=data.get("axe_due")
@@ -106,6 +110,7 @@ func restore(data: Dictionary) -> void:
 	axe_failed=data.axe_failed
 	copper_advice=data.copper_advice
 	bram_requested=data.bram_requested
+	bram_traded=data.bram_traded
 	week=int(data.week)
 	jobs=data.jobs.duplicate(true)
 	for job in jobs:

@@ -73,9 +73,11 @@ func run() -> void:
 		if outside.Grid.rect(cabin.cell,cabin.tiles).grow(96).has_point(outside.Grid.center(cell)): secluded=false
 	check(secluded,"the veteran's woodland cabin has no road leading to it")
 	game.state.minute=600
+	game.state.turnips=3
 	game.talk("veteran")
 	game.ui.modal_box.get_child(3).pressed.emit()
-	check(game.state.rusty_sword==1,"veteran dialogue awards the player's first sword")
+	game.ui.modal_box.get_child(3).pressed.emit()
+	check(game.state.rusty_sword==1 and game.state.turnips==0,"veteran dialogue trades three moon turnips for the player's first sword")
 	game.state.assign_slot(4,"rusty_sword")
 	game.select_quick_slot(4)
 	check(game.state.equipped=="rusty_sword","the sword can be equipped through the inventory action")

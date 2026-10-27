@@ -564,7 +564,7 @@ func dialog(title: String,role: String,text: String,choices: Array = []) -> void
 			var request_id=state.requests.quest_id(job)
 			var recipient=person
 			choices=choices.duplicate()
-			choices.append(["Deliver %d %s · notice-board request"%[terms[2],state.Items.CATALOG[terms[1]].name],func():
+			choices.append(["Deliver %s · notice-board request"%state.requests.supplies(int(job.template)),func():
 				if state.requests.deliver(state,request_id,recipient):
 					save_visit()
 					dialog(title,"A LITTLE HELP","That's everything. Thank you! Here are the crowns I promised. You've saved me a trip.")
@@ -1186,7 +1186,7 @@ func bulletin_board() -> void:
 		if int(job.week)!=state.requests.week or job.status not in ["offered","active"]: continue
 		var id=state.requests.quest_id(job)
 		var terms=state.requests.POOL[int(job.template)]
-		choices.append(["%s: %d %s"%[person_name(terms[0]),terms[2],state.Items.CATALOG[terms[1]].name],func(): read_local_request(id)])
+		choices.append(["%s for %s"%[state.requests.supplies(int(job.template)),person_name(terms[0])],func(): read_local_request(id)])
 	panel("Local postings","BRIAR GLEN NOTICE BOARD","Four places for local notices. Weekly requests change each week; deliver an accepted request to the person who posted it before the next refresh.",choices)
 
 func person_name(id: String) -> String:
@@ -1202,7 +1202,7 @@ func read_local_request(id: String) -> void:
 		var choices=[]
 		if job.status=="offered": choices.append(["I'll take this request",func(): state.requests.accept(state,id); save_visit(); bulletin_board()])
 		choices.append(["Back to the board",bulletin_board])
-		panel("A request from "+person_name(terms[0]),"LOCAL HELP WANTED","Please bring %d %s to %s before the week is out. Reward: %d crowns. Deliver in person; I'll be glad of the help."%[terms[2],state.Items.CATALOG[terms[1]].name,person_name(terms[0]),terms[3]],choices)
+		panel("A request from "+person_name(terms[0]),"LOCAL HELP WANTED","Please bring %s to %s before the week is out. Reward: %d crowns. Deliver in person; I'll be glad of the help."%[state.requests.supplies(int(job.template)),person_name(terms[0]),terms[3]],choices)
 		return
 	toast("That notice is no longer on the board.")
 

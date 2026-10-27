@@ -569,6 +569,7 @@ func consume(id: String) -> bool:
 func accept_sword() -> bool:
 	if has_sword() or turnips<3 or (not can_carry("rusty_sword") and turnips!=3): return false
 	turnips-=3
+	requests.bram_traded=true
 	rusty_sword=1
 	clear_empty_slots()
 	return true

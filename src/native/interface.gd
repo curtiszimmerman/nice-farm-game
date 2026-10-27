@@ -909,12 +909,12 @@ func quest_lines() -> Array:
 	if s.woodcutter_axe_given:
 		lines.append({"id":"axe_repayment","title":"Timber for a promise","description":"Rowan gave you an axe in exchange for ten logs within one week, seven days. The deadline was missed; she is disappointed, but you can still bring the timber." if s.requests.axe_failed else "Rowan gave you an axe in exchange for ten logs within one week, seven days. Due on day %d at %02d:%02d. The axe stays yours."%[int(s.requests.axe_due/1440)+1,int(fmod(s.requests.axe_due,1440)/60),int(fmod(s.requests.axe_due,60))],"tasks":[{"text":"Bring Rowan ten logs","done":s.requests.axe_paid}]})
 	if s.requests.bram_requested:
-		lines.append({"id":"bram_sword","title":"Supper for a sword","description":"Bram will trade his old sword for three moon turnips. Iona may know a trick to help them grow faster.","tasks":[{"text":"Trade three moon turnips for Bram's sword","done":s.has_sword()}]})
+		lines.append({"id":"bram_sword","title":"Supper for a sword","description":"You found a sword elsewhere; you no longer need Bram's trade." if s.has_sword() and not s.requests.bram_traded else "Bram will trade his old sword for three moon turnips. Iona may know a trick to help them grow faster.","inactive":s.has_sword() and not s.requests.bram_traded,"tasks":[{"text":"Trade three moon turnips for Bram's sword","done":s.requests.bram_traded}]})
 	s.requests.refresh(s)
 	for job in s.requests.jobs:
 		if job.status=="offered": continue
 		var terms=s.requests.POOL[int(job.template)]
-		lines.append({"id":s.requests.quest_id(job),"title":"%s · %d %s"%[game.person_name(terms[0]),terms[2],Items.CATALOG[terms[1]].name],"description":"This request expired at the weekly refresh." if job.status=="expired" else "Deliver %d %s to %s before the next weekly refresh. Reward: %d crowns."%[terms[2],Items.CATALOG[terms[1]].name,game.person_name(terms[0]),terms[3]],"inactive":job.status=="expired","tasks":[{"text":"Deliver the requested supplies","done":job.status=="complete"}]})
+		lines.append({"id":s.requests.quest_id(job),"title":"%s · %s"%[game.person_name(terms[0]),s.requests.supplies(int(job.template))],"description":"This request expired at the weekly refresh." if job.status=="expired" else "Deliver %s to %s before the next weekly refresh. Reward: %d crowns."%[s.requests.supplies(int(job.template)),game.person_name(terms[0]),terms[3]],"inactive":job.status=="expired","tasks":[{"text":"Deliver the requested supplies","done":job.status=="complete"}]})
 	for quest in lines:
 		if quest.id not in s.quest_order: s.quest_order.append(quest.id)
 	lines.sort_custom(func(a,b):return s.quest_order.find(a.id)<s.quest_order.find(b.id))
