@@ -81,7 +81,7 @@ func run() -> void:
 	game.state.player_position=game.world.plot_position(0)+Vector2.UP*game.world.Grid.TILE_SIZE
 	for slot in [0,3,1]:
 		game.select_quick_slot(slot)
-		game.interact()
+		preload("fixture.gd").activate(game)
 	game.select_quick_slot(5)
 	game.state.day=2
 	game.cast_growth()

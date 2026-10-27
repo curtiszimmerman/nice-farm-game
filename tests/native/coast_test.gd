@@ -32,6 +32,7 @@ func run() -> void:
 	game.state.assign_active("primary","fishing_pole")
 	game.fishing_rng.seed=31
 	for i in range(500):
+		game.state.energy=100
 		game.start_fishing("ocean_tip")
 		catches[game.fishing_species]=catches.get(game.fishing_species,0)+1
 	check(catches.get("lantern_ray",0)>0 and catches.lantern_ray<catches.sea_sprat and catches.lantern_ray<catches.blue_mackerel,"lantern rays are rarer than either common coastal fish")

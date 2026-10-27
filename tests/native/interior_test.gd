@@ -30,6 +30,7 @@ func run() -> void:
 	check(game.world==outside and outside.visible,"the interior exit returns to the same outdoor world")
 	var reached=true
 	for b in outside.buildings:
+		game.state.day=2
 		game.state.minute=780
 		game.enter_building(b.id)
 		if game.world.blocked(game.state.player_position): reached=false

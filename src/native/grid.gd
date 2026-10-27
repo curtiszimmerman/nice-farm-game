@@ -5,9 +5,9 @@ const MAP_SIZE = Vector2i(120,90)
 const WORLD_SIZE = Vector2(MAP_SIZE.x*TILE_SIZE,MAP_SIZE.y*TILE_SIZE)
 const WORLD_CELLS=Rect2i(-28,0,MAP_SIZE.x+28,MAP_SIZE.y)
 const PLAYABLE_CELLS = Rect2i(-27,4,MAP_SIZE.x+25,MAP_SIZE.y-6)
-const SPAWN_CELL = Vector2i(13,45)
+const SPAWN_CELL = Vector2i(13,52)
 const BUILD_AREA=Rect2i(25,49,12,8)
-const FARMHOUSE=Rect2i(10,39,7,5)
+const FARMHOUSE=Rect2i(10,46,7,5)
 const BUILD_RADIUS=15
 
 static func near_farmhouse(cell: Vector2i) -> bool:
@@ -16,6 +16,9 @@ static func near_farmhouse(cell: Vector2i) -> bool:
 
 static func world_to_cell(point: Vector2) -> Vector2i:
 	return Vector2i(floori(point.x/TILE_SIZE),floori(point.y/TILE_SIZE))
+
+static func farmable(cell: Vector2i) -> bool:
+	return near_farmhouse(cell) and cell.y>=FARMHOUSE.position.y and not Rect2i(22,53,14,17).has_point(cell) and not FARMHOUSE.has_point(cell)
 
 static func origin(cell: Vector2i) -> Vector2:
 	return Vector2(cell)*TILE_SIZE

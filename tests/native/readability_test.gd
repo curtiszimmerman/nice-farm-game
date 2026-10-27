@@ -35,12 +35,12 @@ func run() -> void:
 	world.facing="right"
 	for slot in [0,3,1]:
 		game.select_quick_slot(slot)
-		game.interact()
+		preload("fixture.gd").activate(game)
 	game.select_quick_slot(5)
 	game.state.day=2
 	game.cast_growth()
 	game.select_quick_slot(2)
-	game.interact()
+	preload("fixture.gd").activate(game)
 	check(game.state.harvested==1 and game.state.plots[6].tilled==false and game.state.plots[7].tilled,"tending and casting affect the highlighted forward square")
 	game.state.minute=720.0
 	world.refresh()

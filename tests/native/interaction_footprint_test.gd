@@ -12,6 +12,7 @@ func run() -> void:
 	game.set_process(false)
 	preload("fixture.gd").explore(game,true)
 	game.state.met_mayor=true
+	game.state.day=2
 	for site in game.outdoors.sites:
 		if site.has("door"):
 			var cells=game.outdoors.activation_cells(site)

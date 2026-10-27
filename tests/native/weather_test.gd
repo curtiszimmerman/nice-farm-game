@@ -12,6 +12,7 @@ func run() -> void:
 	game.set_process(false)
 	preload("fixture.gd").explore(game,true)
 	var s=game.state
+	preload("fixture.gd").garden(s)
 	check(s.has_method("weather_name"),"the world has reproducible daily weather")
 	check(game.sound.streams.has("rain") and game.sound.streams.has("thunder"),"rain and thunder have dedicated ambient sounds")
 	var effects=game.outdoors.get("weather_effects")

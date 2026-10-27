@@ -11,6 +11,7 @@ func run() -> void:
 	root.add_child(game)
 	game.set_process(false)
 	preload("fixture.gd").explore(game,true)
+	game.state.day=2
 	var observatories=game.outdoors.buildings.filter(func(b):return b.id=="observatory")
 	check(observatories.size()==1,"an observatory stands in the northern mountain area")
 	if not observatories.is_empty():

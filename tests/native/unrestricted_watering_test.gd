@@ -10,7 +10,7 @@ func _initialize() -> void:
 	s.assign_active("primary","watering_can")
 	var energy=s.energy
 	s.farm(0)
-	check(s.plots[0].watered and not s.plots[0].tilled and s.energy==energy-1 and s.water==19,"the watering can waters untilled bare ground")
+	check(s.plots[0].watered and not s.plots[0].tilled and is_equal_approx(s.energy,energy-0.8) and s.water==19,"the watering can waters untilled bare ground")
 	s.assign_active("primary","hoe")
 	s.farm(0)
 	check(s.plots[0].watered and s.plots[0].tilled,"tilling preserves water already on a plot")

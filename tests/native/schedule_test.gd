@@ -27,7 +27,7 @@ func run() -> void:
 	check(w.villagers.iona.visible,"the wizard wakes at noon")
 	game.state.minute=60
 	w.update_villagers(0.0,true)
-	check(w.villagers.iona.visible and not w.villagers.tavi.visible,"wizard studies at night while Tavi sleeps")
+	check(w.stop_for("iona").room=="iona" and not w.stop_for("iona").sleeping and not w.villagers.tavi.visible,"wizard studies inside her tower at night while Tavi sleeps")
 	game.state.minute=540
 	w.update_villagers(0.0,true)
 	var start=w.villagers.tavi.position

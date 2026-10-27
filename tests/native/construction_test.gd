@@ -27,6 +27,7 @@ func run() -> void:
 	game.interact()
 	check(game.state.crucibles.size()==1 and game.outdoors.blocked(game.Grid.center(cell)),"activating a selected blueprint places a solid one-square crucible")
 	game.state.assign_active("primary","")
+	game.world.elapsed+=0.61
 	game.interact()
 	check(game.window_open and game.ui.modal_box.get_child(1).text.contains("crucible"),"facing the built crucible opens its smelting menu")
 	game.close_window()
@@ -48,7 +49,7 @@ func run() -> void:
 	check(rebuilt.blocked(game.Grid.center(cell)) and rebuilt.sites.any(func(site):return site.id=="crucible"),"loading reconstructs the crucible's collision and interaction")
 	rebuilt.queue_free()
 	var sign=game.outdoors.sites.filter(func(site):return site.id=="sign")[0]
-	check(sign.cell.x in range(20,25) and sign.cell.y in range(44,49),"the road sign stands at the crossroads east of the farmhouse")
+	check(sign.cell.x in range(20,25) and sign.cell.y in range(50,53),"the road sign stands at the crossroads east of the farmhouse")
 	await game.sound.shutdown()
 	game.queue_free()
 	await process_frame

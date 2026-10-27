@@ -192,7 +192,7 @@ static func building(c: CanvasItem,b: Dictionary) -> void:
 			if y==0 and x==columns-1: component="roof_right"
 			tile(c,component,Vector2i(x,y-rows-2),roof_tint(b.roof))
 			if b.get("season")=="winter": tile(c,"roof_snow",Vector2i(x,y-rows-2))
-	tile(c,"chimney",Vector2i(maxi(1,columns-2),-rows-3))
+	if b.id!="priest_outhouse": tile(c,"chimney",Vector2i(maxi(1,columns-2),-rows-3))
 	if b.kind=="store": sprite(c,"sign_general_store" if catalog.has("sign_general_store") else "general_store_sign",Vector2(columns*16-56,-(rows+1)*32+8),Vector2(112,24))
 	for x in ([1] if b.kind=="store" else [1,columns-2]):
 		if x!=door: sprite(c,seasonal("tile_flowerbed0",b.get("season","spring")),Grid.origin(Vector2i(x,0)))
@@ -201,7 +201,17 @@ static func building(c: CanvasItem,b: Dictionary) -> void:
 	if b.kind=="hall": tile(c,"civic_emblem",Vector2i(door,-rows-1))
 	if b.kind in ["smithy","bakery"] and catalog.has("sign_smith" if b.kind=="smithy" else "sign_baker"):
 		sprite(c,"sign_smith" if b.kind=="smithy" else "sign_baker",Vector2(door*32-16,-88),Vector2(64,32))
-	elif b.kind in ["smithy","bakery","tavern"]: tile(c,b.kind+"_sign",Vector2i(maxi(0,door-1),-2))
+	elif b.kind in ["smithy","bakery"]: tile(c,b.kind+"_sign",Vector2i(maxi(0,door-1),-2))
+	if b.kind in ["tavern","radio"]:
+		var pos=Vector2(door*32-68,-90)
+		sprite(c,"sign_general_store" if catalog.has("sign_general_store") else "general_store_sign",pos,Vector2(152,32))
+		c.draw_rect(Rect2(pos+Vector2(5,4),Vector2(142,24)),Color("473b32"))
+		var font=preload("res://pixel_ui.gd").font()
+		if b.kind=="tavern":
+			c.draw_string(font,pos+Vector2(8,12),"WAYWARD",HORIZONTAL_ALIGNMENT_LEFT,-1,8,Color("f1e7c9"))
+			c.draw_string(font,pos+Vector2(8,24),"WREN",HORIZONTAL_ALIGNMENT_LEFT,-1,8,Color("f1e7c9"))
+			c.draw_string(font,pos+Vector2(63,23),"TAVERN",HORIZONTAL_ALIGNMENT_LEFT,-1,14,Color("f1e7c9"))
+		else: c.draw_string(font,pos+Vector2(12,23),"RADIO CLUB",HORIZONTAL_ALIGNMENT_LEFT,-1,14,Color("f1e7c9"))
 
 static func roof_tint(value: String) -> Color:
 	return Color(value).lerp(Color.WHITE,0.65)
@@ -223,7 +233,11 @@ static func outdoors(w: Node2D) -> void:
 		for x in range(w.CAVE_MOUTH.position.x,w.CAVE_MOUTH.end.x): tile(w,"void",Vector2i(x,y))
 	tile(w,"cave_arch_left",w.CAVE_MOUTH.position)
 	tile(w,"cave_arch_right",w.CAVE_MOUTH.position+Vector2i.RIGHT)
-	for cell in w.Neighbors.FLOWERS+w.garden_cells.keys(): sprite(w,seasonal("tile_flowerbed"+str(posmod(cell.x+cell.y,2)),w.state.season_name()),Grid.origin(cell))
+	for cell in w.Neighbors.FLOWERS+w.garden_cells.keys():
+		if str(w.garden_cells.get(cell))=="vegetables":
+			border(w,"tilled",{cell:true},cell,w.state,w.state.world_seed)
+			sprite(w,"plant_overlay_turnip",Grid.origin(cell))
+		else: sprite(w,seasonal("tile_flowerbed"+str(posmod(cell.x+cell.y,2)),w.state.season_name()),Grid.origin(cell))
 	for cell in w.yard_fences: tile(w,"town_"+w.yard_fences[cell]+"_mask"+str(w.TownPaths.fence_mask(w,cell)),cell)
 	for cell in w.yard_gates: tile(w,"town_"+w.yard_gates[cell]+"_gate",cell)
 	for x in range(w.JETTY_CELLS.position.x,w.JETTY_CELLS.end.x): tile(w,"jetty",Vector2i(x,w.JETTY_CELLS.position.y))
@@ -239,9 +253,6 @@ static func outdoors(w: Node2D) -> void:
 	sprite(w,"cart",Grid.origin(w.CART_CELLS.position)-Vector2(0,32))
 	sprite(w,"crossroads_sign",w.site_position("sign")-Vector2(16,40),Vector2(32,48))
 	for cell in w.LAMP_CELLS: sprite(w,"lamp",Grid.center(cell)-Vector2(16,86))
-	var radio=w.site_position("radio")
-	sprite(w,"furniture_table_2x1",radio-Vector2(36,36))
-	sprite(w,"furniture_radio_1x1",radio-Vector2(20,70))
 
 static func interior_wall(room: Node2D) -> String:
 	return "metal_wall" if room.building.id=="ship" else "wall"

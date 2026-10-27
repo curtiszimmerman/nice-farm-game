@@ -47,7 +47,9 @@ func run() -> void:
 		game.state.day=57
 		game.state.axe=1
 		game.state.assign_active("primary","axe")
-		for i in range(3): w.chop_tree(apples[1])
+		for i in range(3):
+			w.elapsed+=0.61
+			w.chop_tree(apples[1])
 		check(not w.harvest_forage("apples",apples[1]),"a felled tree cannot supply fruit before its sprite is freed")
 	game.state.minute=720
 	check(not game.fish_pool("ocean_tip").has("lantern_ray"),"rare night fish are absent by day")

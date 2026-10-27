@@ -11,6 +11,7 @@ func run() -> void:
 	root.add_child(game)
 	game.set_process(false)
 	preload("fixture.gd").explore(game,true)
+	preload("fixture.gd").garden(game.state)
 	game.state.hoe=1
 	game.state.assign_slot(0,"hoe")
 	game.state.selected_slot=0
@@ -21,6 +22,7 @@ func run() -> void:
 	game.state.rusty_sword=1
 	game.state.assign_slot(0,"rusty_sword")
 	var energy=game.state.energy
+	game.world.elapsed+=0.61
 	game.interact()
 	check(game.world.player.data.get("tool_motion","")=="rusty_sword" and game.state.energy==energy-2,"swords also swing outdoors and spend energy")
 	game.enter_building("cave")

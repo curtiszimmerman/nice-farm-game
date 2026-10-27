@@ -29,6 +29,7 @@ func run() -> void:
 		if game.current_room=="home": break
 	check(game.current_room=="home" and game.state.welcome_phase=="waiting","the guided walk brings the captain inside the farmhouse automatically")
 	var s=game.State.new()
+	preload("fixture.gd").garden(s)
 	s.hoe=1
 	s.seeds=1
 	s.assign_slot(0,"seeds")

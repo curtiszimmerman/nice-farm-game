@@ -74,23 +74,24 @@ const OFF_DUTY={
 static func talk(game: Node2D,id: String) -> bool:
 	if not STORIES.has(id): return false
 	var story=STORIES[id].split("|",true,1)
-	var working=game.current_room==WORKPLACES.get(id,"unused")
+	var working=game.shopkeeper_at_work(id,WORKPLACES.get(id,"unused"))
+	if id=="astronomer": working=game.current_room=="observatory" or (game.world==game.outdoors and game.outdoors.villagers[id].position.distance_to(game.Grid.center(Vector2i(31,14)))<=320)
 	if id.begins_with("farmer_"): working=game.world==game.outdoors and game.state.player_position.x>95*32
 	var text=story[1] if working else OFF_DUTY.get(id,story[1])
 	if id=="priest" and posmod(game.state.day-1,7)==6 and game.state.minute>=600 and game.state.minute<720 and game.current_room=="temple":
 		text="A single lamp may tremble, but look how many we've brought together. Vorisel keeps the far mysteries; Elunai asks us to tend the light within reach. Let the darkness beyond the stars remind us to make room beside our own hearths. No neighbor should have to face this day alone."
 	var choices=[]
 	if id=="miller" and working:
-		choices.append(["Buy flour · 5 crowns · %d available"%game.state.stock("flour"),func(): game.buy_ingredient("flour")])
+		choices.append(["Buy flour · 5 crowns · %d available"%game.state.stock("flour"),func(): game.buy_ingredient("flour"),game.state.money>=5])
 	if id=="astronomer" and working:
 		choices.append(["You're right. Our ship fell on the mountain.",func():
 			game.state.record_star_origin(true)
 			game.save_visit()
-			game.dialog("Saeren","A CONFIDENCE KEPT","Thank you for trusting me. I won't pretend I understand your vessel. But I know what it costs to entrust someone with a truth like that.")])
+			game.dialog("Saeren","A CONFIDENCE KEPT","I thought as much. Your clothes, the way you speak... you hardly blend in. I won't tell anyone, and I'd advise you to be careful too. People can be superstitious about what they don't understand. I won't pretend to know how your machines work. Still, perhaps I can help more than you'd think. If you need my services, you know where to find me.")])
 		choices.append(["We were traveling on foot. You must have seen something else.",func():
 			game.state.record_star_origin(false)
 			game.save_visit()
-			game.dialog("Saeren","AN OBSERVER'S PATIENCE","Perhaps. Fifty years at the eyepiece have taught me to be patient with questions. You're welcome here, either way.")])
+			game.dialog("Saeren","AN OBSERVER'S PATIENCE","Saeren squints, then slowly shakes his head. 'I don't believe you. Lying to me is a mistake. I know more about this universe than you think, and one day you may need my help. Go now. I have observations to make.'")])
 	if id=="priest" and not game.state.beehive_known:
 		choices.append(["Learn beehive blueprint · 2 silver ingots",func():
 			if game.state.silver_bars<2:
@@ -100,7 +101,7 @@ static func talk(game: Node2D,id: String) -> bool:
 				game.state.beehive_known=true
 				game.state.change_friendship("priest",20)
 				game.save_visit()
-				game.dialog("Brother Aven","A HOME FOR THE BEES","Here are the plans. Keep the entrance out of the prevailing wind and leave room to work behind the hive. Most of beekeeping is learning when to leave them alone.")])
+				game.dialog("Brother Aven","A HOME FOR THE BEES","Here are the plans. Keep the entrance out of the prevailing wind and leave room to work behind the hive. Most of beekeeping is learning when to leave them alone."),game.state.silver_bars>=2])
 	if id=="miller_wife":
 		if game.state.ladder_returned: text="There you are! That ladder's back where it belongs. Next time Nessa needs to borrow it, she can try asking."
 		elif game.state.ladder>0:
@@ -117,6 +118,6 @@ static func talk(game: Node2D,id: String) -> bool:
 			game.dialog("Nessa Bell","A BORROWED LADDER","Oh. Mum noticed? I needed it to get the aerial above the shed roof. Meant to put it back before she missed it. It's leaning inside our tool shed, east of the house. Would you take it back? I'll go and apologise.")
 		])
 	if id=="baker" and working:
-		choices=[["Buy fresh bread · 6 crowns · %s energy" % str(game.state.energy_recovery(game.state.Items.FOOD.bread.energy)),game.buy_bread],["Nothing today, thank you.",func(): pass]]
+		choices=[["Buy fresh bread · 6 crowns · %s energy" % str(game.state.energy_recovery(game.state.Items.FOOD.bread.energy)),game.buy_bread,game.state.money>=6],["Nothing today, thank you.",func(): pass]]
 	game.dialog(story[0],PEOPLE.filter(func(p):return p.id==id)[0].role,text,choices)
 	return true

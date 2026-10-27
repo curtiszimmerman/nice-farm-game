@@ -24,7 +24,7 @@ func run() -> void:
 	for shore in shores:
 		game.state.water=0
 		game.state.player_position=w.Grid.center(shore)
-		game.interact()
+		preload("fixture.gd").activate(game)
 		if game.state.water!=20: filled=false
 	check(shores.size()>10 and filled,"an armed can fills along the reachable pond shoreline")
 	check(game.fish_pool("pond").size()==2 and game.fish_pool("ocean").size()==3,"pond and ocean have distinct two- and three-species pools")

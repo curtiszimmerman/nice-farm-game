@@ -4,6 +4,13 @@ const CREAM = Color("f1e7c9")
 const GOLD = Color("dfba72")
 const MUTED = Color("b6c3ad")
 const Items = preload("res://items.gd")
+class CalendarPlate extends Panel:
+	func _draw() -> void:
+		var points=PackedVector2Array([Vector2(0,0),Vector2(size.x,0),Vector2(size.x,35),Vector2(size.x-41,size.y),Vector2(41,size.y),Vector2(0,35)])
+		draw_colored_polygon(points,Color("bb9546"))
+		draw_polyline(points+PackedVector2Array([points[0]]),Color("eed588"),2)
+		var inner=PackedVector2Array([Vector2(5,5),Vector2(size.x-5,5),Vector2(size.x-5,33),Vector2(size.x-43,size.y-5),Vector2(43,size.y-5),Vector2(5,33)])
+		draw_colored_polygon(inner,Color("284b39"))
 class StatusButton extends Button:
 	func _make_custom_tooltip(text: String) -> Object:
 		var frame=PanelContainer.new()
@@ -306,14 +313,14 @@ func _ready() -> void:
 	status_strip.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	root.add_child(status_strip)
 	needs_panel=Panel.new()
-	needs_panel.position=Vector2(350,18)
-	needs_panel.size=Vector2(180,62)
+	needs_panel.position=Vector2(9,-49)
+	needs_panel.size=Vector2(152,49)
 	needs_panel.add_theme_stylebox_override("panel",style(Color("172b2be8")))
-	root.add_child(needs_panel)
-	_label("WATER",Vector2(10,5),12,CREAM,false,needs_panel)
-	hydration_bar=_bar(Vector2(10,25),Vector2(160,5),Color("90b9d2"),needs_panel)
-	_label("FOOD",Vector2(10,32),12,CREAM,false,needs_panel)
-	nourishment_bar=_bar(Vector2(10,52),Vector2(160,5),Color("c4b16c"),needs_panel)
+	quick_tray.add_child(needs_panel)
+	_label("WATER",Vector2(10,0),10,MUTED,false,needs_panel)
+	hydration_bar=_bar(Vector2(10,16),Vector2(132,4),Color("90b9d2"),needs_panel)
+	_label("FOOD",Vector2(10,23),10,MUTED,false,needs_panel)
+	nourishment_bar=_bar(Vector2(10,39),Vector2(132,4),Color("c4b16c"),needs_panel)
 	for child in root.get_children():
 		if child!=pause_shield and child!=title_screen: hud_nodes.append(child)
 
@@ -356,11 +363,16 @@ func style(fill: Color,border = Color("8d9a7666")) -> StyleBoxFlat:
 	return box
 
 func calendar_window(text: String,pos: Vector2,dimensions: Vector2,font_size: int) -> Label:
-	var frame=_panel(pos,dimensions,Color("bb9546"))
-	var border=style(Color("bb9546"),Color("eed588"))
-	border.set_corner_radius_all(6)
-	frame.add_theme_stylebox_override("panel",border)
-	var inset=_panel(Vector2(5,5),dimensions-Vector2(10,10),Color("284b39"),frame)
+	var frame=CalendarPlate.new()
+	frame.position=pos
+	frame.size=dimensions
+	frame.add_theme_stylebox_override("panel",StyleBoxEmpty.new())
+	frame.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	root.add_child(frame)
+	var inset=Control.new()
+	inset.position=Vector2(5,5)
+	inset.size=dimensions-Vector2(10,10)
+	frame.add_child(inset)
 	var label=_label(text,Vector2.ZERO,font_size,CREAM,false,inset)
 	label.size=inset.size
 	label.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
@@ -405,6 +417,8 @@ func _button_style(button: Button,selected = false,compact = false) -> void:
 	button.add_theme_stylebox_override("pressed",pressed)
 	button.add_theme_color_override("font_color",CREAM)
 	button.add_theme_color_override("font_hover_color",GOLD)
+	button.add_theme_color_override("font_disabled_color",Color("777e70"))
+	button.add_theme_stylebox_override("disabled",style(Color("1f302b"),Color("62735b55")))
 	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 
 func show_title() -> void:
@@ -483,6 +497,7 @@ func open_modal(title: String,eyebrow: String,body: String,choices: Array,wide =
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		b.add_theme_font_size_override("font_size",20)
 		_button_style(b)
+		b.disabled=option.size()>2 and not option[2]
 		var action = option[1]
 		b.pressed.connect(func(): game.choose_dialogue(action))
 		modal_box.add_child(b)

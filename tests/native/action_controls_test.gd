@@ -11,6 +11,7 @@ func run() -> void:
 	root.add_child(game)
 	game.set_process(false)
 	preload("fixture.gd").explore(game,true)
+	preload("fixture.gd").garden(game.state)
 	check(game.state.pause_mode=="all","single player pauses menus and dialogue by default")
 	check(game.state.has_method("assign_active"),"primary and auxiliary actions have independent assignments")
 	if game.state.has_method("assign_active"):
@@ -63,6 +64,7 @@ func run() -> void:
 		game.state.plots[0].planted=game.state.total()
 		game.state.plots[0].watered=true
 		game.state.day=2
+		game.world.elapsed+=0.61
 		key.physical_keycode=KEY_Q
 		game._unhandled_key_input(key)
 		check(game.state.ripe(0) and game.state.mana==45 and game.state.active_item("primary")=="hoe","the auxiliary key casts its own spell while preserving the primary hoe")

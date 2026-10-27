@@ -77,14 +77,18 @@ static func sword_terms(game: Node2D) -> void:
 	game.dialog("Bram","SOMETHING TO KEEP THE RATS BACK","Bram raises his eyebrows and gives a low whistle. 'The mines? Rats down there, and things I'd rather not meet in the dark. I've an old sword. Bit rusty, but sound. Bring me three moon turnips for dinner and it's yours.'",[
 		["Trade three moon turnips for the sword",func():
 			if game.state.accept_sword(): game.save_visit(); game.dialog("Bram","A FAIR TRADE","Lovely. That'll make a proper supper. Here's the sword. Keep it between you and anything with too many teeth.")
-			else: game.dialog("Bram","WHEN THEY'RE READY","Three moon turnips, and a little room to carry the sword. I'm in no hurry for dinner.")],
+			else: game.dialog("Bram","WHEN THEY'RE READY","Three moon turnips, and a little room to carry the sword. I'm in no hurry for dinner."),game.state.turnips>=3],
 		["I've some turnips in the ground. I'm waiting for them to grow.",func(): game.dialog("Bram","A TRICK OR TWO","Go see Iona. She might teach you a useful trick or two to hurry them along. She's a night owl, so don't try her too early. Tower north of town, a little east of Saeren the astronomer's place. You'll know it when you see it.")],
 		["I'll come back with dinner.",func(): pass]])
 
 static func smith_copper(game: Node2D) -> void:
-	game.dialog("Dain Rusk","COPPER AND COMMON SENSE","Southeast caves. Plenty of copper ore if you know what to look for, but don't go in without a way to protect yourself. Even the rats can make a mess of an unprepared traveler. I've a serviceable rusty sword here. Two hundred and fifty crowns.",[
-		["Buy rusty sword · 250 crowns",func():
+	var at_work=game.shopkeeper_at_work("smith","smithy")
+	if not at_work:
+		game.dialog("Dain Rusk","COPPER AND COMMON SENSE","The southeast caves have copper, but take something to defend yourself. Ask Moss or Bram if you need advice. Come by the forge when I'm working and we can talk equipment.")
+		return
+	game.dialog("Dain Rusk","COPPER AND COMMON SENSE","Southeast caves. Plenty of copper ore if you know what to look for, but don't go in without a way to protect yourself. Even the rats can make a mess of an unprepared traveler. I've a serviceable rusty sword at the forge. One thousand crowns.",[
+		["Buy rusty sword · 1,000 crowns",func():
 			if game.state.buy_sword(): game.save_visit(); game.dialog("Dain Rusk","GOOD STEEL UNDER THE RUST","There you are. Keep the edge clean and don't let yourself get cornered.")
-			else: game.toast("You need 250 crowns, room for the sword, and no sword already stored.")],
+			else: game.toast("You need 1,000 crowns, room for the sword, and no sword already stored."),at_work and game.state.money>=1000 and not game.state.has_sword()],
 		["There's no way I could afford that right now.",func(): game.dialog("Dain Rusk","ASK AROUND","Fair enough. Ask Moss. Or the old veteran, Bram, down in the woods. He's been putting off clearing out his army kit for years. Might be something the two of you could work out.")],
 		["Thanks for the warning.",func(): pass]])

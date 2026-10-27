@@ -16,7 +16,7 @@ func _initialize() -> void:
 		check(s.is_tired(),"more than twenty-four hours awake applies tiredness")
 		var energy=s.energy
 		s.tend(0)
-		check(s.energy==energy-4,"tired tilling costs twice the normal energy")
+		check(is_equal_approx(s.energy,energy-2.4),"tired tilling costs twice the normal energy")
 		s.pickaxe=1
 		s.assign_active("primary","pickaxe")
 		energy=s.energy

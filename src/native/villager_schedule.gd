@@ -6,7 +6,7 @@ const ROUTINES = {
 	"astronomer":[[0,31,14,false,"observatory"],[420,31,14,true,"observatory"],[840,31,14,false,"observatory"],[1020,35,16,false],[1080,31,14,false,"observatory"]],
 	"moss":[[0,26,58,true],[360,26,58,false,"moss"],[420,25,59,false],[720,26,58,false,"moss"],[810,31,61,false],[1080,26,58,false,"moss"],[1320,26,58,true]],
 	"tavi":[[0,84,54,true],[390,84,54,false,"tavi"],[435,60,45,false],[480,72,45,false,"store"],[750,63,48,false],[780,72,45,false,"store"],[1200,60,48,false],[1245,63,45,false],[1290,84,54,false,"tavi"],[1320,84,54,true]],
-	"iona":[[0,65,14,false],[180,61,15,false],[300,61,15,true],[720,61,15,false],[810,65,14,false],[900,60,45,false],[1020,32,47,false],[1170,63,48,false],[1230,61,15,false]],
+	"iona":[[0,61,15,false,"iona"],[300,61,15,true,"iona"],[720,61,49,false],[900,61,15,false,"iona"]],
 	"finch":[[0,57,63,true],[390,57,63,false,"finch"],[420,60,48,false],[480,54,38,false,"radio"],[720,60,45,false],[780,54,38,false,"radio"],[1050,63,48,false],[1170,57,63,false,"finch"],[1350,57,63,true]],
 	"mayor":[[0,61,35,true],[420,61,35,false,"mayor"],[480,54,46,false,"hall"],[720,60,45,false],[780,54,46,false,"hall"],[1050,63,48,false],[1200,61,35,false,"mayor"],[1380,61,35,true]],
 	"vale":[[0,11,14,false]],
@@ -38,6 +38,8 @@ const COMMUNION=["moss","mayor","miller_wife","farmer_mother","keeper","veteran"
 const TAVERN_DAYS={"baker":[0,2],"moss":[0,2,4,6],"miller":[0,1,2,3,4,6],"miller_wife":[1,4,6],"miller_daughter":[2,5],"smith":[0,1,3,4,5],"finch":[0,2,4,6],"mayor":[1,3,5],"assistant":[3],"tavi":[0,2,4,6],"keeper":[2],"veteran":[1,4],"woodcutter":[0,3,5,6],"farmer_mother":[1,5],"farmer_father":[0,2,4,6],"farmer_son":[5],"astronomer":[1,4,6]}
 
 static func stop(id: String,minute: float,day: int=1) -> Dictionary:
+	if id=="astronomer" and posmod(day-1,7)==0:
+		return {"cell":Vector2i(31,14),"room":"observatory","sleeping":minute<420 or minute>=1380}
 	var chosen=ROUTINES[id][0]
 	for entry in ROUTINES[id]:
 		if minute>=entry[0]: chosen=entry
@@ -47,7 +49,9 @@ static func stop(id: String,minute: float,day: int=1) -> Dictionary:
 	if id in ["farmer_mother","farmer_father","farmer_son"] and stop.room=="" and stop.cell.x>95 and minute<1110:
 		var rounds={"farmer_mother":[Vector2i(99,51),Vector2i(101,53),Vector2i(103,55)],"farmer_father":[Vector2i(107,51),Vector2i(109,53),Vector2i(110,55)],"farmer_son":[Vector2i(104,50),Vector2i(105,53),Vector2i(104,56)]}
 		stop.cell=rounds[id][int(minute/30)%3]
-	if id=="iona": return stop
+	if id=="iona":
+		if posmod(day-1,7) in [2,5] and minute>=1140 and minute<1320: return {"cell":Vector2i(69,38),"room":"tavern","sleeping":false}
+		return stop
 	var hours=SLEEP.get(id,[1320,420])
 	if minute<hours[1] or minute>=hours[0]: return home_stop(id)
 	if stop.sleeping:

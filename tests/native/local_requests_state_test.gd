@@ -36,9 +36,9 @@ func _initialize() -> void:
 	check(s.accept_sword() and s.turnips==0 and s.rusty_sword==1,"three moon turnips buy Bram's sword")
 	check(s.gift_preference("veteran","turnips")==5,"Bram loves moon turnip gifts")
 	s=State.new()
-	s.money=249
-	check(not s.buy_sword() and s.money==249,"Dain's sword requires the full 250 crowns")
-	s.money=250
+	s.money=999
+	check(not s.buy_sword() and s.money==999,"Dain's sword requires the full thousand crowns")
+	s.money=1000
 	check(s.buy_sword() and s.money==0 and s.rusty_sword==1,"Dain can sell the expensive alternative")
 	check(s.requests.to_dict().get("bram_traded",true)==false,"buying Dain's sword cannot count as paying Bram three turnips")
 	var loaded=State.new()

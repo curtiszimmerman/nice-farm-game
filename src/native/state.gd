@@ -164,8 +164,6 @@ func _init() -> void:
 		cabinet.append({})
 		ship_storage.append({"id":"rations","count":6} if i==0 else {})
 	cabinet[0]={"id":"light_bulbs","count":2}
-	for i in range(20):
-		plots.append({"tilled": false, "planted": -1.0, "watered": false,"crop":"turnips","growth":0.0,"water_day":0})
 
 func total() -> float:
 	return (day - 1) * 1440.0 + minute
@@ -442,10 +440,10 @@ func plot_cell(index: int) -> Vector2i:
 	return Vector2i(int(plot.x),int(plot.y)) if plot.has("x") else Vector2i(9+index%5,48+int(index/5))
 
 func prepare_plot(cell: Vector2i) -> bool:
-	if active_item()!="hoe" or hoe<1 or not Grid.near_farmhouse(cell): return false
+	if active_item()!="hoe" or hoe<1 or not Grid.farmable(cell): return false
 	for index in range(plots.size()):
 		if plot_cell(index)==cell: return false
-	if not spend_energy(2): return false
+	if not spend_energy(1.2): return false
 	plots.append({"x":cell.x,"y":cell.y,"tilled":true,"planted":-1.0,"watered":false,"crop":"turnips","growth":0.0,"water_day":0})
 	return true
 
@@ -463,7 +461,7 @@ func water_plot(index: int) -> String:
 	if index<0 or index>=plots.size(): return "No soil here."
 	if watering_can<1: return "Carry your watering can from the farmhouse chest."
 	if water<1: return "Empty watering can. Refill it at the pond."
-	var cost=energy_cost(1.0)
+	var cost=energy_cost(0.8)
 	if energy<cost: return "Too tired. Sleep in your own bed or eat something restorative."
 	energy-=cost
 	water-=1
@@ -473,6 +471,7 @@ func water_plot(index: int) -> String:
 
 func refill_water() -> bool:
 	if active_item()!="watering_can" or watering_can<1: return false
+	if not spend_energy(0.2): return false
 	water=20
 	return true
 
@@ -481,7 +480,7 @@ func tend(index: int) -> String:
 		return "There is no garden patch here."
 	var p = plots[index]
 	var tool="sickle" if ripe(index) else "hoe" if not p.tilled else "watering_can" if p.planted>=0 and not p.watered else ""
-	var cost=energy_cost(1.0 if tool in ["sickle","watering_can"] else 2.0 if tool=="hoe" else 0.0)
+	var cost=energy_cost(0.8 if tool in ["sickle","watering_can"] else 1.2 if tool=="hoe" else 0.3)
 	if tool!="" and int(get(tool))==0: return "Carry your %s from the farmhouse chest." % Items.CATALOG[tool].name.to_lower()
 	if tool=="watering_can" and water<1: return "Empty watering can. Refill it at the pond."
 	if energy<cost: return "Too tired. Sleep in your own bed or eat something restorative."
@@ -502,6 +501,7 @@ func tend(index: int) -> String:
 	if p.planted < 0.0:
 		if int(get(selected_seed)) == 0:
 			return "Out of seeds. Tavi sells more at the town market."
+		energy-=cost
 		set(selected_seed,int(get(selected_seed))-1)
 		clear_empty_slots()
 		p.crop="star_bulbs" if selected_seed=="star_seeds" else "turnips"
@@ -575,8 +575,8 @@ func accept_sword() -> bool:
 	return true
 
 func buy_sword() -> bool:
-	if has_sword() or money<250 or not can_carry("rusty_sword"): return false
-	money-=250
+	if has_sword() or money<1000 or not can_carry("rusty_sword"): return false
+	money-=1000
 	rusty_sword=1
 	return true
 
@@ -711,6 +711,7 @@ func give_gift(id: String,item: String) -> bool:
 	return true
 
 func record_star_origin(truth: bool) -> void:
+	if star_origin_reply=="": change_friendship("astronomer",5 if truth else -5)
 	star_origin_reply="truth" if truth else "lie"
 
 func change_friendship(id: String,amount: int) -> void:
@@ -792,7 +793,7 @@ func to_dict() -> Dictionary:
 	clear_empty_slots()
 	var supplies={}
 	for id in EXTRA_ITEMS: supplies[id]=get(id)
-	return {"version":18,"requests":requests.to_dict(),"needs":needs.to_dict(),"crew_food_delivered":crew_food_delivered,"town":preload("res://town_progress.gd").snapshot(self),"inventory_order":inventory_order.duplicate(),"woodcutter_axe_given":woodcutter_axe_given,"cave_pickaxe_taken":cave_pickaxe_taken,"cave_intro_seen":cave_intro_seen,"auxiliary_selection":auxiliary_selection,"world_seed":world_seed,"inventory_selection":inventory_selection,"firewood_requested":firewood_requested,"firewood_given":firewood_given,"felled_trees":felled_trees.duplicate(),"day": day, "minute": minute, "money": money,"magic_learned":magic_learned,
+	return {"version":19,"requests":requests.to_dict(),"needs":needs.to_dict(),"crew_food_delivered":crew_food_delivered,"town":preload("res://town_progress.gd").snapshot(self),"inventory_order":inventory_order.duplicate(),"woodcutter_axe_given":woodcutter_axe_given,"cave_pickaxe_taken":cave_pickaxe_taken,"cave_intro_seen":cave_intro_seen,"auxiliary_selection":auxiliary_selection,"world_seed":world_seed,"inventory_selection":inventory_selection,"firewood_requested":firewood_requested,"firewood_given":firewood_given,"felled_trees":felled_trees.duplicate(),"day": day, "minute": minute, "money": money,"magic_learned":magic_learned,
 		"forage_harvests":forage_harvests.duplicate(),"ladder_requested":ladder_requested,"ladder_taken":ladder_taken,"ladder_returned":ladder_returned,
 		"awake_minutes":awake_minutes,"sleep_minutes":sleep_minutes,"status_effects":status_effects.duplicate(true),
 		"crucible_known":crucible_known,"crucibles":crucibles.duplicate(true),
@@ -811,7 +812,7 @@ func to_dict() -> Dictionary:
 		"plots": plots.duplicate(true)}
 
 func restore(data: Variant) -> bool:
-	if not data is Dictionary or data.get("version") != 18:
+	if not data is Dictionary or data.get("version") != 19:
 		return false
 	if not requests.valid(data.get("requests")): return false
 	if not needs.valid(data.get("needs")) or not data.get("crew_food_delivered") is bool: return false
@@ -823,7 +824,7 @@ func restore(data: Variant) -> bool:
 	for key in data.forage_harvests:
 		if not key is String: return false
 		var parts=key.split(":")
-		if parts.size()!=3 or parts[0] not in ["berries","apples"] or not parts[1].is_valid_int() or not parts[2].is_valid_int(): return false
+		if parts.size()!=3 or parts[0] not in ["berries","apples","wood"] or not parts[1].is_valid_int() or not parts[2].is_valid_int(): return false
 		if not Grid.contains(Vector2i(int(parts[1]),int(parts[2]))): return false
 		if not _number(data.forage_harvests[key]) or data.forage_harvests[key]<0: return false
 	for field in ["awake_minutes","sleep_minutes"]:
@@ -949,19 +950,16 @@ func restore(data: Variant) -> bool:
 			return false
 	if not data.get("pause_mode") in ["none", "clock", "all"]:
 		return false
-	if not data.get("plots") is Array or data.plots.size()<20 or data.plots.size()>1500:
+	if not data.get("plots") is Array or data.plots.size()>1500:
 		return false
 	var plot_cells=[]
 	for index in range(data.plots.size()):
 		var p=data.plots[index]
 		if not p is Dictionary or not p.get("tilled") is bool or not p.get("watered") is bool or not _number(p.get("planted")):
 			return false
-		var cell=Vector2i(9+index%5,48+int(index/5))
-		if index<20 and (p.has("x") or p.has("y")): return false
-		if index>=20:
-			if not _number(p.get("x")) or not _number(p.get("y")) or p.x!=floor(p.x) or p.y!=floor(p.y): return false
-			cell=Vector2i(int(p.x),int(p.y))
-			if not Grid.near_farmhouse(cell): return false
+		if not _number(p.get("x")) or not _number(p.get("y")) or p.x!=floor(p.x) or p.y!=floor(p.y): return false
+		var cell=Vector2i(int(p.x),int(p.y))
+		if not Grid.farmable(cell): return false
 		if cell in plot_cells: return false
 		plot_cells.append(cell)
 		if p.planted < -1.0 or p.planted > (data.day - 1) * 1440.0 + data.minute:

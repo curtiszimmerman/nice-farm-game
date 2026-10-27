@@ -23,6 +23,7 @@ func run() -> void:
 	root.add_child(game)
 	game.set_process(false)
 	preload("fixture.gd").explore(game)
+	preload("fixture.gd").garden(game.state)
 	var world=game.world
 	check(not world.blocked(Grid.center(Grid.SPAWN_CELL)),"the shared spawn tile is walkable")
 	var aligned=true

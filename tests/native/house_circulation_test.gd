@@ -11,6 +11,7 @@ func run() -> void:
 	root.add_child(game)
 	game.set_process(false)
 	preload("fixture.gd").explore(game,true)
+	game.state.day=2
 	for building in game.outdoors.buildings:
 		game.state.minute=780
 		game.enter_building(building.id)

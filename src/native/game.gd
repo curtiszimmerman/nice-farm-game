@@ -319,6 +319,9 @@ func enter_building(id: String) -> void:
 		else: toast("Speak to the farmer waiting at the foot of the mountain trail.")
 		return
 	if building.is_empty(): return
+	if id=="observatory" and posmod(state.day-1,7)==0:
+		dialog("A sign on the door","OBSERVATORY","A sign is hanging on the door. It reads: 'closed to-day and every Rift for observations'")
+		return
 	var residents=outdoors.people.filter(func(person):return outdoors.Schedule.home_stop(person.id).room==id)
 	if id!="ship" and residents.any(func(person):return outdoors.stop_for(person.id).sleeping and outdoors.villagers[person.id].data.get("sleeping",false) and outdoors.villagers[person.id].data.get("room","")==id) and not residents.any(func(person):return state.relationship(person.id)=="Loved"):
 		toast("The household has gone to bed. Best come back in the morning.")
@@ -467,13 +470,21 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		else: map_notes()
 
 func activate_channel(channel: String) -> void:
+	if action_busy(): return
 	state.action_channel=channel
+	if state.active_item() in ["hearthmend","emberthread"] or (channel=="aux" and state.active_item()=="wildgrowth"): begin_action()
 	if state.active_item() in ["hearthmend","emberthread"]: cast_local_spell(state.active_item())
 	elif channel=="primary": interact()
 	elif state.active_item()=="sit": sit_on_bench()
 	elif state.active_item()=="wildgrowth": cast_growth()
 	elif state.active_item()!="": interact()
 	state.action_channel="primary"
+
+func action_busy() -> bool:
+	return world.elapsed-world.player.data.get("action_started",-10.0)<0.6
+
+func begin_action() -> void:
+	world.player.data.action_started=world.elapsed
 
 func sit_on_bench() -> void:
 	var site=world.find_nearest()
@@ -595,6 +606,7 @@ func panel(title: String,eyebrow: String,text: String,choices: Array = []) -> vo
 
 func interact() -> void:
 	if not started or window_open or opening!=null: return
+	if action_busy(): return
 	if resting>0.0:
 		resting=0.0
 		state.player_position=rest_return_position
@@ -606,6 +618,7 @@ func interact() -> void:
 	if not activity.is_empty(): return
 	nearest=world.find_nearest()
 	if nearest.get("type")=="person": talk(nearest.id); return
+	if state.active_item()!="rusty_sword": begin_action()
 	if world==outdoors and state.active_item()=="hoe" and world.target_plot()<0 and nearest.is_empty():
 		var cell=world.front_cell()
 		if world.can_build_crucible(cell) and state.prepare_plot(cell):
@@ -663,9 +676,17 @@ func interact() -> void:
 	elif nearest.type=="tree":
 		if world.chop_tree(nearest.cell):
 			burst(Grid.center(nearest.cell),"b89662",12)
-			toast("Three pieces of firewood gathered." if not world.solid_cells.has(nearest.cell) else "The axe bites into the trunk.")
+			toast("Timber! Pick up the fallen logs." if not world.solid_cells.has(nearest.cell) else "The axe bites into the trunk.")
 			save_visit()
-		else: toast("You need an axe, %d energy, and room for firewood." % int(state.energy_cost(4)))
+		else: toast("You need an axe and %d energy." % int(state.energy_cost(2)))
+	elif nearest.type=="logs":
+		if not state.can_carry("wood"): toast("Make room for the logs."); return
+		state.wood+=3
+		state.forage_harvests["wood:%d:%d" % [nearest.cell.x,nearest.cell.y]]=state.total()
+		for node in world.moving_layer.get_children():
+			if node.kind=="logs" and node.data.cell==nearest.cell: node.queue_free()
+		save_visit()
+		toast("Three logs picked up.")
 	elif nearest.type=="forage":
 		toast("Gathered "+nearest.item+"." if outdoors.harvest_forage(nearest.item,nearest.cell) else "Make room in your satchel.")
 		save_visit()
@@ -730,7 +751,9 @@ func interact() -> void:
 			"stairs_down": change_cave_level(1)
 			"stairs_up": change_cave_level(-1)
 			"exit": leave_building()
-			"shop": talk("tavi")
+			"shop":
+				if shopkeeper_at_work("tavi","store"): talk("tavi")
+				else: toast("The counter is unattended. Come back when Tavi is here.")
 			"bed":
 				if current_room=="home" and not state.met_mayor and not state.house_tasks.bed: tidy_farmhouse("bed")
 				else: rest_options()
@@ -806,6 +829,9 @@ func fish_pool(habitat: String) -> Array:
 func start_fishing(habitat: String) -> void:
 	if state.fishing_pole<1 or state.active_item()!="fishing_pole":
 		toast("Select a fishing pole first. Oren at the lighthouse has a spare.")
+		return
+	if not state.spend_energy(1):
+		toast("Too tired to cast. Rest or eat something first.")
 		return
 	var pool=fish_pool(habitat)
 	if habitat=="ocean_tip":
@@ -995,7 +1021,7 @@ func crucible_menu(index: int) -> void:
 		choices.append(["Smelt %d copper ore + %d coal · %d minutes" % [State.ORE_PER_BAR,State.COAL_PER_BAR,int(State.SMELT_MINUTES)],func():
 			toast("The copper begins to melt." if state.start_smelting(index) else "You need %d copper ore and %d coal in your satchel." % [State.ORE_PER_BAR,State.COAL_PER_BAR])
 			save_visit()
-			crucible_menu(index)])
+			crucible_menu(index),state.copper>=State.ORE_PER_BAR and state.coal>=State.COAL_PER_BAR])
 	choices.append(["Leave the crucible",func(): pass])
 	panel("Stone crucible","COPPER REFINING",description,choices)
 
@@ -1023,10 +1049,13 @@ func cooking() -> void:
 		choices.append(["Cook %s · %s · requires %s" % [ui.Items.CATALOG[id].name,", ".join(details),recipe.utensil],func():
 			toast("Cooked %s." % ui.Items.CATALOG[meal].name if state.cook(meal) else "Missing cookware or ingredients. Ingredients can be carried or in your kitchen cabinet.")
 			save_visit()
-			cooking()])
+			cooking(),recipe.ingredients.keys().all(func(ingredient):return state.ingredient_count(ingredient)>=recipe.ingredients[ingredient])])
 	choices.append(["Open kitchen cabinet",func(): open_storage("cabinet")])
 	choices.append(["Done cooking",func(): pass])
 	panel("Farmhouse stove","COOKING","Recipes draw ingredients from your satchel and the connected twelve-slot kitchen cabinet. Tavi sells pots and pans for 20 crowns each.",choices)
+
+func shopkeeper_at_work(id: String,room: String) -> bool:
+	return current_room==room and world.villagers.has(id) and world.villagers[id].visible and not world.villagers[id].data.get("sleeping",false)
 
 func talk(id: String) -> void:
 	state.chat_with(id)
@@ -1034,13 +1063,12 @@ func talk(id: String) -> void:
 	if id not in ["smith","woodcutter"] and preload("res://neighbors.gd").talk(self,id): return
 	match id:
 		"smith":
-			var at_work=current_room=="smithy"
+			var at_work=shopkeeper_at_work("smith","smithy")
 			var choices=[
 				["What should I know about mining copper?",func(): preload("res://local_guidance.gd").smith_copper(self)],
-				["Tell me about your work.",func(): dialog("Dain Rusk","BETTER TOOLS","A sound handle, a balanced head, an edge that holds. That's where I'd start. Bring your tools to the forge and we'll talk about what they need.")],
-				["What sort of work do you do?",func(): dialog("Dain Rusk","IRON & HONEST WEAR",preload("res://neighbors.gd").STORIES.smith.split("|",true,1)[1])],
+				["Tell me about your work.",func(): dialog("Dain Rusk","IRON & HONEST WEAR",preload("res://neighbors.gd").STORIES.smith.split("|",true,1)[1]+" A sound handle, a balanced head, an edge that holds. Bring your tools to the forge and we'll talk about what they need.")],
 				["See you around.",func(): pass]]
-			if at_work and not state.crucible_known: choices.push_front(["Learn crucible blueprint · 10 star bulbs",learn_crucible])
+			if at_work and not state.crucible_known: choices.push_front(["Learn crucible blueprint · 10 star bulbs",learn_crucible,state.star_bulbs>=10])
 			dialog("Dain Rusk","BLACKSMITH","Mind the hot scale. I can tell a lot about a tool by the wear on its edge. Bring yours by when you're ready to talk about better steel." if at_work else "Good to stretch my shoulders after a day at the forge. If you're thinking about upgrading your tools, come see me at the smithy.",choices)
 		"woodcutter":
 			preload("res://local_guidance.gd").rowan(self)
@@ -1070,38 +1098,41 @@ func talk(id: String) -> void:
 			else: dialog("Moss","NEIGHBOR · SOUTH FARM","Go on inside. I'll bring Alder and Neral back shortly. Make yourselves comfortable and see what needs tidying.")
 		"tavi":
 			conversation_steps=0
+			if not shopkeeper_at_work("tavi","store"):
+				dialog("Tavi","A MOMENT OFF DUTY","A little fresh air does me good. My sister says I should leave work at work. Come by the grocery when I'm behind the counter if you need anything.",[["Where can I get tools?",tool_directions],["Enjoy your walk.",func(): pass]])
+				return
 			dialog("Tavi","TRAVELING MERCHANT","Hello again! Need anything for the garden? Or have you brought me something good? I'm off to Veyr for my sister's festival next month. Help me travel with a lighter cart, eh?" if current_room=="store" else "A little fresh air before I go back to the shop. My sister says I should learn to leave work at work. Sensible advice, but I've never been terribly good at it. What can I do for you?",[
 				["Sell produce · %d crowns" % state.sale_value(),func():
 					if state.sell(): save_visit(); toast("Sold. Locally grown, very far from home.")
 					else: toast("Bring turnips or silverfin to sell.")
-					talk("tavi")],
+					talk("tavi"),state.sale_value()>0],
 				["Buy 5 moon-turnip seeds · 10 crowns · %d available" % state.stock("seeds"),func():
 					if state.buy_seeds(): save_visit(); toast("Five seeds tucked into your satchel.")
 					else: toast("Out of stock. Delivery next season." if state.stock("seeds")==0 else "You need 10 crowns and room in your satchel.")
-					talk("tavi")],
+					talk("tavi"),state.money>=10],
 				["Buy 3 star-bulb seeds · 12 crowns · %d available" % state.stock("star_seeds"),func():
 					if state.buy_star_seeds(): save_visit(); toast("Three star-bulb seeds. Select them in your satchel before planting.",6)
 					else: toast("Out of stock. Delivery next season." if state.stock("star_seeds")==0 else "You need 12 crowns and room in your satchel.")
-					talk("tavi")],
-				["Buy frying pan · 20 crowns · %d available" % state.stock("pan"),func(): buy_cookware("pan")],
-				["Buy cooking pot · 20 crowns · %d available" % state.stock("pot"),func(): buy_cookware("pot")],
+					talk("tavi"),state.money>=12],
+				["Buy frying pan · 20 crowns · %d available" % state.stock("pan"),func(): buy_cookware("pan"),state.money>=20],
+				["Buy cooking pot · 20 crowns · %d available" % state.stock("pot"),func(): buy_cookware("pot"),state.money>=20],
 				["Buy elixir of health · 15 crowns · %d available" % state.stock("health_elixir"),func():
 					if state.purchase("health_elixir"): save_visit()
 					else: toast("Out of stock. Delivery next season." if state.stock("health_elixir")==0 else "You need 15 crowns and room in your satchel.")
-					talk("tavi")],
+					talk("tavi"),state.money>=15],
 				["Where can I get tools?",tool_directions],
 				["Sugar and butter for baking",baking_supplies],
 				["Just passing through.",func(): pass]])
 			ui.modal.get_child(1).position.y=125
 		"iona":
-			if current_room!="iona" and state.player_position.distance_to(Grid.center(Vector2i(61,15)))>160:
+			if outdoors.stop_for("iona").sleeping:
 				dialog("Iona","FIELD MAGICIAN","Come visit my tower in the northern cliffs if you'd like a lesson. I keep late hours.")
 			else:
 				dialog("Iona","MAGIC OF BRIAR GLEN","You'll find our deities gentler than the ones near the Veyr border. Mostly they want things to grow. I can show you Wildgrowth, if you like. Water a seed first, then give it a little encouragement. Fifteen mana, and no fee for the lesson. For something more adventurous, bring me a Cave Moth Chrysalis from deep underground, or a Golden Sparkfire Bloom. Mind you, that flower only opens while the sun is rising. Walk past at noon and you'd never give it a second glance.",[
 					["Learn the basics" if not state.magic_learned else "Practice Wildgrowth",func(): state.magic_learned=true; save_visit(); toast("Wildgrowth learned. Assign it yourself under Actions → Spells and skills.",7)],
-					["Hearthmend · one Golden Sparkfire Bloom",func(): learn_local_spell("hearthmend")],
+					["Hearthmend · one Golden Sparkfire Bloom",func(): learn_local_spell("hearthmend"),state.golden_sparkfire_bloom>=1],
 					["Tell me about the seven days",weekday_lore],
-					["Emberthread · one Cave Moth Chrysalis + 10 logs",func(): learn_local_spell("emberthread")]])
+					["Emberthread · one Cave Moth Chrysalis + 10 logs",func(): learn_local_spell("emberthread"),state.cave_moth_chrysalis>=1 and state.wood>=10]])
 		"finch": dialog("Finch","RADIO CLUB SECRETARY","Come in, come in. Mind that cable. Last week we picked up a dance band from Veyr, clear as anything. Governments can argue all they like; the air doesn't stop at a checkpoint." if current_room=="radio" else "Good to give my eyes a rest from the wiring. Nessa's coming along nicely with that receiver. Her mother will have river weather reports in the kitchen before long.",[["What's on the air today?",radio],["I'll come back sometime.",func(): pass]])
 		"vale":
 			if not state.briefing_complete: show_briefing(); return
@@ -1127,7 +1158,7 @@ func baking_supplies() -> void:
 	var choices=[]
 	for id in ["sugar","butter"]:
 		var ingredient=id
-		choices.append(["%s · %d crowns · %d available"%[state.Items.CATALOG[id].name,preload("res://shop_stock.gd").CATALOG[id].price,state.stock(id)],func(): buy_ingredient(ingredient); baking_supplies()])
+		choices.append(["%s · %d crowns · %d available"%[state.Items.CATALOG[id].name,preload("res://shop_stock.gd").CATALOG[id].price,state.stock(id)],func(): buy_ingredient(ingredient); baking_supplies(),state.money>=preload("res://shop_stock.gd").CATALOG[id].price])
 	choices.append(["Back",func(): talk("tavi")])
 	dialog("Tavi","SOMETHING SWEET","Preserves need berries and sugar in a pot. For cobbler, add flour and butter and fetch your pan. Tomas sells flour at the mill.",choices)
 
@@ -1314,7 +1345,7 @@ func moss_lesson() -> void:
 	begin_conversation(["moss"],true)
 	dialog("Moss","A LITTLE HELP GETTING STARTED","Before I go, those seeds will do you more good in the ground than in a chest. Hoe a little patch and plant them. The can's empty, but there's a pond south of here. Give them water each day; three watered nights and you should have a crop. The soil dries out by sunrise, so don't forget the next morning. Use the sickle when it's ready. Mind your energy, though. A meal and a rest in your own bed will set you right.",[
 		["I need some copper. Any idea where I could find some?",func(): preload("res://local_guidance.gd").copper(self)],
-		["And the spell you mentioned?",func(): dialog("Moss","THE WIZARD IN THE NORTHERN CLIFFS","Go see Iona, up at the northern tower. She'll introduce you to this area's deities and magic. Might save you a sore back in the garden. Don't knock before noon, though. She's likely only just gone to bed.",[
+		["And the spell you mentioned?",func(): dialog("Moss","THE WIZARD IN THE NORTHERN CLIFFS","Go see Iona. She'll introduce you to this area's deities and magic. Might save you a sore back in the garden. She's a night owl and sleeps till noon, then spends a few hours around the square before working at her northern tower. Ask her whenever she's awake; she's happy to teach.",[
 			["Thanks, Moss. We'll visit her.",func():
 				state.welcome_phase="moss_departing"
 				end_conversation()
@@ -1459,7 +1490,21 @@ func development_tools() -> void:
 		["Advance 24 hours",func(): advance_development_time(1440.0)],
 		["Advance 1 season · 28 days",func(): advance_development_time(State.DEVELOPMENT_SEASON_DAYS*1440.0)],
 		["Weather · "+state.weather_name().replace("_"," "),development_weather],
+		["Restore vitals, grant tools and 100,000 crowns",development_supplies],
 		["Back to settings",settings]])
+
+func development_supplies() -> void:
+	state.health=100
+	state.energy=100
+	state.mana=60
+	state.needs.drink()
+	state.needs.eat()
+	state.money+=100000
+	for id in ["rusty_sword","pickaxe","axe","hoe","watering_can","sickle","fishing_pole"]:
+		if int(state.get(id))==0: state.set(id,1)
+	state.inventory_cells()
+	save_visit()
+	development_tools()
 
 func development_weather() -> void:
 	var choices=[]

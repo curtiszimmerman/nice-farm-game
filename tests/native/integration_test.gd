@@ -35,17 +35,17 @@ func run() -> void:
 	game.state.player_position=game.world.plot_position(0)+Vector2.UP*game.world.Grid.TILE_SIZE
 	for slot in [0,3,1]:
 		game.select_quick_slot(slot)
-		game.interact()
+		preload("fixture.gd").activate(game)
 	check(game.state.plots[0].watered and game.state.seeds==7,"contextual input tills plants and waters")
 	game.select_quick_slot(5)
 	game.state.day=2
 	game.cast_growth()
 	game.select_quick_slot(2)
-	game.interact()
+	preload("fixture.gd").activate(game)
 	check(game.state.turnips==1 and game.state.harvested==1,"growth magic and harvest connect to inventory")
 	game.enter_building("store")
 	game.state.player_position=game.world.villagers.tavi.position+Vector2(0,12)
-	game.interact()
+	preload("fixture.gd").activate(game)
 	game.ui.modal_box.get_child(3).pressed.emit()
 	check(game.state.turnips==0 and game.state.money==32,"merchant dialogue actually sells inventory")
 	game.close_window()
@@ -61,7 +61,7 @@ func run() -> void:
 	var rock=game.world.rocks.values().filter(func(item): return item.ore)[0]
 	game.state.player_position=game.Grid.center(rock.cell+Vector2i.DOWN)
 	game.world.facing="up"
-	game.interact()
+	preload("fixture.gd").activate(game)
 	check(game.state.copper==1,"mining completes through the game controller with a selected pickaxe")
 	game.leave_building()
 	game.state.copper_bars=3
@@ -75,13 +75,13 @@ func run() -> void:
 	game.state.player_position=game.world.site_position("pond")
 	game.state.fishing_pole=1
 	game.state.assign_active("primary","fishing_pole")
-	game.interact()
+	preload("fixture.gd").activate(game)
 	game.activity_time=1.2
 	var caught=game.fishing_species
 	for i in range(1000):
 		game.activity_time=1.2+i*0.01
 		if game.fishing_position()>0.4 and game.fishing_position()<0.6: break
-	game.interact()
+	preload("fixture.gd").activate(game)
 	check(game.state.get(caught)==1 and game.activity=="","fishing timing rewards the hooked species")
 	game.state.day=2
 	game.state.met_mayor=false

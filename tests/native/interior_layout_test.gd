@@ -23,6 +23,7 @@ func run() -> void:
 	var routes_clear=true
 	var exits_clear=true
 	for b in game.outdoors.buildings:
+		game.state.day=2
 		game.state.minute=780
 		game.enter_building(b.id)
 		var room=game.world

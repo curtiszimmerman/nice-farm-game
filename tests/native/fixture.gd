@@ -12,6 +12,7 @@ static func explore(game: Node2D,meet_moss: bool=false) -> void:
 	game.world.refresh()
 
 static func tools(state: RefCounted) -> void:
+	garden(state)
 	state.weather_override="sunny"
 	state.magic_learned=true
 	for i in range(4): state.chest_transfer(i)
@@ -19,8 +20,16 @@ static func tools(state: RefCounted) -> void:
 	state.selected_slot=1
 	state.refill_water()
 	state.selected_slot=0
+	state.energy=100
+
+static func garden(state: RefCounted) -> void:
+	if not state.plots.is_empty(): return
+	for i in range(20):
+		state.plots.append({"x":9+i%5,"y":54+int(i/5),"tilled":false,"planted":-1.0,"watered":false,"crop":"turnips","growth":0.0,"water_day":0})
 
 static func face_site(game: Node2D,id: String) -> void:
+	game.elapsed=maxf(game.elapsed,game.world.elapsed)+0.61
+	game.world.elapsed=game.elapsed
 	var sites=game.world.sites.filter(func(site):return site.id==id)
 	assert(not sites.is_empty(),"The interaction site must exist: "+id)
 	var site=sites[0]
@@ -39,6 +48,11 @@ static func face_site(game: Node2D,id: String) -> void:
 			game.world.facing=facing
 			return
 	assert(false,"The interaction must have an accessible facing tile: "+id)
+
+static func activate(game: Node2D) -> void:
+	game.elapsed=maxf(game.elapsed,game.world.elapsed)+0.61
+	game.world.elapsed=game.elapsed
+	game.interact()
 
 static func grow_watered_days(state: RefCounted,days: int=3) -> void:
 	var selected=state.inventory_selection

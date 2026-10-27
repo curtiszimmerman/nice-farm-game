@@ -22,9 +22,10 @@ func run() -> void:
 		var tree=candidates[0]
 		s.player_position=w.Grid.center(tree.cell+Vector2i.DOWN)
 		w.facing="up"
-		for j in range(3): game.interact()
+		for j in range(3): preload("fixture.gd").activate(game)
 		check(not w.solid_cells.has(tree.cell),"a felled tree releases its collision cell")
-	check(s.wood==6 and s.energy==energy-24,"six axe swings gather six firewood and cost energy")
+		preload("fixture.gd").activate(game)
+	check(s.wood==6 and s.energy==energy-12,"six axe swings and collected logs yield six firewood for twelve energy")
 	var saved=game.State.new()
 	check(saved.restore(s.to_dict()) and saved.felled_trees==s.felled_trees,"tree felling and the firewood task survive saving")
 	var rebuilt=game.World.new()

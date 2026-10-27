@@ -35,7 +35,7 @@ func run() -> void:
 	game.state.axe=1
 	game.state.assign_active("primary","axe")
 	var tree=game.outdoors.trees[0]
-	check(game.outdoors.chop_tree(tree.cell) and game.state.energy==38,"tired axe swings spend eight energy")
+	check(game.outdoors.chop_tree(tree.cell) and game.state.energy==42,"tired axe swings spend four energy")
 	game.state.health=1
 	game.state.status_effects.clear()
 	game.state.apply_poison()

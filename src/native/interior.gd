@@ -60,6 +60,7 @@ func _ready() -> void:
 	for door in layout.doors: floor_cells[door[2]]="doorway"
 	floor_cells[layout.exit]="entry"
 	thin_partitions()
+	if building.id=="mayor": floor_cells.erase(Vector2i(9,6))
 	for y in range(ROOM_CELLS.y):
 		for x in range(ROOM_CELLS.x):
 			if not floor_cells.has(Vector2i(x,y)): solid_cells[Vector2i(x,y)]="wall"
@@ -257,6 +258,10 @@ func update_villagers(dt: float,snap: bool=false) -> void:
 		if snap: actor.position=target
 		else: walk_actor(id,cell,dt)
 		if building.id=="temple" and actor.position.distance_to(target)<1: actor.data.direction="down" if id=="priest" else "up"
+		if building.id=="tavern" and id!="barkeep" and actor.position.distance_to(target)<1:
+			var neighbors=villagers.values().filter(func(other):return other!=actor and other.visible and other.data.id!="barkeep")
+			neighbors.sort_custom(func(a,b):return a.position.distance_squared_to(actor.position)<b.position.distance_squared_to(actor.position))
+			if not neighbors.is_empty(): actor.data.direction=Bodies.facing_for(neighbors[0].position-actor.position)
 		actor.queue_redraw()
 
 func tavern_guest_spot(id: String) -> Vector2i:

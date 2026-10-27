@@ -50,11 +50,11 @@ func run() -> void:
 	for x in range(w.JETTY_CELLS.position.x,w.JETTY_CELLS.end.x):
 		game.state.player_position=w.Grid.center(Vector2i(x,w.JETTY_CELLS.position.y))
 		game.state.water=0
-		game.interact()
+		preload("fixture.gd").activate(game)
 		if game.activity!="fishing" or game.state.water!=0 or w.at_pond_edge(game.state.player_position): dock_clear=false
 		game.activity=""
 	check(dock_clear,"every dock cell supports pole fishing without triggering a can refill")
-	check(w.fence_mask(Vector2i(9,46))==3 and not w.blocked(w.Grid.center(Vector2i(14,46))),"fence rails connect across an open walkable gate")
+	check(w.TownPaths.fence_mask(w,Vector2i(13,53)) & 2 and not w.blocked(w.Grid.center(Vector2i(14,53))),"fence rails connect across the farmhouse yard's open walkable gate")
 	var minute=game.state.minute
 	var elapsed=game.elapsed
 	var key=InputEventKey.new()

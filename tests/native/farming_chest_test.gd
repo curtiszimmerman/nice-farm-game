@@ -8,6 +8,7 @@ func check(value: bool,label: String) -> void:
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
 	var s=State.new()
+	preload("fixture.gd").garden(s)
 	check(s.chest.size()==18 and s.hoe==0,"starter tools begin in the eighteen-slot farmhouse chest")
 	s.tend(0)
 	check(not s.plots[0].tilled and s.energy==100,"tilling requires a carried hoe")
@@ -38,7 +39,8 @@ func run() -> void:
 		s.tend(i)
 	preload("fixture.gd").grow_watered_days(s)
 	for i in range(20): s.tend(i)
-	check(s.energy==0 and s.harvested==0 and s.ripe(0),"tilling twenty plots and watering for three days exhausts energy before harvesting")
+	check(s.energy>0 and s.energy<10 and s.harvested==20,"three days of tending and harvesting twenty plants leaves a small energy reserve")
+	s.energy=0
 	var before=s.plots.duplicate(true)
 	s.tend(1)
 	s.tend(1)

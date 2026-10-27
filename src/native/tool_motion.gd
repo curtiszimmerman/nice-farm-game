@@ -2,6 +2,7 @@ extends RefCounted
 
 const Art=preload("res://art.gd")
 const DURATION=0.325
+const ACTION_DURATION=0.6
 const TIPS={"hoe":Vector2(8,-9),"watering_can":Vector2(12,-2),"axe":Vector2(9,-9),"pickaxe":Vector2(9,-9),"sickle":Vector2(9,-9),"rusty_sword":Vector2(9,-11)}
 
 static func start(world: Node2D,id: String) -> void:
@@ -33,7 +34,7 @@ static func pose(id: String,facing: String,t: float) -> Dictionary:
 static func draw(world: Node2D,canvas: CanvasItem) -> void:
 	var data=world.player.data
 	var id=data.get("tool_motion","")
-	var t=(world.elapsed-data.get("tool_started",-10.0))/DURATION
+	var t=(world.elapsed-data.get("tool_started",-10.0))/(DURATION if id=="rusty_sword" else ACTION_DURATION)
 	if not TIPS.has(id) or t<0 or t>=1: return
 	var frame=pose(id,data.tool_facing,t)
 	canvas.draw_set_transform(frame.position,frame.angle,frame.scale)

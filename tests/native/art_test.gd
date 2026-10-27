@@ -16,6 +16,7 @@ func run() -> void:
 	check(opening.battle_at(11).enemy_fire and opening.battle_at(11).return_fire,"both ships exchange fire during the exterior battle")
 	check(opening.battle_at(19).destroyed and not opening.battle_at(19).enemy_fire,"the attacker explodes and stops firing before the crash")
 	preload("fixture.gd").explore(game,true)
+	game.state.day=2
 	Art.load_atlas()
 	var hoe=Art.pixels.get_region(Rect2i(Art.region("item_hoe")))
 	var sickle=Art.pixels.get_region(Rect2i(Art.region("item_sickle")))
@@ -72,6 +73,7 @@ func run() -> void:
 	var click=InputEventMouseButton.new()
 	click.button_index=MOUSE_BUTTON_LEFT
 	click.pressed=true
+	game.world.elapsed+=0.61
 	click.position=game.get_viewport().get_canvas_transform()*(game.world.site_position("stove")-Vector2(0,40))
 	if game.has_method("_unhandled_input"): game._unhandled_input(click)
 	check(game.window_open and game.state.fish==1,"clicking the nearby oven opens cooking without selecting cookware")
