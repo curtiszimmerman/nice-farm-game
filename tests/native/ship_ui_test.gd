@@ -11,6 +11,7 @@ func run() -> void:
 	root.add_child(game)
 	game.set_process(false)
 	preload("fixture.gd").explore(game,true)
+	preload("fixture.gd").garden(game.state)
 	check(game.ui.quick_buttons.size()==8,"HUD has eight selectable quick slots")
 	var key=InputEventKey.new()
 	key.pressed=true

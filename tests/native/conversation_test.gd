@@ -12,6 +12,9 @@ func run() -> void:
 	game.set_process(false)
 	preload("fixture.gd").explore(game)
 	game.state.met_mayor=true
+	game.state.minute=600
+	game.outdoors.update_villagers(0,true)
+	game.enter_building("store")
 	game.talk("tavi")
 	var position=game.outdoors.villagers.tavi.position
 	game.state.minute=1300
@@ -24,6 +27,7 @@ func run() -> void:
 	game.close_window()
 	game.outdoors.update_villagers(1)
 	check(game.outdoors.villagers.tavi.position!=position,"closing the conversation releases Tavi to his routine")
+	game.leave_building()
 	game.state.invited=true
 	game.state.met_mayor=false
 	game.state.day=2

@@ -19,6 +19,21 @@ func run() -> void:
 	game.state.player_position=game.Grid.center(Vector2i(59,52))
 	game.world.refresh()
 	await capture("temple-square")
+	game.state.player_position=game.Grid.center(Vector2i(69,39))
+	await capture("tavern-sign")
+	game.state.player_position=game.Grid.center(Vector2i(54,39))
+	await capture("radio-sign")
+	var w=game.outdoors
+	var tree=w.trees[0]
+	game.state.axe=1
+	game.state.assign_active("primary","axe")
+	game.state.player_position=game.Grid.center(tree.cell+Vector2i.LEFT)
+	w.facing="right"
+	for i in range(3):
+		w.elapsed+=0.61
+		w.chop_tree(tree.cell)
+	w.elapsed+=0.3
+	await capture("falling-tree")
 	game.state.minute=1200
 	game.outdoors.update_villagers(0,true)
 	game.enter_building("tavern")

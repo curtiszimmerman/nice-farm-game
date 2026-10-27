@@ -210,8 +210,8 @@ static func building(c: CanvasItem,b: Dictionary) -> void:
 		if b.kind=="tavern":
 			c.draw_string(font,pos+Vector2(8,12),"WAYWARD",HORIZONTAL_ALIGNMENT_LEFT,-1,8,Color("f1e7c9"))
 			c.draw_string(font,pos+Vector2(8,24),"WREN",HORIZONTAL_ALIGNMENT_LEFT,-1,8,Color("f1e7c9"))
-			c.draw_string(font,pos+Vector2(63,23),"TAVERN",HORIZONTAL_ALIGNMENT_LEFT,-1,14,Color("f1e7c9"))
-		else: c.draw_string(font,pos+Vector2(12,23),"RADIO CLUB",HORIZONTAL_ALIGNMENT_LEFT,-1,14,Color("f1e7c9"))
+			c.draw_string(font,pos+Vector2(63,23),"TAVERN",HORIZONTAL_ALIGNMENT_LEFT,-1,20,Color("f1e7c9"))
+		else: c.draw_string(font,pos+Vector2(12,23),"RADIO CLUB",HORIZONTAL_ALIGNMENT_LEFT,-1,20,Color("f1e7c9"))
 
 static func roof_tint(value: String) -> Color:
 	return Color(value).lerp(Color.WHITE,0.65)

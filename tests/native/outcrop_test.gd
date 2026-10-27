@@ -45,7 +45,7 @@ func run() -> void:
 	for i in range(3):
 		game.state.player_position=game.Grid.center(deposits[i].cell+Vector2i.DOWN)
 		game.world.facing="up"
-		game.interact()
+		preload("fixture.gd").activate(game)
 	check(game.state.copper==3 and game.state.energy==85.0,"three cave deposits supply Vale's copper and charge energy")
 	var other=deposits[3]
 	game.state.player_position=game.world.entry_position()

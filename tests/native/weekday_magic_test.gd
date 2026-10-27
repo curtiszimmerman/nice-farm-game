@@ -23,6 +23,7 @@ func _initialize() -> void:
 			silenced=silenced or amount==0
 	check(collision and doubled and silenced,"independent Chaos draws can double or silence the same school")
 	var state=preload("res://state.gd").new()
+	preload("fixture.gd").garden(state)
 	state.learned_spells.append("hearthmend")
 	state.health=20
 	state.day=6

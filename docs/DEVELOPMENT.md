@@ -1,5 +1,13 @@
 # Development notes
 
+## Current action and town rules
+
+The current revision is documented in [ACTION_TOWN_POLISH.md](ACTION_TOWN_POLISH.md). New visits start without predefined plots. The farmhouse moved seven grid squares south, with a straight coastal road along its front; Moss's farmland is excluded from player tilling. A shared 0.6-second interval governs non-sword world actions. Axe blows cost two energy and trees leave collectible logs; the fall uses world animation time so pause holds it still. The day-one activity budget uses 89.2 of 100 energy. Save schema 19 requires explicit plot coordinates and accepts an empty field list.
+
+Iona teaches wherever she is awake, visits the square from noon to 15:00, then works at her tower; selected tavern nights override this. Saeren is locked in his observatory throughout Rift. Truth about the ship earns five friendship; lying costs five, once. Shop transactions require the NPC to be present and awake in their shop. Resource-dependent choices are disabled when unaffordable. Dain's sword costs 1,000 crowns. Residential gardens, weekly gardening, consistent fence materials, the radio club/tavern signs, tapered calendar plate and aligned survival bars are part of the same revision.
+
+`python3 -B scripts/audit_native.py` runs the native suite with individual logs and a JSON summary. Pass test names to select checks, or `--failed-from <log-directory>` to rerun failures. All output must remain in the project.
+
 ## Agreed direction
 
 Z drives major story and technical decisions. The agent drives routine work and commits without pushing. Fun takes priority over grind, deadlines, or systems that reward disengaging from a cooperative session. Build in small playable increments.

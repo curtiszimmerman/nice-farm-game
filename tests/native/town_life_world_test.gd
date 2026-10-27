@@ -17,7 +17,7 @@ func run() -> void:
 		game.state.player_position=game.Grid.center(Vector2i(90,70))
 		game.world.refresh()
 		await process_frame
-		game.state.player_position=game.Grid.center(Vector2i(17,45))
+		game.state.player_position=game.Grid.center(Vector2i(17,52))
 		game.world.facing="up"
 		game.world.refresh()
 		await process_frame

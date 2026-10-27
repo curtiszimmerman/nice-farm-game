@@ -6,6 +6,7 @@ func check(ok: bool,label: String) -> void:
 	else: failed=true; push_error("FAIL: "+label)
 func _initialize() -> void:
 	var s=State.new()
+	preload("fixture.gd").garden(s)
 	check(s.INVENTORY_SLOTS==16,"satchel has two rows of eight")
 	s.money=1000
 	check(s.buy_utensil("pot"),"one pot can be purchased")

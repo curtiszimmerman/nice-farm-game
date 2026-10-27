@@ -16,6 +16,14 @@ func run() -> void:
 	var s=game.state
 	var w=game.outdoors
 	s.met_mayor=true
+	var night=preload("res://night_effects.gd").new()
+	night.world=w
+	s.day=85
+	s.minute=1300
+	check(not night.smoking(w.buildings.filter(func(b):return b.id=="priest_outhouse")[0]),"the chimney-free outhouse cannot emit winter smoke")
+	night.free()
+	s.day=1
+	s.minute=600
 	check(w.farm_cells.is_empty() and w.fence_cells.is_empty(),"the starting farm has no predefined field or field fencing")
 	check(not game.Grid.farmable(Vector2i(13,40)) and not game.Grid.farmable(Vector2i(25,63)),"new plots exclude the north and Moss's farm")
 	check(w.sites.all(func(site):return site.id!="radio"),"the exterior radio table has been removed")
@@ -27,6 +35,16 @@ func run() -> void:
 	check(game.current_room=="" and "closed to-day" in game.ui.modal_box.get_child(2).text,"the observatory is closed on the first Rift")
 	game.close_window()
 	s.day=2
+	var truth=game.State.new()
+	truth.record_star_origin(true)
+	truth.record_star_origin(true)
+	check(truth.friendships.astronomer==5,"trusting Saeren earns five friendship once")
+	var lie=game.State.new()
+	lie.record_star_origin(false)
+	check(lie.friendships.astronomer== -5,"lying to Saeren costs five friendship")
+	for day in [1,8,15]:
+		for minute in [0,600,900,1200,1439]:
+			check(w.Schedule.stop("astronomer",minute,day).room=="observatory","Saeren stays in the observatory throughout every Rift")
 	s.minute=780
 	w.update_villagers(0,true)
 	game.talk("iona")
@@ -65,6 +83,13 @@ func run() -> void:
 	w.chop_tree(tree.cell)
 	check(s.wood==0 and s.felled_trees.size()==1,"felling leaves logs on the ground instead of awarding them immediately")
 	check(w.moving_layer.get_children().any(func(node):return node.kind=="logs"),"a felled tree leaves a visible log pickup")
+	var falling=w.scenery_layer.get_children().filter(func(node):return node.data.get("falling",false))[0]
+	w.elapsed+=0.3
+	w.refresh()
+	check(absf(falling.rotation)>0.1 and falling.modulate.a<0.6,"a falling tree rotates at its base and fades halfway through its action")
+	var rotation=falling.rotation
+	w.refresh()
+	check(falling.rotation==rotation,"tree falls use world animation time and remain still while it is paused")
 	check(s.restore(JSON.parse_string(JSON.stringify(s.to_dict()))),"the empty starting farm and fallen trees survive JSON saving")
 	game.enter_building("mayor")
 	if game.current_room=="mayor":

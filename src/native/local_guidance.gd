@@ -56,7 +56,7 @@ static func rowan(game: Node2D) -> void:
 			if s.repay_axe():
 				game.save_visit()
 				game.dialog("Rowan","A PROMISE KEPT", "Late, but you brought them. Thank you. Next time, tell me if a promise is going to take longer." if s.requests.axe_failed else "Good timber, too. Thank you for keeping your word. That axe is yours; look after the edge and it'll look after you.")
-			else: game.dialog("Rowan","TEN LOGS","Ten logs, when you've got them together. I need the whole bundle for the job.")])
+			else: game.dialog("Rowan","TEN LOGS","Ten logs, when you've got them together. I need the whole bundle for the job."),s.wood>=10])
 	choices.append(["How do you choose which trees to cut?",func(): game.dialog("Rowan","A FOREST THAT LASTS","Look up first. Then look at the roots. I mark the old and crowded trees and leave the rest room to grow. My mother taught me these woods. I'd like somebody else's daughter to know them too.")])
 	choices.append(["I'll leave you to it.",func(): pass])
 	var body="I've a spare axe you can keep. One condition: bring me ten logs in one week, seven days. I've a job waiting on the timber. Does that sound fair?" if not s.woodcutter_axe_given else "You've kept the axe in good shape, I hope. Remember our agreement: ten logs within one week, seven days." if not s.requests.axe_paid else "Hello again. Mind the saplings if you're cutting today. Give them a few years yet."

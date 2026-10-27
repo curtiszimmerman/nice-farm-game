@@ -319,7 +319,7 @@ func enter_building(id: String) -> void:
 		else: toast("Speak to the farmer waiting at the foot of the mountain trail.")
 		return
 	if building.is_empty(): return
-	if id=="observatory" and posmod(state.day-1,7)==0:
+	if id=="observatory" and outdoors.Schedule.observations_closed(state.day,state.minute):
 		dialog("A sign on the door","OBSERVATORY","A sign is hanging on the door. It reads: 'closed to-day and every Rift for observations'")
 		return
 	var residents=outdoors.people.filter(func(person):return outdoors.Schedule.home_stop(person.id).room==id)
@@ -579,7 +579,7 @@ func dialog(title: String,role: String,text: String,choices: Array = []) -> void
 				if state.requests.deliver(state,request_id,recipient):
 					save_visit()
 					dialog(title,"A LITTLE HELP","That's everything. Thank you! Here are the crowns I promised. You've saved me a trip.")
-				else: toast("Bring the full amount before the weekly notice-board refresh.")])
+				else: toast("Bring the full amount before the weekly notice-board refresh."),int(state.get(terms[1]))>=terms[2]])
 		var item=state.active_item()
 		if state.Items.CATALOG.has(item) and item not in state.Items.ESSENTIAL_TOOLS and int(state.get(item))>0 and int(state.gift_weeks.get(person,-1))!=int((state.day-1)/7):
 			choices=choices.duplicate()
@@ -1500,11 +1500,15 @@ func development_supplies() -> void:
 	state.needs.drink()
 	state.needs.eat()
 	state.money+=100000
+	var missing=[]
 	for id in ["rusty_sword","pickaxe","axe","hoe","watering_can","sickle","fishing_pole"]:
-		if int(state.get(id))==0: state.set(id,1)
+		if int(state.get(id))>0: continue
+		if state.can_carry(id): state.set(id,1)
+		else: missing.append(state.Items.CATALOG[id].name)
 	state.inventory_cells()
 	save_visit()
 	development_tools()
+	if not missing.is_empty(): toast("Vitals and crowns restored. Free satchel slots, then use this again for: "+", ".join(missing),8)
 
 func development_weather() -> void:
 	var choices=[]

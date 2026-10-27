@@ -37,6 +37,10 @@ const SLEEP={"baker":[1320,240],"farmer_father":[1320,360],"farmer_mother":[1320
 const COMMUNION=["moss","mayor","miller_wife","farmer_mother","keeper","veteran"]
 const TAVERN_DAYS={"baker":[0,2],"moss":[0,2,4,6],"miller":[0,1,2,3,4,6],"miller_wife":[1,4,6],"miller_daughter":[2,5],"smith":[0,1,3,4,5],"finch":[0,2,4,6],"mayor":[1,3,5],"assistant":[3],"tavi":[0,2,4,6],"keeper":[2],"veteran":[1,4],"woodcutter":[0,3,5,6],"farmer_mother":[1,5],"farmer_father":[0,2,4,6],"farmer_son":[5],"astronomer":[1,4,6]}
 
+static func observations_closed(day: int,minute: float) -> bool:
+	var weekday=posmod(day-1,7)
+	return weekday==0 or (weekday==6 and minute>=1380) or (weekday==1 and minute<420)
+
 static func stop(id: String,minute: float,day: int=1) -> Dictionary:
 	if id=="astronomer" and posmod(day-1,7)==0:
 		return {"cell":Vector2i(31,14),"room":"observatory","sleeping":minute<420 or minute>=1380}

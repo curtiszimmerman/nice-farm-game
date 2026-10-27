@@ -22,6 +22,7 @@ func house_lit(building: Dictionary) -> bool:
 	return building.id=="store" and world.state.minute<1200
 
 func smoking(building: Dictionary) -> bool:
+	if building.id=="priest_outhouse": return false
 	if building.kind in ["lighthouse","observatory"]: return false
 	return building.kind in ["bakery","smithy"] or (night() and world.state.season_name()=="winter")
 

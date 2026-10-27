@@ -6,6 +6,8 @@ The current survival and weekday-magic rules are recorded in [SURVIVAL_WORK.md](
 
 ## Direction and collaboration
 
+Current action pacing and town revisions are tracked in [ACTION_TOWN_POLISH.md](docs/ACTION_TOWN_POLISH.md): an empty starting farm, player-created plots, 0.6-second non-sword actions, collectible fallen logs, a day-one energy budget, location-aware shops, Iona's awake lessons, Saeren's Rift observatory closure, and residential gardens.
+
 Fun comes first. Build a comfortable pixel art farming and adventure game for 1–4 players, with cooperation in multiplayer. Stardew Valley and Graveyard Keeper inform everyday life and farming; World of Warcraft and Diablo inform the visual presentation of combat and the breadth of magic.
 
 Avoid grind, excessive routine chores, and constant pressure. Combat and particular social encounters can be tense. Players should enjoy ordinary days without being forced to advance the main story.

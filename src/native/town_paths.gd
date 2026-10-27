@@ -28,7 +28,7 @@ static func yards(world: Node2D) -> void:
 				if building.id=="home" and y in [51,52]: continue
 				if town_home and world.buildings.any(func(other):return other.id!=building.id and Rect2i(other.cell,other.tiles).grow(2).has_point(cell)): continue
 				if town_home and ((x in [bounds.position.x,bounds.end.x-1] and y in [side_y,side_y-1]) or (y==bounds.position.y and x==gate.x)): continue
-				if cell==gate or (building.id=="home" and cell==Vector2i(18,37)):
+				if cell==gate or (building.id=="home" and cell==Vector2i(18,44)):
 					world.yard_gates[cell]=kind
 					world.reserved_cells[cell]=true
 				elif not world.solid_cells.has(cell):
@@ -39,7 +39,9 @@ static func yards(world: Node2D) -> void:
 static func residential_garden(world: Node2D,building: Dictionary) -> void:
 	var origin=building.cell+Vector2i(building.tiles.x,0)
 	if building.id=="priest": origin=Vector2i(48,58)
+	if building.id=="iona": origin+=Vector2i(3,0)
 	if building.id=="keeper": origin=Vector2i(-21,48)
+	world.reserved_cells[origin+Vector2i(0,2)]=true
 	for offset in [Vector2i.ZERO,Vector2i.DOWN]:
 		var cell=origin+offset
 		if world.solid_cells.has(cell): continue

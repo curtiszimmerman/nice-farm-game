@@ -83,7 +83,7 @@ static func talk(game: Node2D,id: String) -> bool:
 	var choices=[]
 	if id=="miller" and working:
 		choices.append(["Buy flour · 5 crowns · %d available"%game.state.stock("flour"),func(): game.buy_ingredient("flour"),game.state.money>=5])
-	if id=="astronomer" and working:
+	if id=="astronomer" and working and game.state.star_origin_reply=="":
 		choices.append(["You're right. Our ship fell on the mountain.",func():
 			game.state.record_star_origin(true)
 			game.save_visit()

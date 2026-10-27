@@ -318,13 +318,11 @@ func chop_tree(cell: Vector2i) -> bool:
 	forage_nodes.apples.erase(cell)
 	solid_cells.erase(cell)
 	var direction=1 if facing=="right" else -1 if facing=="left" else (1 if randf()<0.5 else -1)
-	var fall=create_tween().set_parallel(true)
-	fall.tween_property(tree.node,"rotation",direction*PI*0.48,0.6).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	fall.tween_property(tree.node,"modulate:a",0.0,0.6)
-	fall.chain().tween_callback(tree.node.queue_free)
+	tree.node.data.fall_started=elapsed
+	tree.node.data.fall_direction=direction
 	var logs=_prop("logs",Grid.center(cell),{})
 	logs.modulate.a=0
-	create_tween().tween_property(logs,"modulate:a",1.0,0.2).set_delay(0.45)
+	logs.data.appears_at=elapsed+0.45
 	logs.data.cell=cell
 	trees.erase(tree)
 	_prop("stump",Grid.center(cell),{})
@@ -550,6 +548,7 @@ func stop_for(id: String) -> Dictionary:
 		if not homes.is_empty():
 			var cell=homes[0].cell+Vector2i(homes[0].tiles.x,2)
 			if id=="priest": cell=Vector2i(49,59)
+			if id=="iona": cell+=Vector2i(3,0)
 			if id=="keeper": cell=Vector2i(-20,50)
 			if not blocked(Grid.center(cell)) and not (id=="astronomer" and posmod(state.day-1,7)==0): stop={"cell":cell,"room":"","sleeping":false}
 	if id=="vale": stop.room="ship"
@@ -660,7 +659,13 @@ func refresh() -> void:
 	player.queue_redraw()
 	for child in scenery_layer.get_children()+moving_layer.get_children():
 		if child is Prop:
-			if child.kind in ["fountain","mill_sails"]:
+			if child.data.get("falling",false):
+				var progress=clampf((elapsed-child.data.fall_started)/0.6,0,1)
+				child.rotation=child.data.fall_direction*PI*0.48*progress*progress
+				child.modulate.a=1-progress
+				if progress>=1: child.queue_free()
+			elif child.kind=="logs": child.modulate.a=clampf((elapsed-child.data.get("appears_at",-1.0))/0.2,0,1)
+			elif child.kind in ["fountain","mill_sails"]:
 				var frame=int(elapsed*(6 if child.kind=="fountain" else 2))%4
 				if child.data.frame!=frame: child.data.frame=frame; child.queue_redraw()
 			elif child.kind in ["effects","crucible_heat"]: child.queue_redraw()
@@ -987,9 +992,6 @@ func _draw() -> void:
 			r(self,p.x+14,p.y,4,32,"a28d64")
 			r(self,p.x+12,p.y+2,8,27,"b8a77a")
 		else: _fence(p.x,p.y+2,Grid.TILE_SIZE)
-	var field=Grid.rect(FARM_CELL,Vector2i(5,4))
-	draw_rect(field.grow(3),Color("596341"))
-	draw_rect(field,Color("7b6446"))
 	for garden in DECORATIVE_FIELDS: paint_decorative_garden(garden)
 	var rock_width=OUTCROP_CELLS.size.x*Grid.TILE_SIZE
 	var rock_height=OUTCROP_CELLS.size.y*Grid.TILE_SIZE
@@ -1032,14 +1034,6 @@ func _draw() -> void:
 	r(self,-31,-24,53,13,"a99769")
 	draw_string(ThemeDB.fallback_font,Vector2(-23,-32),"TOWN >",HORIZONTAL_ALIGNMENT_LEFT,-1,8,Color("515d49"))
 	draw_string(ThemeDB.fallback_font,Vector2(-28,-14),"< FARM",HORIZONTAL_ALIGNMENT_LEFT,-1,8,Color("515d49"))
-	draw_set_transform(site_position("radio"))
-	r(self,-20,-12,42,7,"9b855e")
-	r(self,-17,-5,4,18,"746849")
-	r(self,15,-5,4,18,"746849")
-	r(self,-12,-35,25,23,"816d4d")
-	r(self,-9,-32,19,12,"4a6055")
-	r(self,-6,-16,4,3,"d8c08a")
-	r(self,3,-16,4,3,"d8c08a")
 	draw_set_transform(Vector2.ZERO)
 
 func _fence(x: float,y: float,w: int) -> void:

@@ -12,6 +12,7 @@ func run() -> void:
 	root.add_child(game)
 	game.set_process(false)
 	preload("fixture.gd").explore(game,true)
+	preload("fixture.gd").garden(game.state)
 	var w=game.world
 	w.refresh()
 	await process_frame

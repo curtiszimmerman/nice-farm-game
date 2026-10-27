@@ -49,7 +49,7 @@ func run() -> void:
 	var crops_aligned=true
 	for i in range(20):
 		var p=world.plot_position(i)
-		if p!=Grid.center(world.FARM_CELL+Vector2i(i%5,int(i/5.0))): crops_aligned=false
+		if p!=Grid.center(game.state.plot_cell(i)): crops_aligned=false
 		if world.blocked(p): crops_aligned=false
 	check(crops_aligned,"all farm plots are walkable cells of the shared world grid")
 	var roads_aligned=true
@@ -61,8 +61,8 @@ func run() -> void:
 	for cell in tree_cells:
 		if world.road_cells.has(cell) or world.water_cells.has(cell): valid_population=false
 	check(valid_population,"population does not place trees on roads or water")
-	check(world.blocked(Grid.center(world.fence_cells[0])),"fences occupy solid grid cells")
-	check(not world.blocked(Grid.center(world.FARM_CELL+Vector2i(5,-2))),"farm gate leaves a walkable grid opening")
+	check(world.blocked(Grid.center(world.yard_fences.keys()[0])),"fences occupy solid grid cells")
+	check(not world.blocked(Grid.center(Vector2i(14,53))),"farmhouse yard gate leaves a walkable grid opening")
 	check(world.in_water(Grid.center(world.POND_CELL)) and world.blocked(Grid.center(world.POND_CELL)),"pond water occupies solid terrain cells")
 	var jetty_clear=true
 	for x in range(world.JETTY_CELLS.position.x,world.JETTY_CELLS.end.x):

@@ -39,7 +39,7 @@ func run() -> void:
 		s.tend(i)
 	preload("fixture.gd").grow_watered_days(s)
 	for i in range(20): s.tend(i)
-	check(s.energy>0 and s.energy<10 and s.harvested==20,"three days of tending and harvesting twenty plants leaves a small energy reserve")
+	check(s.energy>=0 and s.energy<1 and s.harvested>0 and s.harvested<20,"three days without sleep exhaust energy partway through the harvest")
 	s.energy=0
 	var before=s.plots.duplicate(true)
 	s.tend(1)

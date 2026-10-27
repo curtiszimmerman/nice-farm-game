@@ -28,15 +28,14 @@ func run() -> void:
 	for y in range(20,82):
 		if w.in_water(w.Grid.center(Vector2i(w.Grid.MAP_SIZE.x-5,y))): open=false
 	check(open,"the eastern map has no ocean or coastal barrier")
-	var radio=w.site_position("radio")
-	check(radio.y>=club.y+club.h+32 and radio.distance_to(Vector2(club.x+club.w/2,club.y+club.h))<80,"radio table clears the club foundation and stands immediately outside")
+	check(not w.sites.any(func(site):return site.id=="radio"),"the radio is indoors rather than on an exterior table")
 	var fishable=true
 	game.state.fishing_pole=1
 	game.state.assign_active("primary","fishing_pole")
 	for x in range(w.JETTY_CELLS.position.x,w.JETTY_CELLS.end.x):
 		game.state.player_position=w.Grid.center(Vector2i(x,w.JETTY_CELLS.position.y))
 		if w.find_nearest().get("id","")!="pond": fishable=false
-		game.interact()
+		preload("fixture.gd").activate(game)
 		if game.activity!="fishing": fishable=false
 		game.activity=""
 	check(fishable,"the entire dock offers fishing")

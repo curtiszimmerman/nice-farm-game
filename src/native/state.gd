@@ -437,7 +437,7 @@ func place_shortcut(id: String,index: int) -> bool:
 
 func plot_cell(index: int) -> Vector2i:
 	var plot=plots[index]
-	return Vector2i(int(plot.x),int(plot.y)) if plot.has("x") else Vector2i(9+index%5,48+int(index/5))
+	return Vector2i(int(plot.x),int(plot.y))
 
 func prepare_plot(cell: Vector2i) -> bool:
 	if active_item()!="hoe" or hoe<1 or not Grid.farmable(cell): return false

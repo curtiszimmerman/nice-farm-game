@@ -6,6 +6,7 @@ func check(value: bool,label: String) -> void:
 	else: failed=true; push_error("FAIL: "+label)
 func _initialize() -> void:
 	var s=State.new()
+	preload("fixture.gd").garden(s)
 	s.chest_transfer(0,"",1)
 	s.seeds=10
 	s.chest_transfer(4,"seeds",4)
@@ -18,7 +19,7 @@ func _initialize() -> void:
 	check(not s.plots[0].tilled,"a carried hoe cannot till unless selected")
 	s.assign_active("primary","hoe")
 	s.farm(0)
-	check(s.plots[0].tilled and s.energy==98,"selected hoe tills at doubled energy cost")
+	check(s.plots[0].tilled and is_equal_approx(s.energy,98.8),"selected hoe spends the calibrated tilling cost")
 	s.assign_active("primary","seeds")
 	s.farm(0)
 	s.chest_transfer(1)

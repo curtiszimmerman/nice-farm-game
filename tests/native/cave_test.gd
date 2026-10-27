@@ -11,6 +11,7 @@ func run() -> void:
 	root.add_child(game)
 	game.set_process(false)
 	preload("fixture.gd").explore(game)
+	preload("fixture.gd").garden(game.state)
 	check(not game.state.assign_slot(0,"wildgrowth"),"untrained captains cannot assign magic")
 	game.state.plots[0].planted=game.state.total()
 	game.state.plots[0].watered=true
@@ -37,7 +38,7 @@ func run() -> void:
 	check("pickaxe" in game.state.quick_slots,"the collected pickaxe appears in its matching inventory-row position")
 	game.state.assign_slot(0,"pickaxe")
 	game.state.selected_slot=0
-	game.interact()
+	preload("fixture.gd").activate(game)
 	check(game.state.copper==1 and game.state.energy==before-5,"activated pickaxe mines copper and costs more energy than tilling")
 	check(not cave.mine_rock(ore.id),"a mined rock cannot yield resources repeatedly")
 	var rat=cave.rats[0]
@@ -54,7 +55,7 @@ func run() -> void:
 	game.select_quick_slot(1)
 	cave.facing="left"
 	before=game.state.energy
-	game.interact()
+	preload("fixture.gd").activate(game)
 	cave.update_enemies(0.4)
 	game.interact()
 	check(not rat.visible and game.state.energy==before-4,"two selected-sword strikes defeat a rat and consume energy")
