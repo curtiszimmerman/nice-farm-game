@@ -1,0 +1,7 @@
+# Local guidance and weekly requests
+
+Z's scope: enlarge title-screen small text; protect essential tools from gifts; put Oren's posting first; guide the player through Oren → Rowan's seven-day, ten-log axe agreement → fishing-pole reward; make Moss a local guide, with copper/protection/Bram as his first post-welcome topic; exchange three moon turnips for Bram's sword, with Iona/astronomer hints; mayor and Neral point to Moss and the board; Dain offers an expensive 250-crown sword and practical alternatives; four board positions with a twenty-request weekly pool.
+
+Audit: `dialog()` currently offers any selected inventory item as a gift; `give_gift()` has no protected-item check. The board has four fixed entries with the ladder first. Oren incorrectly treats an accepted request as proof the player carries the wood. Rowan and Bram currently hand out tools without conditions. Existing relationship/quest-history systems will be reused. New persistent request and axe-loan state uses a strict new save version, without migrations. Work branch: wip/local-guidance-and-weekly-jobs; starting working tree was clean.
+
+Proposed routine weekly tuning is awaiting Z's optional feedback: modest crown rewards and +3 friendship per delivery, unfinished requests expire at weekly refresh, and seasonal/locked resources are filtered. Permanent firewood/ladder postings remain until completed; weekly requests fill the other available positions and newly vacated positions. Deadline penalty is applied once; the axe is never confiscated and late repayment remains possible.

@@ -44,6 +44,7 @@ var friendships: Dictionary={}
 var chat_days: Dictionary={}
 var gift_weeks: Dictionary={}
 var star_origin_reply=""
+var requests=preload("res://town_requests.gd").new()
 var learned_spells: Array=[]
 var bloom_harvests: Dictionary={}
 var bloom_cells: Array=[]
@@ -187,6 +188,15 @@ func accept_tool(id: String) -> bool:
 	if get(flag) or not can_carry(id): return false
 	set(id,int(get(id))+1)
 	set(flag,true)
+	if id=="axe": requests.axe_due=total()+10080.0
+	return true
+
+func repay_axe() -> bool:
+	requests.update_deadline(self)
+	if not woodcutter_axe_given or requests.axe_paid or wood<10: return false
+	wood-=10
+	requests.axe_paid=true
+	clear_empty_slots()
 	return true
 
 func deliver_firewood() -> bool:
@@ -338,6 +348,7 @@ func advance(minutes: float, window_open = false,sleeping: bool=false) -> void:
 	var previous_day=day
 	day = int(elapsed / 1440.0) + 1
 	minute = fmod(elapsed, 1440.0)
+	requests.update_deadline(self)
 	update_crucibles()
 	for crop_day in range(previous_day,day):
 		for plot in plots:
@@ -556,7 +567,15 @@ func consume(id: String) -> bool:
 	return true
 
 func accept_sword() -> bool:
-	if has_sword() or not can_carry("rusty_sword"): return false
+	if has_sword() or turnips<3 or (not can_carry("rusty_sword") and turnips!=3): return false
+	turnips-=3
+	rusty_sword=1
+	clear_empty_slots()
+	return true
+
+func buy_sword() -> bool:
+	if has_sword() or money<250 or not can_carry("rusty_sword"): return false
+	money-=250
 	rusty_sword=1
 	return true
 
@@ -672,6 +691,7 @@ func chat_with(id: String) -> void:
 	change_friendship(id,1)
 
 func gift_preference(id: String,item: String) -> int:
+	if id=="veteran" and item=="turnips": return 5
 	if item in ["coal","stones"]: return 1 if id in ["smith","miller"] else -1
 	if item in ["cave_moth_chrysalis","golden_sparkfire_bloom","star_bulbs"]: return 5 if id in ["iona","astronomer"] else -5 if id=="assistant" else 0
 	if item in ["fish_stew","fish_sticks","bread","berry_cobbler"]: return 5 if id in ["vale","keeper","veteran","barkeep"] else 1
@@ -679,6 +699,7 @@ func gift_preference(id: String,item: String) -> int:
 	return 0
 
 func give_gift(id: String,item: String) -> bool:
+	if item in Items.ESSENTIAL_TOOLS: return false
 	if not preload("res://villager_schedule.gd").ROUTINES.has(id) or not Items.CATALOG.has(item) or int(get(item))<1: return false
 	var week=int((day-1)/7)
 	if int(gift_weeks.get(id,-1))==week: return false
@@ -770,7 +791,7 @@ func to_dict() -> Dictionary:
 	clear_empty_slots()
 	var supplies={}
 	for id in EXTRA_ITEMS: supplies[id]=get(id)
-	return {"version":17,"needs":needs.to_dict(),"crew_food_delivered":crew_food_delivered,"town":preload("res://town_progress.gd").snapshot(self),"inventory_order":inventory_order.duplicate(),"woodcutter_axe_given":woodcutter_axe_given,"cave_pickaxe_taken":cave_pickaxe_taken,"cave_intro_seen":cave_intro_seen,"auxiliary_selection":auxiliary_selection,"world_seed":world_seed,"inventory_selection":inventory_selection,"firewood_requested":firewood_requested,"firewood_given":firewood_given,"felled_trees":felled_trees.duplicate(),"day": day, "minute": minute, "money": money,"magic_learned":magic_learned,
+	return {"version":18,"requests":requests.to_dict(),"needs":needs.to_dict(),"crew_food_delivered":crew_food_delivered,"town":preload("res://town_progress.gd").snapshot(self),"inventory_order":inventory_order.duplicate(),"woodcutter_axe_given":woodcutter_axe_given,"cave_pickaxe_taken":cave_pickaxe_taken,"cave_intro_seen":cave_intro_seen,"auxiliary_selection":auxiliary_selection,"world_seed":world_seed,"inventory_selection":inventory_selection,"firewood_requested":firewood_requested,"firewood_given":firewood_given,"felled_trees":felled_trees.duplicate(),"day": day, "minute": minute, "money": money,"magic_learned":magic_learned,
 		"forage_harvests":forage_harvests.duplicate(),"ladder_requested":ladder_requested,"ladder_taken":ladder_taken,"ladder_returned":ladder_returned,
 		"awake_minutes":awake_minutes,"sleep_minutes":sleep_minutes,"status_effects":status_effects.duplicate(true),
 		"crucible_known":crucible_known,"crucibles":crucibles.duplicate(true),
@@ -789,8 +810,9 @@ func to_dict() -> Dictionary:
 		"plots": plots.duplicate(true)}
 
 func restore(data: Variant) -> bool:
-	if not data is Dictionary or data.get("version") != 17:
+	if not data is Dictionary or data.get("version") != 18:
 		return false
+	if not requests.valid(data.get("requests")): return false
 	if not needs.valid(data.get("needs")) or not data.get("crew_food_delivered") is bool: return false
 	if not preload("res://town_progress.gd").valid(data.get("town")): return false
 	for field in ["ladder_requested","ladder_taken","ladder_returned"]:
@@ -830,8 +852,10 @@ func restore(data: Variant) -> bool:
 	if not data.get("quest_order") is Array: return false
 	if data.get("weather_override") not in ["","sunny","partly_cloudy","rainy"]: return false
 	var quests=[]
+	var allowed_quests=["crew_supplies","restore_farmhouse","first_harvest","meet_wizard","keeper_firewood","bells_ladder","axe_repayment","bram_sword"]
+	for job in data.requests.jobs: allowed_quests.append(requests.quest_id(job))
 	for id in data.quest_order:
-		if not id is String or id not in ["crew_supplies","restore_farmhouse","first_harvest","meet_wizard","keeper_firewood","bells_ladder"] or id in quests: return false
+		if not id is String or id not in allowed_quests or id in quests: return false
 		quests.append(id)
 	for id in data.inventory_order:
 		if not id is String or (id!="" and ((not Items.CATALOG.has(id) and not Skills.CATALOG.has(id)) or id in ordered)): return false
@@ -950,6 +974,7 @@ func restore(data: Variant) -> bool:
 		set(field, data[field])
 	player_position = Vector2(data.x, data.y)
 	needs.restore(data.needs)
+	requests.restore(data.requests)
 	crew_food_delivered=data.crew_food_delivered
 	preload("res://town_progress.gd").restore(self,data.town)
 	outdoor_position=Vector2(data.outdoor_x,data.outdoor_y)

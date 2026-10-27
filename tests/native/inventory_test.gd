@@ -30,7 +30,8 @@ func run() -> void:
 	preload("fixture.gd").grow_watered_days(s)
 	s.tend(0)
 	check(s.star_bulbs==1 and s.star_seeds==0,"star bulbs grow and harvest through the real farming system")
-	check(s.accept_sword() and not s.accept_sword() and s.rusty_sword==1,"veteran sword can be accepted only once")
+	s.turnips=3
+	check(s.accept_sword() and not s.accept_sword() and s.rusty_sword==1 and s.turnips==0,"veteran sword trades for three turnips only once")
 	var restored=State.new()
 	check(restored.restore(s.to_dict()) and restored.rusty_sword==1 and restored.star_bulbs==1 and restored.health==100,"new supplies and health survive saving")
 	var game=Game.new()

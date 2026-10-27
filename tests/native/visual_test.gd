@@ -115,7 +115,7 @@ func run() -> void:
 	await capture("welcome-departure")
 	while game.state.welcome_phase=="departing": game._process(0.25)
 	await capture("moss-farming-lesson")
-	while game.window_open: game.ui.modal_box.get_child(3).pressed.emit()
+	while game.window_open: preload("fixture.gd").advance_dialogue(game)
 	while game.state.welcome_phase=="moss_departing": game._process(0.25)
 	game.leave_building()
 	game.state.player_position=game.world.Grid.center(game.world.Grid.SPAWN_CELL)

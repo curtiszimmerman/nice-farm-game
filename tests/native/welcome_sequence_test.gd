@@ -76,6 +76,9 @@ func run() -> void:
 			check(game.world.villagers.moss.visible and not game.world.villagers.mayor.visible and not game.world.villagers.assistant.visible,"Moss stays physically inside after both officials leave")
 			check("energy" in game.ui.modal_box.get_child(2).text and game.clock_held(),"Moss explains farm work while the introductory clock stays held")
 			game.ui.modal_box.get_child(3).pressed.emit()
+			check("Bram" in game.ui.modal_box.get_child(2).text and "protect" in game.ui.modal_box.get_child(2).text,"Moss first answers the captain's copper question and warns about protection")
+			game.ui.modal_box.get_child(3).pressed.emit()
+			game.ui.modal_box.get_child(4).pressed.emit()
 			check("Iona" in game.ui.modal_box.get_child(2).text and "deities" in game.ui.modal_box.get_child(2).text,"Moss introduces the tower wizard and regional magic")
 		if game.window_open: game.ui.modal_box.get_child(3).pressed.emit()
 		if game.state.welcome_phase=="complete": break

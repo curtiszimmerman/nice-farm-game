@@ -35,7 +35,8 @@ func run() -> void:
 	s.buy_utensil("pan")
 	s.fish=2
 	check(not s.cook("fish_sticks") and s.fish==2,"cooking preserves ingredients when its result will not fit")
-	check(not s.accept_sword() and s.rusty_sword==0,"quest equipment requires a free carried slot")
+	s.turnips=4
+	check(not s.accept_sword() and s.rusty_sword==0 and s.turnips==4,"a sword trade preserves payment when the satchel has no free slot")
 	var invalid=s.to_dict()
 	invalid.supplies.fish_sticks=1
 	check(not game.State.new().restore(invalid),"a saved inventory cannot exceed its sixteen carried slots")

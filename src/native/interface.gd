@@ -415,10 +415,10 @@ func show_title() -> void:
 	dim.color = Color("102825ce")
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	title_screen.add_child(dim)
-	_label("A SMALL BEGINNING, ON A VERY DISTANT WORLD",Vector2(100,115),12,GOLD,false,title_screen)
+	_label("A SMALL BEGINNING, ON A VERY DISTANT WORLD",Vector2(100,110),24,GOLD,false,title_screen)
 	_label("Somewhere,\nthe Sun Still Rises",Vector2(95,155),54,CREAM,true,title_screen)
 	_label("✦",Vector2(100,315),28,GOLD,true,title_screen)
-	_label("Your ship is hidden. Your orders are complicated.\nFor now, there is a gate, a stranger, and a patch of good soil.",Vector2(100,380),17,MUTED,true,title_screen)
+	_label("Your ship is hidden. Your orders are complicated.\nFor now, there is a gate, a stranger, and a patch of good soil.",Vector2(100,380),24,MUTED,true,title_screen)
 	var start = Button.new()
 	start.text = "Step into the morning    →"
 	start.position = Vector2(100,480)
@@ -427,7 +427,7 @@ func show_title() -> void:
 	_button_style(start,true)
 	start.pressed.connect(func(): title_screen.queue_free(); title_screen=null; game.begin())
 	title_screen.add_child(start)
-	_label("NATIVE DEBIAN BUILD · A FIRST-LANDING STUDY\nProgress stays in this project · separate sound controls in settings",Vector2(103,565),11,MUTED,false,title_screen)
+	_label("NATIVE DEBIAN BUILD · A FIRST-LANDING STUDY\nProgress stays in this project · separate sound controls in settings",Vector2(103,565),20,MUTED,false,title_screen)
 	start.grab_focus()
 
 func close_modal() -> void:
@@ -906,6 +906,15 @@ func quest_lines() -> Array:
 	if s.met_mayor: lines.append({"id":"first_harvest","title":"Putting down roots","description":"Moss left tools and seeds. Work a small garden to provide for yourselves.","tasks":[{"text":"Harvest a moon turnip","done":s.harvested>0}]})
 	if s.welcome_phase=="complete": lines.append({"id":"meet_wizard","title":"Gentler magic","description":"Visit Iona at the northern tower after noon to learn local magic.","tasks":[{"text":"Learn Wildgrowth from Iona","done":s.magic_learned}]})
 	if s.firewood_requested: lines.append({"id":"keeper_firewood","title":"A warm western light","description":"Oren needs firewood for his lighthouse stove. Ask the forest woodcutter about an axe.","tasks":[{"text":"Bring Oren six firewood","done":s.firewood_given}]})
+	if s.woodcutter_axe_given:
+		lines.append({"id":"axe_repayment","title":"Timber for a promise","description":"Rowan gave you an axe in exchange for ten logs within one week, seven days. The deadline was missed; she is disappointed, but you can still bring the timber." if s.requests.axe_failed else "Rowan gave you an axe in exchange for ten logs within one week, seven days. Due on day %d at %02d:%02d. The axe stays yours."%[int(s.requests.axe_due/1440)+1,int(fmod(s.requests.axe_due,1440)/60),int(fmod(s.requests.axe_due,60))],"tasks":[{"text":"Bring Rowan ten logs","done":s.requests.axe_paid}]})
+	if s.requests.bram_requested:
+		lines.append({"id":"bram_sword","title":"Supper for a sword","description":"Bram will trade his old sword for three moon turnips. Iona may know a trick to help them grow faster.","tasks":[{"text":"Trade three moon turnips for Bram's sword","done":s.has_sword()}]})
+	s.requests.refresh(s)
+	for job in s.requests.jobs:
+		if job.status=="offered": continue
+		var terms=s.requests.POOL[int(job.template)]
+		lines.append({"id":s.requests.quest_id(job),"title":"%s · %d %s"%[game.person_name(terms[0]),terms[2],Items.CATALOG[terms[1]].name],"description":"This request expired at the weekly refresh." if job.status=="expired" else "Deliver %d %s to %s before the next weekly refresh. Reward: %d crowns."%[terms[2],Items.CATALOG[terms[1]].name,game.person_name(terms[0]),terms[3]],"inactive":job.status=="expired","tasks":[{"text":"Deliver the requested supplies","done":job.status=="complete"}]})
 	for quest in lines:
 		if quest.id not in s.quest_order: s.quest_order.append(quest.id)
 	lines.sort_custom(func(a,b):return s.quest_order.find(a.id)<s.quest_order.find(b.id))
@@ -913,12 +922,12 @@ func quest_lines() -> Array:
 	var completed=[]
 	for quest in lines:
 		quest.complete=quest.tasks.all(func(task):return task.done)
-		if quest.complete: completed.append(quest)
+		if quest.complete or quest.get("inactive",false): completed.append(quest)
 		else: active.append(quest)
 	return active+completed
 
 func render_quests() -> void:
-	var lines=quest_lines().filter(func(quest):return not quest.complete)
+	var lines=quest_lines().filter(func(quest):return not quest.complete and not quest.get("inactive",false))
 	var signature=hash(lines)^hash(quest_opened)
 	if signature==quest_signature: return
 	quest_signature=signature
@@ -935,12 +944,12 @@ func render_quest_list(container: VBoxContainer,lines: Array,opened: Dictionary,
 		header.alignment=HORIZONTAL_ALIGNMENT_LEFT
 		header.add_theme_font_size_override("font_size",20)
 		_button_style(header)
-		if quest.complete: header.modulate=Color("7b837d")
+		if quest.complete or quest.get("inactive",false): header.modulate=Color("7b837d")
 		header.pressed.connect(func(): opened[quest.id]=not opened.get(quest.id,false); render_quest_list(container,lines,opened,width))
 		container.add_child(header)
 		if not opened.get(quest.id,false): continue
 		var content=VBoxContainer.new()
-		if quest.complete: content.modulate=Color("7b837d")
+		if quest.complete or quest.get("inactive",false): content.modulate=Color("7b837d")
 		content.add_theme_constant_override("separation",14)
 		container.add_child(content)
 		var description=Label.new()
