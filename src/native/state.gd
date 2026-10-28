@@ -535,7 +535,7 @@ func grow(index: int) -> bool:
 	if mana < 15.0 or p.planted < 0.0 or p.growth<0 or not p.watered or ripe(index):
 		return false
 	mana -= 15.0
-	p.growth=minf(CROP_MINUTES,p.growth+CROP_MINUTES*magic_strength("nature"))
+	p.growth=CROP_MINUTES
 	return true
 
 func sell() -> bool:

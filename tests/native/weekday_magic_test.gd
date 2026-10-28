@@ -32,5 +32,5 @@ func _initialize() -> void:
 	state.day=7
 	state.plots[0].planted=0
 	state.plots[0].watered=true
-	check(state.grow(0) and is_equal_approx(state.plots[0].growth,state.CROP_MINUTES*0.85),"Wildgrowth respects the Darkness day's weaker magic")
+	check(state.grow(0) and state.ripe(0),"one Wildgrowth cast fully matures a watered plant even on Darkness day")
 	quit(1 if failed else 0)

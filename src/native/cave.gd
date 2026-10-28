@@ -225,10 +225,7 @@ func find_nearest() -> Dictionary:
 			distance=d
 	for drop in floor_drops:
 		if drop.node==null or not is_instance_valid(drop.node) or drop.cell!=front_cell(): continue
-		var d=state.player_position.distance_to(Grid.center(drop.cell))
-		if d<distance:
-			best={"id":"drop_"+drop.id,"type":"drop","label":"Pick up "+preload("res://items.gd").CATALOG[drop.item].name}
-			distance=d
+		best={"id":"drop_"+drop.id,"type":"drop","label":"Pick up "+preload("res://items.gd").CATALOG[drop.item].name}
 	if state.active_item()=="rusty_sword" and has_attack_target():
 		best={"id":"swing","type":"weapon","label":"Swing sword · 2 energy"}
 	nearest=best
@@ -241,7 +238,7 @@ func has_attack_target() -> bool:
 	for creature in creatures():
 		if not creature.visible: continue
 		var cell=Grid.world_to_cell(creature.position)
-		if [target-lateral,target,target+lateral].has(cell): return true
+		if [Grid.world_to_cell(state.player_position),target-lateral,target,target+lateral].has(cell): return true
 	return false
 
 func rock_label(rock: Dictionary) -> String:
@@ -256,7 +253,7 @@ func activation_cells(site: Dictionary) -> Array:
 func mine_rock(id: String) -> bool:
 	if not rocks.has(id) or state.active_item()!="pickaxe" or state.pickaxe<1 or state.energy<4: return false
 	var rock=rocks[id]
-	if state.player_position.distance_to(Grid.center(rock.cell))>46: return false
+	if rock.cell!=front_cell(): return false
 	if not state.spend_energy(4): return false
 	preload("res://tool_motion.gd").start(self,"pickaxe")
 	rock.hits-=1
@@ -293,7 +290,7 @@ func attack() -> bool:
 	var target=Grid.world_to_cell(state.player_position)+direction
 	for rat in creatures():
 		var cell=Grid.world_to_cell(rat.position)
-		if not rat.visible or not [target-lateral,target,target+lateral].has(cell): continue
+		if not rat.visible or not [Grid.world_to_cell(state.player_position),target-lateral,target,target+lateral].has(cell): continue
 		damage_creature(rat,1)
 	return true
 

@@ -50,6 +50,27 @@ func run() -> void:
 		check(written and fresh.keys==game.controls.keys,"custom controls survive a settings-file round trip")
 		DirAccess.remove_absolute(file)
 		game.close_window()
+		var row=game.state.quick_row
+		var tab=InputEventKey.new()
+		tab.physical_keycode=KEY_TAB
+		tab.pressed=true
+		game._input(tab)
+		check(game.state.quick_row==1-row,"Tab cycles the quick-slot inventory row even after a GUI has held keyboard focus")
+		game.state.axe=1
+		game.state.assign_active("primary","axe")
+		for y in range(65,75):
+			for x in range(40,55):
+				game.state.player_position=game.Grid.center(Vector2i(x,y))
+				if game.world.find_nearest().is_empty(): break
+			if game.world.find_nearest().is_empty(): break
+		check(game.world.find_nearest().is_empty(),"an empty click target exists for the mouse regression")
+		game.ui.message.text=""
+		var click=InputEventMouseButton.new()
+		click.button_index=MOUSE_BUTTON_LEFT
+		click.pressed=true
+		game._unhandled_input(click)
+		check(game.ui.message.text=="","clicking empty ground with a tool equipped does not show interaction guidance")
+		game.world.elapsed+=0.61
 		game.state.select_inventory("hoe")
 		game.state.player_position=game.world.plot_position(0)+Vector2(0,32)
 		game.world.facing="up"

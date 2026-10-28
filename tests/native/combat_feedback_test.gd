@@ -41,6 +41,9 @@ func run() -> void:
 	var before=game.state.health
 	game.world.update_enemies(0.01)
 	check(game.state.health==before-4 and game.world.combat_texts.any(func(entry):return entry.text=="-4" and entry.color==Color("ff8e7b")),"rat bites display actual player damage in red")
+	attacker.position=game.state.player_position
+	game.world.swing_cooldown=0
+	check(game.world.has_attack_target() and game.world.attack() and attacker.info.health==1,"a rat pressed against the captain remains inside the sword arc")
 	for enemy in game.world.rats: enemy.visible=false
 	game._process(1.4)
 	check(game.world.combat_texts.is_empty(),"combat values disappear when their rise and fade finish")

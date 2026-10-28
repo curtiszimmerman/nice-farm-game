@@ -24,6 +24,7 @@ func run() -> void:
 	game.state.pickaxe=1
 	game.state.select_inventory("pickaxe")
 	game.state.player_position=game.Grid.center(cave.rocks[first].cell)+Vector2(0,32)
+	cave.facing="up"
 	var hits=2 if cave.rocks[first].resource in ["copper","coal"] else 1
 	var mined=true
 	for _hit in range(hits): mined= cave.mine_rock(first) and mined

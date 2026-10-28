@@ -204,24 +204,30 @@ static func building(c: CanvasItem,b: Dictionary) -> void:
 		if x!=door: sprite(c,seasonal("tile_flowerbed0",b.get("season","spring")),Grid.origin(Vector2i(x,0)))
 	for x in [door-1,door+1]:
 		if x>=0 and x<columns: tile(c,"light",Vector2i(x,-2))
-	if b.kind=="hall": tile(c,"civic_emblem",Vector2i(door,-rows-1))
+	if b.kind=="hall":
+		var hall_sign=Vector2(door*32-38,-88)
+		c.draw_rect(Rect2(hall_sign,Vector2(76,21)),Color("394947"))
+		c.draw_rect(Rect2(hall_sign+Vector2(2,2),Vector2(72,17)),Color("758779"))
+		c.draw_string(preload("res://pixel_ui.gd").font(),hall_sign+Vector2(8,15),"TOWN HALL",HORIZONTAL_ALIGNMENT_LEFT,-1,10,Color("f1e7c9"))
 	if b.kind in ["smithy","bakery"] and catalog.has("sign_smith" if b.kind=="smithy" else "sign_baker"):
 		sprite(c,"sign_smith" if b.kind=="smithy" else "sign_baker",Vector2(door*32-16,-88),Vector2(64,32))
 	elif b.kind in ["smithy","bakery"]: tile(c,b.kind+"_sign",Vector2i(maxi(0,door-1),-2))
-	if b.kind in ["tavern","radio"]:
+	if b.kind=="radio":
+		var mast=Vector2(-30,-150)
+		c.draw_line(mast,Vector2(-30,-3),Color("a3aa9c"),4)
+		c.draw_line(Vector2(-62,-125),Vector2(2,-125),Color("c4c9b5"),2)
+		c.draw_line(Vector2(-51,-110),Vector2(-9,-110),Color("c4c9b5"),2)
+		for x in [-58,-44,-30,-16,-2]: c.draw_line(Vector2(x,-131),Vector2(x,-119),Color("d1cfb4"),2)
+		c.draw_line(Vector2(-62,-125),Vector2(-73,-4),Color("7d918b"),1)
+		c.draw_line(Vector2(2,-125),Vector2(13,-4),Color("7d918b"),1)
+	if b.kind=="tavern":
 		var font=preload("res://pixel_ui.gd").font()
-		if b.kind=="tavern":
-			var pos=Vector2(door*32-58,-127)
-			c.draw_rect(Rect2(pos,Vector2(116,22)),Color("473b32"))
-			c.draw_rect(Rect2(pos+Vector2(2,2),Vector2(112,18)),Color("725943"))
-			c.draw_string(font,pos+Vector2(6,9),"WAYWARD",HORIZONTAL_ALIGNMENT_LEFT,-1,7,Color("f1e7c9"))
-			c.draw_string(font,pos+Vector2(6,18),"WREN",HORIZONTAL_ALIGNMENT_LEFT,-1,7,Color("f1e7c9"))
-			c.draw_string(font,pos+Vector2(48,17),"TAVERN",HORIZONTAL_ALIGNMENT_LEFT,-1,14,Color("f1e7c9"))
-		else:
-			var pos=Vector2(door*32-39,-122)
-			c.draw_rect(Rect2(pos+Vector2(0,3),Vector2(78,15)),Color("344b4b"))
-			c.draw_rect(Rect2(pos+Vector2(2,5),Vector2(74,11)),Color("768b79"))
-			c.draw_string(font,pos+Vector2(7,14),"RADIO CLUB",HORIZONTAL_ALIGNMENT_LEFT,-1,9,Color("f2dfae"))
+		var pos=Vector2(door*32-45,-88)
+		c.draw_rect(Rect2(pos,Vector2(90,19)),Color("473b32"))
+		c.draw_rect(Rect2(pos+Vector2(2,2),Vector2(86,15)),Color("725943"))
+		c.draw_string(font,pos+Vector2(5,8),"WAYWARD",HORIZONTAL_ALIGNMENT_LEFT,-1,6,Color("f1e7c9"))
+		c.draw_string(font,pos+Vector2(5,16),"WREN",HORIZONTAL_ALIGNMENT_LEFT,-1,6,Color("f1e7c9"))
+		c.draw_string(font,pos+Vector2(39,15),"TAVERN",HORIZONTAL_ALIGNMENT_LEFT,-1,11,Color("f1e7c9"))
 
 static func roof_tint(value: String) -> Color:
 	return Color(value).lerp(Color.WHITE,0.65)

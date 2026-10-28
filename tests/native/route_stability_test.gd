@@ -50,6 +50,15 @@ func run() -> void:
 		room.walk_actor("mayor",Vector2i(11,10),0.04,65)
 		if actor.position.y<previous.y-0.01: backwards=true
 	check(not backwards and actor.position.distance_to(game.Grid.center(Vector2i(11,10)))<1,"indoor routes also retain forward progress while the player moves")
+	var assistant=room.villagers.assistant
+	actor.visible=false
+	assistant.visible=false
+	game.outdoors.villagers.mayor.data.room="hall"
+	game.outdoors.villagers.assistant.data.room="hall"
+	room.update_villagers(0.04)
+	check(not (actor.visible and assistant.visible and actor.position.distance_to(assistant.position)<room.Bodies.RADIUS),"two arriving residents never appear in the same doorway")
+	game._process(0.1)
+	check(game.outdoors.elapsed==game.elapsed and room.elapsed==game.elapsed,"indoor and outdoor residents share the movement retry clock")
 	await game.sound.shutdown()
 	game.queue_free()
 	await process_frame

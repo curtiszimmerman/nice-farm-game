@@ -226,6 +226,10 @@ func update_villagers(dt: float,snap: bool=false) -> void:
 		actor.visible=active
 		if not active: continue
 		if not was_visible and not snap:
+			var entrance=entry_position()
+			if villagers.values().any(func(other): return other!=actor and other.visible and other.position.distance_to(entrance)<Bodies.RADIUS):
+				actor.visible=false
+				continue
 			actor.position=entry_position()
 			routes.erase(id)
 		var sleeping=outside.data.get("sleeping",false)

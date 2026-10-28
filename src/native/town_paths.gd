@@ -183,7 +183,7 @@ static func build(world: Node2D) -> void:
 	var doors=[]
 	var temple_doors=[]
 	for b in world.buildings:
-		if b.id in ["keeper","veteran","woodcutter"]: continue
+		if b.id in ["home","keeper","veteran","woodcutter"]: continue
 		doors.append(b.cell+Vector2i(int(b.tiles.x/2),b.tiles.y))
 		if b.id in ["temple","priest"]: temple_doors.append(doors.back())
 	doors.append_array(TEMPLE_GATES)
@@ -235,6 +235,8 @@ static func build(world: Node2D) -> void:
 		if x in range(10,18): world.paved_cells[cell]=true
 		elif x<10: world.trail_cells[cell]=true
 		append_road_segment(world,cell,cell+Vector2i.RIGHT,6.0 if x<10 else 14.0,road_edges)
+	world.road_cells[Vector2i(13,51)]=true
+	world.paved_cells[Vector2i(13,51)]=true
 	road_fences(world)
 
 static func append_road_segment(world: Node2D,a: Vector2i,b: Vector2i,width: float,edges: Dictionary) -> void:

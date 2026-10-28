@@ -173,6 +173,8 @@ func _process(dt: float) -> void:
 	if world_paused: return
 	elapsed += dt
 	world.elapsed = elapsed
+	outdoors.elapsed = elapsed
+	for room in rooms.values(): room.elapsed = elapsed
 	if not started: return
 	if opening!=null: return
 	if not conversation_members.is_empty() and (state.location!=conversation_location or state.player_position.distance_to(conversation_anchor)>160): close_window()
@@ -409,6 +411,11 @@ func _input(event: InputEvent) -> void:
 		control_settings()
 		get_viewport().set_input_as_handled()
 		return
+	if started and not window_open and opening==null and not world_paused and controls.matches(event,"inventory_row"):
+		state.cycle_inventory_row()
+		ui.update()
+		get_viewport().set_input_as_handled()
+		return
 	var advance_key=controls.matches(event,"pause") or controls.matches(event,"primary")
 	var advance_click=event is InputEventMouseButton and event.pressed and event.button_index==MOUSE_BUTTON_LEFT
 	if started and (advance_key or advance_click):
@@ -434,6 +441,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not event is InputEventMouseButton or not event.pressed: return
 	if not started or window_open or opening!=null or welcome_control_locked(): return
 	if event.button_index in [MOUSE_BUTTON_LEFT,MOUSE_BUTTON_RIGHT]:
+		if world.find_nearest().is_empty() and state.active_item("primary" if event.button_index==MOUSE_BUTTON_LEFT else "aux") not in ["rusty_sword","hearthmend","emberthread"]: return
 		activate_channel("primary" if event.button_index==MOUSE_BUTTON_LEFT else "aux")
 		get_viewport().set_input_as_handled()
 
@@ -449,10 +457,6 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if world_paused: return
 	if opening!=null: return
 	if welcome_control_locked(): return
-	if controls.matches(event,"inventory_row") and not window_open:
-		state.cycle_inventory_row()
-		ui.update()
-		return
 	for i in range(8):
 		if controls.matches(event,"slot"+str(i+1)): select_quick_slot(i); return
 	if controls.matches(event,"menu"):
@@ -1368,7 +1372,7 @@ func update_welcome_arrival(dt: float) -> void:
 	for i in range(WELCOME_MEMBERS.size()):
 		var id=WELCOME_MEMBERS[i]
 		var actor=world.villagers[id]
-		if i>0 and (not world.villagers[WELCOME_MEMBERS[i-1]].visible or world.villagers[WELCOME_MEMBERS[i-1]].position.distance_to(Grid.center(WELCOME_POSITIONS[i-1]))>64):
+		if i>0 and (not world.villagers[WELCOME_MEMBERS[i-1]].visible or world.villagers[WELCOME_MEMBERS[i-1]].position.distance_to(Grid.center(WELCOME_POSITIONS[i-1]))>32):
 			arrived=false
 			break
 		outdoors.story_destinations[id]={"cell":Grid.world_to_cell(outdoors.site_position("bed")),"room":"home","sleeping":false}

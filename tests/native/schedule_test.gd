@@ -38,6 +38,7 @@ func run() -> void:
 	var separated=true
 	var blocked_actors={}
 	for i in range(500):
+		w.elapsed+=0.1
 		w.update_villagers(0.1)
 		for actor in w.villagers.values():
 			if w.blocked(actor.position): clear=false; blocked_actors[actor.data.id]=w.Grid.world_to_cell(actor.position)

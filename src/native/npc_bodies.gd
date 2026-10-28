@@ -53,7 +53,7 @@ static func walk_to(world: Node2D,id: String,cell: Vector2i,dt: float,speed: flo
 	var player_cell=world.Grid.world_to_cell(world.state.player_position)
 	var route: Dictionary=world.routes.get(id,{})
 	var changed=route.is_empty() or route.target!=target
-	var retry=not route.is_empty() and route.path.is_empty() and route.get("blocked",false)
+	var retry=not route.is_empty() and route.path.is_empty() and route.get("blocked",false) and world.elapsed>=route.get("retry_at",0.0)
 	if changed or retry:
 		var start=world.Grid.world_to_cell(actor.position)
 		var anchor=world.Grid.center(start)
@@ -62,7 +62,7 @@ static func walk_to(world: Node2D,id: String,cell: Vector2i,dt: float,speed: flo
 			start=world.Grid.world_to_cell(anchor)
 		var path: Array=world._route(start,cell,true,true,actor)
 		if actor.position.distance_to(anchor)>0.1: path.push_front(anchor)
-		route={"target":target,"path":path,"player_cell":player_cell,"blocked":path.is_empty() and actor.position.distance_to(target)>1}
+		route={"target":target,"path":path,"player_cell":player_cell,"blocked":path.is_empty() and actor.position.distance_to(target)>1,"retry_at":world.elapsed+0.5}
 		world.routes[id]=route
 	var previous=actor.position
 	var remaining=dt*speed
@@ -76,6 +76,7 @@ static func walk_to(world: Node2D,id: String,cell: Vector2i,dt: float,speed: flo
 			route.path=path
 			route.player_cell=player_cell
 			route.blocked=true
+			route.retry_at=world.elapsed+0.5
 			if not path.is_empty() and path[0]==waypoint: route.path=[]
 			break
 		actor.position=next
