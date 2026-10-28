@@ -10,6 +10,9 @@ var chambers: Array[Rect2i]=[]
 var floor_cells: Dictionary={}
 var rocks: Dictionary={}
 var rats: Array=[]
+var rat_cells: Array[Vector2i]=[]
+var spider_cell=Vector2i.ZERO
+var floor_drops: Array=[]
 var spider: Node2D
 var combat_rng=RandomNumberGenerator.new()
 var swing_cooldown=0.0
@@ -47,13 +50,13 @@ func _ready() -> void:
 		var chrysalis=object({"kind":"chrysalis","cell":cell})
 		add_site("chrysalis",cell,"Collect Cave Moth Chrysalis")
 		chrysalis.name="Chrysalis"
-	for i in range(6):
-		var cell=chambers[2+i].get_center()+Vector2i(0,1)
+	for i in range(4):
+		var cell=rat_cells[i]
 		var rat=object({"kind":"rat","cell":cell,"id":level*100+i,"health":2,"bite":0.0})
 		rat.visible=not state.cave_defeated.has(level*100+i)
 		rats.append(rat)
 	if level==2:
-		spider=object({"kind":"spider","cell":chambers.back().get_center(),"id":299,"health":4,"bite":0.0})
+		spider=object({"kind":"spider","cell":spider_cell,"id":299,"health":4,"bite":0.0})
 		spider.visible=not state.cave_defeated.has(299)
 	crops=Node2D.new()
 	add_child(crops)
@@ -65,11 +68,11 @@ func generate() -> void:
 	var rng=RandomNumberGenerator.new()
 	var corridors={}
 	rng.seed=hash(Vector2i(state.cave_seed,level))
-	for i in range(9):
+	for i in range(7):
 		var row=int(i/3.0)
 		var col=i%3 if row%2==0 else 2-i%3
-		var room=Rect2i(col*25+rng.randi_range(2,4),row*19+rng.randi_range(1,3),rng.randi_range(14,23),rng.randi_range(10,17))
-		if i==0: room=Rect2i(2,2,16,12)
+		var room=Rect2i(col*25+rng.randi_range(2,14),row*19+rng.randi_range(1,11),rng.randi_range(2,6),rng.randi_range(2,6))
+		if i==0: room=Rect2i(2,2,6,6)
 		chambers.append(room)
 		for y in range(room.position.y,room.end.y):
 			for x in range(room.position.x,room.end.x):
@@ -79,52 +82,78 @@ func generate() -> void:
 			var cell=chambers[rng.randi_range(maxi(0,i-3),i-1)].get_center()
 			var target=room.get_center()
 			var horizontal_first=rng.randf()<0.5
-			var wide=rng.randf()<0.35
+			var corridor_width=rng.randi_range(1,3)
+			var turn_after=rng.randi_range(3,8)
+			var steps=0
 			while cell!=target:
-				floor_cells[cell]=true
-				corridors[cell]=true
-				if wide:
-					floor_cells[cell+Vector2i.RIGHT]=true
-					corridors[cell+Vector2i.RIGHT]=true
+				var perpendicular=Vector2i.DOWN if horizontal_first else Vector2i.RIGHT
+				for lane in range(corridor_width):
+					var offset=lane-int(corridor_width/2)
+					var passage=cell+perpendicular*offset
+					floor_cells[passage]=true
+					corridors[passage]=true
 				if (horizontal_first and cell.x!=target.x) or cell.y==target.y: cell+=Vector2i(signi(target.x-cell.x),0)
 				else: cell+=Vector2i(0,signi(target.y-cell.y))
+				steps+=1
+				if steps>=turn_after and cell!=target:
+					horizontal_first=not horizontal_first
+					turn_after+=rng.randi_range(3,8)
 			floor_cells[target]=true
 	floor_cells[layout.exit]=true
 	floor_cells[layout.exit+Vector2i.LEFT]=true
+	var occupied={}
+	for cell in [layout.entry,layout.exit,layout.exit+Vector2i.UP,layout.exit+Vector2i.LEFT,layout.exit+Vector2i.UP+Vector2i.LEFT,chambers.back().get_center()]: occupied[cell]=true
+	if level==2 and not state.cave_chrysalis_taken: occupied[chambers.back().position+Vector2i.ONE]=true
+	var mob_candidates=[]
+	for cell in floor_cells:
+		if occupied.has(cell): continue
+		if chambers.any(func(room):return room.has_point(cell)) and floor_cells.has(cell): mob_candidates.append(cell)
+	for index in range(mob_candidates.size()-1,0,-1):
+		var other=rng.randi_range(0,index)
+		var cell=mob_candidates[index]
+		mob_candidates[index]=mob_candidates[other]
+		mob_candidates[other]=cell
+	for index in range(mini(4,mob_candidates.size())):
+		rat_cells.append(mob_candidates[index])
+		occupied[mob_candidates[index]]=true
+	if level==2:
+		var final_room_cells=mob_candidates.filter(func(cell):return chambers.back().has_point(cell) and not occupied.has(cell))
+		var spider_candidates=final_room_cells if not final_room_cells.is_empty() else mob_candidates.filter(func(cell):return not occupied.has(cell))
+		spider_candidates.sort_custom(func(a,b):return a.distance_squared_to(chambers.back().get_center())<b.distance_squared_to(chambers.back().get_center()))
+		spider_cell=spider_candidates.front() if not spider_candidates.is_empty() else layout.entry+Vector2i.DOWN
+		occupied[spider_cell]=true
 	for y in range(ROOM_CELLS.y):
 		for x in range(ROOM_CELLS.x):
 			var cell=Vector2i(x,y)
 			if not floor_cells.has(cell): solid_cells[cell]="wall"
-	# Deposits avoid passageways, entrances, and the room centers used by creatures.
+	# Resource rocks cluster in wider floor areas while leaving a connected route through each level.
+	var candidates=[]
+	for cell in floor_cells:
+		if cell in [Vector2i(3,4),Vector2i(4,4),Vector2i(3,5),Vector2i(4,5),layout.entry,layout.exit,layout.exit+Vector2i.UP,layout.exit+Vector2i.LEFT,layout.exit+Vector2i.UP+Vector2i.LEFT,chambers.back().position+Vector2i.ONE] or occupied.has(cell): continue
+		if chambers.any(func(room):return room.get_center()==cell): continue
+		var neighbors=0
+		for step in [Vector2i.UP,Vector2i.DOWN,Vector2i.LEFT,Vector2i.RIGHT]:
+			if floor_cells.has(cell+step): neighbors+=1
+		if neighbors>=1: candidates.append(cell)
+	var clusters=[]
+	for _index in range(4):
+		if not candidates.is_empty(): clusters.append(candidates[rng.randi_range(0,candidates.size()-1)])
+	var weights={}
+	for cell in candidates:
+		var nearest_cluster=INF
+		for cluster in clusters: nearest_cluster=minf(nearest_cluster,Vector2(cell).distance_to(cluster))
+		weights[cell]=nearest_cluster*0.45+rng.randf_range(0,6)
+	candidates.sort_custom(func(a,b):return weights[a]<weights[b])
 	var deposits=[]
-	for i in range(chambers.size()):
-		var room=chambers[i]
-		var candidates=[]
-		for y in range(room.position.y+1,room.end.y-1):
-			for x in range(room.position.x+1,room.end.x-1):
-				var cell=Vector2i(x,y)
-				if corridors.has(cell) or cell in [Vector2i(3,4),Vector2i(4,4),Vector2i(3,5),Vector2i(4,5),layout.entry,layout.exit,chambers.back().position+Vector2i.ONE]: continue
-				if absi(cell.x-room.get_center().x)<=1 and absi(cell.y-room.get_center().y)<=1: continue
-				candidates.append(cell)
-		for k in range(candidates.size()-1,0,-1):
-			var other=rng.randi_range(0,k)
-			var value=candidates[k]
-			candidates[k]=candidates[other]
-			candidates[other]=value
-		var selected=[]
-		var clusters=[room.position+Vector2i(rng.randi_range(2,room.size.x-3),rng.randi_range(2,room.size.y-3)),room.position+Vector2i(rng.randi_range(2,room.size.x-3),rng.randi_range(2,room.size.y-3))]
-		var weights={}
-		for cell in candidates:
-			weights[cell]=minf(Vector2(cell).distance_to(clusters[0]),Vector2(cell).distance_to(clusters[1]))*0.45+rng.randf_range(0,6)
-		candidates.sort_custom(func(a,b):return weights[a]<weights[b])
-		var amount=roundi(room.size.x*room.size.y*0.13)
-		for cell in candidates:
-			if selected.any(func(other): return absi(cell.x-other.x)+absi(cell.y-other.y)<2): continue
-			selected.append(cell)
-			if selected.size()==amount: break
-		deposits.append_array(selected)
+	var amount=mini(candidates.size(),roundi(floor_cells.size()*0.17))
+	for cell in candidates:
+		deposits.append(cell)
+		if not floor_connected_without(deposits): deposits.pop_back(); continue
+		if deposits.size()>=amount: break
 	var resource_order=[]
-	for i in range(deposits.size()): resource_order.append("copper" if i<roundi(deposits.size()*0.1) else "coal" if i<roundi(deposits.size()*0.15) else "stones")
+	var copper_count=maxi(6,roundi(deposits.size()*0.1))
+	var coal_count=maxi(3,roundi(deposits.size()*0.05))
+	for i in range(deposits.size()): resource_order.append("copper" if i<copper_count else "coal" if i<copper_count+coal_count else "stones")
 	for i in range(resource_order.size()-1,0,-1):
 		var other=rng.randi_range(0,i)
 		var resource=resource_order[i]
@@ -133,10 +162,26 @@ func generate() -> void:
 	for i in range(deposits.size()):
 		var id=str(level*10000+i)
 		if state.cave_broken.has(id): continue
-		var info={"kind":"rock","id":id,"cell":deposits[i],"ore":resource_order[i]=="copper","resource":resource_order[i]}
+		var info={"kind":"rock","id":id,"cell":deposits[i],"ore":resource_order[i]=="copper","resource":resource_order[i],"hits":1 if resource_order[i]=="stones" else 2}
 		info.node=object(info)
 		rocks[id]=info
 		solid_cells[info.cell]="rock"
+
+func floor_connected_without(rocks_on_floor: Array) -> bool:
+	var blocked_cells={}
+	for cell in rocks_on_floor: blocked_cells[cell]=true
+	var reached={layout.entry:true}
+	var queue=[layout.entry]
+	var cursor=0
+	while cursor<queue.size():
+		var cell: Vector2i=queue[cursor]
+		cursor+=1
+		for step in [Vector2i.UP,Vector2i.DOWN,Vector2i.LEFT,Vector2i.RIGHT]:
+			var next=cell+step
+			if not floor_cells.has(next) or blocked_cells.has(next) or reached.has(next): continue
+			reached[next]=true
+			queue.append(next)
+	return reached.size()==floor_cells.size()-blocked_cells.size()
 
 func object(info: Dictionary) -> Node2D:
 	var prop=CaveObject.new()
@@ -178,10 +223,26 @@ func find_nearest() -> Dictionary:
 		if d<distance:
 			best={"id":rock.id,"type":"rock","label":rock_label(rock)}
 			distance=d
-	if state.active_item()=="rusty_sword" and best.get("type")!="site":
+	for drop in floor_drops:
+		if drop.node==null or not is_instance_valid(drop.node) or drop.cell!=front_cell(): continue
+		var d=state.player_position.distance_to(Grid.center(drop.cell))
+		if d<distance:
+			best={"id":"drop_"+drop.id,"type":"drop","label":"Pick up "+preload("res://items.gd").CATALOG[drop.item].name}
+			distance=d
+	if state.active_item()=="rusty_sword" and has_attack_target():
 		best={"id":"swing","type":"weapon","label":"Swing sword · 2 energy"}
 	nearest=best
 	return best
+
+func has_attack_target() -> bool:
+	var direction={"up":Vector2i.UP,"down":Vector2i.DOWN,"left":Vector2i.LEFT,"right":Vector2i.RIGHT}[facing]
+	var lateral=Vector2i(-direction.y,direction.x)
+	var target=Grid.world_to_cell(state.player_position)+direction
+	for creature in creatures():
+		if not creature.visible: continue
+		var cell=Grid.world_to_cell(creature.position)
+		if [target-lateral,target,target+lateral].has(cell): return true
+	return false
 
 func rock_label(rock: Dictionary) -> String:
 	return "Break stone · pickaxe" if rock.resource=="stones" else "Mine %s · pickaxe" % rock.resource
@@ -193,27 +254,47 @@ func activation_cells(site: Dictionary) -> Array:
 	return [site.cell]
 
 func mine_rock(id: String) -> bool:
-	if not rocks.has(id) or state.active_item()!="pickaxe" or state.pickaxe<1 or state.energy<5: return false
+	if not rocks.has(id) or state.active_item()!="pickaxe" or state.pickaxe<1 or state.energy<4: return false
 	var rock=rocks[id]
 	if state.player_position.distance_to(Grid.center(rock.cell))>46: return false
-	var resource=rock.resource
-	if not state.mine(resource): return false
+	if not state.spend_energy(4): return false
 	preload("res://tool_motion.gd").start(self,"pickaxe")
-	state.cave_broken.append(id)
+	rock.hits-=1
+	rock.node.queue_redraw()
+	if rock.hits>0: return true
 	solid_cells.erase(rock.cell)
 	rock.node.queue_free()
 	rocks.erase(id)
+	add_floor_drop(id,id,rock.resource,rock.cell)
+	if rock.resource=="copper": add_floor_drop(id+"_stones",id,"stones",rock.cell)
 	return true
+
+func add_floor_drop(drop_id: String,rock_id: String,item: String,cell: Vector2i) -> void:
+	var drop={"id":drop_id,"rock_id":rock_id,"item":item,"cell":cell}
+	drop.node=object({"kind":"drop","item":item,"cell":cell})
+	floor_drops.append(drop)
+
+func collect_drop(id: String) -> bool:
+	var source=id.trim_prefix("drop_")
+	for drop in floor_drops:
+		if drop.id!=source or not state.can_carry(drop.item): continue
+		state.set(drop.item,int(state.get(drop.item))+1)
+		drop.node.queue_free()
+		floor_drops.erase(drop)
+		if not floor_drops.any(func(other):return other.rock_id==drop.rock_id) and not state.cave_broken.has(drop.rock_id): state.cave_broken.append(drop.rock_id)
+		return true
+	return false
 
 func attack() -> bool:
 	if swing_cooldown>0 or not super.attack(): return false
 	swing_cooldown=0.35
-	var direction={"up":Vector2.UP,"down":Vector2.DOWN,"left":Vector2.LEFT,"right":Vector2.RIGHT}[facing]
+	var direction={"up":Vector2i.UP,"down":Vector2i.DOWN,"left":Vector2i.LEFT,"right":Vector2i.RIGHT}[facing]
+	var lateral=Vector2i(-direction.y,direction.x)
+	var target=Grid.world_to_cell(state.player_position)+direction
 	for rat in creatures():
-		var offset=rat.position-state.player_position
-		if not rat.visible or offset.length()>54 or offset.normalized().dot(direction)<0.25: continue
+		var cell=Grid.world_to_cell(rat.position)
+		if not rat.visible or not [target-lateral,target,target+lateral].has(cell): continue
 		damage_creature(rat,1)
-		break
 	return true
 
 func creatures() -> Array: return rats+([spider] if spider!=null else [])
@@ -329,6 +410,14 @@ func paint_effects(c: CanvasItem) -> void:
 		c.draw_polyline(points,Color("ebd7a4aa"),2)
 
 func paint_object(c: CanvasItem,info: Dictionary) -> void:
+	if info.kind=="drop":
+		oval(c,0,7,12,5,"1c282b99")
+		var sprite="item_"+info.item
+		if Art.catalog.has(sprite): Art.sprite(c,sprite,Vector2(-12,-22),Vector2(24,24))
+		else:
+			var color="bd916c" if info.item=="copper" else "484e50" if info.item=="coal" else "a2a39a"
+			poly(c,[Vector2(-9,1),Vector2(-7,-12),Vector2(3,-18),Vector2(11,-8),Vector2(7,3)],color)
+		return
 	if info.kind in ["stairs_up","stairs_down"]:
 		var id="cave_"+info.kind
 		Art.sprite(c,id if Art.catalog.has(id) else "tile_cave0",Vector2(-16,-16),Vector2(32,32))

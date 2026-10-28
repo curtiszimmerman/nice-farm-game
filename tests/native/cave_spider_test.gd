@@ -12,6 +12,7 @@ func run() -> void:
 	game.set_process(false)
 	preload("fixture.gd").explore(game,true)
 	game.state.cave_level=2
+	game.state.cave_seed=12345
 	game.enter_building("cave")
 	game.close_window()
 	var cave=game.world

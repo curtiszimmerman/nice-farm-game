@@ -180,7 +180,7 @@ static func _tower() -> Dictionary:
 		"entry":Vector2i(4,9),"exit":Vector2i(4,10),"furniture":[
 		["bed",Rect2i(1,1,1,2)],["toilet",Rect2i(6,1,1,1)],["sink",Rect2i(6,2,1,1)],["bath",Rect2i(7,1,1,2)],
 		["bookshelf",Rect2i(1,6,2,1)],["kitchen",Rect2i(6,6,2,1)],["sofa",Rect2i(1,7,2,1)],
-		["table",Rect2i(4,7,1,1)],["rug",Rect2i(3,7,2,3)],["telescope",Rect2i(1,9,1,1)],
+		["rug",Rect2i(3,7,2,3)],["telescope",Rect2i(1,9,1,1)],
 		["radio",Rect2i(7,9,1,1)],["art",Rect2i(1,0,1,1)]],
 		"sites":[["bed",Vector2i(2,3)],["radio",Vector2i(6,9)]],
 		"work":[Vector2i(4,6),Vector2i(4,8),Vector2i(3,9)]}

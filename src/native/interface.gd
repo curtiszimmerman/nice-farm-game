@@ -313,14 +313,14 @@ func _ready() -> void:
 	status_strip.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	root.add_child(status_strip)
 	needs_panel=Panel.new()
-	needs_panel.position=Vector2(9,-49)
-	needs_panel.size=Vector2(152,49)
-	needs_panel.add_theme_stylebox_override("panel",style(Color("172b2be8")))
+	needs_panel.position=Vector2(-152,0)
+	needs_panel.size=Vector2(152,88)
+	needs_panel.add_theme_stylebox_override("panel",style(Color("172b2bf5"),Color("aaab7a99")))
 	quick_tray.add_child(needs_panel)
-	_label("WATER",Vector2(10,0),10,MUTED,false,needs_panel)
-	hydration_bar=_bar(Vector2(10,16),Vector2(132,4),Color("90b9d2"),needs_panel)
-	_label("FOOD",Vector2(10,23),10,MUTED,false,needs_panel)
-	nourishment_bar=_bar(Vector2(10,39),Vector2(132,4),Color("c4b16c"),needs_panel)
+	_label("WATER",Vector2(10,7),10,MUTED,false,needs_panel)
+	hydration_bar=_bar(Vector2(10,23),Vector2(132,4),Color("90b9d2"),needs_panel)
+	_label("FOOD",Vector2(10,30),10,MUTED,false,needs_panel)
+	nourishment_bar=_bar(Vector2(10,46),Vector2(132,4),Color("c4b16c"),needs_panel)
 	for child in root.get_children():
 		if child!=pause_shield and child!=title_screen: hud_nodes.append(child)
 
@@ -461,7 +461,6 @@ func open_modal(title: String,eyebrow: String,body: String,choices: Array,wide =
 	dim.color = Color("10242170")
 	modal.add_child(dim)
 	var panel = PanelContainer.new()
-	panel.position = Vector2(330,135) if wide else Vector2(280,310)
 	panel.custom_minimum_size.x = 620 if wide else 720
 	panel.add_theme_stylebox_override("panel",style(Color("172d2cfb"),Color("aaab7a99")))
 	modal.add_child(panel)
@@ -498,6 +497,9 @@ func open_modal(title: String,eyebrow: String,body: String,choices: Array,wide =
 		b.add_theme_font_size_override("font_size",20)
 		_button_style(b)
 		b.disabled=option.size()>2 and not option[2]
+		if option.size()>3 and option[3] is String and Items.CATALOG.has(option[3]): b.icon=Items.icon(option[3])
+		if option.size()>4 and option[4] and option.size()>2 and not option[2]: b.modulate=Color("a0a0a0")
+		if option.size()>4 and option[4]: b.disabled=false
 		var action = option[1]
 		b.pressed.connect(func(): game.choose_dialogue(action))
 		modal_box.add_child(b)
@@ -506,6 +508,19 @@ func open_modal(title: String,eyebrow: String,body: String,choices: Array,wide =
 	footer.add_theme_font_size_override("font_size",10)
 	footer.add_theme_color_override("font_color",Color("94ad98"))
 	modal_box.add_child(footer)
+	call_deferred("fit_modal",panel,wide)
+
+func fit_modal(panel: PanelContainer,wide: bool) -> void:
+	if not is_instance_valid(panel) or modal_box==null or not is_instance_valid(modal_box): return
+	var viewport=get_viewport().get_visible_rect().size
+	var inner_width=580.0 if wide else 680.0
+	var content_height=0.0
+	for child in modal_box.get_children(): content_height+=child.get_combined_minimum_size().y+modal_box.get_theme_constant("separation")
+	var max_height=viewport.y*0.9
+	var panel_height=minf(content_height+48,max_height)
+	panel.custom_minimum_size.y=panel_height
+	panel.position=Vector2((viewport.x-panel.custom_minimum_size.x)/2,(viewport.y-panel_height)/2)
+	modal_scroll.custom_minimum_size=Vector2(inner_width,panel_height-48)
 
 func advance_dialogue() -> bool:
 	if not dialogue_open: return false

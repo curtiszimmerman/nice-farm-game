@@ -55,10 +55,16 @@ func run() -> void:
 	game.close_window()
 	game.enter_building("smithy")
 	s.money=999
+	s.minute=600
+	w.update_villagers(0,true)
+	game.world.villagers.smith.visible=true
+	game.world.villagers.smith.data.sleeping=false
 	game.talk("smith")
 	check(buttons(game).filter(func(b):return "work" in b.text).size()==1,"the smith has one topic about his work")
-	preload("res://local_guidance.gd").smith_copper(game)
-	check(buttons(game)[0].disabled and "1,000" in buttons(game)[0].text,"unaffordable sword purchase is visibly disabled")
+	var sale=buttons(game).filter(func(b):return b.text=="What have you got for sale?")
+	if not sale.is_empty(): sale[0].pressed.emit()
+	var sword=buttons(game).filter(func(b):return b.text.contains("Rusty sword"))
+	check(not sword.is_empty() and sword[0].modulate.r<1.0 and "1,000" in sword[0].text,"unaffordable sword purchase is visibly faded in the shop list")
 	game.close_window()
 	game.leave_building()
 	s.health=10

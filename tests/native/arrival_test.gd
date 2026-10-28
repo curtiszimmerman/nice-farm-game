@@ -20,6 +20,7 @@ func run() -> void:
 	opening._process(0.2)
 	check(game.sound.crash.playing,"impact triggers the dedicated crash sound")
 	opening.finish()
+	check(game.Grid.world_to_cell(game.state.player_position)==Vector2i(7,9),"the captain wakes in the ship's main aisle away from the exit")
 	check(game.state.intro_complete and game.window_open and game.ui.modal_box.get_child(2).text=="Status report?","the white fade leads to the captain's status-report dialogue")
 	var lines=[]
 	while game.window_open:

@@ -25,7 +25,7 @@ func run() -> void:
 	game.close_window()
 	game.state.set(terms[1],terms[2])
 	game.talk(terms[0])
-	var deliveries=game.ui.modal_box.get_children().filter(func(node):return node is Button and node.text.begins_with("Deliver "))
+	var deliveries=game.ui.modal_box.get_children().filter(func(node):return node is Button and node.text.begins_with("Complete request · "))
 	check(deliveries.size()==1,"the actual recipient offers to receive the notice-board supplies")
 	var money=game.state.money
 	if not deliveries.is_empty(): deliveries[0].pressed.emit()

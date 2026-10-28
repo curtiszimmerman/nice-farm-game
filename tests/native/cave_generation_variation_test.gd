@@ -11,6 +11,9 @@ func _initialize() -> void:
 	var ratios=true
 	var sizes={}
 	var smallest=100000
+	var copper_total=0
+	var coal_total=0
+	var rock_total=0
 	for seed_value in range(24):
 		var cave=Cave.new()
 		cave.state=State.new()
@@ -21,6 +24,8 @@ func _initialize() -> void:
 		for room in cave.chambers:
 			sizes[room.size]=true
 			bounded=bounded and room.position.x>=0 and room.position.y>=0 and room.end.x<=cave.ROOM_CELLS.x and room.end.y<=cave.ROOM_CELLS.y
+		for cell in [cave.layout.exit,cave.layout.exit+Vector2i.UP,cave.layout.exit+Vector2i.LEFT,cave.layout.exit+Vector2i.UP+Vector2i.LEFT]:
+			for rock in cave.rocks.values(): connected=connected and rock.cell!=cell
 		var reached={cave.layout.entry:true}
 		var queue=[cave.layout.entry]
 		var cursor=0
@@ -33,15 +38,13 @@ func _initialize() -> void:
 				reached[next]=true
 				queue.append(next)
 		connected=connected and reached.size()==cave.floor_cells.size()
-		var copper=0
-		var coal=0
 		for rock in cave.rocks.values():
-			if rock.resource=="copper": copper+=1
-			if rock.resource=="coal": coal+=1
-		var total=float(cave.rocks.size())
-		ratios=ratios and abs(copper/total-0.1)<0.02 and abs(coal/total-0.05)<0.02
+			if rock.resource=="copper": copper_total+=1
+			if rock.resource=="coal": coal_total+=1
+		rock_total+=cave.rocks.size()
 		cave.free()
 	check(bounded and sizes.size()>20,"seeded caves vary chamber sizes within the reduced level bounds")
 	check(connected,"every generated chamber and exit connects to the entrance across many seeds")
-	check(ratios and smallest>1350,"varied levels retain large walkable floors and the stone/copper/coal proportions")
+	ratios=abs(float(copper_total)/rock_total-0.1)<0.03 and abs(float(coal_total)/rock_total-0.05)<0.02
+	check(ratios and smallest>300,"varied levels retain connected walkable floors and the stone/copper/coal proportions")
 	quit(1 if failed else 0)

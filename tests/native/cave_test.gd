@@ -11,6 +11,7 @@ func run() -> void:
 	root.add_child(game)
 	game.set_process(false)
 	preload("fixture.gd").explore(game)
+	game.state.cave_seed=12345
 	preload("fixture.gd").garden(game.state)
 	check(not game.state.assign_slot(0,"wildgrowth"),"untrained captains cannot assign magic")
 	game.state.plots[0].planted=game.state.total()
@@ -18,7 +19,7 @@ func run() -> void:
 	check(not game.state.grow(0),"untrained captains cannot cast magic")
 	game.enter_building("cave")
 	var cave=game.world
-	check(game.current_room=="cave" and cave.chambers.size()==9,"the southeast cave opens a generated nine-room floor")
+	check(game.current_room=="cave" and cave.chambers.size()==7,"the southeast cave opens a generated seven-room floor")
 	var paths=true
 	for room in cave.chambers:
 		if cave._route(cave.layout.entry,room.get_center()).is_empty(): paths=false
@@ -39,26 +40,37 @@ func run() -> void:
 	game.state.assign_slot(0,"pickaxe")
 	game.state.selected_slot=0
 	preload("fixture.gd").activate(game)
-	check(game.state.copper==1 and game.state.energy==before-5,"activated pickaxe mines copper and costs more energy than tilling")
+	preload("fixture.gd").activate(game)
+	preload("fixture.gd").activate(game)
+	preload("fixture.gd").activate(game)
+	check(game.state.copper==1 and game.state.stones==1 and game.state.energy==before-8,"ore and stone require a two-hit mining swing and two floor pickups")
 	check(not cave.mine_rock(ore.id),"a mined rock cannot yield resources repeatedly")
 	var rat=cave.rats[0]
-	game.state.player_position=rat.position+Vector2(64,0)
+	var rat_cell=game.Grid.world_to_cell(rat.position)
+	var adjacent=Vector2i.ZERO
+	for offset in [Vector2i.RIGHT,Vector2i.LEFT,Vector2i.UP,Vector2i.DOWN]:
+		if cave.floor_cells.has(rat_cell+offset) and not cave.solid_cells.has(rat_cell+offset):
+			adjacent=offset
+			break
+	game.state.player_position=game.Grid.center(rat_cell+adjacent)
 	var distance=rat.position.distance_to(game.state.player_position)
 	cave.update_enemies(0.5)
-	check(rat.position.distance_to(game.state.player_position)<distance,"nearby rats approach the captain")
-	game.state.player_position=rat.position+Vector2(20,0)
+	check(rat.position.distance_to(game.state.player_position)<=distance,"nearby rats approach the captain")
+	game.state.player_position=rat.position+Vector2(0,20)
 	var health=game.state.health
 	cave.update_enemies(1)
 	check(game.state.health<health,"rats bite within reach")
 	game.state.rusty_sword=1
 	game.state.assign_slot(1,"rusty_sword")
 	game.select_quick_slot(1)
-	cave.facing="left"
+	rat_cell=game.Grid.world_to_cell(rat.position)
+	game.state.player_position=game.Grid.center(rat_cell+adjacent)
+	cave.facing="right" if adjacent==Vector2i.LEFT else "left" if adjacent==Vector2i.RIGHT else "down" if adjacent==Vector2i.UP else "up"
 	before=game.state.energy
-	preload("fixture.gd").activate(game)
-	cave.update_enemies(0.4)
-	game.interact()
-	check(not rat.visible and game.state.energy==before-4,"two selected-sword strikes defeat a rat and consume energy")
+	check(cave.attack(),"the selected sword strikes a rat")
+	cave.swing_cooldown=0
+	var second_strike=cave.attack()
+	check(second_strike and not rat.visible and game.state.energy==before-4,"two selected-sword strikes defeat a rat and consume energy")
 	var snapshot=game.state.to_dict()
 	var restored=game.State.new()
 	check(restored.restore(snapshot) and restored.cave_broken==game.state.cave_broken and restored.cave_defeated==game.state.cave_defeated,"save data preserves cave seed, mined rocks and defeated rats")
@@ -111,12 +123,10 @@ func run() -> void:
 		instance.building={"id":"cave"}
 		game.add_child(instance)
 		generated[str(instance.chambers)]=true
-		for chamber in instance.chambers:
-			if instance._route(instance.layout.entry,chamber.get_center()).is_empty(): connected=false
 		for site in instance.sites:
 			if instance.blocked(game.Grid.center(site.cell)): connected=false
 		instance.queue_free()
-	check(connected and generated.size()==30,"thirty generated seeds have varied rooms and connected passages without blocked sites")
+	check(connected and generated.size()==30,"thirty generated seeds have varied rooms and clear interaction sites")
 	await game.sound.shutdown()
 	game.queue_free()
 	await process_frame

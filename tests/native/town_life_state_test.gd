@@ -13,6 +13,7 @@ func _initialize() -> void:
 	check(not s.buy_utensil("pot"),"a second pot is unavailable this season")
 	s.day=29
 	check(s.buy_utensil("pot") and s.pot==2,"new season restocks cookware without deleting the owned pot")
+	s.money=1000000
 	for id in s.Shop.CATALOG:
 		var initial=s.stock(id)
 		for i in range(initial): check(s.purchase(id),"available seasonal stock can be bought: "+id)

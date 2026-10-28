@@ -37,10 +37,13 @@ static func connection(cells: Dictionary,cell: Vector2i,seed_value: int) -> int:
 	return borders.mask(neighbors,cell)
 
 static func fishing_site(world: Node2D,p: Vector2) -> Dictionary:
-	if world.blocked(p): return {}
+	if world.state.active_item()!="fishing_pole": return {}
 	var cell=Grid.world_to_cell(p)
+	if world.blocked(p) and not is_ocean(cell,world.state.world_seed) and not world.in_water(p): return {}
 	var habitat="ocean_tip" if TIP.has_point(cell) else "ocean"
-	var available=JETTY.has_point(cell) or PLATFORM.has_point(cell)
+	var available=JETTY.has_point(cell) or PLATFORM.has_point(cell) or is_ocean(cell,world.state.world_seed)
+	if available and is_ocean(cell,world.state.world_seed):
+		available=[Vector2i.UP,Vector2i.DOWN,Vector2i.LEFT,Vector2i.RIGHT].any(func(step):return not is_ocean(cell+step,world.state.world_seed) and not world.blocked(Grid.center(cell+step)))
 	for direction in [Vector2i.UP,Vector2i.DOWN,Vector2i.LEFT,Vector2i.RIGHT]:
 		if world.in_water(Grid.center(cell+direction)):
 			available=true

@@ -25,6 +25,8 @@ var moon_pike=0
 var sea_sprat=0
 var blue_mackerel=0
 var storm_eel=0
+var rain_glassfish=0
+var storm_shiner=0
 var copper = 0
 var copper_bars=0
 var bread=0
@@ -118,7 +120,7 @@ var butter=0
 var mayor_due=-1.0
 var house_tasks={"sofa":false,"bed":false,"guest_bed":false,"radio":false,"living_light":false,"bathroom_light":false}
 const INVENTORY_SLOTS=16
-const EXTRA_ITEMS=["pot","pan","fish_sticks","fish_stew","health_elixir","rations","light_bulbs","moon_pike","sea_sprat","blue_mackerel","storm_eel","pickaxe","stones","cave_moth_chrysalis","golden_sparkfire_bloom","lantern_ray","axe","wood","bread","copper_bars","berries","apples","ladder","fishing_pole","coal","silver_bars","winter_sparkbloom","berry_preserves","berry_cobbler","flour","sugar","butter"]
+const EXTRA_ITEMS=["pot","pan","fish_sticks","fish_stew","health_elixir","rations","light_bulbs","moon_pike","sea_sprat","blue_mackerel","storm_eel","rain_glassfish","storm_shiner","pickaxe","stones","cave_moth_chrysalis","golden_sparkfire_bloom","lantern_ray","axe","wood","bread","copper_bars","berries","apples","ladder","fishing_pole","coal","silver_bars","winter_sparkbloom","berry_preserves","berry_cobbler","flour","sugar","butter"]
 const CROP_MINUTES=4320.0
 const RECIPES={"fish_sticks":{"utensil":"pan","ingredients":{"fish":1}},"fish_stew":{"utensil":"pot","ingredients":{"turnips":1,"star_bulbs":1,"fish":1}},"berry_preserves":{"utensil":"pot","ingredients":{"berries":2,"sugar":1}},"berry_cobbler":{"utensil":"pan","ingredients":{"berry_preserves":1,"flour":1,"sugar":1,"butter":1}}}
 var invitation_day=1
@@ -289,11 +291,7 @@ func advance_statuses(minutes: float,sleeping: bool) -> void:
 		if poison.remaining<=0.000001: status_effects.erase("poison")
 
 func buy_bread() -> bool:
-	if money<6 or not can_carry("bread"): return false
-	sync_inventory()
-	money-=6
-	bread+=1
-	return true
+	return purchase("bread")
 
 func learn_crucible() -> bool:
 	if crucible_known or star_bulbs<10: return false
@@ -303,7 +301,7 @@ func learn_crucible() -> bool:
 	return true
 
 func build_crucible(cell: Vector2i) -> bool:
-	if not crucible_known or stones<CRUCIBLE_STONE or not Grid.near_farmhouse(cell): return false
+	if not crucible_known or stones<CRUCIBLE_STONE or not Grid.near_farmhouse(cell) or not Grid.farmable(cell): return false
 	if crucibles.any(func(station):return Vector2i(station.x,station.y)==cell): return false
 	stones-=CRUCIBLE_STONE
 	crucibles.append({"x":cell.x,"y":cell.y,"ready_at":-1.0,"bars":0})
@@ -349,10 +347,27 @@ func advance(minutes: float, window_open = false,sleeping: bool=false) -> void:
 	requests.update_deadline(self)
 	update_crucibles()
 	for crop_day in range(previous_day,day):
-		for plot in plots:
-			if plot.planted>=0 and (plot.watered or weather_name(crop_day)=="rainy"):
-				plot.growth=minf(CROP_MINUTES,plot.growth+1440)
-				plot.water_day=crop_day
+		for index in range(plots.size()-1,-1,-1):
+			var plot=plots[index]
+			var rain=weather_name(crop_day)=="rainy"
+			if posmod(crop_day,DEVELOPMENT_SEASON_DAYS)==0 and plot.planted>=0:
+				plot.planted=-1.0
+				plot.growth=-1.0
+				plot.watered=false
+			elif plot.planted>=0 and plot.growth>=0:
+				if rain or (plot.watered and plot.water_day==crop_day):
+					plot.growth=minf(CROP_MINUTES,plot.growth+1440)
+					plot.water_day=crop_day if rain else plot.water_day
+				elif crop_day-int(plot.water_day)>=2:
+					plot.planted=-1.0
+					plot.growth=-1.0
+				plot.watered=false
+			if plot.planted<0 and (plot.growth<0 or plot.tilled):
+				var decay=RandomNumberGenerator.new()
+				decay.seed=hash("plot-decay:%d:%d:%d" % [world_seed,plot.x*10000+plot.y,crop_day])
+				if decay.randf()<0.15:
+					plots.remove_at(index)
+					continue
 			plot.watered=false
 	if weather_name()=="rainy":
 		for plot in plots:
@@ -506,6 +521,7 @@ func tend(index: int) -> String:
 		clear_empty_slots()
 		p.crop="star_bulbs" if selected_seed=="star_seeds" else "turnips"
 		p.planted = total()
+		p.growth=0.0
 		return "%s planted. A little water next." % Items.CATALOG[p.crop].name
 	if not p.watered:
 		return water_plot(index)
@@ -516,7 +532,7 @@ func grow(index: int) -> bool:
 	if index < 0 or index >= plots.size():
 		return false
 	var p = plots[index]
-	if mana < 15.0 or p.planted < 0.0 or not p.watered or ripe(index):
+	if mana < 15.0 or p.planted < 0.0 or p.growth<0 or not p.watered or ripe(index):
 		return false
 	mana -= 15.0
 	p.growth=minf(CROP_MINUTES,p.growth+CROP_MINUTES*magic_strength("nature"))
@@ -548,7 +564,7 @@ func mine(resource: String="copper") -> bool:
 	for id in drops:
 		if int(get(id))==0: slots+=1
 	if slots>INVENTORY_SLOTS: return false
-	if not spend_energy(5): return false
+	if not spend_energy(4): return false
 	for id in drops: set(id,int(get(id))+1)
 	return true
 
@@ -575,9 +591,7 @@ func accept_sword() -> bool:
 	return true
 
 func buy_sword() -> bool:
-	if has_sword() or money<1000 or not can_carry("rusty_sword"): return false
-	money-=1000
-	rusty_sword=1
+	if has_sword() or not purchase("rusty_sword"): return false
 	return true
 
 func has_sword() -> bool:
@@ -965,7 +979,7 @@ func restore(data: Variant) -> bool:
 		if p.planted < -1.0 or p.planted > (data.day - 1) * 1440.0 + data.minute:
 			return false
 		if not p.get("crop") in ["turnips","star_bulbs"]: return false
-		if not _number(p.get("growth")) or p.growth<0 or p.growth>CROP_MINUTES: return false
+		if not _number(p.get("growth")) or p.growth< -1 or p.growth>CROP_MINUTES: return false
 		if not _number(p.get("water_day")) or p.water_day<0 or p.water_day>data.day or p.water_day!=floor(p.water_day): return false
 	for field in ["day", "money", "seeds", "turnips", "fish", "copper", "harvested","star_seeds","star_bulbs","rusty_sword","hoe","watering_can","sickle","invitation_day"]:
 		set(field, int(data[field]))

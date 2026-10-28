@@ -64,10 +64,9 @@ const SITES = [
 	{"id":"sign","cell":Vector2i(22,51),"label":"Read the crossroads sign"}
 ]
 const ROAD_ROUTES = [
-	[Vector2i(13,44),Vector2i(14,44),Vector2i(14,53)],
+	[Vector2i(14,45),Vector2i(14,53)],
 	[Vector2i(14,45),Vector2i(50,45),Vector2i(50,46),Vector2i(59,46)],
 	[Vector2i(57,40),Vector2i(57,57),Vector2i(87,57),Vector2i(87,74),Vector2i(94,74)],
-	[Vector2i(21,53),Vector2i(57,53)],
 	[Vector2i(23,53),Vector2i(23,67),Vector2i(22,67)],
 	[Vector2i(54,38),Vector2i(54,40),Vector2i(57,40)],
 	[Vector2i(67,44),Vector2i(67,46)],
@@ -91,6 +90,7 @@ var routes: Dictionary = {}
 var buildings: Array = []
 var sites: Array = []
 var road_segments: Array = []
+var road_segment_keys: Dictionary={}
 var road_cells: Dictionary = {}
 var path_cells: Dictionary={}
 var trail_cells: Dictionary={}
@@ -101,6 +101,8 @@ var paved_cells: Dictionary={}
 var yard_fences: Dictionary={}
 var yard_gates: Dictionary={}
 var garden_cells: Dictionary={}
+var garden_cells_by_home: Dictionary={}
+var garden_work: Dictionary={}
 var water_cells: Dictionary = {}
 var mountain_cells: Dictionary = {}
 var solid_cells: Dictionary = {}
@@ -176,6 +178,7 @@ class Prop extends Node2D:
 		elif kind == "fountain": Art.sprite(self,"fountain"+str(int(owner_world.elapsed*6)%4),Vector2(0,-80))
 		elif kind == "mill_sails": Art.sprite(self,"mill_sails"+str(int(owner_world.elapsed*2)%4),Vector2(-48,-48))
 		elif kind == "bulletin_board": Art.sprite(self,"bulletin_board",Vector2(-16,-96))
+		elif kind == "lamp": Art.sprite(self,"lamp",Vector2(-16,-86))
 		elif kind == "crucible": Art.sprite(self,"crucible",Vector2(0,-32),Vector2(32,32))
 		elif kind == "crucible_heat":
 			if owner_world.state.crucibles[data.index].ready_at>=0:
@@ -259,7 +262,8 @@ func _ready() -> void:
 		sites.append({"id":"sparkfire","cell":cell,"x":p.x,"y":p.y,"label":"Gather dawn flower"})
 		_prop("sparkfire",p,{"bloom":false})
 	_prop("fountain",Grid.origin(SQUARE.position+Vector2i(2,4)),{"frame":-1})
-	_prop("bulletin_board",Grid.origin(BOARD_CELL+Vector2i.DOWN),{})
+	var board=_prop("bulletin_board",Grid.origin(BOARD_CELL+Vector2i.DOWN),{})
+	for cell in LAMP_CELLS: _prop("lamp",Grid.center(cell),{})
 	for cell in Neighbors.BENCHES: _prop("bench",Grid.origin(cell+Vector2i.DOWN),{})
 	for b in buildings:
 		if b.kind=="windmill":
@@ -274,7 +278,7 @@ func _claim(footprint: Rect2i,kind: String) -> void:
 			solid_cells[cell]=kind
 
 func can_build_crucible(cell: Vector2i) -> bool:
-	if not Grid.near_farmhouse(cell) or blocked(Grid.center(cell)): return false
+	if not Grid.near_farmhouse(cell) or not Grid.farmable(cell) or blocked(Grid.center(cell)): return false
 	return not villagers.values().any(func(actor):return actor.visible and actor.position.distance_to(Grid.center(cell))<Bodies.RADIUS)
 
 func add_crucible(index: int) -> void:
@@ -307,7 +311,7 @@ func chop_tree(cell: Vector2i) -> bool:
 	if elapsed-player.data.get("chop_started",-10.0)<0.6: return false
 	var found=trees.filter(func(tree): return tree.cell==cell)
 	if found.is_empty(): return false
-	if not state.spend_energy(2): return false
+	if not state.spend_energy(1.4): return false
 	player.data.chop_started=elapsed
 	preload("res://tool_motion.gd").start(self,"axe")
 	tree_damage[cell]=tree_damage.get(cell,0)+1
@@ -334,7 +338,7 @@ func rebuild_visit(new_state: RefCounted) -> void:
 	tree_population.clear()
 	forage_nodes={"berries":{},"apples":{}}
 	for child in get_children(): child.free()
-	for field in [people,villagers,routes,buildings,sites,road_segments,road_cells,path_cells,trail_cells,dirt_cells,cliff_cells,farm_cells,paved_cells,yard_fences,yard_gates,garden_cells,water_cells,mountain_cells,solid_cells,reserved_cells,fence_cells,gate_cells,trees,bushes,particles,story_destinations,conversation_holds,indoor_departures,tree_damage]: field.clear()
+	for field in [people,villagers,routes,buildings,sites,road_segments,road_segment_keys,road_cells,path_cells,trail_cells,dirt_cells,cliff_cells,farm_cells,paved_cells,yard_fences,yard_gates,garden_cells,garden_cells_by_home,garden_work,water_cells,mountain_cells,solid_cells,reserved_cells,fence_cells,gate_cells,trees,bushes,particles,story_destinations,conversation_holds,indoor_departures,tree_damage]: field.clear()
 	scenery_layer=null
 	moving_layer=null
 	crop_signature=0
@@ -404,7 +408,7 @@ func _build_layout() -> void:
 	_claim(Rect2i(8,10,7,4),"ship hull")
 	_claim(Rect2i(Vector2i(17,51),Vector2i.ONE),"chest")
 	for cell in [Vector2i(58,56),Vector2i(60,56)]: _claim(Rect2i(cell,Vector2i.ONE),"beehive")
-	for cell in [Vector2i(58,54),Vector2i(59,54),Vector2i(60,54),Vector2i(58,58),Vector2i(60,58)]:
+	for cell in [Vector2i(58,53),Vector2i(59,53),Vector2i(60,53),Vector2i(58,54),Vector2i(59,54),Vector2i(60,54)]:
 		garden_cells[cell]=true
 		_claim(Rect2i(cell,Vector2i.ONE),"flowerbed")
 	for cell in LAMP_CELLS: _claim(Rect2i(cell,Vector2i.ONE),"lamp")
@@ -452,10 +456,22 @@ func _build_layout() -> void:
 	TownPaths.temple_fence(self)
 	TownPaths.build(self)
 	var approach=FARMHOUSE_APPROACH
-	for i in range(approach.size()-1): road_segments.append([Grid.center(approach[i]),Grid.center(approach[i+1]),7.0])
+	for i in range(approach.size()-1): add_road_segment(approach[i],approach[i+1],7.0)
 	for path in Coast.PATHS:
-		for i in range(path.size()-1): road_segments.append([Grid.center(path[i]),Grid.center(path[i+1]),6.0])
+		for i in range(path.size()-1): add_road_segment(path[i],path[i+1],6.0)
+	TownPaths.refresh_garden_work(self)
 	prepare_terrain_cells()
+
+func add_road_segment(a: Vector2i,b: Vector2i,width: float) -> void:
+	var first=a
+	var second=b
+	if first.x>second.x or (first.x==second.x and first.y>second.y):
+		first=b
+		second=a
+	var key="%d,%d:%d,%d" % [first.x,first.y,second.x,second.y]
+	if road_segment_keys.has(key): return
+	road_segment_keys[key]=true
+	road_segments.append([Grid.center(first),Grid.center(second),width])
 
 func prepare_terrain_cells() -> void:
 	path_cells=road_cells.duplicate()
@@ -509,7 +525,7 @@ func exit_position(building: Dictionary) -> Vector2:
 		if not blocked(Grid.center(cell)): return Grid.center(cell)
 	return Grid.center(Grid.SPAWN_CELL)
 
-func _route(start: Vector2i,goal: Vector2i,avoid_player: bool=false) -> Array:
+func _route(start: Vector2i,goal: Vector2i,avoid_player: bool=false,avoid_actors: bool=false,ignore_actor: Node2D=null) -> Array:
 	var frontier: Array=[goal]
 	var parents={goal:goal}
 	var cursor=0
@@ -520,6 +536,7 @@ func _route(start: Vector2i,goal: Vector2i,avoid_player: bool=false) -> Array:
 			var next: Vector2i=cell+offset
 			if parents.has(next) or blocked(Grid.center(next)): continue
 			if avoid_player and next!=start and state.location==(get("building").id if get("building")!=null else "") and Grid.center(next).distance_to(state.player_position)<Bodies.RADIUS: continue
+			if avoid_actors and next!=goal and next!=start and villagers.values().any(func(actor):return actor!=ignore_actor and actor.visible and Grid.center(next).distance_to(actor.position)<Bodies.RADIUS): continue
 			parents[next]=cell
 			frontier.append(next)
 	var path: Array=[]
@@ -543,13 +560,10 @@ func scatter_cells(amount: int,spacing: int,rng: RandomNumberGenerator,require_r
 func stop_for(id: String) -> Dictionary:
 	var stop=Schedule.stop(id,state.minute,state.day)
 	var home=Schedule.home_stop(id).room
-	if posmod(state.day-1,7)==posmod(people.find(people.filter(func(p):return p.id==id)[0])+1,7) and state.minute>=840 and state.minute<960 and id not in ["vale","smith","baker","barkeep"]:
+	if posmod(state.day-1,7)==posmod(people.find(people.filter(func(p):return p.id==id)[0])+1,7) and state.minute>=840 and state.minute<960 and id not in ["vale","smith","baker","barkeep","keeper"]:
 		var homes=buildings.filter(func(b):return b.id==home)
-		if not homes.is_empty():
-			var cell=homes[0].cell+Vector2i(homes[0].tiles.x,2)
-			if id=="priest": cell=Vector2i(49,59)
-			if id=="iona": cell+=Vector2i(3,0)
-			if id=="keeper": cell=Vector2i(-20,50)
+		if not homes.is_empty() and garden_work.has(home):
+			var cell: Vector2i=garden_work[home]
 			if not blocked(Grid.center(cell)) and not (id=="astronomer" and posmod(state.day-1,7)==0): stop={"cell":cell,"room":"","sleeping":false}
 	if id=="vale": stop.room="ship"
 	if id=="moss" and not state.invited: stop={"cell":MOSS_ENCOUNTER_CELL,"sleeping":false,"room":""}
@@ -559,7 +573,11 @@ func stop_for(id: String) -> Dictionary:
 	if id in ["moss","mayor","assistant"] and state.invited and not state.met_mayor and visit>=0 and state.total()>=visit-60 and state.total()<visit+240:
 		var offset={"moss":Vector2i(3,0),"mayor":Vector2i(1,0),"assistant":Vector2i(2,1)}[id]
 		stop={"cell":Grid.SPAWN_CELL+offset,"sleeping":false,"room":"home" if state.location=="home" and state.total()>=visit-8 else ""}
-	if state.abandoned_day.get(id,0)==state.day: stop=Schedule.home_stop(id)
+	if state.abandoned_day.get(id,0)==state.day:
+		var home_stop=Schedule.home_stop(id)
+		var hours=Schedule.SLEEP.get(id,[1320,420])
+		stop=home_stop
+		stop.sleeping=state.minute<hours[1] or state.minute>=hours[0]
 	if story_destinations.has(id): stop=story_destinations[id]
 	return stop
 
@@ -583,6 +601,7 @@ func harvest_forage(item: String,cell: Vector2i) -> bool:
 	return true
 
 func update_villagers(dt: float,snap: bool=false) -> void:
+	var occupied_stops={}
 	for id in villagers:
 		if conversation_holds.has(id) or indoor_departures.has(id):
 			villagers[id].data.walking=false
@@ -594,6 +613,15 @@ func update_villagers(dt: float,snap: bool=false) -> void:
 				if building.id==stop.room:
 					stop.cell=building.cell+Vector2i(int(building.tiles.x/2),building.tiles.y)
 					break
+		var base: Vector2i=stop.cell
+		if occupied_stops.has(base):
+			var offsets=[Vector2i.RIGHT,Vector2i.DOWN,Vector2i.LEFT,Vector2i.UP,Vector2i(1,1),Vector2i(-1,1),Vector2i(-1,-1),Vector2i(1,-1),Vector2i.RIGHT*2,Vector2i.DOWN*2,Vector2i.LEFT*2,Vector2i.UP*2]
+			for offset in offsets:
+				var candidate=base+offset
+				if occupied_stops.has(candidate) or blocked(Grid.center(candidate)): continue
+				stop.cell=candidate
+				break
+		occupied_stops[stop.cell]=true
 		var actor: Node2D=villagers[id]
 		var previous=actor.position
 		var target=Grid.center(stop.cell)
@@ -649,8 +677,11 @@ func refresh() -> void:
 	night_tint.color=Color(0.32,0.42,0.92).lerp(Color.WHITE,daylight)
 	if state.weather_name()=="rainy": night_tint.color*=Color(0.64,0.73,0.86)
 	var ripe_mask=0
+	var current_plots={}
 	for i in range(state.plots.size()):
+		current_plots[state.plot_cell(i)]=true
 		if state.ripe(i): ripe_mask|=1<<i
+	farm_cells=current_plots
 	var signature=hash(state.plots)^ripe_mask^hash(season+state.weather_name())^(int(state.minute/5) if state.minute>=1140 and state.plots.any(func(plot):return plot.watered) else 0)
 	if signature!=crop_signature:
 		crop_signature=signature
@@ -750,13 +781,20 @@ func blocked(p: Vector2) -> bool:
 	return not Grid.PLAYABLE_CELLS.has_point(cell) or solid_cells.has(cell)
 
 func find_nearest() -> Dictionary:
+	var action_cell=front_cell()
+	var active=state.active_item()
+	if active=="axe" and trees.any(func(tree):return tree.cell==action_cell):
+		return {"type":"tree","cell":action_cell,"label":"Chop tree · axe"}
+	if active=="fishing_pole":
+		var fishing=coastal_fishing(Grid.center(action_cell))
+		if not fishing.is_empty(): return fishing
 	for encoded in state.felled_trees:
 		var pair=encoded.split(",")
 		var cell=Vector2i(int(pair[0]),int(pair[1]))
 		if cell==front_cell() and not state.forage_harvests.has("wood:%d:%d" % [cell.x,cell.y]):
 			return {"type":"logs","cell":cell,"label":"Pick up fallen logs"}
 	for item in forage_nodes:
-		if forage_nodes[item].has(front_cell()) and is_instance_valid(forage_nodes[item][front_cell()]) and Foraging.ready(state,item,front_cell()) and state.active_item()!="axe":
+		if forage_nodes[item].has(front_cell()) and is_instance_valid(forage_nodes[item][front_cell()]) and Foraging.ready(state,item,front_cell()):
 			return {"type":"forage","item":item,"cell":front_cell(),"label":"Gather "+item}
 	var person=Bodies.nearby(self)
 	if not person.is_empty():
@@ -764,15 +802,6 @@ func find_nearest() -> Dictionary:
 			if site.has("door") and state.player_position.distance_to(Grid.center(site.cell))<55 and villagers[person.id].position.distance_to(Grid.center(site.cell))<Bodies.RADIUS+3:
 				nearest=person
 				return person
-	if state.active_item()=="axe":
-		var cell=Grid.world_to_cell(state.player_position)+{"up":Vector2i.UP,"down":Vector2i.DOWN,"left":Vector2i.LEFT,"right":Vector2i.RIGHT}[facing]
-		if trees.any(func(tree): return tree.cell==cell): return {"type":"tree","cell":cell,"label":"Chop tree · axe"}
-	if JETTY_CELLS.has_point(Grid.world_to_cell(state.player_position)):
-		for site in sites:
-			if site.id=="pond":
-				var result=site.duplicate()
-				result.type="site"
-				return result
 	var best: Dictionary = {}
 	var distance = 55.0
 	var i=target_plot()
@@ -803,7 +832,13 @@ func find_nearest() -> Dictionary:
 			distance = d
 	if best.is_empty() and state.active_item()=="build_crucible":
 		best={"type":"build","cell":front_cell(),"label":"Build stone crucible · %d stone" % state.CRUCIBLE_STONE}
-	if best.is_empty(): best=coastal_fishing(state.player_position)
+	if best.is_empty() and active=="":
+		var water_cell=action_cell
+		if solid_cells.get(water_cell,"")=="fountain":
+			best={"id":"drink_fountain","type":"site","cell":water_cell,"label":"Drink from the fountain"}
+		elif (water_cells.has(water_cell) or Coast.is_ocean(water_cell,state.world_seed)) and Grid.center(water_cell).distance_to(Grid.center(POND_CELL))<190:
+			best={"id":"drink_pond","type":"site","cell":water_cell,"label":"Drink from the pond"}
+		if best.is_empty(): best=coastal_fishing(Grid.center(action_cell))
 	nearest = best
 	return best
 
@@ -1274,11 +1309,26 @@ func paint_building(c: CanvasItem, b: Dictionary) -> void:
 	r(c,w-42,roof_y-17,18,29,"8a7f6a")
 	r(c,w-45,roof_y-20,24,6,"b6ab8d")
 	if b.kind == "radio":
-		r(c,35,y-125,3,78,"9b9e85")
-		r(c,8,y-115,60,2,"bac0a3")
-		r(c,20,y-101,36,2,"bac0a3")
-		r(c,44,-20,75,13,"617b73")
-		c.draw_string(ThemeDB.fallback_font,Vector2(47,-10),"RADIO CLUB",HORIZONTAL_ALIGNMENT_LEFT,-1,8,Color("e3d4a7"))
+		r(c,-34,y-128,3,82,"9b9e85")
+		r(c,-63,y-115,61,2,"bac0a3")
+		r(c,-49,y-101,36,2,"bac0a3")
+		for x in [-58,-45,-32,-19,-6]: r(c,x,y-118,2,8,"c5c3a6")
+		for yy in [y-123,y-117,y-111]: r(c,-66,yy,67,1,"d5d0ad")
+		r(c,-69,y-125,6,8,"a26e56")
+		r(c,-66,y-123,2,2,"e0bf7d")
+	if b.kind=="tavern":
+		var sign=Vector2(w/2-48,-80)
+		r(c,sign.x,sign.y,96,18,"473b32")
+		r(c,sign.x+2,sign.y+2,92,14,"725943")
+		var font=preload("res://pixel_ui.gd").font()
+		c.draw_string(font,sign+Vector2(4,8),"WAYWARD",HORIZONTAL_ALIGNMENT_LEFT,-1,6,Color("f1e7c9"))
+		c.draw_string(font,sign+Vector2(4,15),"WREN",HORIZONTAL_ALIGNMENT_LEFT,-1,6,Color("f1e7c9"))
+		c.draw_string(font,sign+Vector2(43,14),"TAVERN",HORIZONTAL_ALIGNMENT_LEFT,-1,11,Color("f1e7c9"))
+	if b.kind=="hall":
+		var sign=Vector2(w/2-37,-80)
+		r(c,sign.x,sign.y,74,17,"394947")
+		r(c,sign.x+2,sign.y+2,70,13,"758779")
+		c.draw_string(preload("res://pixel_ui.gd").font(),sign+Vector2(6,12),"TOWN HALL",HORIZONTAL_ALIGNMENT_LEFT,-1,10,Color("f1e7c9"))
 	if b.kind == "store":
 		r(c,-8,-80,w+16,23,"d7c69d")
 		for i in range(0,w+16,22): r(c,-8+i,-80,11,23,"8d9a70")
@@ -1363,6 +1413,10 @@ func paint_crops(c: CanvasItem) -> void:
 			continue
 		r(c,x-14,y-12,28,24,"655b43" if p.watered else "8b6947")
 		for j in range(4): r(c,x-11+j*7,y-10,2,20,"534e3d" if p.watered else "77583f")
+		if p.growth<0:
+			r(c,x-2,y-8,3,10,"75634c")
+			r(c,x-6,y-5,5,2,"8a7457")
+			continue
 		if p.planted < 0.0: continue
 		if state.ripe(i):
 			oval(c,x,y+2,8,6,"e5c777" if p.crop=="star_bulbs" else "eee0b9")

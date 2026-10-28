@@ -14,7 +14,7 @@ static func valid(data: Variant) -> bool:
 	for field in ["chat_days","gift_weeks"]:
 		if not data[field] is Dictionary: return false
 		for id in data[field]:
-			if not preload("res://villager_schedule.gd").ROUTINES.has(id) or not integer(data[field][id]) or data[field][id]<0: return false
+			if (not preload("res://villager_schedule.gd").ROUTINES.has(id) and id!="vale_repairs") or not integer(data[field][id]) or data[field][id]<0: return false
 	if not data.ladder_clue is bool or not data.ladder_located is bool or not data.beehive_known is bool: return false
 	if not integer(data.shop_season) or data.shop_season< -1: return false
 	if not integer(data.cave_level) or data.cave_level<0 or data.cave_level>2: return false

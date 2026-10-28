@@ -39,6 +39,12 @@ func _draw() -> void:
 			var foot=Grid.center(cell)
 			Art.sprite(self,"lamp_halo",foot-Vector2(70,24),Vector2(140,70))
 			Art.sprite(self,"particle",foot+Vector2(-4,-66),Vector2(8,11),Color("ffe1a1"))
+		for building in world.buildings:
+			var door_x=int(building.tiles.x/2)
+			for x in [door_x-1,door_x+1]:
+				if x<0 or x>=building.tiles.x: continue
+				var lamp=Vector2(building.x+x*32+16,building.y+building.h-64)
+				Art.sprite(self,"lamp_halo",lamp-Vector2(54,20),Vector2(108,62),Color(1,0.9,0.68,0.6))
 	for building in world.buildings:
 		var columns=building.tiles.x
 		var anchor=Vector2(building.x,building.y+building.h)

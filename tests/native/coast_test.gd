@@ -23,6 +23,8 @@ func run() -> void:
 	check(trails_clear,"both faint trails stay clear of fences water and buildings")
 	check(w.has_method("coastal_fishing"),"shore fishing is available outside the pond dock")
 	if w.has_method("coastal_fishing"):
+		game.state.fishing_pole=1
+		game.state.assign_active("primary","fishing_pole")
 		var tip=w.call("coastal_fishing",w.Grid.center(Vector2i(-26,53)))
 		check(tip.get("id")=="ocean_tip" and not w.blocked(w.Grid.center(Vector2i(-20,52))),"the stone jetty is walkable and its outer end offers deep-water fishing")
 	game.state.minute=1260

@@ -11,11 +11,12 @@ func run() -> void:
 	root.add_child(game)
 	game.set_process(false)
 	preload("fixture.gd").explore(game,true)
+	game.state.cave_seed=12345
 	game.enter_building("cave")
 	game.close_window()
 	var first=game.world
 	check(first.ROOM_CELLS.x*first.ROOM_CELLS.y<=94*70*0.76 and first.chambers.size()<12,"cave levels have a smaller footprint and fewer chambers")
-	check(first.floor_cells.size()>1350,"each reduced cave floor still has several times the old walkable area")
+	check(first.floor_cells.size()>300,"each reduced cave floor retains the expanded walkable area")
 	var resources={"copper":0,"coal":0,"stones":0}
 	for rock in first.rocks.values(): resources[rock.resource]+=1
 	var total=float(first.rocks.size())

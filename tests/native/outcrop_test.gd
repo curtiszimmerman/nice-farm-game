@@ -45,10 +45,16 @@ func run() -> void:
 	for i in range(3):
 		game.state.player_position=game.Grid.center(deposits[i].cell+Vector2i.DOWN)
 		game.world.facing="up"
-		preload("fixture.gd").activate(game)
-	check(game.state.copper==3 and game.state.energy==85.0,"three cave deposits supply Vale's copper and charge energy")
-	var other=deposits[3]
+		game.world.mine_rock(deposits[i].id)
+		game.world.mine_rock(deposits[i].id)
+		for drop in game.world.floor_drops.duplicate():
+			game.world.collect_drop("drop_"+drop.id)
+	check(game.state.copper==3 and game.state.stones==3 and game.state.energy==76.0,"three mined deposits leave copper and stone pickups and spend eight energy each")
 	game.state.player_position=game.world.entry_position()
+	var other=deposits[0]
+	for deposit in game.world.rocks.values().filter(func(rock):return rock.ore):
+		if deposit.cell.distance_squared_to(game.Grid.world_to_cell(game.state.player_position))>other.cell.distance_squared_to(game.Grid.world_to_cell(game.state.player_position)):
+			other=deposit
 	check(not game.world.mine_rock(other.id),"ore cannot be mined from across the dungeon")
 	await game.sound.shutdown()
 	game.queue_free()

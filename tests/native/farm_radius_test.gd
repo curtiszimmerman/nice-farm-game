@@ -8,7 +8,7 @@ func _initialize() -> void:
 	s.crucible_known=true
 	s.stones=30
 	check(s.build_crucible(Vector2i(0,47)),"construction is available west of the farmhouse")
-	check(s.build_crucible(Vector2i(20,40)),"construction is available north-east of the farmhouse")
+	check(s.build_crucible(Vector2i(20,50)),"construction is available east of the farmhouse")
 	check(not s.build_crucible(Vector2i(-10,47)),"construction ends fifteen squares from the farmhouse")
 	var loaded=preload("res://state.gd").new()
 	check(loaded.restore(s.to_dict()),"structures placed throughout the farmhouse radius survive saving")

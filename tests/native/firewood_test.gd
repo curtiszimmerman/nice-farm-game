@@ -25,7 +25,7 @@ func run() -> void:
 		for j in range(3): preload("fixture.gd").activate(game)
 		check(not w.solid_cells.has(tree.cell),"a felled tree releases its collision cell")
 		preload("fixture.gd").activate(game)
-	check(s.wood==6 and s.energy==energy-12,"six axe swings and collected logs yield six firewood for twelve energy")
+	check(s.wood==6 and is_equal_approx(s.energy,energy-8.4),"six axe swings and collected logs yield six firewood for reduced energy")
 	var saved=game.State.new()
 	check(saved.restore(s.to_dict()) and saved.felled_trees==s.felled_trees,"tree felling and the firewood task survive saving")
 	var rebuilt=game.World.new()

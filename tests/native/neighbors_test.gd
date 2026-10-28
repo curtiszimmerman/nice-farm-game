@@ -20,6 +20,8 @@ func run() -> void:
 		var door=b.cell+Vector2i(b.tiles.x/2,b.tiles.y)
 		if w._route(w.Grid.SPAWN_CELL,door).is_empty():
 			print("Unreachable door ",b.id," at ",door," terrain ",w.solid_cells.get(door))
+			if b.id in ["veteran","woodcutter"]:
+				for cell in [Vector2i(23,67),Vector2i(23,78),Vector2i(29,78),Vector2i(29,79),Vector2i(29,80),Vector2i(29,81),Vector2i(29,82),Vector2i(42,82),Vector2i(42,81),Vector2i(42,80)]: print("Route cell ",cell," blocked=",w.blocked(w.Grid.center(cell))," solid=",w.solid_cells.get(cell,"")," gate=",w.yard_gates.has(cell))
 			routes=false
 	check(routes,"every new building entrance connects to the town")
 	check(not w.blocked(w.Grid.center(w.SQUARE.position+Vector2i(2,2))) and w.blocked(w.Grid.center(w.SQUARE.position+Vector2i(2,3))),"the fountain's upper artwork permits walking behind its base")

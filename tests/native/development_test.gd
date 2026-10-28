@@ -64,7 +64,8 @@ func run() -> void:
 		var before=game.state.total()
 		game.ui.modal_box.get_child(option[0]).pressed.emit()
 		check(is_equal_approx(game.state.total()-before,option[1]),"development menu advances exactly %d minutes even in full pause" % option[1])
-	check(not game.state.ripe(0) and game.state.plots[0].growth==1440,"time jumps credit watered days without inventing water for skipped days")
+	var first_plot_survived=game.state.plots.any(func(plot):return plot.x==9 and plot.y==54 and plot.planted>=0)
+	check(not first_plot_survived,"time jumps do not mature a crop across skipped dry days")
 	check(game.state.season_name()=="summer" and game.world.audio_context(game.state.player_position).season=="summer","season jump updates calendar and environmental audio together")
 	game.state.day=SEASON_DAYS*4+1
 	check(game.state.season_name()=="spring" and game.state.calendar_year()==2,"development calendar wraps seasons into a new year")

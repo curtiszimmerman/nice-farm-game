@@ -16,8 +16,10 @@ static func setup(world: Node2D) -> void:
 	for cell in world.water_cells:
 		if rng.randf()<0.12: water.append({"position":Grid.center(cell)+Vector2(rng.randf_range(-8,8),rng.randf_range(-8,8)),"phase":rng.randf_range(0,TAU),"speed":rng.randf_range(0.35,0.65)})
 	var birds=[]
-	for i in range(3): birds.append({"position":world.state.player_position+Vector2(rng.randf_range(-500,500),rng.randf_range(-300,250)),"speed":rng.randf_range(135,195),"phase":rng.randf_range(0,TAU)})
-	world.ambient={"rng":rng,"water":water,"birds":birds,"night":-100,"flashes":[],"last":world.elapsed}
+	for i in range(3): birds.append({"position":world.state.player_position+Vector2(rng.randf_range(-500,500),rng.randf_range(-300,250)),"speed":rng.randf_range(135,195),"phase":rng.randf_range(0,TAU),"wait":0.0})
+	var leaves=[]
+	for i in range(14): leaves.append({"position":world.state.player_position+Vector2(rng.randf_range(-500,500),rng.randf_range(-300,300)),"phase":rng.randf_range(0,TAU),"size":rng.randi_range(3,6),"color":[Color("b97d48"),Color("c79a50"),Color("935f42")][rng.randi_range(0,2)]})
+	world.ambient={"rng":rng,"water":water,"birds":birds,"leaves":leaves,"night":-100,"flashes":[],"last":world.elapsed}
 
 static func update(world: Node2D) -> void:
 	setup(world)
@@ -25,9 +27,16 @@ static func update(world: Node2D) -> void:
 	var dt=clampf(world.elapsed-data.last,0,0.5)
 	data.last=world.elapsed
 	for bird in data.birds:
+		if bird.wait>0:
+			bird.wait=maxf(0,bird.wait-dt)
+			if bird.wait==0: bird.position=world.state.player_position+Vector2(-650,data.rng.randf_range(-300,250))
+			continue
 		bird.position+=Vector2(bird.speed,-bird.speed*0.12)*dt
 		if bird.position.x>world.state.player_position.x+650 or bird.position.distance_to(world.state.player_position)>1800:
-			bird.position=world.state.player_position+Vector2(-650,data.rng.randf_range(-300,250))
+			bird.wait=data.rng.randf_range(12,20)*(4.0 if world.state.season_name() in ["autumn","winter"] else 1.0)
+	for leaf in data.leaves:
+		leaf.position+=Vector2(48+sin(world.elapsed*1.8+leaf.phase)*30,sin(world.elapsed*1.3+leaf.phase)*18+12)*dt
+		if leaf.position.x>world.state.player_position.x+520: leaf.position.x=world.state.player_position.x-520
 	var night=night_id(world.state.day,world.state.minute)
 	if data.night!=night:
 		data.night=night
@@ -65,6 +74,15 @@ static func draw(world: Node2D,canvas: CanvasItem) -> void:
 			var tint=world.night_tint.color
 			world.Art.sprite(canvas,"fish_glint",Vector2(-16,-16),Vector2(32,32),Color(1/tint.r,1/tint.g,1/tint.b,alpha))
 			canvas.draw_set_transform(Vector2.ZERO)
+	elif world.state.season_name()=="autumn":
+		for leaf in world.ambient.leaves:
+			var pos: Vector2=leaf.position
+			canvas.draw_set_transform(pos,sin(world.elapsed*2+leaf.phase)*0.8)
+			canvas.draw_rect(Rect2(-leaf.size/2.0,-leaf.size/3.0,leaf.size,leaf.size/1.5),leaf.color)
+			canvas.draw_line(Vector2(-leaf.size/2.0,0),Vector2(leaf.size/2.0,0),Color("664a37"),1)
+			canvas.draw_set_transform(Vector2.ZERO)
+		for bird in world.ambient.birds:
+			if bird.wait<=0: world.Art.sprite(canvas,"bird"+str(posmod(int(world.elapsed*12+bird.phase),3)),bird.position,Vector2(22,20))
 	else:
 		for bird in world.ambient.birds:
-			world.Art.sprite(canvas,"bird"+str(posmod(int(world.elapsed*12+bird.phase),3)),bird.position,Vector2(22,20))
+			if bird.wait<=0: world.Art.sprite(canvas,"bird"+str(posmod(int(world.elapsed*12+bird.phase),3)),bird.position,Vector2(22,20))

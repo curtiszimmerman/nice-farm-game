@@ -22,7 +22,10 @@ func run() -> void:
 	check(game.outdoors.villagers.tavi.position==position,"Tavi stays put through closing time while talking")
 	game.state.money=50
 	var before=game.state.seeds
-	game.ui.modal_box.get_child(4).pressed.emit()
+	var sale_option=game.ui.modal_box.get_children().filter(func(node):return node is Button and node.text=="What have you got for sale?")
+	if not sale_option.is_empty(): sale_option[0].pressed.emit()
+	var seeds=game.ui.modal_box.get_children().filter(func(node):return node is Button and node.text.contains("moon-turnip seeds"))
+	if not seeds.is_empty(): seeds[0].pressed.emit()
 	check(game.state.seeds==before+5 and game.window_open,"seed sales remain available after closing and keep the conversation open")
 	game.close_window()
 	game.outdoors.update_villagers(1)
@@ -53,7 +56,7 @@ func run() -> void:
 	game._process(0.1)
 	check(game.conversation_members.is_empty() and not game.window_open and game.state.abandoned_day.has("assistant"),"walking away abandons a multi-person conversation and sends the participants home")
 	game.outdoors.update_villagers(0,true)
-	check(game.outdoors.villagers.assistant.data.sleeping,"abandoned participants go to bed instead of waiting forever")
+	check(game.outdoors.stop_for("assistant").room=="assistant" and not game.outdoors.villagers.assistant.data.sleeping,"abandoned participants return home without locking their house during daytime")
 	game.state.player_position=game.outdoors.site_position("bed")
 	game._process(0.1)
 	check(not game.window_open,"an abandoned introduction does not immediately restart at the farm")

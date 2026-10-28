@@ -29,8 +29,8 @@ const BUILDINGS=[
 	{"cell":Vector2i(27,75),"tiles":Vector2i(4,4),"roof":"78644d","kind":"cabin","resident":"woodcutter"}
 ]
 const FIELDS=[Rect2i(99,50,5,6),Rect2i(106,50,5,6)]
-const BENCHES=[Vector2i(59,44),Vector2i(62,44)]
-const FLOWERS=[Vector2i(58,46),Vector2i(58,47),Vector2i(67,46),Vector2i(67,47),Vector2i(63,51)]
+const BENCHES=[Vector2i(64,46),Vector2i(64,49)]
+const FLOWERS=[Vector2i(59,44),Vector2i(60,44),Vector2i(59,45),Vector2i(66,44),Vector2i(67,44),Vector2i(67,45),Vector2i(59,50),Vector2i(60,50),Vector2i(59,49),Vector2i(66,50),Vector2i(67,50),Vector2i(67,49)]
 const ROUTES=[
 	[Vector2i(53,46),Vector2i(53,57)],
 	[Vector2i(53,57),Vector2i(45,57)],
@@ -81,8 +81,10 @@ static func talk(game: Node2D,id: String) -> bool:
 	if id=="priest" and posmod(game.state.day-1,7)==6 and game.state.minute>=600 and game.state.minute<720 and game.current_room=="temple":
 		text="A single lamp may tremble, but look how many we've brought together. Vorisel keeps the far mysteries; Elunai asks us to tend the light within reach. Let the darkness beyond the stars remind us to make room beside our own hearths. No neighbor should have to face this day alone."
 	var choices=[]
+	if id=="smith" and working:
+		choices.append(["What have you got for sale?",func(): game.smith_shop()])
 	if id=="miller" and working:
-		choices.append(["Buy flour · 5 crowns · %d available"%game.state.stock("flour"),func(): game.buy_ingredient("flour"),game.state.money>=5])
+		choices.append(["What have you got for sale?",func(): game.shop_menu("Tomas's Mill","FRESHLY MILLED","A sack of flour, ground here from the Reeds' grain. The cart comes through with a new supply each season.",[["flour","Sack of flour",5,"flour",func(): game.state.purchase("flour")]])])
 	if id=="astronomer" and working and game.state.star_origin_reply=="":
 		choices.append(["You're right. Our ship fell on the mountain.",func():
 			game.state.record_star_origin(true)
@@ -118,6 +120,6 @@ static func talk(game: Node2D,id: String) -> bool:
 			game.dialog("Nessa Bell","A BORROWED LADDER","Oh. Mum noticed? I needed it to get the aerial above the shed roof. Meant to put it back before she missed it. It's leaning inside our tool shed, east of the house. Would you take it back? I'll go and apologise.")
 		])
 	if id=="baker" and working:
-		choices=[["Buy fresh bread · 6 crowns · %s energy" % str(game.state.energy_recovery(game.state.Items.FOOD.bread.energy)),game.buy_bread,game.state.money>=6],["Nothing today, thank you.",func(): pass]]
+		choices=[["What have you got for sale?",func(): game.shop_menu("Corin's Bakery","FRESH FROM THE OVEN","A warm loaf for six crowns. Best eaten today, though it will keep a little while.",[["bread","Fresh bread · %s energy" % str(game.state.energy_recovery(game.state.Items.FOOD.bread.energy)),6,"bread",func(): game.state.buy_bread()]])]]
 	game.dialog(story[0],PEOPLE.filter(func(p):return p.id==id)[0].role,text,choices)
 	return true

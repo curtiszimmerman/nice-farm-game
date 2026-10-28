@@ -61,7 +61,7 @@ func cloud_positions(time: float) -> PackedVector2Array:
 	var positions=PackedVector2Array()
 	for y in range(9):
 		for x in range(10):
-			positions.append(Vector2(-1000+fposmod(x*520+time*5+y*173,5200),y*360-200+sin(x*3+y)*70))
+			positions.append(Vector2(-1000+fposmod(x*520+time*12+y*173,5200),y*360-200+sin(x*3+y)*70))
 	return positions
 
 func rain_positions(time: float) -> PackedVector2Array:
@@ -88,7 +88,7 @@ func paint_sky(canvas: CanvasItem) -> void:
 	if mode=="partly_cloudy":
 		for point in cloud_positions(world.elapsed):
 			if point.distance_to(world.state.player_position)<850:
-				Art.sprite(canvas,"cloud_shadow",point,Vector2(480,240),Color(0.15,0.2,0.29,0.2*daylight()))
+				Art.sprite(canvas,"cloud_shadow",point,Vector2(520,260),Color(0.12,0.16,0.24,0.42*daylight()))
 	elif mode=="rainy":
 		var snow=world.state.season_name()=="winter"
 		for point in snow_positions(world.elapsed) if snow else rain_positions(world.elapsed):

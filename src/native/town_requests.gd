@@ -1,14 +1,14 @@
 extends RefCounted
 
 const POOL=[
-	["tavi","fish",5,35], ["miller_wife","berries",5,25], ["astronomer","star_bulbs",5,40],
-	["moss","turnips",3,24], ["baker","berries",5,25], ["farmer_mother","turnips",4,28],
-	["farmer_father","wood",6,24], ["farmer_son","apples",3,24], ["iona","star_bulbs",4,36],
-	["finch","copper",2,24], ["smith","coal",3,30], ["miller","wood",5,20],
-	["barkeep","fish",3,24], ["priest","berries",4,20], ["keeper","wood",4,18],
-	["veteran","turnips",3,24], ["woodcutter","stones",5,20], ["assistant","bread",2,20],
-	["mayor","apples",4,32], ["miller_daughter","copper",2,24]]
-const SUPPLIES={"fish":"pond silverfin","berries":"berries","star_bulbs":"star bulbs","turnips":"moon turnips","wood":"logs","apples":"apples","copper":"copper ore","coal":"coal","stones":"stone","bread":"loaves of bread"}
+	["tavi","fish",5,35,"pond_scamps","Catch %d pond scamps"], ["miller_wife","berries",5,25,"spring_berries","Gather %d spring berries"], ["astronomer","star_bulbs",5,40,"starbulb_harvest","Harvest %d star bulbs"],
+	["moss","turnips",3,24,"turnip_harvest","Harvest %d moon turnips"], ["baker","berry_preserves",2,35,"preserves_batch","Cook %d jars of berry preserves"], ["farmer_mother","turnips",4,28,"turnip_row","Bring %d moon turnips from the field"],
+	["farmer_father","wood",6,24,"firewood_chop","Chop %d logs for the stove"], ["farmer_son","apples",3,24,"autumn_apples","Pick %d autumn apples"], ["iona","golden_sparkfire_bloom",1,36,"sunrise_bloom","Gather a Golden Sparkfire Bloom"],
+	["finch","copper_bars",2,40,"copper_smelting","Smelt %d copper bars"], ["smith","coal",3,30,"coal_mining","Mine %d pieces of coal"], ["miller","flour",3,24,"mill_flour","Mill %d sacks of flour"],
+	["barkeep","fish_sticks",3,30,"fish_sticks","Cook %d portions of fish sticks"], ["priest","berries",4,20,"garden_berries","Gather %d berries for preserves"], ["keeper","wood",4,18,"lighthouse_logs","Chop %d logs for the lighthouse"],
+	["veteran","turnips",3,24,"supper_turnips","Harvest %d moon turnips for supper"], ["woodcutter","stones",5,20,"cave_stone","Mine %d stones from the cavern"], ["assistant","bread",2,20,"fresh_bread","Bring %d fresh loaves"],
+	["mayor","berry_cobbler",1,42,"berry_cobbler","Bake a berry cobbler"], ["miller_daughter","copper",2,24,"copper_ore","Mine %d copper ore"]]
+const SUPPLIES={"fish":"pond silverfin","berries":"berries","star_bulbs":"star bulbs","turnips":"moon turnips","wood":"logs","apples":"apples","copper":"copper ore","coal":"coal","stones":"stone","bread":"loaves of bread","berry_preserves":"jars of berry preserves","golden_sparkfire_bloom":"Golden Sparkfire Bloom","copper_bars":"copper bars","flour":"sacks of flour","fish_sticks":"portions of fish sticks","berry_cobbler":"berry cobbler"}
 var axe_due=-1.0
 var axe_paid=false
 var axe_failed=false
@@ -19,15 +19,22 @@ var week=-1
 var jobs: Array=[]
 
 static func quest_id(job: Dictionary) -> String: return "board_%d_%d"%[int(job.week),int(job.template)]
-static func supplies(index: int) -> String: return "%d %s"%[POOL[index][2],SUPPLIES[POOL[index][1]]]
+static func supplies(index: int) -> String:
+	var description: String=POOL[index][5]
+	return description % [POOL[index][2]] if description.contains("%d") else description
 
 func eligible(state: RefCounted,index: int) -> bool:
 	var item=POOL[index][1]
 	if item=="berries" and state.season_name() not in ["spring","summer"]: return false
 	if item=="apples" and state.season_name()!="autumn": return false
 	if item=="fish" and not state.firewood_given: return false
+	if item=="fish_sticks" and (not state.firewood_given or state.ingredient_count("pan")<1): return false
 	if item=="wood" and not state.woodcutter_axe_given: return false
 	if item in ["stones","copper","coal"] and not state.cave_pickaxe_taken: return false
+	if item=="golden_sparkfire_bloom" and not state.magic_learned: return false
+	if item=="copper_bars" and not state.crucible_known: return false
+	if item=="berry_preserves" and state.ingredient_count("pot")<1: return false
+	if item=="berry_cobbler" and state.ingredient_count("pan")<1: return false
 	return true
 
 func refresh(state: RefCounted) -> void:

@@ -11,11 +11,13 @@ func run() -> void:
 	root.add_child(game)
 	game.set_process(false)
 	preload("fixture.gd").explore(game,true)
+	game.state.world_seed=123456
+	game.outdoors.rebuild_visit(game.state)
 	game.state.met_mayor=true
 	var world=game.outdoors
 	for index in range(world.people.size()):
 		var id=world.people[index].id
-		if id in ["vale","smith","baker","barkeep"]: continue
+		if id in ["vale","smith","baker","barkeep","keeper"]: continue
 		game.state.day=posmod(index+1,7)+1
 		game.state.minute=900
 		var stop=world.stop_for(id)

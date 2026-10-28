@@ -275,6 +275,14 @@ func tavern_guest_spot(id: String) -> Vector2i:
 	return spots[posmod(guests.find(id),spots.size())] if not spots.is_empty() else layout.entry
 
 func find_nearest() -> Dictionary:
+	if building.id=="home" and not state.met_mayor:
+		for site in sites:
+			if site.id.begins_with("uncover_") and front_cell() in activation_cells(site):
+				var task=site.id.trim_prefix("uncover_")
+				if task in ["sofa","guest_bed"] and not state.house_tasks[task]:
+					nearest=site.duplicate()
+					nearest.type="site"
+					return nearest
 	var person=preload("res://npc_bodies.gd").nearby(self)
 	if not person.is_empty():
 		if state.player_position.distance_to(site_position("exit"))<55 and villagers[person.id].position.distance_to(site_position("exit"))<Bodies.RADIUS+3:

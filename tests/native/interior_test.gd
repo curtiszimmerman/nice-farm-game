@@ -69,10 +69,13 @@ func run() -> void:
 	var cabin={}
 	for b in outside.buildings:
 		if b.id=="veteran": cabin=b
-	var secluded=true
-	for cell in outside.road_cells:
-		if outside.Grid.rect(cabin.cell,cabin.tiles).grow(96).has_point(outside.Grid.center(cell)): secluded=false
-	check(secluded,"the veteran's woodland cabin has no road leading to it")
+	var faint_path=false
+	var paved_access=false
+	for cell in outside.trail_cells:
+		if cell.distance_to(cabin.cell)<8: faint_path=true
+	for cell in outside.paved_cells:
+		if outside.Grid.rect(cabin.cell,cabin.tiles).grow(2).has_point(cell): paved_access=true
+	check(faint_path and not paved_access,"the veteran's cabin connects to town by a faint dirt path")
 	game.state.minute=600
 	game.state.turnips=3
 	game.talk("veteran")

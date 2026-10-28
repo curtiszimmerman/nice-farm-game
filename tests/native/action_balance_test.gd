@@ -51,7 +51,7 @@ func run() -> void:
 		game.start_fishing("pond")
 		check(game.activity=="fishing","a real fishing cast starts and spends energy")
 		game.activity=""
-	check(is_equal_approx(s.energy,10.8),"the day-one activity budget leaves 10.8 energy for mistakes")
+	check(is_equal_approx(s.energy,21.6),"the day-one activity budget leaves 21.6 energy after reduced axe costs")
 	s=State.new()
 	s.money=999
 	check(not s.buy_sword(),"Dain requires the full thousand crowns")

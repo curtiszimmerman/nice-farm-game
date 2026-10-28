@@ -20,7 +20,7 @@ func _initialize() -> void:
 		s.pickaxe=1
 		s.assign_active("primary","pickaxe")
 		energy=s.energy
-		check(s.mine() and s.energy==energy-10,"tired mining costs twice the normal energy")
+		check(s.mine() and s.energy==energy-8,"tired mining costs twice the reduced normal energy")
 		s.energy=10
 		s.rations=1
 		check(s.consume("rations") and s.energy==17.5,"tired food restores half its normal energy")

@@ -38,6 +38,8 @@ static func player_step(world: Node2D,delta: Vector2,holds: Dictionary) -> bool:
 static func step(world: Node2D,actor: Node2D,target: Vector2,distance: float) -> Vector2:
 	var next=actor.position.move_toward(target,distance)
 	if world.blocked(next): return actor.position
+	for other in world.villagers.values():
+		if other!=actor and other.visible and next.distance_to(other.position)<RADIUS: return actor.position
 	if world.state.location!=(world.building.id if world.get("building")!=null else ""): return next
 	if next.distance_to(world.state.player_position)>=RADIUS: return next
 	return actor.position
@@ -51,14 +53,14 @@ static func walk_to(world: Node2D,id: String,cell: Vector2i,dt: float,speed: flo
 	var player_cell=world.Grid.world_to_cell(world.state.player_position)
 	var route: Dictionary=world.routes.get(id,{})
 	var changed=route.is_empty() or route.target!=target
-	var retry=not route.is_empty() and route.path.is_empty() and route.get("blocked",false) and route.player_cell!=player_cell
+	var retry=not route.is_empty() and route.path.is_empty() and route.get("blocked",false)
 	if changed or retry:
 		var start=world.Grid.world_to_cell(actor.position)
 		var anchor=world.Grid.center(start)
 		if not route.is_empty() and not route.path.is_empty():
 			anchor=route.path[0]
 			start=world.Grid.world_to_cell(anchor)
-		var path: Array=world._route(start,cell,true)
+		var path: Array=world._route(start,cell,true,true,actor)
 		if actor.position.distance_to(anchor)>0.1: path.push_front(anchor)
 		route={"target":target,"path":path,"player_cell":player_cell,"blocked":path.is_empty() and actor.position.distance_to(target)>1}
 		world.routes[id]=route
@@ -69,7 +71,7 @@ static func walk_to(world: Node2D,id: String,cell: Vector2i,dt: float,speed: flo
 		var distance=actor.position.distance_to(waypoint)
 		var next=step(world,actor,waypoint,remaining)
 		if next==actor.position and distance>0.1:
-			var path: Array=world._route(world.Grid.world_to_cell(actor.position),cell,true)
+			var path: Array=world._route(world.Grid.world_to_cell(actor.position),cell,true,true,actor)
 			# Replan once for an obstruction, then wait for it to move.
 			route.path=path
 			route.player_cell=player_cell

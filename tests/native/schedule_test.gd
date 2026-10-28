@@ -35,13 +35,19 @@ func run() -> void:
 	w.update_villagers(0.1)
 	check(w.villagers.tavi.position.distance_to(start)>0 and w.villagers.tavi.position.distance_to(start)<10,"villagers walk toward their next stop")
 	var clear=true
+	var separated=true
 	var blocked_actors={}
 	for i in range(500):
 		w.update_villagers(0.1)
 		for actor in w.villagers.values():
 			if w.blocked(actor.position): clear=false; blocked_actors[actor.data.id]=w.Grid.world_to_cell(actor.position)
+		for first in w.villagers.values():
+			for second in w.villagers.values():
+				if first==second or not first.visible or not second.visible: continue
+				if first.position.distance_to(second.position)<w.Bodies.RADIUS: separated=false
 	if not clear: print("Blocked residents: ",blocked_actors)
 	check(clear,"villager routes avoid buildings, water, and fences")
+	check(separated,"visible NPCs keep a body radius apart during scheduled movement")
 	check(w.villagers.tavi.position.distance_to(lunch)<1,"Tavi reaches the lunch stop")
 	var reachable=true
 	for id in w.Schedule.ROUTINES:

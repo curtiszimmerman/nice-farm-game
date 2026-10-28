@@ -73,7 +73,7 @@ func run() -> void:
 		for i in range(21):
 			var p=segment[0].lerp(segment[1],i/20.0)
 			if world.road_mask.get_pixel(int(p.x),int(p.y)).r<0.99: continuous=false
-		check(continuous,"road segment has an unbroken center through its junctions")
+		check(continuous,"road segment has an unbroken center through its junctions: %s to %s" % [segment[0],segment[1]])
 	var corner=world.road_segments[0][0]-Vector2(20,20)
 	check(world.road_mask.get_pixel(int(corner.x),int(corner.y)).r<0.25,"rounded road shoulders do not retain rectangular corner blocks")
 	await game.sound.shutdown()

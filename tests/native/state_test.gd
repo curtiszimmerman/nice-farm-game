@@ -62,7 +62,7 @@ func _initialize() -> void:
 	s.accept_tool("pickaxe")
 	s.assign_slot(7,"pickaxe")
 	s.selected_slot=7
-	check(s.mine() and s.copper == 1 and s.energy == 95.0, "rested selected pickaxe mining costs five energy")
+	check(s.mine() and s.copper == 1 and s.energy == 96.0, "rested selected pickaxe mining costs four energy")
 	check(not s.meet_mayor(), "mayor cannot meet before invitation")
 	s.invite_mayor()
 	s.advance(119)

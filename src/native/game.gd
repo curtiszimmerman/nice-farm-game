@@ -16,7 +16,7 @@ const BRIEFING=[
 	["Captain","Status report?"],
 	["Chief Vale","We're in one piece. The ship... less so. Engines are gone, long-range comms are dead, and the distress transmitter took a direct hit. We can't call anyone."],
 	["Captain","What's your estimate?"],
-	["Chief Vale","Ask me again once I've crawled through the wreckage. I'll keep working, but I'm going to need supplies. Quite a lot of them, I suspect."],
+	["Chief Vale","Ask me again once I've crawled through the wreckage. I'll keep working, but I'm going to need supplies. Quite a lot of them, I suspect. Check in with me each day, Captain. I'll report what I've managed, and the break will do us both good."],
 	["Chief Vale","There's something else. That attack ship had time to send a signal before we finished it. I doubt it was saying goodbye. Someone will come looking."],
 	["Captain","Then we'll get what you need. First order of business: the cloak."],
 	["Chief Vale","Already on it. I'm bringing the emergency gravitic power sink online. As long as this planet keeps its gravity well, the cloak should hold. Rather counting on that. It leaves us precious little power for anything else."],
@@ -152,6 +152,7 @@ func begin() -> void:
 func finish_intro() -> void:
 	opening=null
 	state.intro_complete=true
+	state.player_position=Grid.center(Vector2i(7,9))
 	world.refresh()
 	show_briefing()
 
@@ -575,7 +576,7 @@ func dialog(title: String,role: String,text: String,choices: Array = []) -> void
 			var request_id=state.requests.quest_id(job)
 			var recipient=person
 			choices=choices.duplicate()
-			choices.append(["Deliver %s · notice-board request"%state.requests.supplies(int(job.template)),func():
+			choices.append(["Complete request · %s"%state.requests.supplies(int(job.template)),func():
 				if state.requests.deliver(state,request_id,recipient):
 					save_visit()
 					dialog(title,"A LITTLE HELP","That's everything. Thank you! Here are the crowns I promised. You've saved me a trip.")
@@ -618,6 +619,12 @@ func interact() -> void:
 	if not activity.is_empty(): return
 	nearest=world.find_nearest()
 	if nearest.get("type")=="person": talk(nearest.id); return
+	if nearest.get("type")=="drop" and world is Cave:
+		if world.collect_drop(nearest.id):
+			save_visit()
+			toast("Picked up the mined material.")
+		else: toast("Make room in your satchel before collecting it.")
+		return
 	if state.active_item()!="rusty_sword": begin_action()
 	if world==outdoors and state.active_item()=="hoe" and world.target_plot()<0 and nearest.is_empty():
 		var cell=world.front_cell()
@@ -643,11 +650,11 @@ func interact() -> void:
 		toast("Used %s." % ui.Items.CATALOG[state.active_item()].name if state.consume(state.active_item()) else "Nothing to restore, or none carried.")
 		save_visit()
 		return
-	if world==outdoors and state.active_item()=="watering_can" and world.at_pond_edge(state.player_position):
+	if world==outdoors and state.active_item()=="watering_can" and world.in_water(Grid.center(world.front_cell())) and Grid.center(world.front_cell()).distance_to(Grid.center(world.POND_CELL))<190:
 		toast("Watering can filled · 20 / 20" if state.refill_water() else "Take your watering can from storage first.")
 		save_visit()
 		return
-	if world==outdoors and (world.at_pond_edge(state.player_position) or world.solid_cells.get(world.front_cell(),"")=="fountain"):
+	if world==outdoors and nearest.get("id") in ["drink_pond","drink_fountain"]:
 		panel("Fresh water","TAKE A MOMENT","Cool, clear water. A welcome pause.",[["Drink",drink_freshwater],["Leave it for now",func(): pass]])
 		return
 	if nearest.get("type")=="rock":
@@ -656,8 +663,8 @@ func interact() -> void:
 			sound.mining.play()
 			burst(position,"c6a47b",12)
 			save_visit()
-			toast("Rock mined. %d energy spent." % int(state.energy_cost(5)))
-		else: toast("Select a carried pickaxe. Mining costs %d energy and needs room in your satchel." % int(state.energy_cost(5)))
+			toast("A blow lands. %d energy spent." % int(state.energy_cost(4)))
+		else: toast("Select a carried pickaxe. Mining costs %d energy." % int(state.energy_cost(4)))
 		return
 	if nearest.is_empty():
 		toast("Walk closer to a person, garden patch, or landmark.")
@@ -728,6 +735,7 @@ func interact() -> void:
 				save_visit()
 			"sparkfire":
 				var key="%d:%d" % [nearest.cell.x,nearest.cell.y]
+				if state.weather_name()=="rainy": toast("The rain has hidden the sunrise. The flower stays closed."); return
 				if state.winter_bloom_day():
 					if state.bloom_harvests.get(key,0)==state.day: toast("This winter sparkbloom has already been gathered.")
 					elif not state.can_carry("winter_sparkbloom"): toast("Make room in your satchel.")
@@ -755,11 +763,20 @@ func interact() -> void:
 				if shopkeeper_at_work("tavi","store"): talk("tavi")
 				else: toast("The counter is unattended. Come back when Tavi is here.")
 			"bed":
-				if current_room=="home" and not state.met_mayor and not state.house_tasks.bed: tidy_farmhouse("bed")
+				var cover_task=""
+				if current_room=="home" and not state.met_mayor:
+					for furnishing in world.furnishings:
+						if furnishing.kind!="bed" or not furnishing.bounds.has_point(world.front_cell()): continue
+						var task=furnishing.get("task","bed")
+						if not state.house_tasks[task]: cover_task=task; break
+				if cover_task!="": tidy_farmhouse(cover_task)
 				else: rest_options()
 			"pond","ocean","ocean_tip":
 				start_fishing(nearest.id)
-			"sign": dialog("The farmhouse crossroads","BRIAR GLEN","East: Briar Glen, general store and smithy. West: the old farmhouse and the coastal path. South: the mill pond and woodland cabins. For the copper cave, take the southeast road from town.")
+			"drink_pond","drink_fountain":
+				if state.needs.hardcore: drink_freshwater()
+				else: toast("Fresh water, cool and clean.")
+			"sign": dialog("The farmhouse crossroads","BRIAR GLEN","East: Briar Glen, general store and smithy. West: the old farmhouse and the coastal path. South: the mill pond and woodland cabins. For the copper cave, take the southeast road from town.",[ ["Okay.",func(): pass] ])
 			"radio":
 				if current_room=="home" and not state.met_mayor and not state.house_tasks.radio: tidy_farmhouse("radio")
 				else: radio()
@@ -824,7 +841,7 @@ func fishing_position() -> float:
 	return (sin(time*1.7+fishing_phase)+1.0)*0.5
 
 func fish_pool(habitat: String) -> Array:
-	return ui.Items.FISH.keys().filter(func(id): return (id!="lantern_ray" or state.minute<360 or state.minute>=1140) and (ui.Items.FISH[id].habitat==habitat or (habitat=="ocean_tip" and ui.Items.FISH[id].habitat=="ocean")))
+	return ui.Items.FISH.keys().filter(func(id): return (not ui.Items.FISH[id].get("rainy_only",false) or state.weather_name()=="rainy") and (id!="lantern_ray" or state.minute<360 or state.minute>=1140) and (ui.Items.FISH[id].habitat==habitat or (habitat=="ocean_tip" and ui.Items.FISH[id].habitat=="ocean")))
 
 func start_fishing(habitat: String) -> void:
 	if state.fishing_pole<1 or state.active_item()!="fishing_pole":
@@ -863,6 +880,9 @@ func _finish_fishing() -> void:
 	activity=""
 
 func rest_options() -> void:
+	if current_room=="home" and not state.met_mayor:
+		for task in ["bed","guest_bed"]:
+			if not state.house_tasks[task]: tidy_farmhouse(task); return
 	if clock_held(): toast("Wait until the opening welcome is finished before resting."); return
 	if current_room not in ["home","ship"]:
 		toast("This bed belongs to someone else. Rest in your own farmhouse bed.")
@@ -1068,7 +1088,9 @@ func talk(id: String) -> void:
 				["What should I know about mining copper?",func(): preload("res://local_guidance.gd").smith_copper(self)],
 				["Tell me about your work.",func(): dialog("Dain Rusk","IRON & HONEST WEAR",preload("res://neighbors.gd").STORIES.smith.split("|",true,1)[1]+" A sound handle, a balanced head, an edge that holds. Bring your tools to the forge and we'll talk about what they need.")],
 				["See you around.",func(): pass]]
-			if at_work and not state.crucible_known: choices.push_front(["Learn crucible blueprint · 10 star bulbs",learn_crucible,state.star_bulbs>=10])
+			if at_work:
+				choices.push_front(["What have you got for sale?",smith_shop])
+				if not state.crucible_known: choices.push_front(["Learn crucible blueprint · 10 star bulbs",learn_crucible,state.star_bulbs>=10])
 			dialog("Dain Rusk","BLACKSMITH","Mind the hot scale. I can tell a lot about a tool by the wear on its edge. Bring yours by when you're ready to talk about better steel." if at_work else "Good to stretch my shoulders after a day at the forge. If you're thinking about upgrading your tools, come see me at the smithy.",choices)
 		"woodcutter":
 			preload("res://local_guidance.gd").rowan(self)
@@ -1106,22 +1128,8 @@ func talk(id: String) -> void:
 					if state.sell(): save_visit(); toast("Sold. Locally grown, very far from home.")
 					else: toast("Bring turnips or silverfin to sell.")
 					talk("tavi"),state.sale_value()>0],
-				["Buy 5 moon-turnip seeds · 10 crowns · %d available" % state.stock("seeds"),func():
-					if state.buy_seeds(): save_visit(); toast("Five seeds tucked into your satchel.")
-					else: toast("Out of stock. Delivery next season." if state.stock("seeds")==0 else "You need 10 crowns and room in your satchel.")
-					talk("tavi"),state.money>=10],
-				["Buy 3 star-bulb seeds · 12 crowns · %d available" % state.stock("star_seeds"),func():
-					if state.buy_star_seeds(): save_visit(); toast("Three star-bulb seeds. Select them in your satchel before planting.",6)
-					else: toast("Out of stock. Delivery next season." if state.stock("star_seeds")==0 else "You need 12 crowns and room in your satchel.")
-					talk("tavi"),state.money>=12],
-				["Buy frying pan · 20 crowns · %d available" % state.stock("pan"),func(): buy_cookware("pan"),state.money>=20],
-				["Buy cooking pot · 20 crowns · %d available" % state.stock("pot"),func(): buy_cookware("pot"),state.money>=20],
-				["Buy elixir of health · 15 crowns · %d available" % state.stock("health_elixir"),func():
-					if state.purchase("health_elixir"): save_visit()
-					else: toast("Out of stock. Delivery next season." if state.stock("health_elixir")==0 else "You need 15 crowns and room in your satchel.")
-					talk("tavi"),state.money>=15],
+				["What have you got for sale?",tavi_shop],
 				["Where can I get tools?",tool_directions],
-				["Sugar and butter for baking",baking_supplies],
 				["Just passing through.",func(): pass]])
 			ui.modal.get_child(1).position.y=125
 		"iona":
@@ -1136,23 +1144,72 @@ func talk(id: String) -> void:
 		"finch": dialog("Finch","RADIO CLUB SECRETARY","Come in, come in. Mind that cable. Last week we picked up a dance band from Veyr, clear as anything. Governments can argue all they like; the air doesn't stop at a checkpoint." if current_room=="radio" else "Good to give my eyes a rest from the wiring. Nessa's coming along nicely with that receiver. Her mother will have river weather reports in the kitchen before long.",[["What's on the air today?",radio],["I'll come back sometime.",func(): pass]])
 		"vale":
 			if not state.briefing_complete: show_briefing(); return
-			if state.delivered: dialog("Chief Vale","CHIEF ENGINEER · SECURE CREW LINK","Give your commlink a try. Hear that? Much better than shouting down a mountain. The cloak's holding, too. "+("Thanks for seeing to supper. I'll try to earn it before the day's out." if state.crew_fed_day==state.day else "I meant to stop for breakfast, but the locker was empty. If you find something to cook, save me a helping?"))
-			else: dialog("Chief Vale","CHIEF ENGINEER · SHIPBOARD CONVERSATION","The cloak's behaving. Wish I could say the same for the engines. Three copper bars should get our crew link back. That deposit on the last scan was southeast of the settlement, but the ore will need refining. Might be worth asking whether anyone down there works metal. I'm rather in the dark up here with the scanners dead. Any luck finding supper? Leave me a cooked meal in the locker if you can. I'll try not to get engine grease on it.",[
-				["Hand over three copper bars." if state.copper_bars>=3 else "I'll look for someone who works metal.",func():
+			var choices=vale_checkin_choices()
+			if not state.delivered:
+				choices.push_front(["Hand over three copper bars." if state.copper_bars>=3 else "I'll look for someone who works metal.",func():
 					if state.copper_bars>=3:
 						state.copper_bars-=3
 						state.delivered=true
 						state.change_friendship("vale",25)
 						save_visit()
 						burst(state.player_position,"a3d4d0")
-						toast("Crew link restored. One small connection home.",6.0)],
-				["How long do we have?",func(): dialog("Chief Vale","CHIEF ENGINEER","As long as the cloak holds, we have room to breathe. No signals. No active scans. I'll keep the lights off. You keep us fed.")]])
+						toast("Crew link restored. One small connection home.",6.0)])
+			choices.append(["How long do we have?",func(): dialog("Chief Vale","CHIEF ENGINEER","As long as the cloak holds, we have room to breathe. No signals. No active scans. I'll keep the lights off. You keep us fed.")])
+			var body="Give your commlink a try. Hear that? Much better than shouting down a mountain. The cloak's holding, too. "+("Thanks for seeing to supper. I'll try to earn it before the day's out." if state.crew_fed_day==state.day else "I meant to stop for breakfast, but the locker was empty. If you find something to cook, save me a helping?") if state.delivered else "The cloak's behaving. Wish I could say the same for the engines. Three copper bars should get our crew link back. That deposit on the last scan was southeast of the settlement, but the ore will need refining. Might be worth asking whether anyone down there works metal. I'm rather in the dark up here with the scanners dead. Any luck finding supper? Leave me a cooked meal in the locker if you can. I'll try not to get engine grease on it."
+			dialog("Chief Vale","CHIEF ENGINEER · SHIPBOARD CONVERSATION",body,choices)
 
 func buy_ingredient(id: String) -> void:
 	if state.purchase(id):
 		save_visit()
 		toast("Bought "+state.Items.CATALOG[id].name+".")
 	else: toast("Out of stock. Delivery next season." if state.stock(id)==0 else "You need enough crowns and room in your satchel.")
+
+func shop_menu(title: String,role: String,text: String,offers: Array) -> void:
+	var choices=[]
+	for offer in offers:
+		var item: String=offer[0]
+		var label: String=offer[1]
+		var price: int=offer[2]
+		var stock_id: String=offer[3]
+		var action: Callable=offer[4]
+		var count=state.stock(stock_id)
+		var status="Out of stock · delivery next season" if count==0 else "%s crowns · %d available" % [crowns(price),count]
+		var can_buy=count>0 and state.money>=price
+		choices.append([label+" · "+status,func():
+			if count==0: toast("Out of stock. Delivery next season.")
+			elif state.money<price: toast("You need %d crowns." % price)
+			elif not action.call(): toast("Make room in your satchel before buying that.")
+			else:
+				save_visit()
+				toast("Bought "+(state.Items.CATALOG[item].name if state.Items.CATALOG.has(item) else label)+".")
+			shop_menu(title,role,text,offers),can_buy,item,true])
+	choices.append(["Thanks, I'm all set.",func(): pass])
+	panel(title,role,text,choices)
+
+func crowns(amount: int) -> String:
+	return "1,000" if amount==1000 else str(amount)
+
+func tavi_shop() -> void:
+	var offers=[
+		["seeds","Five moon-turnip seeds",10,"seeds",func(): state.buy_seeds()],
+		["star_seeds","Three star-bulb seeds",12,"star_seeds",func(): state.buy_star_seeds()],
+		["pan","Frying pan",20,"pan",func(): state.buy_utensil("pan")],
+		["pot","Cooking pot",20,"pot",func(): state.buy_utensil("pot")],
+		["health_elixir","Health elixir",15,"health_elixir",func(): state.purchase("health_elixir")],
+		["sugar","Sugar",4,"sugar",func(): state.purchase("sugar")],
+		["butter","Butter",6,"butter",func(): state.purchase("butter")]]
+	shop_menu("Tavi's Grocery","SEASONAL STOCK","Here's what's on the shelves today. Seed packets, cookware, and baking supplies arrive with the seasonal cart. Pots and pans work from your kitchen cabinet or satchel.",offers)
+
+func smith_shop() -> void:
+	var offers=[["rusty_sword","Rusty sword",1000,"rusty_sword",func(): state.buy_sword()]]
+	shop_menu("Dain's Smithy","FORGED GOODS","A plain blade, kept sharp enough. One thousand crowns. More steelwork is possible once you have the right materials.",offers)
+
+func vale_checkin_choices() -> Array:
+	if int(state.chat_days.get("vale_repairs",0))==state.day: return []
+	return [["What's the status on repairs?",func():
+		state.chat_days["vale_repairs"]=state.day
+		save_visit()
+		toast("Vale walks you through the repair status and the work still ahead.",4.0)]]
 
 func baking_supplies() -> void:
 	var choices=[]
@@ -1233,7 +1290,7 @@ func read_local_request(id: String) -> void:
 		var choices=[]
 		if job.status=="offered": choices.append(["I'll take this request",func(): state.requests.accept(state,id); save_visit(); bulletin_board()])
 		choices.append(["Back to the board",bulletin_board])
-		panel("A request from "+person_name(terms[0]),"LOCAL HELP WANTED","Please bring %s to %s before the week is out. Reward: %d crowns. Deliver in person; I'll be glad of the help."%[state.requests.supplies(int(job.template)),person_name(terms[0]),terms[3]],choices)
+		panel("A request from "+person_name(terms[0]),"LOCAL HELP WANTED","Complete the task: %s. Get the result to %s before the week is out. Reward: %d crowns."%[state.requests.supplies(int(job.template)),person_name(terms[0]),terms[3]],choices)
 		return
 	toast("That notice is no longer on the board.")
 
@@ -1311,7 +1368,7 @@ func update_welcome_arrival(dt: float) -> void:
 	for i in range(WELCOME_MEMBERS.size()):
 		var id=WELCOME_MEMBERS[i]
 		var actor=world.villagers[id]
-		if i>0 and (not world.villagers[WELCOME_MEMBERS[i-1]].visible or world.villagers[WELCOME_MEMBERS[i-1]].position.distance_to(world.entry_position())<48):
+		if i>0 and (not world.villagers[WELCOME_MEMBERS[i-1]].visible or world.villagers[WELCOME_MEMBERS[i-1]].position.distance_to(Grid.center(WELCOME_POSITIONS[i-1]))>64):
 			arrived=false
 			break
 		outdoors.story_destinations[id]={"cell":Grid.world_to_cell(outdoors.site_position("bed")),"room":"home","sleeping":false}
@@ -1490,6 +1547,12 @@ func development_tools() -> void:
 		["Advance 24 hours",func(): advance_development_time(1440.0)],
 		["Advance 1 season · 28 days",func(): advance_development_time(State.DEVELOPMENT_SEASON_DAYS*1440.0)],
 		["Weather · "+state.weather_name().replace("_"," "),development_weather],
+		["Return to farmhouse",func():
+			if current_room!="": leave_building()
+			state.player_position=Grid.center(Vector2i(13,51))
+			world.refresh()
+			close_window(true)
+			],
 		["Restore vitals, grant tools and 100,000 crowns",development_supplies],
 		["Back to settings",settings]])
 

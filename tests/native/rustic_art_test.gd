@@ -13,7 +13,7 @@ func run() -> void:
 	check(error.is_empty(),"the complete rustic 16-pixel pack loads")
 	if not error.is_empty(): quit(1); return
 	check(Art.tile_size==16 and Art.region("tile_grass0").size==Vector2(16,16) and Art.sprite_size("tile_grass0")==Vector2(32,32),"rustic pixels scale to the existing grid")
-	var original=Image.load_from_file("res://art/option2/sprites.png")
+	var original=(ResourceLoader.load("res://art/option2/sprites.png") as Texture2D).get_image()
 	var catalog=Art.read_json("res://art/option2/sprites.json")
 	var new_silhouettes=0
 	for id in ["tree_oak_3","actor_player_down0","furniture_sofa_3x1"]:

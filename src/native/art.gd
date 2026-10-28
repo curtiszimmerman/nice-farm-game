@@ -33,7 +33,13 @@ static func select_pack(path: String) -> String:
 	if not entries.has_all(baseline.keys()): return "The artwork pack is missing required sprites."
 	var image_path=folder.path_join(manifest.atlas)
 	if not FileAccess.file_exists(image_path): return "The artwork PNG is missing."
-	var image=Image.load_from_file(image_path)
+	var image: Image
+	if ResourceLoader.exists(image_path):
+		var texture=ResourceLoader.load(image_path) as Texture2D
+		if texture==null: return "Could not read the artwork PNG."
+		image=texture.get_image()
+	else:
+		image=Image.load_from_file(image_path)
 	if image==null: return "Could not read the artwork PNG."
 	var scale=32.0/manifest.tile_size
 	for id in entries:
@@ -203,15 +209,19 @@ static func building(c: CanvasItem,b: Dictionary) -> void:
 		sprite(c,"sign_smith" if b.kind=="smithy" else "sign_baker",Vector2(door*32-16,-88),Vector2(64,32))
 	elif b.kind in ["smithy","bakery"]: tile(c,b.kind+"_sign",Vector2i(maxi(0,door-1),-2))
 	if b.kind in ["tavern","radio"]:
-		var pos=Vector2(door*32-68,-90)
-		sprite(c,"sign_general_store" if catalog.has("sign_general_store") else "general_store_sign",pos,Vector2(152,32))
-		c.draw_rect(Rect2(pos+Vector2(5,4),Vector2(142,24)),Color("473b32"))
 		var font=preload("res://pixel_ui.gd").font()
 		if b.kind=="tavern":
-			c.draw_string(font,pos+Vector2(8,12),"WAYWARD",HORIZONTAL_ALIGNMENT_LEFT,-1,8,Color("f1e7c9"))
-			c.draw_string(font,pos+Vector2(8,24),"WREN",HORIZONTAL_ALIGNMENT_LEFT,-1,8,Color("f1e7c9"))
-			c.draw_string(font,pos+Vector2(63,23),"TAVERN",HORIZONTAL_ALIGNMENT_LEFT,-1,20,Color("f1e7c9"))
-		else: c.draw_string(font,pos+Vector2(12,23),"RADIO CLUB",HORIZONTAL_ALIGNMENT_LEFT,-1,20,Color("f1e7c9"))
+			var pos=Vector2(door*32-58,-127)
+			c.draw_rect(Rect2(pos,Vector2(116,22)),Color("473b32"))
+			c.draw_rect(Rect2(pos+Vector2(2,2),Vector2(112,18)),Color("725943"))
+			c.draw_string(font,pos+Vector2(6,9),"WAYWARD",HORIZONTAL_ALIGNMENT_LEFT,-1,7,Color("f1e7c9"))
+			c.draw_string(font,pos+Vector2(6,18),"WREN",HORIZONTAL_ALIGNMENT_LEFT,-1,7,Color("f1e7c9"))
+			c.draw_string(font,pos+Vector2(48,17),"TAVERN",HORIZONTAL_ALIGNMENT_LEFT,-1,14,Color("f1e7c9"))
+		else:
+			var pos=Vector2(door*32-39,-122)
+			c.draw_rect(Rect2(pos+Vector2(0,3),Vector2(78,15)),Color("344b4b"))
+			c.draw_rect(Rect2(pos+Vector2(2,5),Vector2(74,11)),Color("768b79"))
+			c.draw_string(font,pos+Vector2(7,14),"RADIO CLUB",HORIZONTAL_ALIGNMENT_LEFT,-1,9,Color("f2dfae"))
 
 static func roof_tint(value: String) -> Color:
 	return Color(value).lerp(Color.WHITE,0.65)
@@ -252,7 +262,6 @@ static func outdoors(w: Node2D) -> void:
 				sprite(w,"plant_overlay_turnip" if (x+y)%3 else "plant_overlay_sprout",Grid.origin(cell))
 	sprite(w,"cart",Grid.origin(w.CART_CELLS.position)-Vector2(0,32))
 	sprite(w,"crossroads_sign",w.site_position("sign")-Vector2(16,40),Vector2(32,48))
-	for cell in w.LAMP_CELLS: sprite(w,"lamp",Grid.center(cell)-Vector2(16,86))
 
 static func interior_wall(room: Node2D) -> String:
 	return "metal_wall" if room.building.id=="ship" else "wall"

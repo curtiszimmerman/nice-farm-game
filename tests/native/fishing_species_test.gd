@@ -19,11 +19,12 @@ func run() -> void:
 		if w.Grid.center(cell).distance_to(w.Grid.center(w.POND_CELL))>190: continue
 		for direction in [Vector2i.UP,Vector2i.DOWN,Vector2i.LEFT,Vector2i.RIGHT]:
 			var shore=cell+direction
-			if not w.blocked(w.Grid.center(shore)) and not w.JETTY_CELLS.has_point(shore): shores.append(shore)
+			if not w.blocked(w.Grid.center(shore)) and not w.JETTY_CELLS.has_point(shore): shores.append({"cell":shore,"facing":{Vector2i.UP:"down",Vector2i.DOWN:"up",Vector2i.LEFT:"right",Vector2i.RIGHT:"left"}[direction]})
 	var filled=true
 	for shore in shores:
 		game.state.water=0
-		game.state.player_position=w.Grid.center(shore)
+		game.state.player_position=w.Grid.center(shore.cell)
+		w.facing=shore.facing
 		preload("fixture.gd").activate(game)
 		if game.state.water!=20: filled=false
 	check(shores.size()>10 and filled,"an armed can fills along the reachable pond shoreline")

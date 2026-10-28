@@ -62,7 +62,10 @@ func run() -> void:
 	game.state.player_position=game.Grid.center(rock.cell+Vector2i.DOWN)
 	game.world.facing="up"
 	preload("fixture.gd").activate(game)
-	check(game.state.copper==1,"mining completes through the game controller with a selected pickaxe")
+	preload("fixture.gd").activate(game)
+	preload("fixture.gd").activate(game)
+	preload("fixture.gd").activate(game)
+	check(game.state.copper==1 and game.state.stones==1,"mining leaves ore and stone on the cave floor until collected")
 	game.leave_building()
 	game.state.copper_bars=3
 	game.enter_building("ship")

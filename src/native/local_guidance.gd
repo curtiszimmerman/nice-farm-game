@@ -86,9 +86,6 @@ static func smith_copper(game: Node2D) -> void:
 	if not at_work:
 		game.dialog("Dain Rusk","COPPER AND COMMON SENSE","The southeast caves have copper, but take something to defend yourself. Ask Moss or Bram if you need advice. Come by the forge when I'm working and we can talk equipment.")
 		return
-	game.dialog("Dain Rusk","COPPER AND COMMON SENSE","Southeast caves. Plenty of copper ore if you know what to look for, but don't go in without a way to protect yourself. Even the rats can make a mess of an unprepared traveler. I've a serviceable rusty sword at the forge. One thousand crowns.",[
-		["Buy rusty sword · 1,000 crowns",func():
-			if game.state.buy_sword(): game.save_visit(); game.dialog("Dain Rusk","GOOD STEEL UNDER THE RUST","There you are. Keep the edge clean and don't let yourself get cornered.")
-			else: game.toast("You need 1,000 crowns, room for the sword, and no sword already stored."),at_work and game.state.money>=1000 and not game.state.has_sword()],
+	game.dialog("Dain Rusk","COPPER AND COMMON SENSE","Southeast caves. Plenty of copper ore if you know what to look for, but don't go in without a way to protect yourself. Even the rats can make a mess of an unprepared traveler. I've a serviceable rusty sword at the forge for one thousand crowns. Ask what I have for sale if you'd like to see it.",[
 		["There's no way I could afford that right now.",func(): game.dialog("Dain Rusk","ASK AROUND","Fair enough. Ask Moss. Or the old veteran, Bram, down in the woods. He's been putting off clearing out his army kit for years. Might be something the two of you could work out.")],
 		["Thanks for the warning.",func(): pass]])

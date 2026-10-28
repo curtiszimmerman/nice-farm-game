@@ -24,15 +24,31 @@ func run() -> void:
 	check(enough,"sixty cave seeds provide enough ore and stone for the first crucible and three bars")
 	var s=game.State.new()
 	s.pickaxe=1
-	s.bread=1
 	s.assign_active("primary","pickaxe")
-	for id in s.Items.CATALOG:
-		if id in ["copper","stones"]: continue
-		if s.carried_slots()<s.INVENTORY_SLOTS-1: s.set(id,1)
+	s.energy=100
+	var cave=game.Cave.new()
+	cave.state=s
+	cave.outdoors=game.outdoors
+	cave.building={"id":"cave"}
+	game.add_child(cave)
+	var copper=cave.rocks.values().filter(func(rock):return rock.resource=="copper")[0]
+	var stand=copper.cell+Vector2i.DOWN
+	s.player_position=game.Grid.center(stand)
+	cave.facing="up"
 	var energy=s.energy
-	check(not s.mine("copper") and s.copper==0 and s.stones==0 and s.energy==energy,"ore mining reserves room for both ore and its stone before spending energy")
-	s.bread=0
-	check(s.mine("copper") and s.copper==1 and s.stones==1,"a copper-bearing rock yields ore and stone together")
+	check(cave.mine_rock(copper.id) and copper.hits==1 and s.energy==energy-4 and s.copper==0,"copper ore takes two four-energy hits before dropping")
+	check(cave.mine_rock(copper.id) and cave.floor_drops.size()==2 and s.copper==0 and s.stones==0,"ore and stone remain as separate floor pickups after mining")
+	var drops=cave.floor_drops.duplicate()
+	for drop in drops: check(cave.collect_drop("drop_"+drop.id),"mined "+drop.item+" can be collected from the floor")
+	check(s.copper==1 and s.stones==1 and s.cave_broken.has(copper.id),"collecting both drops adds them to inventory and records the deposit")
+	var stone=cave.rocks.values().filter(func(rock):return rock.resource=="stones")[0]
+	s.player_position=game.Grid.center(stone.cell+Vector2i.DOWN)
+	cave.facing="up"
+	check(cave.mine_rock(stone.id) and cave.floor_drops.any(func(drop):return drop.item=="stones"),"ordinary stone breaks in one hit and drops stone")
+	var coal=cave.rocks.values().filter(func(rock):return rock.resource=="coal")[0]
+	s.player_position=game.Grid.center(coal.cell+Vector2i.DOWN)
+	check(cave.mine_rock(coal.id) and coal.hits==1 and cave.mine_rock(coal.id),"coal takes two hits to mine")
+	cave.queue_free()
 	await game.sound.shutdown()
 	game.queue_free()
 	await process_frame

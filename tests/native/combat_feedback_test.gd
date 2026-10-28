@@ -11,12 +11,15 @@ func run() -> void:
 	root.add_child(game)
 	game.set_process(false)
 	preload("fixture.gd").explore(game,true)
+	game.state.cave_seed=12345
 	game.enter_building("cave")
 	game.close_window()
 	game.state.rusty_sword=1
 	game.state.select_inventory("rusty_sword")
 	var rat=game.world.rats[0]
-	game.state.player_position=rat.position+Vector2(0,30)
+	var rat_cell=game.Grid.world_to_cell(rat.position)
+	rat.info.health=2
+	game.state.player_position=game.Grid.center(rat_cell+Vector2i.DOWN)
 	game.world.facing="up"
 	game.world.attack()
 	check(game.state.get("experience")==0,"a nonlethal strike does not award kill experience")

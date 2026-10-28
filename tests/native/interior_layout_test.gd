@@ -67,13 +67,13 @@ func run() -> void:
 	for person in game.outdoors.people:
 		if person.id=="veteran": named=person.name=="Bram"
 	check(named,"the veteran is named Bram")
-	var garden_clear=true
-	for y in range(game.outdoors.VETERAN_GARDEN.position.y,game.outdoors.VETERAN_GARDEN.end.y):
-		for x in range(game.outdoors.VETERAN_GARDEN.position.x,game.outdoors.VETERAN_GARDEN.end.x):
-			if not game.outdoors.reserved_cells.has(Vector2i(x,y)) or game.outdoors.blocked(game.outdoors.Grid.center(Vector2i(x,y))): garden_clear=false
+	var veteran_garden=game.outdoors.garden_cells_by_home.get("veteran",[])
+	var garden_clear=veteran_garden.size()>=2
+	for cell in veteran_garden:
+		if not game.outdoors.reserved_cells.has(cell) or not game.outdoors.garden_cells.has(cell) or not game.outdoors.blocked(game.outdoors.Grid.center(cell)): garden_clear=false
 	check(garden_clear,"Bram's planted garden reserves its tiles against trees and obstacles")
 	var before=game.state.plots.duplicate(true)
-	game.state.player_position=game.world.Grid.center(game.world.VETERAN_GARDEN.position)
+	game.state.player_position=game.world.Grid.center(veteran_garden[0])
 	game.interact()
 	check(before==game.state.plots,"Bram's garden is decorative and cannot be farmed")
 	await game.sound.shutdown()

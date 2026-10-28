@@ -41,7 +41,7 @@ func run() -> void:
 					seen.append(id)
 		for a in visible:
 			for b in visible:
-				if a!=b and game.world.villagers[a].position.distance_to(game.world.villagers[b].position)<28: separated=false
+				if a!=b and game.world.villagers[a].position.distance_to(game.world.villagers[b].position)<game.world.Bodies.RADIUS: separated=false
 		if game.state.welcome_phase=="meeting": break
 	check(first_entry>=0 and first_entry<10,"the first visitor enters within ten seconds of cleanup")
 	check(seen==game.WELCOME_MEMBERS and separated,"visitors enter in order and remain physically separated")

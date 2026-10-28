@@ -16,7 +16,7 @@ func run() -> void:
 	var cave=game.world
 	var rows={}
 	for rock in cave.rocks.values():
-		if cave.chambers[0].has_point(rock.cell): rows[rock.cell.y]=true
+		rows[rock.cell.y]=true
 	check(rows.size()>1,"entrance-room deposits scatter across the cave instead of lining up in one row")
 	var before={}
 	for id in cave.rocks: before[id]={"cell":cave.rocks[id].cell,"ore":cave.rocks[id].ore}
@@ -24,7 +24,12 @@ func run() -> void:
 	game.state.pickaxe=1
 	game.state.select_inventory("pickaxe")
 	game.state.player_position=game.Grid.center(cave.rocks[first].cell)+Vector2(0,32)
-	check(cave.mine_rock(first),"a generated deposit can be mined")
+	var hits=2 if cave.rocks[first].resource in ["copper","coal"] else 1
+	var mined=true
+	for _hit in range(hits): mined= cave.mine_rock(first) and mined
+	var drops=cave.floor_drops.duplicate()
+	for drop in drops: mined=cave.collect_drop("drop_"+drop.id) and mined
+	check(mined,"a generated deposit breaks, drops materials, and records after pickup")
 	var restored=game.State.new()
 	check(restored.restore(game.state.to_dict()),"randomized world state survives a save round trip")
 	var rebuilt=game.Cave.new()
