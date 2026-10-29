@@ -14,6 +14,7 @@ func run() -> void:
 	game.state.met_mayor=true
 	game.enter_building("smithy")
 	game.talk("smith")
+	game.ui.modal_box.get_children().filter(func(node):return node is Button and node.text=="Go on.")[0].pressed.emit()
 	check(game.ui.modal_box.get_children().any(func(node):return node is Button and node.text.contains("10 star bulbs")),"Dain offers the blueprint in exchange for ten star bulbs")
 	game.close_window()
 	game.leave_building()

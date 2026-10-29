@@ -14,14 +14,15 @@ func _initialize() -> void:
 	var doubled=false
 	var silenced=false
 	for seed_value in range(300):
-		var omen=Faith.chaos(1,seed_value)
-		check(omen==Faith.chaos(1,seed_value),"Chaos remains stable for a world and day")
+		var omen=Faith.chaos(8,seed_value)
+		check(omen==Faith.chaos(8,seed_value),"Chaos remains stable for a world and day")
 		if omen.favored==omen.weakened:
 			collision=true
-			var amount=Faith.strength(1,seed_value,omen.favored)
+			var amount=Faith.strength(8,seed_value,omen.favored)
 			doubled=doubled or amount==2
 			silenced=silenced or amount==0
 	check(collision and doubled and silenced,"independent Chaos draws can double or silence the same school")
+	check(Faith.SCHOOLS.all(func(school):return Faith.strength(1,42,school)==1.0),"all magic has ordinary strength on the first day")
 	var state=preload("res://state.gd").new()
 	preload("fixture.gd").garden(state)
 	state.learned_spells.append("hearthmend")

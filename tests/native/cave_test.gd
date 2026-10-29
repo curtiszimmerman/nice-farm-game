@@ -95,7 +95,12 @@ func run() -> void:
 	game.enter_building("iona")
 	game.talk("iona")
 	game.ui.modal_box.get_child(3).pressed.emit()
+	for choice in game.ui.modal_box.get_children():
+		if choice is Button and choice.text=="Learn the local lore": choice.pressed.emit(); break
+	for choice in game.ui.modal_box.get_children():
+		if choice is Button and choice.text=="Teach me Wildgrowth": choice.pressed.emit(); break
 	check(game.state.magic_learned and game.state.assign_slot(2,"wildgrowth"),"Iona's free tower lesson unlocks manually assigned Wildgrowth")
+	game.close_window()
 	game.leave_building()
 	preload("fixture.gd").face_site(game,"sparkfire")
 	game.state.minute=720
@@ -108,7 +113,7 @@ func run() -> void:
 	game.enter_building("cave")
 	game.change_cave_level(1)
 	game.change_cave_level(1)
-	game.state.selected_slot=0
+	game.state.assign_active("primary","")
 	preload("fixture.gd").face_site(game,"chrysalis")
 	game.interact()
 	game.interact()

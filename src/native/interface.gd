@@ -192,11 +192,11 @@ func _ready() -> void:
 	quick_tray=tray
 	tray.scale=Vector2(1.2,1.2)
 	tray.position=Vector2(40,582)
-	health_label = _label("HP  100",Vector2(19,7),10,MUTED,false,tray)
+	health_label = _label("HP  100",Vector2(19,7),13,MUTED,false,tray)
 	health_bar = _bar(Vector2(19,23),Vector2(132,4),Color("c38e80"),tray)
-	vitality = _label("ENERGY  100",Vector2(19,30),10,MUTED,false,tray)
+	vitality = _label("ENERGY  100",Vector2(19,30),13,MUTED,false,tray)
 	energy_bar = _bar(Vector2(19,46),Vector2(132,4),Color("a5bb78"),tray)
-	attunement = _label("MANA  60",Vector2(19,53),10,MUTED,false,tray)
+	attunement = _label("MANA  60",Vector2(19,53),13,MUTED,false,tray)
 	mana_bar = _bar(Vector2(19,69),Vector2(132,4),Color("90b9d2"),tray)
 	_label("PRIMARY",Vector2(163,3),8,GOLD,false,tray)
 	active_button=ItemButton.new()
@@ -312,19 +312,21 @@ func _ready() -> void:
 	status_strip.add_theme_constant_override("separation",4)
 	status_strip.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	root.add_child(status_strip)
-	needs_panel=Panel.new()
-	needs_panel.position=Vector2(-152,0)
-	needs_panel.size=Vector2(152,88)
-	needs_panel.add_theme_stylebox_override("panel",style(Color("172b2bf5"),Color("aaab7a99")))
+	needs_panel=Control.new()
+	needs_panel.position=Vector2.ZERO
+	needs_panel.size=Vector2(152,36)
 	quick_tray.add_child(needs_panel)
-	_label("WATER",Vector2(10,7),10,MUTED,false,needs_panel)
-	hydration_bar=_bar(Vector2(10,23),Vector2(132,4),Color("90b9d2"),needs_panel)
-	_label("FOOD",Vector2(10,30),10,MUTED,false,needs_panel)
-	nourishment_bar=_bar(Vector2(10,46),Vector2(132,4),Color("c4b16c"),needs_panel)
+	_label("WATER",Vector2(19,0),13,MUTED,false,needs_panel)
+	hydration_bar=_bar(Vector2(19,17),Vector2(132,4),Color("90b9d2"),needs_panel)
+	_label("FOOD",Vector2(19,19),13,MUTED,false,needs_panel)
+	nourishment_bar=_bar(Vector2(19,36),Vector2(132,4),Color("c4b16c"),needs_panel)
+	for child in quick_tray.get_children():
+		if child!=needs_panel: child.set_meta("base_y",child.position.y)
 	for child in root.get_children():
 		if child!=pause_shield and child!=title_screen: hud_nodes.append(child)
 
 func update_hud() -> void:
+	layout_survival_hud()
 	var hidden=game.cutscene_active()
 	if hidden and not hud_hidden:
 		for node in hud_nodes: hud_visibility[node]=node.visible
@@ -335,6 +337,13 @@ func update_hud() -> void:
 	needs_panel.visible=game.state.needs.hardcore and not hidden
 	if hidden:
 		for node in hud_nodes: node.hide()
+
+func layout_survival_hud() -> void:
+	var extra=42.0 if game.state.needs.hardcore else 0.0
+	quick_tray.position.y=582.0-extra*quick_tray.scale.y
+	quick_tray.size.y=70.4+extra
+	for child in quick_tray.get_children():
+		if child!=needs_panel and child.has_meta("base_y"): child.position.y=float(child.get_meta("base_y"))+extra
 
 func _label(text: String,pos: Vector2,font_size: int,color: Color,book = false,parent: Node = null) -> Label:
 	var label = Label.new()
@@ -451,7 +460,7 @@ func close_modal() -> void:
 	modal = null
 	modal_box = null
 
-func open_modal(title: String,eyebrow: String,body: String,choices: Array,wide = false) -> void:
+func open_modal(title: String,eyebrow: String,body: String,choices: Array,wide = false,speaker_id: String="") -> void:
 	close_modal()
 	modal = Control.new()
 	modal.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -471,10 +480,11 @@ func open_modal(title: String,eyebrow: String,body: String,choices: Array,wide =
 	panel.add_child(modal_scroll)
 	modal_scroll.add_child(modal_box)
 	modal_box.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	var image_id="actor_%s_down0" % speaker_id
 	var subtitle = Label.new()
 	subtitle.text = eyebrow
 	subtitle.add_theme_color_override("font_color",GOLD)
-	subtitle.add_theme_font_size_override("font_size",11)
+	subtitle.add_theme_font_size_override("font_size",24 if eyebrow=="YOUR JOURNEY" else 11)
 	modal_box.add_child(subtitle)
 	var heading = Label.new()
 	heading.text = title
@@ -482,6 +492,19 @@ func open_modal(title: String,eyebrow: String,body: String,choices: Array,wide =
 	heading.add_theme_font_size_override("font_size",27)
 	heading.add_theme_color_override("font_color",CREAM)
 	modal_box.add_child(heading)
+	if speaker_id!="" and Items.Art.catalog.has(image_id):
+		heading.custom_minimum_size.y=104
+		var portrait=TextureRect.new()
+		var picture=AtlasTexture.new()
+		picture.atlas=Items.Art.atlas
+		picture.region=Items.Art.region(image_id)
+		portrait.texture=picture
+		portrait.texture_filter=CanvasItem.TEXTURE_FILTER_NEAREST
+		portrait.position=Vector2(568,0)
+		portrait.size=Vector2(80,104)
+		portrait.expand_mode=TextureRect.EXPAND_IGNORE_SIZE
+		portrait.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		heading.add_child(portrait)
 	var text = Label.new()
 	text.text = body
 	text.custom_minimum_size.x = 580 if wide else 680
@@ -504,7 +527,8 @@ func open_modal(title: String,eyebrow: String,body: String,choices: Array,wide =
 		b.pressed.connect(func(): game.choose_dialogue(action))
 		modal_box.add_child(b)
 	var footer = Label.new()
-	footer.text = "Story sequence holds time" if game.clock_held() else "ESC closes · " + ("Time keeps moving" if game.state.pause_mode=="none" else "Calendar paused; world active" if game.state.pause_mode=="clock" else "World paused")
+	footer.text = "" if eyebrow=="YOUR JOURNEY" or game.clock_held() else "ESC closes · " + ("Time keeps moving" if game.state.pause_mode=="none" else "Calendar paused; world active" if game.state.pause_mode=="clock" else "World paused")
+	footer.visible=not footer.text.is_empty()
 	footer.add_theme_font_size_override("font_size",10)
 	footer.add_theme_color_override("font_color",Color("94ad98"))
 	modal_box.add_child(footer)

@@ -59,7 +59,8 @@ func run() -> void:
 	var repair_checkin=game.vale_checkin_choices()
 	if not repair_checkin.is_empty(): repair_checkin[0][1].call()
 	check(repair_checkin[0][0]=="What's the status on repairs?" and game.state.health==100 and game.state.energy==100 and game.state.mana==60,"Vale's repair check-in uses natural dialogue and does not heal the crew")
-	check(game.vale_checkin_choices().is_empty(),"Vale's repair check-in reward is limited to once per day")
+	check(not game.vale_checkin_choices().is_empty(),"Vale can discuss repairs again without a daily reward")
+	game.close_window()
 	game.state.abandoned_day["finch"]=game.state.day
 	game.state.minute=800
 	check(not world.stop_for("finch").sleeping,"an interrupted conversation does not lock Finch's house during daytime")

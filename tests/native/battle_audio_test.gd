@@ -15,7 +15,11 @@ func run() -> void:
 	check(opening.has_method("battle_events"),"battle sounds follow the same timeline as visible laser bolts")
 	if opening.has_method("battle_events"):
 		var first=opening.battle_events(-0.001,0.9)
-		check(first.size()==2 and first[0].sound=="laser" and first[1].sound=="laser_hit" and is_equal_approx(first[1].time-first[0].time,0.82),"laser firing and impact sounds match the bolt travel duration")
+		check(first.any(func(event):return event.sound=="laser" and is_equal_approx(event.time,0.0)) and first.any(func(event):return event.sound=="laser_hit" and is_equal_approx(event.time,0.82)),"laser firing and impact sounds match the bolt travel duration")
+		var launches=opening.shot_times.map(func(shot):return shot.launch)
+		var gaps=[]
+		for i in range(1,launches.size()): gaps.append(launches[i]-launches[i-1])
+		check(gaps.any(func(gap):return gap<0.4) and gaps.any(func(gap):return gap>1.0),"laser fire falls into irregular clusters separated by pauses")
 		check(opening.battle_events(5.84,5.86).any(func(event):return event.friendly and event.sound=="laser"),"return fire has its own correctly timed shot")
 		opening.caption_step=2
 		opening.elapsed=3.4

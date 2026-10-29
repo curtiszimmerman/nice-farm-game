@@ -15,9 +15,10 @@ func check(condition: bool, description: String) -> void:
 func _initialize() -> void:
 	var s = State.new()
 	preload("fixture.gd").tools(s)
+	var seeds_before=s.seeds
 	s.tend(0)
 	s.tend(0)
-	check(s.seeds == 7 and not s.ripe(0), "planting spends a seed and requires water")
+	check(s.seeds == seeds_before-1 and not s.ripe(0), "planting spends a seed and requires water")
 	s.advance(500.0)
 	check(not s.ripe(0), "unwatered crops cannot ripen")
 	s.tend(0)

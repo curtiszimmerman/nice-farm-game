@@ -48,16 +48,19 @@ var activity = ""
 var activity_time = 0.0
 var sound: Node
 var screenshot_requested = false
+var title_backdrop_active=false
+var title_camera: Dictionary={}
 var chest_selected=""
 var storage_name="chest"
 var rest_return_position=Vector2.ZERO
 var conversation_members: Array=[]
 var conversation_sequence=false
+var welcome_entry_times: Dictionary={}
 var conversation_steps=0
 var conversation_location=""
 var conversation_anchor=Vector2.ZERO
 const WELCOME_MEMBERS=["mayor","moss","assistant"]
-const WELCOME_POSITIONS=[Vector2i(2,11),Vector2i(3,12),Vector2i(5,12)]
+const WELCOME_POSITIONS=[Vector2i(2,10),Vector2i(3,12),Vector2i(5,12)]
 var departure_paths: Dictionary={}
 var escort_path: Array=[]
 var fishing_species="fish"
@@ -96,6 +99,7 @@ func _ready() -> void:
 	if saved_room!="":
 		enter_building(saved_room)
 		if not world.blocked(saved_position): state.player_position=saved_position
+	if not testing: show_title_backdrop()
 	if testing:
 		ui.title_screen.queue_free()
 		ui.title_screen = null
@@ -109,6 +113,31 @@ func update_weather_sound(dt: float) -> void:
 
 func choose_journey_mode() -> void:
 	panel("Before we begin","YOUR JOURNEY","Choose how you want to live here. Hardcore adds hunger and thirst: drink before three days pass, and eat before three weeks. Going without blocks energy and mana recovery and costs health. You can change this in Settings.",[["A gentler journey",func(): start_journey(false)],["Hardcore · food and water matter",func(): start_journey(true)]])
+
+func show_title_backdrop() -> void:
+	if title_backdrop_active: return
+	title_backdrop_active=true
+	title_camera={"position":camera.position,"left":camera.limit_left,"top":camera.limit_top,"right":camera.limit_right,"bottom":camera.limit_bottom}
+	world.visible=false
+	outdoors.visible=true
+	outdoors.update_villagers(0.0,true)
+	var views=[Vector2i(98,49),Vector2i(104,51),Vector2i(110,46)]
+	camera.position=Grid.center(views[randi()%views.size()])
+	camera.limit_left=Grid.WORLD_CELLS.position.x*Grid.TILE_SIZE
+	camera.limit_top=0
+	camera.limit_right=int(Grid.WORLD_SIZE.x)
+	camera.limit_bottom=int(Grid.WORLD_SIZE.y)
+
+func restore_title_backdrop() -> void:
+	if not title_backdrop_active: return
+	title_backdrop_active=false
+	outdoors.visible=world==outdoors
+	world.visible=true
+	camera.position=title_camera.position
+	camera.limit_left=title_camera.left
+	camera.limit_top=title_camera.top
+	camera.limit_right=title_camera.right
+	camera.limit_bottom=title_camera.bottom
 
 func start_journey(hardcore: bool) -> void:
 	state.needs.hardcore=hardcore
@@ -125,6 +154,7 @@ func begin() -> void:
 	if not testing and not state.intro_complete and not state.needs.mode_chosen:
 		choose_journey_mode()
 		return
+	restore_title_backdrop()
 	started = true
 	sound.start()
 	if not state.intro_complete:
@@ -175,7 +205,9 @@ func _process(dt: float) -> void:
 	world.elapsed = elapsed
 	outdoors.elapsed = elapsed
 	for room in rooms.values(): room.elapsed = elapsed
-	if not started: return
+	if not started:
+		if title_backdrop_active: outdoors.update_villagers(dt)
+		return
 	if opening!=null: return
 	if not conversation_members.is_empty() and (state.location!=conversation_location or state.player_position.distance_to(conversation_anchor)>160): close_window()
 	if state.welcome_phase=="waiting":
@@ -441,7 +473,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not event is InputEventMouseButton or not event.pressed: return
 	if not started or window_open or opening!=null or welcome_control_locked(): return
 	if event.button_index in [MOUSE_BUTTON_LEFT,MOUSE_BUTTON_RIGHT]:
-		if world.find_nearest().is_empty() and state.active_item("primary" if event.button_index==MOUSE_BUTTON_LEFT else "aux") not in ["rusty_sword","hearthmend","emberthread"]: return
+		if world.find_nearest().is_empty() and state.active_item("primary" if event.button_index==MOUSE_BUTTON_LEFT else "aux") not in ["rusty_sword","pickaxe","axe","sickle","hearthmend","emberthread"]: return
 		activate_channel("primary" if event.button_index==MOUSE_BUTTON_LEFT else "aux")
 		get_viewport().set_input_as_handled()
 
@@ -561,9 +593,16 @@ func end_conversation(abandoned: bool=false) -> void:
 	conversation_steps=0
 
 func choose_dialogue(action: Callable) -> void:
+	var speaker=conversation_members[0] if conversation_members.size()==1 else ""
+	var scripted=welcome_control_locked() or not state.briefing_complete or conversation_members.size()>1
 	close_window(true)
 	action.call()
-	if not window_open: end_conversation(false)
+	if not window_open and speaker!="" and not scripted and conversation_members.has(speaker): talk(speaker)
+	elif not window_open: end_conversation(false)
+
+func is_exit_reply(label: String) -> bool:
+	var reply=label.to_lower()
+	return ["see you","have a nice day","take care","i'll leave you","i'll come back","just passing","enjoy your walk","thanks, i'm all set","goodbye"].any(func(ending):return reply.contains(ending))
 
 func dialog(title: String,role: String,text: String,choices: Array = []) -> void:
 	if not conversation_members.is_empty():
@@ -571,7 +610,8 @@ func dialog(title: String,role: String,text: String,choices: Array = []) -> void
 		if conversation_steps>1 and not (conversation_members.size()==1 and conversation_members[0] in ["tavi","baker"]): conversation_sequence=true
 	window_open = true
 	if choices.is_empty(): choices=[[neutral_reply(text),func(): pass]]
-	if conversation_members.size()==1 and not cutscene_active() and not (conversation_members[0]=="keeper" and state.firewood_requested and not state.firewood_given):
+	var ordinary=conversation_members.size()==1 and state.briefing_complete and not welcome_control_locked()
+	if ordinary and not (conversation_members[0]=="keeper" and state.firewood_requested and not state.firewood_given):
 		var person=conversation_members[0]
 		state.requests.refresh(state)
 		for job in state.requests.jobs:
@@ -593,15 +633,31 @@ func dialog(title: String,role: String,text: String,choices: Array = []) -> void
 				if state.give_gift(person,item):
 					save_visit()
 					dialog(title,"A GIFT", "Oh, that's wonderful. Thank you!" if preference==5 else "That's kind of you. Thank you." if preference==1 else "Thank you for thinking of me." if preference==0 else "Oh. I'm afraid this isn't really for me." if preference== -1 else "Please don't bring me anything like that again.")])
-	ui.open_modal(title,role,text,choices)
+	if ordinary:
+		var replies=[]
+		var exits=[]
+		for option in choices:
+			if is_exit_reply(option[0]): exits.append([option[0],func(): end_conversation()])
+			else: replies.append(option)
+		if exits.is_empty(): exits.append(["Goodbye.",func(): end_conversation()])
+		choices=replies+exits
+	ui.open_modal(title,role,text,choices,false,dialogue_speaker(title))
 	ui.dialogue_open=true
 	ui.update_hud()
 	if state.welcome_phase in ["meeting","moss_lesson"] or ("moss" in conversation_members and not state.invited): ui.modal.get_child(1).position.y=35
 
+func dialogue_speaker(title: String) -> String:
+	if title=="Captain": return "player"
+	if title=="Briar Glen Radio": return ""
+	if title=="Mrs. Bell": return "miller_wife"
+	for person in outdoors.people:
+		if person.name==title: return person.id
+	return conversation_members[0] if conversation_members.size()==1 else ""
+
 func neutral_reply(text: String) -> String:
 	if "thank" in text.to_lower(): return "You're welcome."
 	if "?" in text: return "I'll keep that in mind."
-	return ["Sounds good.","Have a nice day.","See you around.","Take care."][posmod(hash(text)+state.day,4)]
+	return ["Sounds good.","I see.","That helps.","I'll keep that in mind."][posmod(hash(text)+state.day,4)]
 
 func panel(title: String,eyebrow: String,text: String,choices: Array = []) -> void:
 	if welcome_control_locked(): return
@@ -650,8 +706,13 @@ func interact() -> void:
 		if world.attack(): burst(state.player_position+Vector2({"up":Vector2.UP,"down":Vector2.DOWN,"left":Vector2.LEFT,"right":Vector2.RIGHT}[world.facing])*26,"e8d2a0",10); save_visit()
 		else: toast("Carry and select your sword, and keep enough energy to swing.")
 		return
+	if state.active_item() in ["pickaxe","axe","sickle"] and (nearest.is_empty() or nearest.get("type")=="weapon"):
+		if world.attack_with_tool(state.active_item()): save_visit()
+		else: toast("You need the tool and enough energy to swing.")
+		return
 	if ui.Items.FOOD.has(state.active_item()):
-		toast("Used %s." % ui.Items.CATALOG[state.active_item()].name if state.consume(state.active_item()) else "Nothing to restore, or none carried.")
+		var food_id=state.active_item()
+		toast("Used %s." % ui.Items.CATALOG[food_id].name if state.consume(food_id) else "Nothing to restore, or none carried.")
 		save_visit()
 		return
 	if world==outdoors and state.active_item()=="watering_can" and world.in_water(Grid.center(world.front_cell())) and Grid.center(world.front_cell()).distance_to(Grid.center(world.POND_CELL))<190:
@@ -1082,8 +1143,13 @@ func shopkeeper_at_work(id: String,room: String) -> bool:
 	return current_room==room and world.villagers.has(id) and world.villagers[id].visible and not world.villagers[id].data.get("sleeping",false)
 
 func talk(id: String) -> void:
+	var first_meeting=not state.chat_days.has(id)
 	state.chat_with(id)
 	begin_conversation([id],id in ["veteran","finch","vale"] or (id=="moss" and not state.invited))
+	var greetings=preload("res://npc_greetings.gd").LINES
+	if first_meeting and id not in ["vale","moss","mayor","assistant"] and greetings.has(id):
+		dialog(person_name(id),"A FIRST HELLO",greetings[id],[["Go on.",func(): talk(id)]])
+		return
 	if id not in ["smith","woodcutter"] and preload("res://neighbors.gd").talk(self,id): return
 	match id:
 		"smith":
@@ -1107,7 +1173,7 @@ func talk(id: String) -> void:
 			else: dialog("Mayor Alder","BRIAR GLEN","How are things coming along at the farmhouse? Have a look at the bulletin board when you get a chance. And if you need help, ask Moss. His family has lived here longer than any of ours; he knows the ground and the people on it.")
 		"assistant":
 			if state.mayor_available(): mayor()
-			else: dialog("Neral","MAYOR'S ASSISTANT · DARK ELF","How are things coming along? The bulletin board is worth checking. If you need help, Moss is a good person to ask. He and his ancestors have lived here the longest. He speaks well of you; I hope his faith is well placed. And if you remember anything else about that light on the mountain, do let me know.")
+			else: dialog("Neral","MAYOR'S ASSISTANT · DARK ELF","How are things coming along? The bulletin board is worth checking. Moss knows the country better than anyone, so ask him if you need help. He says you're settling in. I'd rather hear it from you. And if you remember anything about that light on the mountain, tell me.")
 		"moss":
 			if not state.invited:
 				dialog("Moss","AT THE FOOT OF THE MOUNTAIN TRAIL","Hold on there! What was that flash and crashing sound up on the mountain? Looked as though someone cast quite a spell. Are you travelers?",[
@@ -1140,11 +1206,14 @@ func talk(id: String) -> void:
 			if outdoors.stop_for("iona").sleeping:
 				dialog("Iona","FIELD MAGICIAN","Come visit my tower in the northern cliffs if you'd like a lesson. I keep late hours.")
 			else:
-				dialog("Iona","MAGIC OF BRIAR GLEN","You'll find our deities gentler than the ones near the Veyr border. Mostly they want things to grow. I can show you Wildgrowth, if you like. Water a seed first, then give it a little encouragement. Fifteen mana, and no fee for the lesson. For something more adventurous, bring me a Cave Moth Chrysalis from deep underground, or a Golden Sparkfire Bloom. Mind you, that flower only opens while the sun is rising. Walk past at noon and you'd never give it a second glance.",[
-					["Learn the basics" if not state.magic_learned else "Practice Wildgrowth",func(): state.magic_learned=true; save_visit(); toast("Wildgrowth learned. Assign it yourself under Actions → Spells and skills.",7)],
+				var lessons=[
+					["Tell me about the seven days",weekday_lore]]
+				if state.chat_days.has("weekday_lore"): lessons.append(["Which magic might be stronger or weaker on the next Rift?",next_rift_omen])
+				lessons.append(["Learn the local lore",local_magic_lore])
+				lessons.append_array([
 					["Hearthmend · one Golden Sparkfire Bloom",func(): learn_local_spell("hearthmend"),state.golden_sparkfire_bloom>=1],
-					["Tell me about the seven days",weekday_lore],
 					["Emberthread · one Cave Moth Chrysalis + 10 logs",func(): learn_local_spell("emberthread"),state.cave_moth_chrysalis>=1 and state.wood>=10]])
+				dialog("Iona","MAGIC OF BRIAR GLEN","You'll find our deities gentler than the ones near the Veyr border. Mostly they want things to grow. I can show you Wildgrowth, if you like. Water a seed first, then give it a little encouragement. Fifteen mana, and no fee for the lesson. For something more adventurous, bring me a Cave Moth Chrysalis from deep underground, or a Golden Sparkfire Bloom. Mind you, that flower only opens while the sun is rising. Walk past at noon and you'd never give it a second glance.",lessons)
 		"finch": dialog("Finch","RADIO CLUB SECRETARY","Come in, come in. Mind that cable. Last week we picked up a dance band from Veyr, clear as anything. Governments can argue all they like; the air doesn't stop at a checkpoint." if current_room=="radio" else "Good to give my eyes a rest from the wiring. Nessa's coming along nicely with that receiver. Her mother will have river weather reports in the kitchen before long.",[["What's on the air today?",radio],["I'll come back sometime.",func(): pass]])
 		"vale":
 			if not state.briefing_complete: show_briefing(); return
@@ -1209,11 +1278,7 @@ func smith_shop() -> void:
 	shop_menu("Dain's Smithy","FORGED GOODS","A plain blade, kept sharp enough. One thousand crowns. More steelwork is possible once you have the right materials.",offers)
 
 func vale_checkin_choices() -> Array:
-	if int(state.chat_days.get("vale_repairs",0))==state.day: return []
-	return [["What's the status on repairs?",func():
-		state.chat_days["vale_repairs"]=state.day
-		save_visit()
-		toast("Vale walks you through the repair status and the work still ahead.",4.0)]]
+	return [["What's the status on repairs?",func(): dialog("Chief Vale","REPAIR STATUS","The cloak is steady. Everything else still needs parts and patience. I'm keeping the power sink stable and making a list of what can be repaired first. Ask me again whenever you like; I'll tell you when something changes.")]]
 
 func baking_supplies() -> void:
 	var choices=[]
@@ -1224,13 +1289,44 @@ func baking_supplies() -> void:
 	dialog("Tavi","SOMETHING SWEET","Preserves need berries and sugar in a pot. For cobbler, add flour and butter and fetch your pan. Tomas sells flour at the mill.",choices)
 
 func weekday_lore() -> void:
+	if not state.chat_days.has("weekday_lore"):
+		weekday_lore_chain(0)
+		return
 	var faith=preload("res://weekday_magic.gd")
 	var choices=[]
 	for index in range(7):
 		var selected=index
 		choices.append([faith.DAYS[index]+" · "+faith.DEITIES[index][0],func():
-			dialog("Iona",faith.DAYS[selected].to_upper(),faith.DEITIES[selected][1],[["And the other days?",weekday_lore],["Thank you. I'll remember that.",func(): pass]])])
+			dialog("Iona",faith.DAYS[selected].to_upper(),weekday_lore_text(selected),[["And the other days?",weekday_lore],["Back to Iona",func(): talk("iona")]])])
 	dialog("Iona","SEVEN TURNS OF THE SKY","The day matters as much as the words. Which of the seven would you like to hear about?",choices)
+
+func weekday_lore_chain(index: int) -> void:
+	var faith=preload("res://weekday_magic.gd")
+	var next=index+1
+	dialog("Iona",faith.DAYS[index].to_upper(),weekday_lore_text(index),[["Tell me about "+faith.DAYS[next]+"." if next<7 else "And that makes seven days.",func():
+		if next<7: weekday_lore_chain(next)
+		else:
+			state.chat_days["weekday_lore"]=state.day
+			save_visit()
+			talk("iona")]])
+
+func weekday_lore_text(index: int) -> String:
+	var openings=["A day of chaos.","A day of growth.","A day of fire.","A day of air.","A day of water.","A day of light.","A day of darkness."]
+	return openings[index]+" "+preload("res://weekday_magic.gd").DEITIES[index][1]
+
+func local_magic_lore() -> void:
+	dialog("Iona","MAGIC OF BRIAR GLEN","Here, Thessil's growing things answer more readily than they do near the border. Wildgrowth lends a watered seed a little of that strength. It costs fifteen mana, and I can teach you for free.",[["Teach me Wildgrowth" if not state.magic_learned else "Practice Wildgrowth",func():
+		state.magic_learned=true
+		save_visit()
+		dialog("Iona","WILDGROWTH","There you are. Water a seed first, then give it a little encouragement. You can assign Wildgrowth under Actions, in Spells and skills.")]])
+
+func next_rift_omen() -> void:
+	var faith=preload("res://weekday_magic.gd")
+	var next_day=state.day+(7-posmod(state.day-1,7))
+	var omen=faith.chaos(next_day,state.world_seed)
+	var body="On the next Rift, I expect %s magic to answer more strongly, while %s magic may be harder to shape." % [omen.favored,omen.weakened]
+	if omen.favored==omen.weakened: body="The two signs both point to %s magic. On that Rift it may %s." % [omen.favored,"be twice as strong" if omen.collision>1 else "fail entirely"]
+	dialog("Iona","THE NEXT RIFT",body)
 
 func buy_cookware(id: String) -> void:
 	if state.stock(id)==0:
@@ -1299,6 +1395,7 @@ func read_local_request(id: String) -> void:
 	toast("That notice is no longer on the board.")
 
 func prepare_welcome_party() -> void:
+	welcome_entry_times.clear()
 	for visitor in WELCOME_MEMBERS:
 		outdoors.story_destinations[visitor]={"cell":Grid.world_to_cell(outdoors.site_position("bed")),"room":"","sleeping":false}
 
@@ -1320,7 +1417,7 @@ func mayor() -> void:
 		face_welcome_party()
 	begin_conversation(["mayor","assistant","moss"],true)
 	dialog("Mayor Alder","BRIAR GLEN · AT YOUR FARM","Well, look at that. The lamps are working again! Moss says you're travelers in need of a roof. It's been a long time since anyone called this place home. You're welcome to stay, so long as you look after it. Keep it clean, and we'll get along nicely.",[
-		["We can promise that.",func(): dialog("Neral","MAYOR'S ASSISTANT · DARK ELF","Alder, a long stay? With matters as they stand with Veyr, oughtn't we find out a little more before handing over a house? We have their word that they're travelers, and a flash on the mountain. That's a rather thin introduction.",[
+		["We can promise that.",func(): dialog("Neral","MAYOR'S ASSISTANT · DARK ELF","Alder, a long stay? With matters as they stand along the border with Veyr, oughtn't we find out more before handing over a house? We don't know anything about them. They're strangers! How can we take them at their word? And that flash on the mountain still has no explanation.",[
 			["Thank you, Neral.",func(): dialog("Mayor Alder","BRIAR GLEN","Now, Neral, let our guests catch their breath. There's a garden out there if you'd like to earn your keep. Moss left seeds and tools in the chest, and Tavi buys produce in the square. Good food on your table and a little money in your pocket. Not a bad place to begin.",[
 				["We'll keep the house clean and make a start in the garden.",func():
 					state.met_mayor=true
@@ -1363,16 +1460,16 @@ func update_welcome_arrival(dt: float) -> void:
 	outdoors.update_villagers(dt*2)
 	if state.player_position.distance_to(Grid.center(Vector2i(4,11)))>1:
 		var path=world._route(Grid.world_to_cell(state.player_position),Vector2i(4,11))
-		if not path.is_empty():
-			world.facing=World.Bodies.facing_for(path[0]-state.player_position)
-			state.player_position=state.player_position.move_toward(path[0],dt*120)
-			world.moving=true
-			return
+		var next=path[0] if not path.is_empty() else Grid.center(Vector2i(4,11))
+		world.facing=World.Bodies.facing_for(next-state.player_position)
+		state.player_position=state.player_position.move_toward(next,dt*120)
+		world.moving=true
+		return
 	var arrived=true
 	for i in range(WELCOME_MEMBERS.size()):
 		var id=WELCOME_MEMBERS[i]
 		var actor=world.villagers[id]
-		if i>0 and (not world.villagers[WELCOME_MEMBERS[i-1]].visible or world.villagers[WELCOME_MEMBERS[i-1]].position.distance_to(Grid.center(WELCOME_POSITIONS[i-1]))>32):
+		if i>0 and (not welcome_entry_times.has(WELCOME_MEMBERS[i-1]) or elapsed-float(welcome_entry_times[WELCOME_MEMBERS[i-1]])<0.5 or world.villagers[WELCOME_MEMBERS[i-1]].position.distance_to(world.entry_position())<World.Bodies.RADIUS*1.5):
 			arrived=false
 			break
 		outdoors.story_destinations[id]={"cell":Grid.world_to_cell(outdoors.site_position("bed")),"room":"home","sleeping":false}
@@ -1380,6 +1477,7 @@ func update_welcome_arrival(dt: float) -> void:
 		if not actor.visible:
 			actor.position=world.entry_position()
 			actor.visible=true
+			welcome_entry_times[id]=elapsed
 		if not walk_visitor(id,WELCOME_POSITIONS[i],dt): arrived=false
 		else:
 			actor.data.direction=World.Bodies.facing_for(state.player_position-actor.position)
@@ -1404,7 +1502,7 @@ func update_welcome_departure(dt: float,members: Array=["mayor","assistant"]) ->
 func moss_lesson() -> void:
 	state.welcome_phase="moss_lesson"
 	begin_conversation(["moss"],true)
-	dialog("Moss","A LITTLE HELP GETTING STARTED","Before I go, those seeds will do you more good in the ground than in a chest. Hoe a little patch and plant them. The can's empty, but there's a pond south of here. Give them water each day; three watered nights and you should have a crop. The soil dries out by sunrise, so don't forget the next morning. Use the sickle when it's ready. Mind your energy, though. A meal and a rest in your own bed will set you right.",[
+	dialog("Moss","A LITTLE HELP GETTING STARTED","Before I go, those seeds will do you more good in the ground than in a chest. Hoe a little patch and plant them. The can's empty, but there's a pond south of here. Give them water each day; three watered nights and you should have a crop. The soil dries out by sunrise, so don't forget the next morning. Use the sickle when it's ready. Mind your energy, though. A meal and a rest in your own bed will set you right. And listen to the radio regularly; news travels farther than any of us can walk.",[
 		["I need some copper. Any idea where I could find some?",func(): preload("res://local_guidance.gd").copper(self)],
 		["And the spell you mentioned?",func(): dialog("Moss","THE WIZARD IN THE NORTHERN CLIFFS","Go see Iona. She'll introduce you to this area's deities and magic. Might save you a sore back in the garden. She's a night owl and sleeps till noon, then spends a few hours around the square before working at her northern tower. Ask her whenever she's awake; she's happy to teach.",[
 			["Thanks, Moss. We'll visit her.",func():

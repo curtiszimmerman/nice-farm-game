@@ -306,6 +306,11 @@ func attack() -> bool:
 	preload("res://tool_motion.gd").start(self,"rusty_sword")
 	return true
 
+func attack_with_tool(id: String) -> bool:
+	if id not in ["pickaxe","axe","sickle"] or state.active_item()!=id or int(state.get(id))<1 or not state.spend_energy(2): return false
+	preload("res://tool_motion.gd").start(self,id,true)
+	return true
+
 func chop_tree(cell: Vector2i) -> bool:
 	if state.active_item()!="axe" or state.axe<1: return false
 	if elapsed-player.data.get("chop_started",-10.0)<0.6: return false

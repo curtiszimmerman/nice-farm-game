@@ -13,6 +13,7 @@ var impact_played=false
 var explosion_played=false
 var battle_clock=0.0
 var battle_started=false
+var shot_times: Array=[]
 var finished=false
 var view: Control
 
@@ -31,6 +32,15 @@ func _ready() -> void:
 	var rng=RandomNumberGenerator.new()
 	rng.randomize()
 	for i in range(120): stars.append({"pos":Vector2(rng.randf_range(0,1280),rng.randf_range(0,570)),"speed":rng.randf_range(3,11),"size":rng.randi_range(1,2),"alpha":rng.randf_range(0.35,1)})
+	rng.seed=game.state.world_seed
+	for side in [false,true]:
+		var clusters=[3.4,6.4,9.7,12.9,15.8] if not side else [9.25,12.0,15.0]
+		for cluster in clusters:
+			var count=rng.randi_range(1,3)
+			for index in range(count):
+				var launch=cluster+index*rng.randf_range(0.18,0.34)
+				if launch<17.1: shot_times.append({"friendly":side,"launch":launch,"index":shot_times.size()})
+	shot_times.sort_custom(func(a,b):return a.launch<b.launch)
 
 func advance() -> void:
 	if finished or caption_step>=CAPTION_TIMES.size()-1: return
@@ -40,14 +50,9 @@ func advance() -> void:
 
 func shots_at(time: float) -> Array:
 	var shots=[]
-	for friendly in [false,true]:
-		var first=9.25 if friendly else 3.4
-		var interval=2.15 if friendly else 1.85
-		for index in range(8):
-			var launch=first+index*interval
-			if launch>=17.1: break
-			var age=time-launch
-			if age>=0 and age<1.15: shots.append({"friendly":friendly,"progress":minf(1,age/0.82),"impact":maxf(0,age-0.82),"hit":age>=0.82,"index":index})
+	for shot in shot_times:
+		var age=time-shot.launch
+		if age>=0 and age<1.15: shots.append({"friendly":shot.friendly,"progress":minf(1,age/0.82),"impact":maxf(0,age-0.82),"hit":age>=0.82,"index":shot.index})
 	return shots
 
 func scene_at(time: float) -> String:
@@ -62,15 +67,10 @@ func battle_at(time: float) -> Dictionary:
 func battle_events(from: float,to: float) -> Array:
 	var events=[]
 	for cycle in range(maxi(0,floori(from/15)),floori(to/15)+1):
-		for friendly in [false,true]:
-			var first=9.25 if friendly else 3.4
-			var interval=2.15 if friendly else 1.85
-			for index in range(8):
-				var launch=first+index*interval
-				if launch>=17.1: break
-				for sound in ["laser","laser_hit"]:
-					var time=cycle*15+launch-3.4+(0.82 if sound=="laser_hit" else 0.0)
-					if time>from and time<=to: events.append({"time":time,"sound":sound,"friendly":friendly})
+		for shot in shot_times:
+			for sound in ["laser","laser_hit"]:
+				var time=cycle*15+shot.launch-3.4+(0.82 if sound=="laser_hit" else 0.0)
+				if time>from and time<=to: events.append({"time":time,"sound":sound,"friendly":shot.friendly})
 	events.sort_custom(func(a,b):return a.time<b.time)
 	return events
 
@@ -210,12 +210,40 @@ func paint_pixels(c: CanvasItem) -> void:
 			Art.sprite(c,"explosion"+str(clampi(int((elapsed-18)*3),0,5)),enemy-Vector2(96,96),Vector2(192,192))
 		if elapsed>=18:
 			Art.sprite(c,"explosion"+str(int(animation_time*8)%6),center+Vector2(-150,10),Vector2(48,48))
-	else: Art.sprite(c,"bridge",Vector2.ZERO,Vector2(1280,620))
+	else:
+		Art.sprite(c,"bridge",Vector2.ZERO,Vector2(1280,620))
+		paint_bridge_details(c)
 	c.draw_rect(Rect2(0,0,1280,75),Color("090f20"))
 	c.draw_rect(Rect2(0,572,1280,148),Color("090f20"))
 	c.draw_multiline_string(ThemeDB.fallback_font,Vector2(115,626),caption_at(elapsed),HORIZONTAL_ALIGNMENT_CENTER,1050,22,-1,Color("eee6cf"))
 	paint_continue_hint(c)
 	if whiteout_alpha()>0: c.draw_rect(Rect2(0,0,1280,720),Color(1,1,1,whiteout_alpha()))
+
+func paint_bridge_details(c: CanvasItem) -> void:
+	# The planet sits inside the right window pane, behind its frame.
+	Art.sprite(c,"planet",Vector2(892,126),Vector2(130,125))
+	c.draw_rect(Rect2(883,102,7,151),Color("81969d"))
+	c.draw_rect(Rect2(1024,102,7,151),Color("81969d"))
+	c.draw_rect(Rect2(883,248,148,7),Color("617780"))
+	# A chair, uniform and foreground console give the captain the same detail as the world actors.
+	c.draw_rect(Rect2(601,318,78,143),Color("344955"))
+	c.draw_rect(Rect2(607,323,66,107),Color("607986"))
+	c.draw_rect(Rect2(613,328,54,6),Color("9bb0ad"))
+	Art.sprite(c,"actor_player_down0",Vector2(615,331),Vector2(50,100))
+	c.draw_rect(Rect2(590,425,100,47),Color("354d59"))
+	c.draw_rect(Rect2(598,430,84,26),Color("537079"))
+	c.draw_rect(Rect2(604,435,30,5),Color("9bd1c3"))
+	c.draw_rect(Rect2(643,435,32,5),Color("87aebf"))
+	for x in [607,618,649,661]: c.draw_rect(Rect2(x,447,5,4),Color("d4bc7c"))
+	if elapsed>=12.5:
+		var flicker=fmod(animation_time*11.0,3.7)
+		if flicker<0.38:
+			for x in [217,871]:
+				c.draw_rect(Rect2(x,365,178,67),Color(0.62,0.72,0.73,0.35))
+				for line in range(5): c.draw_rect(Rect2(x+7,368+line*11,160,2),Color(0.86,0.91,0.86,0.6))
+		for point in [Vector2(394,345),Vector2(904,359),Vector2(681,426)]:
+			if fmod(animation_time*7.0+point.x*0.013,2.9)<0.36:
+				Art.sprite(c,"spark"+str(int(animation_time*25)%6),point,Vector2(28,28))
 
 func whiteout_alpha() -> float:
 	return smoothstep(24,24.2,elapsed) if caption_step>=7 else 0.0

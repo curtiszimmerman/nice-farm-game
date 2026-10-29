@@ -17,6 +17,7 @@ static func chaos(day: int,world_seed: int) -> Dictionary:
 	return {"favored":SCHOOLS[rng.randi_range(0,SCHOOLS.size()-1)],"weakened":SCHOOLS[rng.randi_range(0,SCHOOLS.size()-1)],"collision":2.0 if rng.randf()<0.5 else 0.0}
 
 static func strength(day: int,world_seed: int,school: String) -> float:
+	if day==1: return 1.0
 	var weekday=posmod(day-1,7)
 	if weekday==0:
 		var omen=chaos(day,world_seed)

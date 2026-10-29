@@ -16,6 +16,7 @@ func run() -> void:
 	game.outdoors.update_villagers(0,true)
 	game.enter_building("store")
 	game.talk("tavi")
+	game.ui.modal_box.get_children().filter(func(node):return node is Button and node.text=="Go on.")[0].pressed.emit()
 	var position=game.outdoors.villagers.tavi.position
 	game.state.minute=1300
 	game.outdoors.update_villagers(1)

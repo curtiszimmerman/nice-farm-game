@@ -26,8 +26,7 @@ func run() -> void:
 	check(not game.world_paused and intro.elapsed>=3,"space advances intro dialogue instead of pausing it")
 	check(intro.has_method("shots_at"),"battle shots have individual launch and impact times")
 	if intro.has_method("shots_at"):
-		var shots=intro.call("shots_at",11.0)
-		check(shots.size()<=2,"battle volleys leave readable gaps between shots")
+		check(intro.call("shots_at",8.4).is_empty(),"clustered battle volleys leave a readable pause between bursts")
 	for i in range(5): intro.advance()
 	intro._process(100)
 	check(intro.has_method("whiteout_alpha"),"the crash fade has an explicit acknowledgement gate")

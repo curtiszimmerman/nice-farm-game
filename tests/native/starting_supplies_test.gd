@@ -11,8 +11,9 @@ func run() -> void:
 	root.add_child(game)
 	game.set_process(false)
 	var s=game.state
+	check(s.chest.any(func(stack):return stack.get("id")=="seeds" and stack.get("count")==20),"Moss leaves twenty seeds in the farmhouse chest")
 	check(s.quick_slots.all(func(id): return id=="") and s.selected_slot==0,"new players have eight empty quick slots with one selected")
-	check(s.seeds==0 and s.chest.any(func(stack): return stack.get("id")=="seeds" and stack.count==8),"starting seeds are stored with the tools")
+	check(s.seeds==0 and s.chest.any(func(stack): return stack.get("id")=="seeds" and stack.count==20),"starting seeds are stored with the tools")
 	check(s.water==0,"the starter watering can is empty")
 	s.chest_transfer(0)
 	check(s.active_item()=="hoe" and s.quick_slots[0]=="hoe","the first carried item occupies the matching inventory-row quick slot")

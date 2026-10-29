@@ -37,8 +37,8 @@ func run() -> void:
 	game.state.met_mayor=true
 	game.ui.update()
 	check(game.ui.quest_unread,"a newly assigned farming quest flags the log again")
-	game.ui.quick_tray.position=game.get_viewport().get_canvas_transform()*game.state.player_position-Vector2(100,100)
-	game.ui.quick_tray.size=Vector2(1280,720)
+	var tray_center=game.ui.quick_tray.position+Vector2(100,25)
+	game.state.player_position=game.get_viewport().get_canvas_transform().affine_inverse()*tray_center
 	game.ui._process(1)
 	check(game.ui.quick_tray.modulate.a<0.3,"quick slots fade when they cover the avatar")
 	var w=game.outdoors

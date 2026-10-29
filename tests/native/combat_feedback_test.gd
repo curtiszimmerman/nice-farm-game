@@ -44,6 +44,14 @@ func run() -> void:
 	attacker.position=game.state.player_position
 	game.world.swing_cooldown=0
 	check(game.world.has_attack_target() and game.world.attack() and attacker.info.health==1,"a rat pressed against the captain remains inside the sword arc")
+	attacker.info.health=3
+	for tool in ["pickaxe","axe","sickle"]:
+		game.state.set(tool,1)
+		game.state.assign_active("primary",tool)
+		game.world.swing_cooldown=0
+		check(game.world.attack_with_tool(tool) and game.world.player.data.tool_combat and attacker.info.health<3,"a carried %s makes a weak combat swing"%tool)
+		attacker.info.health=3
+	check(preload("res://tool_motion.gd").pose("rusty_sword","right",0.5).has("from_base") and is_equal_approx(preload("res://tool_motion.gd").DURATION,0.3),"the sword pivots from its grip for a short waist-high swipe")
 	for enemy in game.world.rats: enemy.visible=false
 	game._process(1.4)
 	check(game.world.combat_texts.is_empty(),"combat values disappear when their rise and fade finish")

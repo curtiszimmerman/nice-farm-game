@@ -33,6 +33,8 @@ func run() -> void:
 		game.leave_building()
 	game.state.silver_bars=2
 	game.talk("priest")
+	var greeting=game.ui.modal_box.get_children().filter(func(node):return node is Button and node.text=="Go on.")
+	if not greeting.is_empty(): greeting[0].pressed.emit()
 	var blueprint=game.ui.modal_box.get_children().filter(func(node):return node is Button and node.text.contains("beehive"))
 	if not blueprint.is_empty(): blueprint[0].pressed.emit()
 	check(game.state.beehive_known and game.state.silver_bars==0,"the priest teaches beehive plans for exactly two silver ingots")

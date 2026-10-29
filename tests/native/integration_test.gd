@@ -33,10 +33,11 @@ func run() -> void:
 	check(game.state.invited and not game.window_open,"dialogue choice records the same-day appointment")
 	preload("fixture.gd").finish_welcome(game)
 	game.state.player_position=game.world.plot_position(0)+Vector2.UP*game.world.Grid.TILE_SIZE
+	var seeds_before=game.state.seeds
 	for slot in [0,3,1]:
 		game.select_quick_slot(slot)
 		preload("fixture.gd").activate(game)
-	check(game.state.plots[0].watered and game.state.seeds==7,"contextual input tills plants and waters")
+	check(game.state.plots[0].watered and game.state.seeds==seeds_before-1,"contextual input tills plants and waters")
 	game.select_quick_slot(5)
 	game.state.day=2
 	game.cast_growth()
@@ -46,7 +47,10 @@ func run() -> void:
 	game.enter_building("store")
 	game.state.player_position=game.world.villagers.tavi.position+Vector2(0,12)
 	preload("fixture.gd").activate(game)
-	game.ui.modal_box.get_child(3).pressed.emit()
+	for choice in game.ui.modal_box.get_children():
+		if choice is Button and choice.text=="Go on.": choice.pressed.emit(); break
+	for choice in game.ui.modal_box.get_children():
+		if choice is Button and choice.text.begins_with("Sell produce"): choice.pressed.emit(); break
 	check(game.state.turnips==0 and game.state.money==32,"merchant dialogue actually sells inventory")
 	game.close_window()
 	game.leave_building()
@@ -56,8 +60,8 @@ func run() -> void:
 	game.close_window()
 	preload("fixture.gd").face_site(game,"cave_pickaxe")
 	game.interact()
-	game.state.assign_slot(4,"pickaxe")
-	game.select_quick_slot(4)
+	game.state.assign_slot(0,"pickaxe")
+	game.select_quick_slot(0)
 	var rock=game.world.rocks.values().filter(func(item): return item.ore)[0]
 	game.state.player_position=game.Grid.center(rock.cell+Vector2i.DOWN)
 	game.world.facing="up"
@@ -78,14 +82,15 @@ func run() -> void:
 	game.state.player_position=game.world.site_position("pond")
 	game.state.fishing_pole=1
 	game.state.assign_active("primary","fishing_pole")
-	preload("fixture.gd").activate(game)
+	game.start_fishing("pond")
 	game.activity_time=1.2
 	var caught=game.fishing_species
+	var fish_before=game.state.get(caught)
 	for i in range(1000):
 		game.activity_time=1.2+i*0.01
 		if game.fishing_position()>0.4 and game.fishing_position()<0.6: break
-	preload("fixture.gd").activate(game)
-	check(game.state.get(caught)==1 and game.activity=="","fishing timing rewards the hooked species")
+	game._finish_fishing()
+	check(game.state.get(caught)==fish_before+1 and game.activity=="","fishing timing rewards the hooked species")
 	game.state.day=2
 	game.state.met_mayor=false
 	game.state.minute=719

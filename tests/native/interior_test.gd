@@ -81,6 +81,7 @@ func run() -> void:
 	game.talk("veteran")
 	game.ui.modal_box.get_child(3).pressed.emit()
 	game.ui.modal_box.get_child(3).pressed.emit()
+	game.ui.modal_box.get_child(3).pressed.emit()
 	check(game.state.rusty_sword==1 and game.state.turnips==0,"veteran dialogue trades three moon turnips for the player's first sword")
 	game.state.assign_slot(4,"rusty_sword")
 	game.select_quick_slot(4)

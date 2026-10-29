@@ -73,6 +73,7 @@ func generate() -> void:
 		var col=i%3 if row%2==0 else 2-i%3
 		var room=Rect2i(col*25+rng.randi_range(2,14),row*19+rng.randi_range(1,11),rng.randi_range(2,6),rng.randi_range(2,6))
 		if i==0: room=Rect2i(2,2,6,6)
+		if i==6: room.size=Vector2i(maxi(3,room.size.x),maxi(3,room.size.y))
 		chambers.append(room)
 		for y in range(room.position.y,room.end.y):
 			for x in range(room.position.x,room.end.x):
@@ -108,6 +109,12 @@ func generate() -> void:
 	for cell in floor_cells:
 		if occupied.has(cell): continue
 		if chambers.any(func(room):return room.has_point(cell)) and floor_cells.has(cell): mob_candidates.append(cell)
+	if level==2:
+		var spider_candidates=mob_candidates.filter(func(cell):return chambers.back().has_point(cell))
+		spider_candidates.sort_custom(func(a,b):return a.distance_squared_to(chambers.back().get_center())<b.distance_squared_to(chambers.back().get_center()))
+		spider_cell=spider_candidates.front()
+		occupied[spider_cell]=true
+		mob_candidates.erase(spider_cell)
 	for index in range(mob_candidates.size()-1,0,-1):
 		var other=rng.randi_range(0,index)
 		var cell=mob_candidates[index]
@@ -116,12 +123,6 @@ func generate() -> void:
 	for index in range(mini(4,mob_candidates.size())):
 		rat_cells.append(mob_candidates[index])
 		occupied[mob_candidates[index]]=true
-	if level==2:
-		var final_room_cells=mob_candidates.filter(func(cell):return chambers.back().has_point(cell) and not occupied.has(cell))
-		var spider_candidates=final_room_cells if not final_room_cells.is_empty() else mob_candidates.filter(func(cell):return not occupied.has(cell))
-		spider_candidates.sort_custom(func(a,b):return a.distance_squared_to(chambers.back().get_center())<b.distance_squared_to(chambers.back().get_center()))
-		spider_cell=spider_candidates.front() if not spider_candidates.is_empty() else layout.entry+Vector2i.DOWN
-		occupied[spider_cell]=true
 	for y in range(ROOM_CELLS.y):
 		for x in range(ROOM_CELLS.x):
 			var cell=Vector2i(x,y)
@@ -226,8 +227,8 @@ func find_nearest() -> Dictionary:
 	for drop in floor_drops:
 		if drop.node==null or not is_instance_valid(drop.node) or drop.cell!=front_cell(): continue
 		best={"id":"drop_"+drop.id,"type":"drop","label":"Pick up "+preload("res://items.gd").CATALOG[drop.item].name}
-	if state.active_item()=="rusty_sword" and has_attack_target():
-		best={"id":"swing","type":"weapon","label":"Swing sword · 2 energy"}
+	if state.active_item() in ["rusty_sword","pickaxe","axe","sickle"] and has_attack_target():
+		best={"id":"swing","type":"weapon","label":"Swing weapon · 2 energy"}
 	nearest=best
 	return best
 
@@ -285,14 +286,23 @@ func collect_drop(id: String) -> bool:
 func attack() -> bool:
 	if swing_cooldown>0 or not super.attack(): return false
 	swing_cooldown=0.35
+	damage_front_creatures(1)
+	return true
+
+func attack_with_tool(id: String) -> bool:
+	if swing_cooldown>0 or not super.attack_with_tool(id): return false
+	swing_cooldown=0.6
+	damage_front_creatures(0.5)
+	return true
+
+func damage_front_creatures(amount: float) -> void:
 	var direction={"up":Vector2i.UP,"down":Vector2i.DOWN,"left":Vector2i.LEFT,"right":Vector2i.RIGHT}[facing]
 	var lateral=Vector2i(-direction.y,direction.x)
 	var target=Grid.world_to_cell(state.player_position)+direction
 	for rat in creatures():
 		var cell=Grid.world_to_cell(rat.position)
 		if not rat.visible or not [Grid.world_to_cell(state.player_position),target-lateral,target,target+lateral].has(cell): continue
-		damage_creature(rat,1)
-	return true
+		damage_creature(rat,amount)
 
 func creatures() -> Array: return rats+([spider] if spider!=null else [])
 

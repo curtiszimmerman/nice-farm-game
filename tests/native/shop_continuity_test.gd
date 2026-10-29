@@ -18,6 +18,7 @@ func run() -> void:
 	game.state.money=200
 	game.state.player_position=game.world.villagers.tavi.position+Vector2(0,32)
 	game.talk("tavi")
+	game.ui.modal_box.get_children().filter(func(node):return node is Button and node.text=="Go on.")[0].pressed.emit()
 	var opening=game.ui.modal_box.get_children().filter(func(node):return node is Button and node.text=="What have you got for sale?")
 	if not opening.is_empty(): opening[0].pressed.emit()
 	var pan=game.ui.modal_box.get_children().filter(func(node):return node is Button and node.text.contains("Frying pan"))

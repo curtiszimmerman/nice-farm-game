@@ -160,7 +160,7 @@ func _init() -> void:
 	cave_seed=randi_range(1,2147483646)
 	world_seed=randi_range(1,2147483646)
 	chest=[{"id":"hoe","count":1},{"id":"watering_can","count":1},{"id":"sickle","count":1}]
-	chest.append({"id":"seeds","count":8})
+	chest.append({"id":"seeds","count":20})
 	while chest.size()<18: chest.append({})
 	for i in range(12):
 		cabinet.append({})

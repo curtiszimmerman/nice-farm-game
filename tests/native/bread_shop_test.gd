@@ -14,6 +14,7 @@ func run() -> void:
 	game.state.met_mayor=true
 	game.enter_building("bakery")
 	game.talk("baker")
+	game.ui.modal_box.get_children().filter(func(node):return node is Button and node.text=="Go on.")[0].pressed.emit()
 	var dialogue_buttons=game.ui.modal_box.get_children().filter(func(node):return node is Button)
 	var sale_option=dialogue_buttons.filter(func(button):return button.text=="What have you got for sale?")
 	check(not sale_option.is_empty(),"Corin offers a single shop entry in his bakery dialogue")

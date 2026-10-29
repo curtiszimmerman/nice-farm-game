@@ -48,9 +48,11 @@ func run() -> void:
 	s.minute=780
 	w.update_villagers(0,true)
 	game.talk("iona")
-	check(buttons(game).any(func(b):return b.text=="Learn the basics"),"Iona offers lessons away from her tower while awake")
+	buttons(game).filter(func(b):return b.text=="Go on.")[0].pressed.emit()
+	check(buttons(game).any(func(b):return b.text=="Learn the local lore"),"Iona offers lessons away from her tower while awake")
 	game.close_window()
 	game.talk("tavi")
+	buttons(game).filter(func(b):return b.text=="Go on.")[0].pressed.emit()
 	check(not buttons(game).any(func(b):return b.text.begins_with("Buy") or b.text.begins_with("Sell")),"Tavi never trades outside the grocery")
 	game.close_window()
 	game.enter_building("smithy")
@@ -60,6 +62,7 @@ func run() -> void:
 	game.world.villagers.smith.visible=true
 	game.world.villagers.smith.data.sleeping=false
 	game.talk("smith")
+	buttons(game).filter(func(b):return b.text=="Go on.")[0].pressed.emit()
 	check(buttons(game).filter(func(b):return "work" in b.text).size()==1,"the smith has one topic about his work")
 	var sale=buttons(game).filter(func(b):return b.text=="What have you got for sale?")
 	if not sale.is_empty(): sale[0].pressed.emit()

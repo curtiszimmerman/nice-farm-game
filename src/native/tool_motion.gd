@@ -1,19 +1,23 @@
 extends RefCounted
 
 const Art=preload("res://art.gd")
-const DURATION=0.325
+const DURATION=0.3
 const ACTION_DURATION=0.6
 const TIPS={"hoe":Vector2(8,-9),"watering_can":Vector2(12,-2),"axe":Vector2(9,-9),"pickaxe":Vector2(9,-9),"sickle":Vector2(9,-9),"rusty_sword":Vector2(9,-11)}
 
-static func start(world: Node2D,id: String) -> void:
+static func start(world: Node2D,id: String,combat: bool=false) -> void:
 	world.player.data.tool_motion=id
 	world.player.data.tool_started=world.elapsed
 	world.player.data.tool_facing=world.facing
+	world.player.data.tool_combat=combat
 	world.player.queue_redraw()
 
-static func pose(id: String,facing: String,t: float) -> Dictionary:
+static func pose(id: String,facing: String,t: float,combat: bool=false) -> Dictionary:
 	var direction={"down":Vector2.DOWN,"up":Vector2.UP,"left":Vector2.LEFT,"right":Vector2.RIGHT}[facing]
 	var scale=Vector2(-1,1) if facing=="left" else Vector2.ONE
+	if id=="rusty_sword" or combat:
+		var base_tip=Vector2(9,-24)
+		return {"position":Vector2(0,-27)+direction*8,"angle":direction.angle()-(base_tip*scale).angle()+lerpf(-0.9,0.9,t),"scale":scale,"tip":base_tip,"from_base":true}
 	var tip: Vector2=TIPS.get(id,Vector2(9,-9))
 	var angle=direction.angle()-(tip*scale).angle()
 	var pivot=Vector2(0,-23)+direction*16
@@ -34,11 +38,12 @@ static func pose(id: String,facing: String,t: float) -> Dictionary:
 static func draw(world: Node2D,canvas: CanvasItem) -> void:
 	var data=world.player.data
 	var id=data.get("tool_motion","")
-	var t=(world.elapsed-data.get("tool_started",-10.0))/(DURATION if id=="rusty_sword" else ACTION_DURATION)
+	var combat=data.get("tool_combat",false)
+	var t=(world.elapsed-data.get("tool_started",-10.0))/(DURATION if id=="rusty_sword" or combat else ACTION_DURATION)
 	if not TIPS.has(id) or t<0 or t>=1: return
-	var frame=pose(id,data.tool_facing,t)
+	var frame=pose(id,data.tool_facing,t,combat)
 	canvas.draw_set_transform(frame.position,frame.angle,frame.scale)
-	Art.sprite(canvas,"item_"+id,Vector2(-16,-16),Vector2(32,32))
+	Art.sprite(canvas,"item_"+id,Vector2(-16,-30) if frame.has("from_base") else Vector2(-16,-16),Vector2(32,32))
 	canvas.draw_set_transform(Vector2.ZERO)
 	if id=="watering_can" and t>0.25 and t<0.85:
 		var direction={"down":Vector2.DOWN,"up":Vector2.UP,"left":Vector2.LEFT,"right":Vector2.RIGHT}[data.tool_facing]
