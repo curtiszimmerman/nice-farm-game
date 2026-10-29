@@ -1503,7 +1503,8 @@ func moss_lesson() -> void:
 	begin_conversation(["moss"],true)
 	dialog("Moss","A LITTLE HELP GETTING STARTED","Before I go, those seeds will do you more good in the ground than in a chest. Hoe a little patch and plant them. The can's empty, but there's a pond south of here. Give them water each day; three watered nights and you should have a crop. The soil dries out by sunrise, so don't forget the next morning. Use the sickle when it's ready. Mind your energy, though. A meal and a rest in your own bed will set you right. And listen to the radio regularly; news travels farther than any of us can walk.",[
 		["I need some copper. Any idea where I could find some?",func(): preload("res://local_guidance.gd").copper(self)],
-		["And the spell you mentioned?",func(): dialog("Moss","THE WIZARD IN THE NORTHERN CLIFFS","Go see Iona. She'll introduce you to this area's deities and magic. Might save you a sore back in the garden. She's a night owl and sleeps till noon, then spends a few hours around the square before working at her northern tower. Ask her whenever she's awake; she's happy to teach.",[
+		["Where can I learn more about the town?",func(): dialog("Moss","GETTING YOUR BEARINGS","Start with the bulletin board in town square. Jobs, missing things, news from your neighbors. Then come ask me if anything puzzles you. I've lived here all my life, and I still find something to learn.",[["And about the garden?",moss_lesson]])],
+		["You mentioned magic? Or a spell?",func(): dialog("Moss","THE WIZARD IN THE NORTHERN CLIFFS","Go see Iona. She'll introduce you to this area's deities and magic. Might save you a sore back in the garden. She's a night owl and sleeps till noon, then spends a few hours around the square before working at her northern tower. Ask her whenever she's awake; she's happy to teach.",[
 			["Thanks, Moss. We'll visit her.",func():
 				state.welcome_phase="moss_departing"
 				end_conversation()

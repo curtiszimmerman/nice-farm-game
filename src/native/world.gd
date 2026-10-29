@@ -279,6 +279,7 @@ func _claim(footprint: Rect2i,kind: String) -> void:
 			solid_cells[cell]=kind
 
 func can_build_crucible(cell: Vector2i) -> bool:
+	if road_cells.has(cell) or paved_cells.has(cell) or path_cells.has(cell) or trail_cells.has(cell): return false
 	if not Grid.near_farmhouse(cell) or not Grid.farmable(cell) or blocked(Grid.center(cell)): return false
 	return not villagers.values().any(func(actor):return actor.visible and actor.position.distance_to(Grid.center(cell))<Bodies.RADIUS)
 

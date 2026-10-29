@@ -12,6 +12,12 @@ func run() -> void:
 	game.set_process(false)
 	preload("fixture.gd").explore(game,true)
 	var s=game.state
+	var road_clear=true
+	for cell in game.world.road_cells:
+		road_clear=road_clear and not game.world.can_build_crucible(cell)
+	for cell in game.world.paved_cells:
+		road_clear=road_clear and not game.world.can_build_crucible(cell)
+	check(road_clear,"laid roads cannot be dug into farm plots")
 	s.hoe=1
 	s.assign_active("primary","hoe")
 	var selected=Vector2i(-100,-100)

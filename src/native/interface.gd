@@ -313,6 +313,7 @@ func _ready() -> void:
 	status_strip.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	root.add_child(status_strip)
 	needs_panel=_panel(Vector2.ZERO,Vector2(160,44),Color("172b2bf5"))
+	needs_panel.get_theme_stylebox("panel").border_width_bottom=0
 	needs_panel.scale=quick_tray.scale
 	_label("WATER",health_label.position,10,MUTED,false,needs_panel)
 	hydration_bar=_bar(health_bar.position,health_bar.size,Color("90b9d2"),needs_panel)
@@ -338,7 +339,7 @@ func update_hud() -> void:
 func layout_survival_hud() -> void:
 	var viewport_size=get_viewport().get_visible_rect().size
 	quick_tray.position=Vector2((viewport_size.x-quick_tray.size.x*quick_tray.scale.x)/2.0,viewport_size.y-quick_tray.size.y*quick_tray.scale.y-4.0)
-	needs_panel.position=Vector2(quick_tray.position.x,quick_tray.position.y-needs_panel.size.y*needs_panel.scale.y)
+	needs_panel.position=Vector2(quick_tray.position.x,quick_tray.position.y-(needs_panel.size.y-3)*needs_panel.scale.y)
 	controls_hint.position.y=quick_tray.position.y-24
 
 func _label(text: String,pos: Vector2,font_size: int,color: Color,book = false,parent: Node = null) -> Label:
