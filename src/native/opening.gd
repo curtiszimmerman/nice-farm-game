@@ -186,7 +186,7 @@ func paint(c: CanvasItem) -> void:
 	w.r(c,0,0,1280,75,"090f20")
 	w.r(c,0,572,1280,148,"090f20")
 	var caption=caption_at(elapsed)
-	c.draw_multiline_string(ThemeDB.fallback_font,Vector2(115,626),caption,HORIZONTAL_ALIGNMENT_CENTER,1050,22,-1,Color("eee6cf"))
+	c.draw_multiline_string(preload("res://pixel_ui.gd").font(),Vector2(115,626),caption,HORIZONTAL_ALIGNMENT_CENTER,1050,22,-1,Color("eee6cf"))
 	paint_continue_hint(c)
 	if whiteout_alpha()>0: c.draw_rect(Rect2(0,0,1280,720),Color(1,1,1,whiteout_alpha()))
 
@@ -215,13 +215,18 @@ func paint_pixels(c: CanvasItem) -> void:
 		paint_bridge_details(c)
 	c.draw_rect(Rect2(0,0,1280,75),Color("090f20"))
 	c.draw_rect(Rect2(0,572,1280,148),Color("090f20"))
-	c.draw_multiline_string(ThemeDB.fallback_font,Vector2(115,626),caption_at(elapsed),HORIZONTAL_ALIGNMENT_CENTER,1050,22,-1,Color("eee6cf"))
+	c.draw_multiline_string(preload("res://pixel_ui.gd").font(),Vector2(115,626),caption_at(elapsed),HORIZONTAL_ALIGNMENT_CENTER,1050,22,-1,Color("eee6cf"))
 	paint_continue_hint(c)
 	if whiteout_alpha()>0: c.draw_rect(Rect2(0,0,1280,720),Color(1,1,1,whiteout_alpha()))
 
 func paint_bridge_details(c: CanvasItem) -> void:
 	var bridge=bridge_composition()
+	c.draw_rect(bridge.sky,Color("0b1a2c") if Art.option==3 else Color("1a3348"))
+	c.draw_rect(Rect2(1072,154,6,5),Color("e3eef0"))
+	c.draw_rect(Rect2(925,185,4,4),Color("8da5ad"))
 	Art.sprite(c,"planet",bridge.planet.position,bridge.planet.size)
+	for step in range(12):
+		c.draw_rect(Rect2(1063-step*8,126+step*8,5,4),Color(0.36,0.52,0.61,0.55))
 	# The chair covers the small figure painted into the original bridge sprite.
 	c.draw_rect(Rect2(560,307,160,222),Color("344955"))
 	c.draw_rect(Rect2(572,315,136,184),Color("607986"))
@@ -235,15 +240,33 @@ func paint_bridge_details(c: CanvasItem) -> void:
 	if elapsed>=12.5:
 		var flicker=fmod(animation_time*11.0,3.7)
 		if flicker<0.38:
-			for x in [217,871]:
-				c.draw_rect(Rect2(x,365,178,67),Color(0.62,0.72,0.73,0.35))
-				for line in range(5): c.draw_rect(Rect2(x+7,368+line*11,160,2),Color(0.86,0.91,0.86,0.6))
-		for point in [Vector2(394,345),Vector2(904,359),Vector2(681,426)]:
-			if fmod(animation_time*7.0+point.x*0.013,2.9)<0.36:
-				Art.sprite(c,"spark"+str(int(animation_time*25)%6),point,Vector2(28,28))
+			for screen in [bridge.left_display,bridge.right_display]:
+				c.draw_rect(Rect2(screen.position+Vector2(4,4),screen.size-Vector2(8,8)),Color(0.62,0.72,0.73,0.35))
+				for line in range(5): c.draw_rect(Rect2(screen.position+Vector2(10,9+line*8),Vector2(screen.size.x-20,2)),Color(0.86,0.91,0.86,0.6))
+		var frame=int(animation_time*14)
+		for point in bridge_spark_positions(frame):
+			Art.sprite(c,"spark"+str(frame%6),point,Vector2(28,28))
 
 func bridge_composition() -> Dictionary:
-	return {"window":Rect2(912,122,210,124),"planet":Rect2(950,130,108,108),"captain":Rect2(565,220,150,300)}
+	return {"window":Rect2(912,122,210,124),"sky":Rect2(914,124,206,120),"planet":Rect2(950,130,108,108),"captain":Rect2(565,220,150,300),"left_console":Rect2(188,322,235,157),"right_console":Rect2(849,322,235,157),"left_display":Rect2(206,341,198,58),"right_display":Rect2(865,341,202,58)}
+
+func bridge_spark_positions(frame: int) -> Array:
+	var rng=RandomNumberGenerator.new()
+	rng.seed=hash("bridge-sparks:%s:%s" % [game.state.world_seed,frame])
+	var points=[]
+	var bridge=bridge_composition()
+	for console in [bridge.left_console,bridge.right_console]:
+		if rng.randf()<0.45: continue
+		var left=console.position.x+3
+		var right=console.end.x-31
+		var top=console.position.y+3
+		var bottom=console.end.y-31
+		match rng.randi_range(0,3):
+			0: points.append(Vector2(rng.randf_range(left,right),top))
+			1: points.append(Vector2(rng.randf_range(left,right),bottom))
+			2: points.append(Vector2(left,rng.randf_range(top,bottom)))
+			3: points.append(Vector2(right,rng.randf_range(top,bottom)))
+	return points
 
 func whiteout_alpha() -> float:
 	return smoothstep(24,24.2,elapsed) if caption_step>=7 else 0.0
@@ -263,7 +286,7 @@ func paint_shots(c: CanvasItem,center: Vector2,enemy: Vector2) -> void:
 		else: bolt(c,start,target,shot.progress,shot.friendly)
 
 func paint_continue_hint(c: CanvasItem) -> void:
-	if caption_step<7: c.draw_string(ThemeDB.fallback_font,Vector2(440,690),"Click · E · Space to continue",HORIZONTAL_ALIGNMENT_CENTER,400,14,Color("acb9b5"))
+	if caption_step<7: c.draw_string(preload("res://pixel_ui.gd").font(),Vector2(440,690),"Click · E · Space to continue",HORIZONTAL_ALIGNMENT_CENTER,400,14,Color("acb9b5"))
 
 func paint_stars(c: CanvasItem) -> void:
 	for star in stars:

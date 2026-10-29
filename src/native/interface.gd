@@ -188,15 +188,15 @@ func _ready() -> void:
 	quest_scroll.add_child(quest_rows)
 	quest_rows.minimum_size_changed.connect(func(): call_deferred("fit_quest_log"))
 	toggle_log()
-	var tray = _panel(Vector2(140,602),Vector2(1000,88),Color("172b2bf5"))
+	var tray = _panel(Vector2(140,602),Vector2(900,80),Color("172b2bf5"))
 	quick_tray=tray
 	tray.scale=Vector2(1.2,1.2)
-	tray.position=Vector2(40,582)
-	health_label = _label("HP  100",Vector2(19,7),13,MUTED,false,tray)
+	tray.position=Vector2(100,582)
+	health_label = _label("HP  100",Vector2(19,7),10,MUTED,false,tray)
 	health_bar = _bar(Vector2(19,23),Vector2(132,4),Color("c38e80"),tray)
-	vitality = _label("ENERGY  100",Vector2(19,30),13,MUTED,false,tray)
+	vitality = _label("ENERGY  100",Vector2(19,30),10,MUTED,false,tray)
 	energy_bar = _bar(Vector2(19,46),Vector2(132,4),Color("a5bb78"),tray)
-	attunement = _label("MANA  60",Vector2(19,53),13,MUTED,false,tray)
+	attunement = _label("MANA  60",Vector2(19,53),10,MUTED,false,tray)
 	mana_bar = _bar(Vector2(19,69),Vector2(132,4),Color("90b9d2"),tray)
 	_label("PRIMARY",Vector2(163,3),8,GOLD,false,tray)
 	active_button=ItemButton.new()
@@ -314,11 +314,11 @@ func _ready() -> void:
 	root.add_child(status_strip)
 	needs_panel=Control.new()
 	needs_panel.position=Vector2.ZERO
-	needs_panel.size=Vector2(152,36)
+	needs_panel.size=Vector2(152,40)
 	quick_tray.add_child(needs_panel)
-	_label("WATER",Vector2(19,0),13,MUTED,false,needs_panel)
+	_label("WATER",Vector2(19,0),10,MUTED,false,needs_panel)
 	hydration_bar=_bar(Vector2(19,17),Vector2(132,4),Color("90b9d2"),needs_panel)
-	_label("FOOD",Vector2(19,19),13,MUTED,false,needs_panel)
+	_label("FOOD",Vector2(19,19),10,MUTED,false,needs_panel)
 	nourishment_bar=_bar(Vector2(19,36),Vector2(132,4),Color("c4b16c"),needs_panel)
 	for child in quick_tray.get_children():
 		if child!=needs_panel: child.set_meta("base_y",child.position.y)
@@ -339,9 +339,9 @@ func update_hud() -> void:
 		for node in hud_nodes: node.hide()
 
 func layout_survival_hud() -> void:
-	var extra=42.0 if game.state.needs.hardcore else 0.0
+	var extra=40.0 if game.state.needs.hardcore else 0.0
 	quick_tray.position.y=582.0-extra*quick_tray.scale.y
-	quick_tray.size.y=70.4+extra
+	quick_tray.size.y=64.0+extra
 	for child in quick_tray.get_children():
 		if child!=needs_panel and child.has_meta("base_y"): child.position.y=float(child.get_meta("base_y"))+extra
 

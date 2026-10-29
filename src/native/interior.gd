@@ -572,7 +572,7 @@ func paint_display(c: CanvasItem,item: Dictionary) -> void:
 				for y in range(-h-10,-8,14):
 					r(c,16,y,w-40,8,"335358")
 					r(c,19,y+1,w-46,4,"8fc9c0" if sin(elapsed*0.8)>0 else "658f98")
-				c.draw_string(ThemeDB.fallback_font,Vector2(6,-3),"PHASE CORE",HORIZONTAL_ALIGNMENT_LEFT,-1,7,Color("bfcbc0"))
+				c.draw_string(preload("res://pixel_ui.gd").font(),Vector2(6,-3),"PHASE CORE",HORIZONTAL_ALIGNMENT_LEFT,-1,7,Color("bfcbc0"))
 			elif item.kind=="console":
 				r(c,8,-h-13,w-24,23,"172b38")
 				var glitch=fmod(elapsed+item.bounds.position.x*1.7,11)<0.45
@@ -617,8 +617,8 @@ func paint_effects(c: CanvasItem) -> void:
 				for i in range(5):
 					var angle=i*1.25+elapsed*7
 					c.draw_line(origin,origin+Vector2(cos(angle),sin(angle))*9,Color("edcf83"),1)
-		c.draw_string(ThemeDB.fallback_font,Vector2(38,314),"GRAVITIC SHEAR BUS",HORIZONTAL_ALIGNMENT_LEFT,-1,8,Color("b5bdb1"))
-		c.draw_string(ThemeDB.fallback_font,Vector2(162,314),"INERTIAL LATTICE",HORIZONTAL_ALIGNMENT_LEFT,-1,8,Color("b5bdb1"))
+		c.draw_string(preload("res://pixel_ui.gd").font(),Vector2(38,314),"GRAVITIC SHEAR BUS",HORIZONTAL_ALIGNMENT_LEFT,-1,8,Color("b5bdb1"))
+		c.draw_string(preload("res://pixel_ui.gd").font(),Vector2(162,314),"INERTIAL LATTICE",HORIZONTAL_ALIGNMENT_LEFT,-1,8,Color("b5bdb1"))
 	for actor in villagers.values():
 		if actor.visible and actor.position.distance_to(state.player_position)<100:
-			c.draw_string(ThemeDB.fallback_font,actor.position+Vector2(-25,-55),"z z z" if actor.data.get("sleeping",false) else actor.data.name,HORIZONTAL_ALIGNMENT_LEFT,-1,9,Color("e4d9b5"))
+			c.draw_string(preload("res://pixel_ui.gd").font(),actor.position+Vector2(-25,-55),"z z z" if actor.data.get("sleeping",false) else actor.data.name,HORIZONTAL_ALIGNMENT_LEFT,-1,9,Color("e4d9b5"))

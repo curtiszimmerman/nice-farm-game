@@ -24,6 +24,7 @@ func run() -> void:
 	game.talk("moss")
 	check(not buttons().any(func(button):return button.text.begins_with("Give ")),"Moss never offers to take the watering can")
 	check("copper" in buttons()[0].text,"Moss's first post-welcome topic is the captain asking for copper")
+	check(buttons().any(func(button):return button.text=="Thanks, Moss. Have a good day.") and not buttons().any(func(button):return button.text=="Goodbye."),"Moss's existing farewell is the only exit option")
 	choose("copper")
 	check("southeast" in body() and "protect" in body() and "Bram" in body(),"Moss warns about the mines and directs the captain to Bram")
 	game.close_window()

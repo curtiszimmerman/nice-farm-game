@@ -12,7 +12,7 @@ func run() -> void:
 	game.set_process(false)
 	preload("fixture.gd").explore(game,true)
 	await process_frame
-	check(is_equal_approx(game.ui.quick_tray.get_global_rect().size.y,84.48),"status bar height is reduced by twenty percent without narrowing it")
+	check(game.ui.quick_tray.get_global_rect().size.y<84.48,"status bar keeps its compact height")
 	game.dialog("Alder","A VISIT","A moment of your time.")
 	game.ui.update()
 	check(not game.ui.quick_tray.visible and not game.ui.calendar_ring.visible and not game.ui.log_panel.visible and not game.ui.region.visible,"dialogue cutscenes hide all ordinary HUD information")

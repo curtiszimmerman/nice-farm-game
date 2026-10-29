@@ -11,6 +11,13 @@ func run() -> void:
 	root.add_child(game)
 	game.set_process(false)
 	preload("fixture.gd").explore(game,true)
+	var ui=game.ui
+	var pixel=preload("res://pixel_ui.gd").font()
+	check(ui.root.theme.default_font==pixel and ThemeDB.fallback_font==pixel,"the entire interface and drawn text share the pixel font")
+	check(ui.quick_tray.size.x<=900 and ui.quick_tray.size.y<=64 and ui.health_label.get_theme_font_size("font_size")<=10,"the ordinary HUD is compact without oversized vital labels")
+	game.state.needs.hardcore=true
+	ui.update_hud()
+	check(ui.quick_tray.size.y<=104 and ui.needs_panel.visible,"hardcore adds compact hunger and thirst rows above the vitals")
 	game.state.awake_minutes=1441
 	game.state.apply_poison()
 	game.ui.update()

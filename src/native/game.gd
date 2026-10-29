@@ -405,8 +405,8 @@ func change_cave_level(direction: int) -> void:
 	world=outdoors
 	state.cave_level=destination
 	enter_building("cave")
-	if direction<0: state.player_position=Grid.center(world.chambers.back().get_center()+Vector2i.DOWN)
-	else: state.player_position=Grid.center(world.layout.entry+Vector2i.DOWN)
+	if direction<0: state.player_position=Grid.center(world.chambers.back().get_center())
+	else: state.player_position=Grid.center(world.layout.entry)
 	world.refresh()
 	camera.position=state.player_position
 	save_visit()
@@ -602,7 +602,7 @@ func choose_dialogue(action: Callable) -> void:
 
 func is_exit_reply(label: String) -> bool:
 	var reply=label.to_lower()
-	return ["see you","have a nice day","take care","i'll leave you","i'll come back","just passing","enjoy your walk","thanks, i'm all set","goodbye"].any(func(ending):return reply.contains(ending))
+	return ["see you","have a nice day","have a good day","take care","i'll leave you","i'll come back","just passing","enjoy your walk","thanks, i'm all set","goodbye"].any(func(ending):return reply.contains(ending))
 
 func dialog(title: String,role: String,text: String,choices: Array = []) -> void:
 	if not conversation_members.is_empty():

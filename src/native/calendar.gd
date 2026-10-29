@@ -27,6 +27,9 @@ static func pendulum_angle(minute: float) -> float:
 	var eased=1.0-pow(1.0-t,5)
 	return lerpf(-0.5,0.5,eased) if step%2==0 else lerpf(0.5,-0.5,eased)
 
+static func pendulum_geometry() -> Dictionary:
+	return {"pivot_y":245.0,"center_y":115.0,"radius":18.0}
+
 func refresh() -> void:
 	if displayed_day<0: displayed_day=state.day
 	if displayed_day!=state.day:
@@ -58,12 +61,12 @@ func _draw() -> void:
 	var font=preload("res://pixel_ui.gd").font()
 	draw_string(font,Vector2(50,64),PURPLE_NAME,HORIZONTAL_ALIGNMENT_CENTER,68,16,Color("ccb0ef"))
 	draw_string(font,Vector2(138,64),WHITE_NAME,HORIZONTAL_ALIGNMENT_CENTER,68,16,Color("f5eccc"))
-	draw_set_transform(Vector2(128,342-100*cos(0.5)+24),pendulum_angle(state.minute))
+	var bob=pendulum_geometry()
+	draw_set_transform(Vector2(128,bob.pivot_y),pendulum_angle(state.minute))
 	draw_rect(Rect2(-4,0,8,7),Color("73562d"))
-	draw_rect(Rect2(-2,7,4,93),Color("d8b568"))
-	draw_rect(Rect2(0,8,1,89),Color("f9e3a5"))
-	draw_rect(Rect2(-14,99,28,17),Color("71502b"))
-	draw_rect(Rect2(-12,101,24,13),Color("c99d4c"))
-	draw_rect(Rect2(-9,103,11,3),Color("f3d985"))
-	draw_rect(Rect2(-6,116,12,3),Color("503a26"))
+	draw_rect(Rect2(-2,7,4,bob.center_y-7),Color("d8b568"))
+	draw_rect(Rect2(0,8,1,bob.center_y-12),Color("f9e3a5"))
+	draw_circle(Vector2(0,bob.center_y),bob.radius,Color("71502b"))
+	draw_circle(Vector2(0,bob.center_y-1),bob.radius-3,Color("c99d4c"))
+	draw_circle(Vector2(-5,bob.center_y-5),5,Color("f3d985"))
 	draw_set_transform(Vector2.ZERO)

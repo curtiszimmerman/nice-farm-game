@@ -1072,8 +1072,8 @@ func _draw() -> void:
 	r(self,-3,-48,6,55,"837350")
 	r(self,-28,-43,62,15,"bbab7b")
 	r(self,-31,-24,53,13,"a99769")
-	draw_string(ThemeDB.fallback_font,Vector2(-23,-32),"TOWN >",HORIZONTAL_ALIGNMENT_LEFT,-1,8,Color("515d49"))
-	draw_string(ThemeDB.fallback_font,Vector2(-28,-14),"< FARM",HORIZONTAL_ALIGNMENT_LEFT,-1,8,Color("515d49"))
+	draw_string(preload("res://pixel_ui.gd").font(),Vector2(-23,-32),"TOWN >",HORIZONTAL_ALIGNMENT_LEFT,-1,8,Color("515d49"))
+	draw_string(preload("res://pixel_ui.gd").font(),Vector2(-28,-14),"< FARM",HORIZONTAL_ALIGNMENT_LEFT,-1,8,Color("515d49"))
 	draw_set_transform(Vector2.ZERO)
 
 func _fence(x: float,y: float,w: int) -> void:
@@ -1239,7 +1239,7 @@ func paint_building(c: CanvasItem, b: Dictionary) -> void:
 		for yy in [-150,-96]:
 			r(c,w/2-8,yy,16,26,"e1c786")
 		r(c,w/2-13,-42,26,42,"526c75")
-		c.draw_string(ThemeDB.fallback_font,Vector2(25,-48),"IONA",HORIZONTAL_ALIGNMENT_LEFT,-1,8,Color("dfd3ab"))
+		c.draw_string(preload("res://pixel_ui.gd").font(),Vector2(25,-48),"IONA",HORIZONTAL_ALIGNMENT_LEFT,-1,8,Color("dfd3ab"))
 		return
 	oval(c,w*0.6,5,w*0.65,19,"233f3338")
 	r(c,0,y,w,h,"d0c298")
@@ -1274,7 +1274,7 @@ func paint_building(c: CanvasItem, b: Dictionary) -> void:
 	if b.has("resident"):
 		r(c,door-5,-69,37,11,"77765c")
 		var plaque="ALDER" if b.resident=="mayor" else "BRAM" if b.resident=="veteran" else b.resident.to_upper()
-		c.draw_string(ThemeDB.fallback_font,Vector2(door-2,-61),plaque,HORIZONTAL_ALIGNMENT_LEFT,-1,7,Color("e2d2a5"))
+		c.draw_string(preload("res://pixel_ui.gd").font(),Vector2(door-2,-61),plaque,HORIZONTAL_ALIGNMENT_LEFT,-1,7,Color("e2d2a5"))
 	r(c,door-9,4,44,6,"b7af8b")
 	for x in [22,w-49]:
 		r(c,x-3,-65,31,36,"eee0b0")
@@ -1338,7 +1338,7 @@ func paint_building(c: CanvasItem, b: Dictionary) -> void:
 		r(c,-8,-80,w+16,23,"d7c69d")
 		for i in range(0,w+16,22): r(c,-8+i,-80,11,23,"8d9a70")
 		r(c,42,-104,82,17,"75694e")
-		c.draw_string(ThemeDB.fallback_font,Vector2(50,-92),"PROVISIONS",HORIZONTAL_ALIGNMENT_LEFT,-1,9,Color("e9d7ad"))
+		c.draw_string(preload("res://pixel_ui.gd").font(),Vector2(50,-92),"PROVISIONS",HORIZONTAL_ALIGNMENT_LEFT,-1,9,Color("e9d7ad"))
 
 func paint_person(c: CanvasItem, p: Dictionary, step: float, direction: String) -> void:
 	if Art.option==2: Art.person(c,p,step,direction); return
@@ -1446,7 +1446,7 @@ func paint_combat_texts(canvas: CanvasItem) -> void:
 	for entry in combat_texts:
 		var color: Color=entry.color
 		color.a=minf(1,entry.age/0.1)*clampf((entry.duration-entry.age)/0.45,0,1)
-		var font=ThemeDB.fallback_font
+		var font=preload("res://pixel_ui.gd").font()
 		var width=font.get_string_size(entry.text,HORIZONTAL_ALIGNMENT_LEFT,-1,10).x
 		var point: Vector2=entry.position+Vector2(-width/2,-entry.age*22)
 		canvas.draw_string(font,point+Vector2(1,1),entry.text,HORIZONTAL_ALIGNMENT_LEFT,-1,10,Color(0.08,0.12,0.12,color.a))
@@ -1461,7 +1461,7 @@ func paint_effects(c: CanvasItem) -> void:
 		var pos = villagers[p.id].position
 		if state.player_position.distance_to(pos)<105:
 			r(c,pos.x-34,pos.y-66,68,15,"233e34cc")
-			c.draw_string(ThemeDB.fallback_font,pos+Vector2(-29,-55),p.name,HORIZONTAL_ALIGNMENT_LEFT,-1,9,Color("e4d9b5"))
+			c.draw_string(preload("res://pixel_ui.gd").font(),pos+Vector2(-29,-55),p.name,HORIZONTAL_ALIGNMENT_LEFT,-1,9,Color("e4d9b5"))
 	if nearest.get("type") == "plot":
 		c.draw_rect(Rect2(plot_position(nearest.index)-Vector2(16,16),Vector2(32,30)),Color("eee0a5"),false,1.0)
 	var cloak_color = Color("c2e0d6")

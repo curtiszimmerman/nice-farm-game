@@ -314,7 +314,7 @@ static func effects(w: Node2D,c: CanvasItem) -> void:
 	for p in w.people:
 		if w.cutscene_hidden(): break
 		if w.villagers[p.id].visible and w.state.player_position.distance_to(w.villagers[p.id].position)<105:
-			c.draw_string(ThemeDB.fallback_font,w.villagers[p.id].position+Vector2(-29,-55),p.name,HORIZONTAL_ALIGNMENT_LEFT,-1,9,Color("e4d9b5"))
+			c.draw_string(preload("res://pixel_ui.gd").font(),w.villagers[p.id].position+Vector2(-29,-55),p.name,HORIZONTAL_ALIGNMENT_LEFT,-1,9,Color("e4d9b5"))
 	if w.nearest.get("type")=="plot": c.draw_rect(Rect2(w.plot_position(w.nearest.index)-Vector2(16,16),Vector2(32,30)),Color("eee0a5"),false,1)
 	sprite(c,"ship_crew",Grid.center(w.SHIP_CELL)-Vector2(96,68),Vector2.ZERO,Color(0.8,1,0.9,0.12+sin(w.elapsed)*0.03))
 	for i in range(14):
@@ -335,5 +335,5 @@ static func indoor_effects(room: Node2D,c: CanvasItem) -> void:
 	for actor in room.villagers.values():
 		if room.cutscene_hidden(): break
 		if actor.visible and actor.position.distance_to(room.state.player_position)<100:
-			c.draw_string(ThemeDB.fallback_font,actor.position+Vector2(-25,-55),"z z z" if actor.data.get("sleeping",false) else actor.data.name,HORIZONTAL_ALIGNMENT_LEFT,-1,9,Color("e4d9b5"))
+			c.draw_string(preload("res://pixel_ui.gd").font(),actor.position+Vector2(-25,-55),"z z z" if actor.data.get("sleeping",false) else actor.data.name,HORIZONTAL_ALIGNMENT_LEFT,-1,9,Color("e4d9b5"))
 	particles(room,c)
