@@ -12,6 +12,11 @@ func run() -> void:
 	game.set_process(false)
 	var intro=game.opening
 	intro.set_process(false)
+	check(intro.has_method("bridge_composition"),"the bridge exposes its window and captain placement")
+	if intro.has_method("bridge_composition"):
+		var bridge=intro.bridge_composition()
+		check(bridge.window.encloses(bridge.planet),"the planet stays completely inside a bridge window")
+		check(bridge.captain.size.x>=150 and bridge.captain.size.y>=300,"the seated captain reads at three times the old scale")
 	intro._process(100)
 	check(game.opening==intro and intro.elapsed<3,"the first introduction caption waits indefinitely for acknowledgement")
 	check(intro.get("animation_time")!=null,"cinematic animation has its own clock while captions wait")

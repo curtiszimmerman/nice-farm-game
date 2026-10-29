@@ -29,11 +29,16 @@ func run() -> void:
 	game.ui.modal_box.get_children().filter(func(child):return child is Button).back().pressed.emit()
 	check(not game.window_open,"the explicit last option disengages")
 	game.talk("vale")
+	check(button(game,"I'll look for someone who works metal.")==null and button(game,"Hand over three copper bars.")==null,"Vale does not offer a dead-end copper reply")
 	button(game,"What's the status on repairs?").pressed.emit()
 	check(game.ui.modal_box.get_child(2).text.contains("cloak is steady"),"Vale explains the current repairs in dialogue")
 	game.ui.modal_box.get_children().filter(func(child):return child is Button)[0].pressed.emit()
 	check(button(game,"What's the status on repairs?")!=null,"Vale's repair update returns to the conversation root")
 	button(game,"Goodbye.").pressed.emit()
+	game.state.copper_bars=3
+	game.talk("vale")
+	check(button(game,"Hand over three copper bars.")!=null,"Vale offers the handover when the bars are ready")
+	game.close_window()
 	game.state.minute=800
 	game.outdoors.update_villagers(0,true)
 	game.talk("iona")

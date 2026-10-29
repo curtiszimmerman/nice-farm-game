@@ -220,21 +220,18 @@ func paint_pixels(c: CanvasItem) -> void:
 	if whiteout_alpha()>0: c.draw_rect(Rect2(0,0,1280,720),Color(1,1,1,whiteout_alpha()))
 
 func paint_bridge_details(c: CanvasItem) -> void:
-	# The planet sits inside the right window pane, behind its frame.
-	Art.sprite(c,"planet",Vector2(892,126),Vector2(130,125))
-	c.draw_rect(Rect2(883,102,7,151),Color("81969d"))
-	c.draw_rect(Rect2(1024,102,7,151),Color("81969d"))
-	c.draw_rect(Rect2(883,248,148,7),Color("617780"))
-	# A chair, uniform and foreground console give the captain the same detail as the world actors.
-	c.draw_rect(Rect2(601,318,78,143),Color("344955"))
-	c.draw_rect(Rect2(607,323,66,107),Color("607986"))
-	c.draw_rect(Rect2(613,328,54,6),Color("9bb0ad"))
-	Art.sprite(c,"actor_player_down0",Vector2(615,331),Vector2(50,100))
-	c.draw_rect(Rect2(590,425,100,47),Color("354d59"))
-	c.draw_rect(Rect2(598,430,84,26),Color("537079"))
-	c.draw_rect(Rect2(604,435,30,5),Color("9bd1c3"))
-	c.draw_rect(Rect2(643,435,32,5),Color("87aebf"))
-	for x in [607,618,649,661]: c.draw_rect(Rect2(x,447,5,4),Color("d4bc7c"))
+	var bridge=bridge_composition()
+	Art.sprite(c,"planet",bridge.planet.position,bridge.planet.size)
+	# The chair covers the small figure painted into the original bridge sprite.
+	c.draw_rect(Rect2(560,307,160,222),Color("344955"))
+	c.draw_rect(Rect2(572,315,136,184),Color("607986"))
+	c.draw_rect(Rect2(579,322,122,7),Color("9bb0ad"))
+	Art.sprite(c,"actor_player_down0",bridge.captain.position,bridge.captain.size)
+	c.draw_rect(Rect2(550,480,180,55),Color("354d59"))
+	c.draw_rect(Rect2(560,487,160,32),Color("537079"))
+	c.draw_rect(Rect2(570,493,55,7),Color("9bd1c3"))
+	c.draw_rect(Rect2(647,493,60,7),Color("87aebf"))
+	for x in [575,594,651,680]: c.draw_rect(Rect2(x,508,7,5),Color("d4bc7c"))
 	if elapsed>=12.5:
 		var flicker=fmod(animation_time*11.0,3.7)
 		if flicker<0.38:
@@ -244,6 +241,9 @@ func paint_bridge_details(c: CanvasItem) -> void:
 		for point in [Vector2(394,345),Vector2(904,359),Vector2(681,426)]:
 			if fmod(animation_time*7.0+point.x*0.013,2.9)<0.36:
 				Art.sprite(c,"spark"+str(int(animation_time*25)%6),point,Vector2(28,28))
+
+func bridge_composition() -> Dictionary:
+	return {"window":Rect2(912,122,210,124),"planet":Rect2(950,130,108,108),"captain":Rect2(565,220,150,300)}
 
 func whiteout_alpha() -> float:
 	return smoothstep(24,24.2,elapsed) if caption_step>=7 else 0.0

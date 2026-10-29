@@ -1218,15 +1218,14 @@ func talk(id: String) -> void:
 		"vale":
 			if not state.briefing_complete: show_briefing(); return
 			var choices=vale_checkin_choices()
-			if not state.delivered:
-				choices.push_front(["Hand over three copper bars." if state.copper_bars>=3 else "I'll look for someone who works metal.",func():
-					if state.copper_bars>=3:
-						state.copper_bars-=3
-						state.delivered=true
-						state.change_friendship("vale",25)
-						save_visit()
-						burst(state.player_position,"a3d4d0")
-						toast("Crew link restored. One small connection home.",6.0)])
+			if not state.delivered and state.copper_bars>=3:
+				choices.push_front(["Hand over three copper bars.",func():
+					state.copper_bars-=3
+					state.delivered=true
+					state.change_friendship("vale",25)
+					save_visit()
+					burst(state.player_position,"a3d4d0")
+					toast("Crew link restored. One small connection home.",6.0)])
 			choices.append(["How long do we have?",func(): dialog("Chief Vale","CHIEF ENGINEER","As long as the cloak holds, we have room to breathe. No signals. No active scans. I'll keep the lights off. You keep us fed.")])
 			var body="Give your commlink a try. Hear that? Much better than shouting down a mountain. The cloak's holding, too. "+("Thanks for seeing to supper. I'll try to earn it before the day's out." if state.crew_fed_day==state.day else "I meant to stop for breakfast, but the locker was empty. If you find something to cook, save me a helping?") if state.delivered else "The cloak's behaving. Wish I could say the same for the engines. Three copper bars should get our crew link back. That deposit on the last scan was southeast of the settlement, but the ore will need refining. Might be worth asking whether anyone down there works metal. I'm rather in the dark up here with the scanners dead. Any luck finding supper? Leave me a cooked meal in the locker if you can. I'll try not to get engine grease on it."
 			dialog("Chief Vale","CHIEF ENGINEER · SHIPBOARD CONVERSATION",body,choices)
