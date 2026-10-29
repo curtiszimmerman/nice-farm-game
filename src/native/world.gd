@@ -107,6 +107,7 @@ var water_cells: Dictionary = {}
 var mountain_cells: Dictionary = {}
 var solid_cells: Dictionary = {}
 var reserved_cells: Dictionary = {}
+var schedule_cells: Dictionary = {}
 var fence_cells: Array[Vector2i] = []
 var gate_cells: Array[Vector2i] = []
 var trees: Array = []
@@ -343,7 +344,7 @@ func rebuild_visit(new_state: RefCounted) -> void:
 	tree_population.clear()
 	forage_nodes={"berries":{},"apples":{}}
 	for child in get_children(): child.free()
-	for field in [people,villagers,routes,buildings,sites,road_segments,road_segment_keys,road_cells,path_cells,trail_cells,dirt_cells,cliff_cells,farm_cells,paved_cells,yard_fences,yard_gates,garden_cells,garden_cells_by_home,garden_work,water_cells,mountain_cells,solid_cells,reserved_cells,fence_cells,gate_cells,trees,bushes,particles,story_destinations,conversation_holds,indoor_departures,tree_damage]: field.clear()
+	for field in [people,villagers,routes,buildings,sites,road_segments,road_segment_keys,road_cells,path_cells,trail_cells,dirt_cells,cliff_cells,farm_cells,paved_cells,yard_fences,yard_gates,garden_cells,garden_cells_by_home,garden_work,water_cells,mountain_cells,solid_cells,reserved_cells,schedule_cells,fence_cells,gate_cells,trees,bushes,particles,story_destinations,conversation_holds,indoor_departures,tree_damage]: field.clear()
 	scenery_layer=null
 	moving_layer=null
 	crop_signature=0
@@ -453,7 +454,10 @@ func _build_layout() -> void:
 	for y in range(SQUARE.position.y,SQUARE.end.y):
 		for x in range(SQUARE.position.x,SQUARE.end.x): reserved_cells[Vector2i(x,y)]=true
 	for routine in Schedule.ROUTINES.values():
-		for stop in routine: reserved_cells[Vector2i(stop[1],stop[2])]=true
+		for stop in routine:
+			var cell=Vector2i(stop[1],stop[2])
+			reserved_cells[cell]=true
+			schedule_cells[cell]=true
 	for field in DECORATIVE_FIELDS+Neighbors.FIELDS:
 		for y in range(field.position.y-1,field.end.y+1):
 			for x in range(field.position.x-1,field.end.x+1): reserved_cells[Vector2i(x,y)]=true

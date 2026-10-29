@@ -15,9 +15,13 @@ func run() -> void:
 	var pixel=preload("res://pixel_ui.gd").font()
 	check(ui.root.theme.default_font==pixel and ThemeDB.fallback_font==pixel,"the entire interface and drawn text share the pixel font")
 	check(ui.quick_tray.size.x<=900 and ui.quick_tray.size.y<=64 and ui.health_label.get_theme_font_size("font_size")<=10,"the ordinary HUD is compact without oversized vital labels")
+	check(ui.quick_tray.get_global_rect().end.y>=716 and ui.quick_tray.get_global_rect().end.y<=720,"the main action bar sits just above the viewport bottom")
 	game.state.needs.hardcore=true
 	ui.update_hud()
-	check(ui.quick_tray.size.y<=104 and ui.needs_panel.visible,"hardcore adds compact hunger and thirst rows above the vitals")
+	check(ui.quick_tray.size.y<=64 and ui.needs_panel.visible and ui.needs_panel.get_parent()==ui.root,"hardcore adds only a separate needs panel above the vitals")
+	check(is_equal_approx(ui.needs_panel.get_global_rect().end.y,ui.quick_tray.get_global_rect().position.y) and ui.needs_panel.get_global_rect().size.x<ui.quick_tray.get_global_rect().size.x*0.25,"the two panels meet in a short L shape")
+	var needs_labels=ui.needs_panel.get_children().filter(func(child):return child is Label)
+	check(needs_labels.size()==2 and is_equal_approx(needs_labels[0].position.y,ui.health_label.position.y) and is_equal_approx(needs_labels[1].position.y,ui.vitality.position.y) and is_equal_approx(ui.hydration_bar.position.y,ui.health_bar.position.y) and is_equal_approx(ui.nourishment_bar.position.y,ui.energy_bar.position.y),"water and food use the exact vital-row text and bar spacing")
 	game.state.awake_minutes=1441
 	game.state.apply_poison()
 	game.ui.update()

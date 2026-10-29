@@ -15,6 +15,7 @@ func run() -> void:
 	game.state.needs.mode_chosen=false
 	game.choose_journey_mode()
 	check(not game.started and game.window_open,"journey mode is chosen before the intro starts")
+	check(game.ui.hud_nodes.all(func(node):return not node.visible) and game.ui.modal.visible,"the journey choice shows no HUD over its backdrop")
 	game.start_journey(true)
 	check(game.started and game.state.needs.hardcore and game.state.needs.mode_chosen,"choosing hardcore begins the intro with survival enabled")
 	game.state.needs.without_water=4320

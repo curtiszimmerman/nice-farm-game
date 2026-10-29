@@ -108,6 +108,7 @@ func generate() -> void:
 	var mob_candidates=[]
 	for cell in floor_cells:
 		if occupied.has(cell): continue
+		if level==0 and cell.distance_to(Vector2i(4,4))<=2.0: continue
 		if chambers.any(func(room):return room.has_point(cell)) and floor_cells.has(cell): mob_candidates.append(cell)
 	if level==2:
 		var spider_candidates=mob_candidates.filter(func(cell):return chambers.back().has_point(cell))

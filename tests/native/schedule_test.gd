@@ -80,6 +80,13 @@ func run() -> void:
 	w.update_villagers(0.0,true)
 	game.state.player_position=w.villagers.tavi.position
 	check(w.find_nearest().get("id","")!="tavi","sleeping villagers cannot be talked to through their house")
+	var observer_stop=Vector2i(35,16)
+	var observer_clear=true
+	for seed_value in range(1,13):
+		game.state.world_seed=seed_value
+		w.rebuild_visit(game.state)
+		observer_clear=observer_clear and not w.blocked(w.Grid.center(observer_stop)) and not w._route(w.Grid.SPAWN_CELL,observer_stop).is_empty()
+	check(observer_clear,"random residential gardens never cover the astronomer's scheduled stop")
 	await game.sound.shutdown()
 	game.queue_free()
 	await process_frame

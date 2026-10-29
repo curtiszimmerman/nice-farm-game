@@ -312,22 +312,19 @@ func _ready() -> void:
 	status_strip.add_theme_constant_override("separation",4)
 	status_strip.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	root.add_child(status_strip)
-	needs_panel=Control.new()
-	needs_panel.position=Vector2.ZERO
-	needs_panel.size=Vector2(152,40)
-	quick_tray.add_child(needs_panel)
-	_label("WATER",Vector2(19,0),10,MUTED,false,needs_panel)
-	hydration_bar=_bar(Vector2(19,17),Vector2(132,4),Color("90b9d2"),needs_panel)
-	_label("FOOD",Vector2(19,19),10,MUTED,false,needs_panel)
-	nourishment_bar=_bar(Vector2(19,36),Vector2(132,4),Color("c4b16c"),needs_panel)
-	for child in quick_tray.get_children():
-		if child!=needs_panel: child.set_meta("base_y",child.position.y)
+	needs_panel=_panel(Vector2.ZERO,Vector2(160,44),Color("172b2bf5"))
+	needs_panel.scale=quick_tray.scale
+	_label("WATER",health_label.position,10,MUTED,false,needs_panel)
+	hydration_bar=_bar(health_bar.position,health_bar.size,Color("90b9d2"),needs_panel)
+	_label("FOOD",vitality.position,10,MUTED,false,needs_panel)
+	nourishment_bar=_bar(energy_bar.position,energy_bar.size,Color("c4b16c"),needs_panel)
 	for child in root.get_children():
 		if child!=pause_shield and child!=title_screen: hud_nodes.append(child)
+	update_hud()
 
 func update_hud() -> void:
 	layout_survival_hud()
-	var hidden=game.cutscene_active()
+	var hidden=not game.started or game.cutscene_active()
 	if hidden and not hud_hidden:
 		for node in hud_nodes: hud_visibility[node]=node.visible
 	elif not hidden and hud_hidden:
@@ -339,11 +336,10 @@ func update_hud() -> void:
 		for node in hud_nodes: node.hide()
 
 func layout_survival_hud() -> void:
-	var extra=40.0 if game.state.needs.hardcore else 0.0
-	quick_tray.position.y=582.0-extra*quick_tray.scale.y
-	quick_tray.size.y=64.0+extra
-	for child in quick_tray.get_children():
-		if child!=needs_panel and child.has_meta("base_y"): child.position.y=float(child.get_meta("base_y"))+extra
+	var viewport_size=get_viewport().get_visible_rect().size
+	quick_tray.position=Vector2((viewport_size.x-quick_tray.size.x*quick_tray.scale.x)/2.0,viewport_size.y-quick_tray.size.y*quick_tray.scale.y-4.0)
+	needs_panel.position=Vector2(quick_tray.position.x,quick_tray.position.y-needs_panel.size.y*needs_panel.scale.y)
+	controls_hint.position.y=quick_tray.position.y-24
 
 func _label(text: String,pos: Vector2,font_size: int,color: Color,book = false,parent: Node = null) -> Label:
 	var label = Label.new()

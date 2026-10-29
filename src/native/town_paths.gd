@@ -60,7 +60,7 @@ static func residential_garden(world: Node2D,building: Dictionary) -> void:
 		var blocks_door_path=cell.x==door.x and cell.y>=door.y and cell.y<=gate.y
 		var blocks_gate_walk=cell.x==gate.x and cell.y>=door.y and cell.y<=gate.y
 		if not yard.has_point(cell) or cell.distance_to(door)<=1.5 or blocks_door_path or blocks_gate_walk or building_door_approach(world,cell) or coastal_path_contains(cell) or (cell.y==52 and cell.x<=48) or (cell.y==58 and cell.x>=45 and cell.x<=63): continue
-		if world.solid_cells.has(cell) or world.road_cells.has(cell) or world.paved_cells.has(cell): continue
+		if world.solid_cells.has(cell) or world.schedule_cells.has(cell) or world.road_cells.has(cell) or world.paved_cells.has(cell): continue
 		world.garden_cells[cell]="vegetables"
 		world._claim(Rect2i(cell,Vector2i.ONE),"flowerbed")
 		world.reserved_cells[cell]=true
@@ -72,7 +72,7 @@ static func residential_garden(world: Node2D,building: Dictionary) -> void:
 				var cell=Vector2i(x,y)
 				if planted.has(cell) or cell.distance_to(door)<=1.5 or cell.x==door.x and cell.y>=door.y and cell.y<=gate.y or cell.x==gate.x and cell.y>=door.y and cell.y<=gate.y: continue
 				if building_door_approach(world,cell) or coastal_path_contains(cell) or (cell.y==52 and cell.x<=48) or (cell.y==58 and cell.x>=45 and cell.x<=63): continue
-				if world.blocked(Grid.center(cell)) or world.road_cells.has(cell) or world.paved_cells.has(cell): continue
+				if world.blocked(Grid.center(cell)) or world.schedule_cells.has(cell) or world.road_cells.has(cell) or world.paved_cells.has(cell): continue
 				fallback.append(cell)
 		for index in range(fallback.size()-1,0,-1):
 			var other=rng.randi_range(0,index)
@@ -94,7 +94,7 @@ static func residential_garden(world: Node2D,building: Dictionary) -> void:
 		for y in range(yard.position.y,yard.end.y):
 			for x in range(yard.position.x,yard.end.x):
 				var cell=Vector2i(x,y)
-				if world.blocked(Grid.center(cell)) or world.road_cells.has(cell) or world.paved_cells.has(cell) or building_door_approach(world,cell) or (cell.x==door.x and cell.y>=door.y and cell.y<=gate.y) or (cell.x==gate.x and cell.y>=door.y and cell.y<=gate.y) or coastal_path_contains(cell) or (cell.y==52 and cell.x<=48) or (cell.y==58 and cell.x>=45 and cell.x<=63) or cell.distance_to(door)<=1.5: continue
+				if world.blocked(Grid.center(cell)) or world.schedule_cells.has(cell) or world.road_cells.has(cell) or world.paved_cells.has(cell) or building_door_approach(world,cell) or (cell.x==door.x and cell.y>=door.y and cell.y<=gate.y) or (cell.x==gate.x and cell.y>=door.y and cell.y<=gate.y) or coastal_path_contains(cell) or (cell.y==52 and cell.x<=48) or (cell.y==58 and cell.x>=45 and cell.x<=63) or cell.distance_to(door)<=1.5: continue
 				world.garden_cells[cell]="vegetables"
 				world._claim(Rect2i(cell,Vector2i.ONE),"flowerbed")
 				planted.append(cell)

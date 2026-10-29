@@ -15,12 +15,16 @@ func _initialize() -> void:
 	var coal_total=0
 	var rock_total=0
 	var spider_guarded=true
+	var entrance_clear=true
 	for seed_value in range(24):
 		var cave=Cave.new()
 		cave.state=State.new()
 		cave.state.cave_seed=seed_value+1
 		cave.level=seed_value%3
 		cave.generate()
+		if cave.level==0:
+			for rat_cell in cave.rat_cells:
+				entrance_clear=entrance_clear and rat_cell.distance_to(Vector2i(4,4))>2.0
 		if cave.level==2:
 			spider_guarded=spider_guarded and cave.chambers.back().has_point(cave.spider_cell) and cave.floor_cells.has(cave.spider_cell) and not cave.rat_cells.has(cave.spider_cell)
 		smallest=mini(smallest,cave.floor_cells.size())
@@ -57,6 +61,7 @@ func _initialize() -> void:
 	check(bounded and sizes.size()>20,"seeded caves vary chamber sizes within the reduced level bounds")
 	check(connected,"every generated chamber and exit connects to the entrance across many seeds")
 	check(spider_guarded,"the spider guards the final chamber on every generated bottom level")
+	check(entrance_clear,"rats leave the entrance tools and barrel clear for a new explorer")
 	ratios=abs(float(copper_total)/rock_total-0.1)<0.03 and abs(float(coal_total)/rock_total-0.05)<0.02
 	check(ratios and smallest>300,"varied levels retain connected walkable floors and the stone/copper/coal proportions")
 	quit(1 if failed else 0)

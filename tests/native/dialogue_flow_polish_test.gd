@@ -68,7 +68,7 @@ func run() -> void:
 	game.close_window()
 	game.state.needs.hardcore=true
 	game.ui.update_hud()
-	check(game.ui.needs_panel.position.x==0 and game.ui.quick_tray.size.y<=104 and game.ui.health_label.get_theme_font_size("font_size")<=10,"survival bars attach above compact vitals inside one HUD")
+	check(game.ui.needs_panel.position.x==game.ui.quick_tray.position.x and game.ui.quick_tray.size.y<=64 and game.ui.health_label.get_theme_font_size("font_size")<=10,"survival bars attach above compact vitals without stretching the action bar")
 	game.show_title_backdrop()
 	check(game.title_backdrop_active and game.outdoors.visible and game.camera.position.x>game.Grid.center(Vector2i(90,0)).x,"the title backdrop views the eastern farm")
 	game.restore_title_backdrop()
