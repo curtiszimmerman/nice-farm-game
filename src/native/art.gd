@@ -9,6 +9,7 @@ static var catalog: Dictionary={}
 static var tile_size=32
 static var pack_path="res://art/option3/pack.json"
 static var terrain_tiles: Dictionary={}
+static var stone_variants: Dictionary={}
 
 static func load_atlas() -> void:
 	if atlas!=null: return
@@ -52,6 +53,7 @@ static func select_pack(path: String) -> String:
 			var expected=baseline[id].rect
 			if r[2]!=ceil(expected[2]/scale) or r[3]!=ceil(expected[3]/scale): return "Sprite dimensions do not match its world footprint: "+id
 	pixels=image
+	stone_variants.clear()
 	pixels.convert(Image.FORMAT_RGBA8)
 	atlas=ImageTexture.create_from_image(image)
 	catalog=entries
@@ -91,6 +93,20 @@ static func region(id: String) -> Rect2:
 static func sprite(c: CanvasItem,id: String,p: Vector2,size: Vector2=Vector2.ZERO,tint: Color=Color.WHITE) -> void:
 	var source=region(id)
 	c.draw_texture_rect_region(atlas,Rect2(p.round(),sprite_size(id) if size==Vector2.ZERO else size),source,tint)
+
+static func stone_sprite(c: CanvasItem,id: String,p: Vector2,state: RefCounted) -> void:
+	load_atlas()
+	var paving=Borders.surface_id("paving",state.season_name(),state.weather_name(),0)
+	var key=pack_path+":"+id+":"+paving
+	if not stone_variants.has(key):
+		var source=pixels.get_region(Rect2i(region(id)))
+		var stone=pixels.get_region(Rect2i(region(paving)))
+		var result=Image.create(source.get_width(),source.get_height(),false,Image.FORMAT_RGBA8)
+		for x in range(0,result.get_width(),tile_size):
+			result.blit_rect(stone,Rect2i(0,0,mini(tile_size,result.get_width()-x),tile_size),Vector2i(x,result.get_height()-tile_size))
+		result.blend_rect(source,Rect2i(Vector2i.ZERO,source.get_size()),Vector2i.ZERO)
+		stone_variants[key]=ImageTexture.create_from_image(result)
+	c.draw_texture_rect(stone_variants[key],Rect2(p,sprite_size(id)),false)
 
 static func tile(c: CanvasItem,id: String,cell: Vector2i,tint: Color=Color.WHITE) -> void:
 	sprite(c,"tile_"+id,Grid.origin(cell),Vector2.ZERO,tint)

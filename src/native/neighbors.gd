@@ -29,8 +29,8 @@ const BUILDINGS=[
 	{"cell":Vector2i(27,75),"tiles":Vector2i(4,4),"roof":"78644d","kind":"cabin","resident":"woodcutter"}
 ]
 const FIELDS=[Rect2i(99,50,5,6),Rect2i(106,50,5,6)]
-const BENCHES=[Vector2i(64,46),Vector2i(64,49)]
-const FLOWERS=[Vector2i(59,44),Vector2i(60,44),Vector2i(59,45),Vector2i(66,44),Vector2i(67,44),Vector2i(67,45),Vector2i(59,50),Vector2i(60,50),Vector2i(59,49),Vector2i(66,50),Vector2i(67,50),Vector2i(67,49)]
+const BENCHES=[Vector2i(60,45),Vector2i(64,45),Vector2i(60,49),Vector2i(64,49)]
+const FLOWERS=[Vector2i(60,44),Vector2i(61,44),Vector2i(64,44),Vector2i(65,44),Vector2i(60,50),Vector2i(61,50),Vector2i(64,50),Vector2i(65,50),Vector2i(59,45),Vector2i(59,46),Vector2i(59,49),Vector2i(66,45),Vector2i(66,46),Vector2i(66,49)]
 const ROUTES=[
 	[Vector2i(53,46),Vector2i(53,57)],
 	[Vector2i(53,57),Vector2i(45,57)],

@@ -28,7 +28,7 @@ const FARMHOUSE_APPROACH=[Vector2i(13,29),Vector2i(13,32),Vector2i(15,32),Vector
 const POND_CELL = Vector2i(17,67)
 const JETTY_CELLS = Rect2i(19,67,4,1)
 const CART_CELLS = Rect2i(76,40,3,1)
-const LAMP_CELLS = [Vector2i(58,43),Vector2i(64,50),Vector2i(20,42)]
+const LAMP_CELLS = [Vector2i(59,44),Vector2i(66,44),Vector2i(59,50),Vector2i(66,50),Vector2i(20,42)]
 const PEOPLE = [
 	{"id":"moss","name":"Moss","role":"YOUR NEIGHBOR","cell":MOSS_ENCOUNTER_CELL,"coat":"a7834d","hair":"d6cb9c","skin":"d4a776","hat":true},
 	{"id":"tavi","name":"Tavi","role":"TRAVELING MERCHANT","cell":Vector2i(64,46),"coat":"aa7262","hair":"bd996b","skin":"c0a070","cat":true},
@@ -175,11 +175,13 @@ class Prop extends Node2D:
 			if data.get("fruit_ready",false): Art.sprite(self,"berry_cluster",Vector2(-24,-36),Vector2(48,32))
 		elif kind == "stump": Art.sprite(self,"stump",Vector2(-16,-16))
 		elif kind == "logs": Art.sprite(self,"item_wood",Vector2(-14,-24),Vector2(28,28))
-		elif kind == "bench": Art.sprite(self,"bench",Vector2(0,-48))
-		elif kind == "fountain": Art.sprite(self,"fountain"+str(int(owner_world.elapsed*6)%4),Vector2(0,-80))
+		elif kind == "bench": Art.stone_sprite(self,"bench",Vector2(0,-48),owner_world.state)
+		elif kind == "fountain": Art.stone_sprite(self,"fountain"+str(int(owner_world.elapsed*6)%4),Vector2(0,-80),owner_world.state)
 		elif kind == "mill_sails": Art.sprite(self,"mill_sails"+str(int(owner_world.elapsed*2)%4),Vector2(-48,-48))
 		elif kind == "bulletin_board": Art.sprite(self,"bulletin_board",Vector2(-16,-96))
-		elif kind == "lamp": Art.sprite(self,"lamp",Vector2(-16,-86))
+		elif kind == "lamp":
+			if owner_world.SQUARE.has_point(Grid.world_to_cell(position)): Art.stone_sprite(self,"lamp",Vector2(-16,-86),owner_world.state)
+			else: Art.sprite(self,"lamp",Vector2(-16,-86))
 		elif kind == "crucible": Art.sprite(self,"crucible",Vector2(0,-32),Vector2(32,32))
 		elif kind == "crucible_heat":
 			if owner_world.state.crucibles[data.index].ready_at>=0:
@@ -262,7 +264,7 @@ func _ready() -> void:
 		var p=Grid.center(cell)
 		sites.append({"id":"sparkfire","cell":cell,"x":p.x,"y":p.y,"label":"Gather dawn flower"})
 		_prop("sparkfire",p,{"bloom":false})
-	_prop("fountain",Grid.origin(SQUARE.position+Vector2i(2,4)),{"frame":-1})
+	_prop("fountain",Grid.origin(SQUARE.position+Vector2i(3,5)),{"frame":-1})
 	var board=_prop("bulletin_board",Grid.origin(BOARD_CELL+Vector2i.DOWN),{})
 	for cell in LAMP_CELLS: _prop("lamp",Grid.center(cell),{})
 	for cell in Neighbors.BENCHES: _prop("bench",Grid.origin(cell+Vector2i.DOWN),{})
@@ -420,7 +422,7 @@ func _build_layout() -> void:
 		_claim(Rect2i(cell,Vector2i.ONE),"flowerbed")
 	for cell in LAMP_CELLS: _claim(Rect2i(cell,Vector2i.ONE),"lamp")
 	_claim(Rect2i(Grid.world_to_cell(site_position("sign")),Vector2i.ONE),"sign")
-	_claim(Rect2i(SQUARE.position+Vector2i(2,3),Vector2i(2,1)),"fountain")
+	_claim(Rect2i(SQUARE.position+Vector2i(3,4),Vector2i(2,1)),"fountain")
 	_claim(Rect2i(BOARD_CELL,Vector2i(2,1)),"bulletin board")
 	var board_position=Grid.center(BOARD_CELL+Vector2i.ONE)
 	sites.append({"id":"bulletin_board","cell":BOARD_CELL+Vector2i.ONE,"x":board_position.x,"y":board_position.y,"label":"Read local postings"})
@@ -1017,7 +1019,7 @@ func _draw() -> void:
 				var yy=int(i/2)*10+2
 				r(self,p.x+xx,p.y+yy,13,8,"afb198" if (i+x+y)%3 else "c0bfa4")
 				r(self,p.x+xx+1,p.y+yy,10,1,"cbcab0")
-	var fountain=Grid.origin(SQUARE.position+Vector2i(2,2))
+	var fountain=Grid.origin(SQUARE.position+Vector2i(3,3))
 	oval(self,fountain.x+32,fountain.y+34,32,25,"747f7d")
 	oval(self,fountain.x+32,fountain.y+29,27,19,"709fa9")
 	r(self,fountain.x+27,fountain.y+2,10,30,"c9cbb1")

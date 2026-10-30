@@ -1,7 +1,7 @@
 extends RefCounted
 
 const Grid=preload("res://grid.gd")
-const HUB=Vector2i(62,48)
+const HUB=Vector2i(63,47)
 const TOWN=Rect2i(48,31,41,38)
 
 static func yards(world: Node2D) -> void:
@@ -25,6 +25,7 @@ static func yards(world: Node2D) -> void:
 			for x in range(bounds.position.x,bounds.end.x):
 				if x not in [bounds.position.x,bounds.end.x-1] and y not in [bounds.position.y,bounds.end.y-1]: continue
 				var cell=Vector2i(x,y)
+				if world.SQUARE.has_point(cell): continue
 				if building.id=="home" and y in [51,52]: continue
 				if town_home and world.buildings.any(func(other):return other.id!=building.id and Rect2i(other.cell,other.tiles).grow(2).has_point(cell)): continue
 				if town_home and ((x in [bounds.position.x,bounds.end.x-1] and y in [side_y,side_y-1]) or (y==bounds.position.y and x==gate.x)): continue
@@ -39,70 +40,42 @@ static func yards(world: Node2D) -> void:
 static func residential_garden(world: Node2D,building: Dictionary) -> void:
 	var rng=RandomNumberGenerator.new()
 	rng.seed=hash("garden:%d:%s" % [world.state.world_seed,building.id])
-	var side=rng.randi_range(0,3)
-	var origin=building.cell+Vector2i(building.tiles.x,0) if side==0 else building.cell-Vector2i(2,rng.randi_range(0,maxi(0,building.tiles.y-1))) if side==1 else building.cell+Vector2i(rng.randi_range(0,maxi(0,building.tiles.x-2)),building.tiles.y)
-	if building.id=="priest": origin=Vector2i(48,60)
-	if building.id=="iona": origin+=Vector2i(3,0)
 	var yard=Rect2i(building.cell-Vector2i(2,2),building.tiles+Vector2i(4,5))
 	if building.id=="veteran": yard.size.x=12
-	var count=rng.randi_range(2,4)
 	var door=building.cell+Vector2i(int(building.tiles.x/2),building.tiles.y)
 	var gate=Vector2i(door.x,yard.end.y-1)
 	if building.id=="reed_farm": gate.x+=1
-	var offsets=[Vector2i.ZERO,Vector2i.DOWN,Vector2i.DOWN*2,Vector2i.RIGHT,Vector2i.RIGHT+Vector2i.DOWN,Vector2i.LEFT]
-	var selected=[Vector2i.ZERO]
+	var candidates=[]
+	for dimensions in [Vector2i(1,2),Vector2i(2,1),Vector2i(2,2),Vector2i(2,3),Vector2i(3,2)]:
+		for y in range(yard.position.y+1,yard.end.y-dimensions.y):
+			for x in range(yard.position.x+1,yard.end.x-dimensions.x):
+				var rectangle=Rect2i(Vector2i(x,y),dimensions)
+				var clear=true
+				for dy in range(dimensions.y):
+					for dx in range(dimensions.x):
+						var cell=rectangle.position+Vector2i(dx,dy)
+						if (cell.y==52 and cell.x<=48) or (cell.y==58 and cell.x>=45 and cell.x<=63): clear=false
+						if world.blocked(Grid.center(cell)) or world.schedule_cells.has(cell) or world.road_cells.has(cell) or world.paved_cells.has(cell) or world.SQUARE.has_point(cell) or building_door_approach(world,cell) or coastal_path_contains(cell) or cell.distance_to(door)<=1.5 or (cell.x in [door.x,gate.x] and cell.y>=door.y): clear=false
+				if clear: candidates.append(rectangle)
+	var origin=building.cell
+	var offsets=[]
+	if not candidates.is_empty():
+		var rectangle: Rect2i=candidates[rng.randi_range(0,candidates.size()-1)]
+		origin=rectangle.position
+		for y in range(rectangle.size.y):
+			for x in range(rectangle.size.x): offsets.append(Vector2i(x,y))
 	var planted=[]
-	while selected.size()<count:
-		var candidate=offsets[rng.randi_range(1,offsets.size()-1)]
-		if not selected.has(candidate): selected.append(candidate)
-	for offset in selected:
+	for offset in offsets:
 		var cell=origin+offset
-		var blocks_door_path=cell.x==door.x and cell.y>=door.y and cell.y<=gate.y
-		var blocks_gate_walk=cell.x==gate.x and cell.y>=door.y and cell.y<=gate.y
-		if not yard.has_point(cell) or cell.distance_to(door)<=1.5 or blocks_door_path or blocks_gate_walk or building_door_approach(world,cell) or coastal_path_contains(cell) or (cell.y==52 and cell.x<=48) or (cell.y==58 and cell.x>=45 and cell.x<=63): continue
-		if world.solid_cells.has(cell) or world.schedule_cells.has(cell) or world.road_cells.has(cell) or world.paved_cells.has(cell): continue
 		world.garden_cells[cell]="vegetables"
 		world._claim(Rect2i(cell,Vector2i.ONE),"flowerbed")
 		world.reserved_cells[cell]=true
 		planted.append(cell)
-	if planted.size()<2:
-		var fallback=[]
-		for y in range(yard.position.y,yard.end.y):
-			for x in range(yard.position.x,yard.end.x):
-				var cell=Vector2i(x,y)
-				if planted.has(cell) or cell.distance_to(door)<=1.5 or cell.x==door.x and cell.y>=door.y and cell.y<=gate.y or cell.x==gate.x and cell.y>=door.y and cell.y<=gate.y: continue
-				if building_door_approach(world,cell) or coastal_path_contains(cell) or (cell.y==52 and cell.x<=48) or (cell.y==58 and cell.x>=45 and cell.x<=63): continue
-				if world.blocked(Grid.center(cell)) or world.schedule_cells.has(cell) or world.road_cells.has(cell) or world.paved_cells.has(cell): continue
-				fallback.append(cell)
-		for index in range(fallback.size()-1,0,-1):
-			var other=rng.randi_range(0,index)
-			var cell=fallback[index]
-			fallback[index]=fallback[other]
-			fallback[other]=cell
-		for cell in fallback:
-			if planted.size()>=2: break
-			world.garden_cells[cell]="vegetables"
-			world._claim(Rect2i(cell,Vector2i.ONE),"flowerbed")
-			world.reserved_cells[cell]=true
-			planted.append(cell)
 	var work_options=[]
 	for cell in planted:
 		for step in [Vector2i.DOWN,Vector2i.LEFT,Vector2i.RIGHT,Vector2i.UP]:
 			var work=cell+step
-			if work.distance_to(building.cell)<12 and not world.blocked(Grid.center(work)) and not world.road_cells.has(work) and not world.paved_cells.has(work) and not world._route(Grid.SPAWN_CELL,work).is_empty(): work_options.append(work)
-	if work_options.is_empty():
-		for y in range(yard.position.y,yard.end.y):
-			for x in range(yard.position.x,yard.end.x):
-				var cell=Vector2i(x,y)
-				if world.blocked(Grid.center(cell)) or world.schedule_cells.has(cell) or world.road_cells.has(cell) or world.paved_cells.has(cell) or building_door_approach(world,cell) or (cell.x==door.x and cell.y>=door.y and cell.y<=gate.y) or (cell.x==gate.x and cell.y>=door.y and cell.y<=gate.y) or coastal_path_contains(cell) or (cell.y==52 and cell.x<=48) or (cell.y==58 and cell.x>=45 and cell.x<=63) or cell.distance_to(door)<=1.5: continue
-				world.garden_cells[cell]="vegetables"
-				world._claim(Rect2i(cell,Vector2i.ONE),"flowerbed")
-				planted.append(cell)
-				for step in [Vector2i.DOWN,Vector2i.LEFT,Vector2i.RIGHT,Vector2i.UP]:
-					var work=cell+step
-					if not world.blocked(Grid.center(work)) and not world.road_cells.has(work) and not world.paved_cells.has(work) and not world._route(Grid.SPAWN_CELL,work).is_empty(): work_options.append(work)
-				if not work_options.is_empty(): break
-			if not work_options.is_empty(): break
+			if work.distance_to(building.cell)<12 and not world.blocked(Grid.center(work)) and not world._route(Grid.SPAWN_CELL,work).is_empty(): work_options.append(work)
 	if not work_options.is_empty():
 		work_options.sort_custom(func(a,b):return a.distance_squared_to(origin)<b.distance_squared_to(origin))
 		world.garden_work[building.id]=work_options[0]
@@ -117,7 +90,7 @@ static func refresh_garden_work(world: Node2D) -> void:
 		for garden_cell in world.garden_cells_by_home[home]:
 			for step in [Vector2i.DOWN,Vector2i.LEFT,Vector2i.RIGHT,Vector2i.UP]:
 				var cell: Vector2i=garden_cell+step
-				if cell.distance_to(building[0].cell)>=12 or world.blocked(Grid.center(cell)) or world.road_cells.has(cell) or world.paved_cells.has(cell): continue
+				if cell.distance_to(building[0].cell)>=12 or world.blocked(Grid.center(cell)): continue
 				if world._route(Grid.SPAWN_CELL,cell).is_empty(): continue
 				if not options.has(cell): options.append(cell)
 		if options.is_empty():

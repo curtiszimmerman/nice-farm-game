@@ -41,15 +41,16 @@ func run() -> void:
 		game.call("try_player_step",Vector2(0,-6))
 		check(iona.position==stop,"an engaged conversation protects its speaker from pushing")
 		game.outdoors.conversation_holds.erase("iona")
-		iona.position=game.Grid.center(Vector2i(59,46))
-		game.state.player_position=game.Grid.center(Vector2i(61,46))
-		game.outdoors.story_destinations.iona={"cell":Vector2i(63,46),"room":"","sleeping":false}
+		iona.position=game.Grid.center(Vector2i(60,46))
+		game.state.player_position=game.Grid.center(Vector2i(62,46))
+		game.outdoors.story_destinations.iona={"cell":Vector2i(65,46),"room":"","sleeping":false}
 		game.outdoors.routes.erase("iona")
 		var clearance=true
 		for i in range(240):
+			game.outdoors.elapsed+=0.05
 			game.outdoors.update_villagers(0.05)
 			if iona.position.distance_to(game.state.player_position)<21.9: clearance=false
-		check(clearance and iona.position.distance_to(game.Grid.center(Vector2i(63,46)))<1,"a displaced villager routes around the player and returns to the intended stop")
+		check(clearance and iona.position.distance_to(game.Grid.center(Vector2i(65,46)))<1,"a displaced villager routes around the player and returns to the intended stop")
 	await game.sound.shutdown()
 	game.queue_free()
 	await process_frame

@@ -24,7 +24,7 @@ func run() -> void:
 				for cell in [Vector2i(23,67),Vector2i(23,78),Vector2i(29,78),Vector2i(29,79),Vector2i(29,80),Vector2i(29,81),Vector2i(29,82),Vector2i(42,82),Vector2i(42,81),Vector2i(42,80)]: print("Route cell ",cell," blocked=",w.blocked(w.Grid.center(cell))," solid=",w.solid_cells.get(cell,"")," gate=",w.yard_gates.has(cell))
 			routes=false
 	check(routes,"every new building entrance connects to the town")
-	check(not w.blocked(w.Grid.center(w.SQUARE.position+Vector2i(2,2))) and w.blocked(w.Grid.center(w.SQUARE.position+Vector2i(2,3))),"the fountain's upper artwork permits walking behind its base")
+	check(not w.blocked(w.Grid.center(w.SQUARE.position+Vector2i(3,3))) and w.blocked(w.Grid.center(w.SQUARE.position+Vector2i(3,4))),"the fountain's upper artwork permits walking behind its base")
 	check(w.sites.filter(func(s):return s.id.begins_with("bench")).size()>=2,"town square has usable benches")
 	if w.villagers.has("miller_daughter"):
 		game.state.minute=900

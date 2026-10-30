@@ -49,6 +49,7 @@ func run() -> void:
 	if not clear: print("Blocked residents: ",blocked_actors)
 	check(clear,"villager routes avoid buildings, water, and fences")
 	check(separated,"visible NPCs keep a body radius apart during scheduled movement")
+	if w.villagers.tavi.position.distance_to(lunch)>=1: print("Tavi stopped at ",w.villagers.tavi.position," heading to ",lunch," route ",w.routes.get("tavi",{}))
 	check(w.villagers.tavi.position.distance_to(lunch)<1,"Tavi reaches the lunch stop")
 	var reachable=true
 	for id in w.Schedule.ROUTINES:
