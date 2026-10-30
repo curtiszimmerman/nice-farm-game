@@ -47,13 +47,28 @@ static func step(world: Node2D,actor: Node2D,target: Vector2,distance: float) ->
 static func facing_for(motion: Vector2) -> String:
 	return ("right" if motion.x>0 else "left") if absf(motion.x)>absf(motion.y) else ("down" if motion.y>0 else "up")
 
+static func obstruction_signature(world: Node2D) -> int:
+	var cells=[]
+	if world.state.location==(world.building.id if world.get("building")!=null else ""):
+		cells.append(world.Grid.world_to_cell(world.state.player_position))
+	for actor in world.villagers.values():
+		if actor.visible: cells.append(world.Grid.world_to_cell(actor.position))
+	return hash(cells)
+
 static func walk_to(world: Node2D,id: String,cell: Vector2i,dt: float,speed: float) -> bool:
 	var actor: Node2D=world.villagers[id]
 	var target=world.Grid.center(cell)
 	var player_cell=world.Grid.world_to_cell(world.state.player_position)
 	var route: Dictionary=world.routes.get(id,{})
 	var changed=route.is_empty() or route.target!=target
+	if not changed and route.get("blocked",false) and world.elapsed<route.get("retry_at",0.0):
+		actor.data.walking=false
+		return actor.position.distance_to(target)<1
 	var retry=not route.is_empty() and route.path.is_empty() and route.get("blocked",false) and world.elapsed>=route.get("retry_at",0.0)
+	if not changed and retry and route.get("obstruction_signature",-1)==obstruction_signature(world):
+		route.retry_at=world.elapsed+0.5
+		actor.data.walking=false
+		return false
 	if changed or retry:
 		var start=world.Grid.world_to_cell(actor.position)
 		var anchor=world.Grid.center(start)
@@ -62,7 +77,7 @@ static func walk_to(world: Node2D,id: String,cell: Vector2i,dt: float,speed: flo
 			start=world.Grid.world_to_cell(anchor)
 		var path: Array=world._route(start,cell,true,true,actor)
 		if actor.position.distance_to(anchor)>0.1: path.push_front(anchor)
-		route={"target":target,"path":path,"player_cell":player_cell,"blocked":path.is_empty() and actor.position.distance_to(target)>1,"retry_at":world.elapsed+0.5}
+		route={"target":target,"path":path,"player_cell":player_cell,"blocked":path.is_empty() and actor.position.distance_to(target)>1,"retry_at":world.elapsed+0.5,"obstruction_signature":obstruction_signature(world) if path.is_empty() else -1}
 		world.routes[id]=route
 	var previous=actor.position
 	var remaining=dt*speed
@@ -71,13 +86,14 @@ static func walk_to(world: Node2D,id: String,cell: Vector2i,dt: float,speed: flo
 		var distance=actor.position.distance_to(waypoint)
 		var next=step(world,actor,waypoint,remaining)
 		if next==actor.position and distance>0.1:
-			var path: Array=world._route(world.Grid.world_to_cell(actor.position),cell,true,true,actor)
 			# Replan once for an obstruction, then wait for it to move.
-			route.path=path
+			var signature=obstruction_signature(world)
+			if route.get("obstruction_signature",-1)!=signature:
+				route.path=world._route(world.Grid.world_to_cell(actor.position),cell,true,true,actor)
+				route.obstruction_signature=signature
 			route.player_cell=player_cell
 			route.blocked=true
 			route.retry_at=world.elapsed+0.5
-			if not path.is_empty() and path[0]==waypoint: route.path=[]
 			break
 		actor.position=next
 		remaining-=distance

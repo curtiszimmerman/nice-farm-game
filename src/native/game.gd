@@ -702,7 +702,7 @@ func interact() -> void:
 		sit_on_bench()
 		return
 	if nearest.get("id")=="stove": cooking(); return
-	if state.active_item()=="rusty_sword" and nearest.get("type")!="site":
+	if state.active_item()=="rusty_sword" and nearest.get("type") not in ["site","forage"]:
 		if world.attack(): burst(state.player_position+Vector2({"up":Vector2.UP,"down":Vector2.DOWN,"left":Vector2.LEFT,"right":Vector2.RIGHT}[world.facing])*26,"e8d2a0",10); save_visit()
 		else: toast("Carry and select your sword, and keep enough energy to swing.")
 		return
@@ -1234,7 +1234,7 @@ func buy_ingredient(id: String) -> void:
 	if state.purchase(id):
 		save_visit()
 		toast("Bought "+state.Items.CATALOG[id].name+".")
-	else: toast("Out of stock. Delivery next season." if state.stock(id)==0 else "You need enough crowns and room in your satchel.")
+	else: toast("Out of stock. Delivery tomorrow." if state.stock(id)==0 else "You need enough crowns and room in your satchel.")
 
 func shop_menu(title: String,role: String,text: String,offers: Array) -> void:
 	var choices=[]
@@ -1245,15 +1245,16 @@ func shop_menu(title: String,role: String,text: String,offers: Array) -> void:
 		var stock_id: String=offer[3]
 		var action: Callable=offer[4]
 		var count=state.stock(stock_id)
-		var status="Out of stock · delivery next season" if count==0 else "%s crowns · %d available" % [crowns(price),count]
+		var delivery="tomorrow" if state.Shop.daily(stock_id) else "next season"
+		var status="Out of stock · delivery "+delivery if count==0 else "%s crowns · %d available" % [crowns(price),count]
 		var can_buy=count>0 and state.money>=price
 		choices.append([label+" · "+status,func():
-			if count==0: toast("Out of stock. Delivery next season.")
+			if count==0: toast("Out of stock. Delivery "+delivery+".")
 			elif state.money<price: toast("You need %d crowns." % price)
 			elif not action.call(): toast("Make room in your satchel before buying that.")
 			else:
 				save_visit()
-				toast("Bought "+(state.Items.CATALOG[item].name if state.Items.CATALOG.has(item) else label)+".")
+				toast("Bought "+label+".")
 			shop_menu(title,role,text,offers),can_buy,item,true])
 	choices.append(["Thanks, I'm all set.",func(): pass])
 	panel(title,role,text,choices)
@@ -1656,7 +1657,20 @@ func development_tools() -> void:
 			close_window(true)
 			],
 		["Restore vitals, grant tools and 100,000 crowns",development_supplies],
+		["Stock farmhouse chest with 500 basic materials each",development_materials],
 		["Back to settings",settings]])
+
+func development_materials() -> void:
+	for id in ["wood","stones","coal","copper","star_bulbs","turnips"]:
+		var index=state.chest.find_custom(func(stack):return stack.get("id","")==id)
+		if index<0: index=state.chest.find({})
+		if index<0:
+			toast("Make room in the farmhouse chest first.")
+			return
+		state.chest[index]={"id":id,"count":int(state.chest[index].get("count",0))+500}
+	save_visit()
+	toast("Basic materials added to the farmhouse chest.")
+	development_tools()
 
 func development_supplies() -> void:
 	state.health=100

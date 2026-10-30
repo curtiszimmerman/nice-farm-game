@@ -347,6 +347,9 @@ func advance(minutes: float, window_open = false,sleeping: bool=false) -> void:
 	requests.update_deadline(self)
 	update_crucibles()
 	for crop_day in range(previous_day,day):
+		stock("bread")
+		for id in Shop.CATALOG:
+			if Shop.daily(id): shop_remaining[id]=Shop.CATALOG[id].stock
 		for index in range(plots.size()-1,-1,-1):
 			var plot=plots[index]
 			var rain=weather_name(crop_day)=="rainy"
@@ -686,7 +689,16 @@ func stock(id: String) -> int:
 		shop_remaining=Shop.amounts()
 	return int(shop_remaining.get(id,0))
 
+func purchase_drink(id: String) -> bool:
+	if not Shop.DRINKS.has(id) or stock(id)<=0 or money<Shop.CATALOG[id].price: return false
+	money-=Shop.CATALOG[id].price
+	shop_remaining[id]-=1
+	needs.drink()
+	restore_energy(Shop.DRINKS[id].energy)
+	return true
+
 func purchase(id: String) -> bool:
+	if Shop.DRINKS.has(id): return purchase_drink(id)
 	if not Shop.CATALOG.has(id) or stock(id)<=0: return false
 	var offer=Shop.CATALOG[id]
 	if money<offer.price or not can_carry(id): return false

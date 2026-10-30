@@ -81,10 +81,17 @@ static func talk(game: Node2D,id: String) -> bool:
 	if id=="priest" and posmod(game.state.day-1,7)==6 and game.state.minute>=600 and game.state.minute<720 and game.current_room=="temple":
 		text="A single lamp may tremble, but look how many we've brought together. Vorisel keeps the far mysteries; Elunai asks us to tend the light within reach. Let the darkness beyond the stars remind us to make room beside our own hearths. No neighbor should have to face this day alone."
 	var choices=[]
+	if id=="barkeep" and working:
+		choices.append(["What have you got for sale?",func():
+			var offers=[]
+			for drink in game.state.Shop.DRINKS:
+				var selected=drink
+				offers.append(["health_elixir",game.state.Shop.DRINKS[drink].name,game.state.Shop.CATALOG[drink].price,drink,func(): game.state.purchase_drink(selected)])
+			game.shop_menu("The Wayward Wren","A DRINK AT THE BAR","These are served here, ready to drink. Wrenlight is warm apple cordial, a splash of mead, and toasted spice. Rafe first mixed it for the mill crew after a winter wheel repair; they said it put the light back in their fingers, and the name stuck.",offers)])
 	if id=="smith" and working:
 		choices.append(["What have you got for sale?",func(): game.smith_shop()])
-	if id=="miller" and working:
-		choices.append(["What have you got for sale?",func(): game.shop_menu("Tomas's Mill","FRESHLY MILLED","A sack of flour, ground here from the Reeds' grain. The cart comes through with a new supply each season.",[["flour","Sack of flour",5,"flour",func(): game.state.purchase("flour")]])])
+	if id in ["miller","miller_wife"] and working:
+		choices.append(["What have you got for sale?",func(): game.shop_menu("The Bells' Mill","FRESHLY MILLED","A sack of flour, ground here from the Reeds' grain. We mill a fresh supply each morning.",[["flour","Sack of flour",5,"flour",func(): game.state.purchase("flour")]])])
 	if id=="astronomer" and working and game.state.star_origin_reply=="":
 		choices.append(["You're right. Our ship fell on the mountain.",func():
 			game.state.record_star_origin(true)
