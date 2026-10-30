@@ -1431,6 +1431,9 @@ func paint_crops(c: CanvasItem) -> void:
 			continue
 		if p.planted < 0.0: continue
 		if state.ripe(i):
+			if preload("res://crop_art.gd").COLORS.has(p.crop):
+				c.draw_texture_rect(preload("res://crop_art.gd").icon(p.crop),Rect2(pos-Vector2(16,32),Vector2(32,32)),false)
+				continue
 			oval(c,x,y+2,8,6,"e5c777" if p.crop=="star_bulbs" else "eee0b9")
 			if p.crop=="star_bulbs":
 				r(c,x-2,y-10,4,24,"f1dfa2")

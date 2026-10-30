@@ -117,11 +117,29 @@ var berry_cobbler=0
 var flour=0
 var sugar=0
 var butter=0
+var green_onion_seeds=0
+var tomato_seeds=0
+var cucumber_seeds=0
+var gladain_seeds=0
+var green_onions=0
+var tomatoes=0
+var cucumbers=0
+var gladain=0
+const CROPS={"turnips":{"seed":"seeds","days":3,"regrow":0,"seasons":["spring","summer","autumn","winter"]},"star_bulbs":{"seed":"star_seeds","days":3,"regrow":0,"seasons":["spring","summer","autumn","winter"]},"green_onions":{"seed":"green_onion_seeds","days":6,"regrow":0,"seasons":["spring"]},"tomatoes":{"seed":"tomato_seeds","days":6,"regrow":3,"seasons":["spring","summer"]},"cucumbers":{"seed":"cucumber_seeds","days":4,"regrow":4,"seasons":["spring","summer"]},"gladain":{"seed":"gladain_seeds","days":14,"regrow":0,"seasons":["spring"]}}
 var mayor_due=-1.0
 var house_tasks={"sofa":false,"bed":false,"guest_bed":false,"radio":false,"living_light":false,"bathroom_light":false}
 const INVENTORY_SLOTS=16
-const EXTRA_ITEMS=["pot","pan","fish_sticks","fish_stew","health_elixir","rations","light_bulbs","moon_pike","sea_sprat","blue_mackerel","storm_eel","rain_glassfish","storm_shiner","pickaxe","stones","cave_moth_chrysalis","golden_sparkfire_bloom","lantern_ray","axe","wood","bread","copper_bars","berries","apples","ladder","fishing_pole","coal","silver_bars","winter_sparkbloom","berry_preserves","berry_cobbler","flour","sugar","butter"]
+const EXTRA_ITEMS=["pot","pan","fish_sticks","fish_stew","health_elixir","rations","light_bulbs","moon_pike","sea_sprat","blue_mackerel","storm_eel","rain_glassfish","storm_shiner","pickaxe","stones","cave_moth_chrysalis","golden_sparkfire_bloom","lantern_ray","axe","wood","bread","copper_bars","berries","apples","ladder","fishing_pole","coal","silver_bars","winter_sparkbloom","berry_preserves","berry_cobbler","flour","sugar","butter","green_onion_seeds","tomato_seeds","cucumber_seeds","gladain_seeds","green_onions","tomatoes","cucumbers","gladain"]
 const CROP_MINUTES=4320.0
+const CROP_PRICES={"green_onions":16,"tomatoes":14,"cucumbers":12,"gladain":40}
+
+static func crop_minutes(crop: String) -> float:
+	return CROPS[crop].days*1440.0
+
+static func crop_for_seed(seed_id: String) -> String:
+	for crop in CROPS:
+		if CROPS[crop].seed==seed_id: return crop
+	return ""
 const RECIPES={"fish_sticks":{"utensil":"pan","ingredients":{"fish":1}},"fish_stew":{"utensil":"pot","ingredients":{"turnips":1,"star_bulbs":1,"fish":1}},"berry_preserves":{"utensil":"pot","ingredients":{"berries":2,"sugar":1}},"berry_cobbler":{"utensil":"pan","ingredients":{"berry_preserves":1,"flour":1,"sugar":1,"butter":1}}}
 var invitation_day=1
 var abandoned_day: Dictionary={}
@@ -353,13 +371,13 @@ func advance(minutes: float, window_open = false,sleeping: bool=false) -> void:
 		for index in range(plots.size()-1,-1,-1):
 			var plot=plots[index]
 			var rain=weather_name(crop_day)=="rainy"
-			if posmod(crop_day,DEVELOPMENT_SEASON_DAYS)==0 and plot.planted>=0:
+			if posmod(crop_day,DEVELOPMENT_SEASON_DAYS)==0 and plot.planted>=0 and not (CROPS[plot.crop].regrow>0 and ["spring","summer","autumn","winter"][int(crop_day/28.0)%4] in CROPS[plot.crop].seasons):
 				plot.planted=-1.0
 				plot.growth=-1.0
 				plot.watered=false
 			elif plot.planted>=0 and plot.growth>=0:
 				if rain or (plot.watered and plot.water_day==crop_day):
-					plot.growth=minf(CROP_MINUTES,plot.growth+1440)
+					plot.growth=minf(crop_minutes(plot.crop),plot.growth+1440)
 					plot.water_day=crop_day if rain else plot.water_day
 				elif crop_day-int(plot.water_day)>=2:
 					plot.planted=-1.0
@@ -391,7 +409,7 @@ func take_crew_meal() -> bool:
 	return false
 
 func ripe(index: int) -> bool:
-	return index >= 0 and index < plots.size() and plots[index].planted >= 0.0 and plots[index].growth >= CROP_MINUTES
+	return index >= 0 and index < plots.size() and plots[index].planted >= 0.0 and plots[index].growth >= crop_minutes(plots[index].crop)
 
 func plot_moisture(index: int) -> float:
 	var plot=plots[index]
@@ -469,9 +487,14 @@ func farm(index: int) -> String:
 	if index<0 or index>=plots.size(): return "No soil here."
 	var p=plots[index]
 	if active_item()=="watering_can": return water_plot(index)
-	if p.planted>=0 and p.watered and not ripe(index): return "Growing. Water each day; three watered midnights to mature."+(" Select Wildgrowth to hasten it." if magic_learned else "")
+	if active_item()=="hoe" and p.planted>=0:
+		if not spend_energy(1.2): return "Too tired to dig up this plant."
+		p.planted=-1.0
+		p.growth=0.0
+		return "Plant dug up."
+	if p.planted>=0 and p.watered and not ripe(index): return "Growing. Keep it watered each day."+(" Select Wildgrowth to hasten it." if magic_learned else "")
 	var needed="sickle" if ripe(index) else "hoe" if not p.tilled else "watering_can" if p.planted>=0 and not p.watered else selected_seed
-	if p.tilled and p.planted<0 and active_item() in ["seeds","star_seeds"]: selected_seed=active_item(); needed=selected_seed
+	if p.tilled and p.planted<0 and crop_for_seed(active_item())!="": selected_seed=active_item(); needed=selected_seed
 	if active_item()!=needed: return "Select %s in a quick slot first." % Items.CATALOG[needed].name
 	return tend(index)
 
@@ -505,8 +528,8 @@ func tend(index: int) -> String:
 	if ripe(index):
 		if not can_carry(p.crop): return "Your satchel is full. Make room before harvesting."
 		energy-=cost
-		p.planted = -1.0
-		p.growth=0.0
+		p.planted = total() if CROPS[p.crop].regrow>0 else -1.0
+		p.growth=crop_minutes(p.crop)-CROPS[p.crop].regrow*1440.0 if CROPS[p.crop].regrow>0 else 0.0
 		p.watered = false
 		set(p.crop,int(get(p.crop))+1)
 		harvested += 1
@@ -517,12 +540,14 @@ func tend(index: int) -> String:
 		p.tilled = true
 		return "Good earth. Press E again to plant."
 	if p.planted < 0.0:
+		var crop=crop_for_seed(selected_seed)
+		if crop=="" or season_name() not in CROPS[crop].seasons: return "These seeds cannot be planted this season."
 		if int(get(selected_seed)) == 0:
 			return "Out of seeds. Tavi sells more at the town market."
 		energy-=cost
 		set(selected_seed,int(get(selected_seed))-1)
 		clear_empty_slots()
-		p.crop="star_bulbs" if selected_seed=="star_seeds" else "turnips"
+		p.crop=crop
 		p.planted = total()
 		p.growth=0.0
 		return "%s planted. A little water next." % Items.CATALOG[p.crop].name
@@ -538,7 +563,7 @@ func grow(index: int) -> bool:
 	if mana < 15.0 or p.planted < 0.0 or p.growth<0 or not p.watered or ripe(index):
 		return false
 	mana -= 15.0
-	p.growth=CROP_MINUTES
+	p.growth=crop_minutes(p.crop)
 	return true
 
 func sell() -> bool:
@@ -548,11 +573,13 @@ func sell() -> bool:
 	turnips = 0
 	for id in Items.FISH: set(id,0)
 	star_bulbs=0
+	for crop in CROP_PRICES: set(crop,0)
 	clear_empty_slots()
 	return true
 
 func sale_value() -> int:
 	var earned=turnips*8+star_bulbs*12
+	for crop in CROP_PRICES: earned+=int(get(crop))*CROP_PRICES[crop]
 	for id in Items.FISH: earned+=int(get(id))*Items.FISH[id].price
 	return earned
 
@@ -966,7 +993,7 @@ func restore(data: Variant) -> bool:
 		if not id in ["moss","mayor","assistant","tavi","iona","finch","vale","veteran","keeper"] and not preload("res://neighbors.gd").STORIES.has(id): return false
 		if not _number(data.abandoned_day[id]) or data.abandoned_day[id]<1 or data.abandoned_day[id]>data.day: return false
 		if data.abandoned_day[id]!=floor(data.abandoned_day[id]): return false
-	if not data.get("selected_seed") in ["seeds","star_seeds"] or not data.get("equipped") in ["","rusty_sword"]: return false
+	if crop_for_seed(str(data.get("selected_seed")))=="" or not data.get("equipped") in ["","rusty_sword"]: return false
 	if data.equipped=="rusty_sword" and data.rusty_sword==0: return false
 	if not Grid.contains(Grid.world_to_cell(Vector2(data.outdoor_x,data.outdoor_y))): return false
 	if not Grid.contains(Grid.world_to_cell(Vector2(data.x,data.y))):
@@ -990,8 +1017,8 @@ func restore(data: Variant) -> bool:
 		plot_cells.append(cell)
 		if p.planted < -1.0 or p.planted > (data.day - 1) * 1440.0 + data.minute:
 			return false
-		if not p.get("crop") in ["turnips","star_bulbs"]: return false
-		if not _number(p.get("growth")) or p.growth< -1 or p.growth>CROP_MINUTES: return false
+		if not CROPS.has(p.get("crop")): return false
+		if not CROPS.has(p.get("crop")) or not _number(p.get("growth")) or p.growth< -1 or p.growth>crop_minutes(p.crop): return false
 		if not _number(p.get("water_day")) or p.water_day<0 or p.water_day>data.day or p.water_day!=floor(p.water_day): return false
 	for field in ["day", "money", "seeds", "turnips", "fish", "copper", "harvested","star_seeds","star_bulbs","rusty_sword","hoe","watering_can","sickle","invitation_day"]:
 		set(field, int(data[field]))

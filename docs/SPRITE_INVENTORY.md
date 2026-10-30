@@ -1,5 +1,7 @@
 # Sprite inventory for town-life expansion
 
+Seasonal crop sprites: `src/native/crop_art.gd` supplies eight 16×16 bitmap icons (green onion, tomato, cucumber and gladain produce plus their seed packets). Mature crops reuse their produce sprite in the field; immature plants use the existing sprout. These are generated and cached locally without changing atlas artwork. Existing moon turnip and star bulb sprites remain in their packs.
+
 The survival/faith pass adds thirteen option-3 sprites and replaces the seven requested weekday-ring designs. `scripts/journey_sprites16.py` contains metal ship bunks/lockers/table, a temple altar, thirsty/starving icons, winter sparkbloom world/item sprites, and preserves/flour/sugar/butter/cobbler icons. Its small artwork request reported $0.4766336 API-equivalent usage. Public prompt and exchange records are in `internal/claude-review/borders/06-survival-faith/`. Border work remains deferred separately. The default atlas now has 23,432 entries.
 
 Existing assets are reused without pixel edits: all terrain borders, trees, bushes, flowers, fish, player/NPC frames, buildings, furniture, tools, calendar rings, waves, birds, ladder, telescope, copper and stone. The two existing generator catalogs remain the full machine-readable inventory; do not send them to artwork services as context.

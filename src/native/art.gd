@@ -316,6 +316,9 @@ static func crops(w: Node2D,c: CanvasItem) -> void:
 			var wet=Borders.sprite_id(material,Borders.mask(w.farm_cells,cell),w.state.season_name(),"rainy",Borders.variant(cell,w.state.world_seed))
 			sprite(c,wet,Grid.origin(cell),Vector2.ZERO,Color(1,1,1,moisture))
 		if p.planted>=0:
+			if w.state.ripe(i) and preload("res://crop_art.gd").COLORS.has(p.crop):
+				c.draw_texture_rect(preload("res://crop_art.gd").icon(p.crop),Rect2(Grid.origin(cell)-Vector2(0,16),Vector2(32,32)),false)
+				continue
 			var plant="bulb" if w.state.ripe(i) and p.crop=="star_bulbs" else "turnip" if w.state.ripe(i) else "sprout"
 			sprite(c,"plant_overlay_"+plant,Grid.origin(cell))
 

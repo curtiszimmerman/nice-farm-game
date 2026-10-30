@@ -45,7 +45,7 @@ func run() -> void:
 		break
 	check(harvested,"a selected sword still lets the player gather ripe berries")
 	game.development_materials()
-	check(["wood","stones","coal","copper","star_bulbs","turnips"].all(func(id):return s.chest.any(func(stack):return stack.get("id","")==id and stack.get("count",0)>=500)),"development materials arrive in the farmhouse chest")
+	check(["wood","stones","coal","copper","star_bulbs","turnips","seeds"].all(func(id):return s.chest.any(func(stack):return stack.get("id","")==id and stack.get("count",0)>=500)),"development materials and moon turnip seeds arrive in the farmhouse chest")
 	s.needs.hardcore=true
 	s.needs.without_water=100
 	s.energy=20

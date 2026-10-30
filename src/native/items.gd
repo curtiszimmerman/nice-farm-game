@@ -8,6 +8,14 @@ const FOOD={"berry_preserves":{"health":4,"energy":15,"mana":0},"berry_cobbler":
 const FISH={"lantern_ray":{"habitat":"ocean_tip","hard":true,"price":90,"weight":1,"color":"e4cf8b"},"fish":{"habitat":"pond","hard":false,"price":10,"color":"9dbcc0"},"moon_pike":{"habitat":"pond","hard":true,"price":35,"color":"a8ad7b"},"sea_sprat":{"habitat":"ocean","hard":false,"price":12,"color":"c1c7b2"},"blue_mackerel":{"habitat":"ocean","hard":false,"price":16,"color":"729ab6"},"storm_eel":{"habitat":"ocean","hard":true,"price":50,"color":"a58bb6"},"rain_glassfish":{"habitat":"pond","hard":false,"price":24,"color":"9fd8cc","rainy_only":true},"storm_shiner":{"habitat":"ocean","hard":true,"price":34,"color":"8aa9c8","rainy_only":true}}
 
 const CATALOG={
+	"green_onion_seeds":{"name":"Green onion seeds","description":"Spring crop. Six watered days to harvest.","action":"Plant"},
+	"tomato_seeds":{"name":"Tomato seeds","description":"Spring and summer. Six watered days, then another tomato every three watered days.","action":"Plant"},
+	"cucumber_seeds":{"name":"Cucumber seeds","description":"Spring and summer. Four watered days to grow and four between harvests.","action":"Plant"},
+	"gladain_seeds":{"name":"Gladain seeds","description":"A local spring crop. Fourteen watered days to harvest.","action":"Plant"},
+	"green_onions":{"name":"Green onions","description":"Fresh spring onions with crisp white stems.","action":"Crop"},
+	"tomatoes":{"name":"Tomato","description":"A ripe tomato, grown in spring or summer.","action":"Crop"},
+	"cucumbers":{"name":"Cucumber","description":"A cool, crisp crop from a productive vine.","action":"Crop"},
+	"gladain":{"name":"Gladain","description":"A potato-like tuber that tastes like banana. Endemic to this part of the world.","action":"Crop"},
 	"berry_preserves":{"name":"Berry preserves","description":"Sweet fruit simmered in a pot. Restores 15 energy and 4 HP.","action":"Eat"},
 	"berry_cobbler":{"name":"Berry cobbler","description":"Warm berries under a buttery crust. Restores 35 energy and 12 HP.","action":"Eat"},
 	"flour":{"name":"Flour","description":"Fine grain flour from the Bells' windmill.","action":"Cooking ingredient"},
@@ -56,6 +64,7 @@ const CATALOG={
 static var textures: Dictionary={}
 
 static func icon(id: String) -> Texture2D:
+	if preload("res://crop_art.gd").SEEDS.has(id) or preload("res://crop_art.gd").COLORS.has(id): return preload("res://crop_art.gd").icon(id)
 	var related={"berry_preserves":"berries","berry_cobbler":"bread","flour":"rations","sugar":"rations","butter":"rations","winter_sparkbloom":"golden_sparkfire_bloom"}
 	if related.has(id):
 		Art.load_atlas()

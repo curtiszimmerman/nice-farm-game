@@ -1271,6 +1271,10 @@ func tavi_shop() -> void:
 		["health_elixir","Health elixir",15,"health_elixir",func(): state.purchase("health_elixir")],
 		["sugar","Sugar",4,"sugar",func(): state.purchase("sugar")],
 		["butter","Butter",6,"butter",func(): state.purchase("butter")]]
+	for crop in state.CROPS:
+		var seed_id=state.CROPS[crop].seed
+		if seed_id in ["seeds","star_seeds"] or state.season_name() not in state.CROPS[crop].seasons: continue
+		offers.append([seed_id,"Five "+state.Items.CATALOG[seed_id].name.to_lower(),10,seed_id,func(): state.purchase(seed_id)])
 	shop_menu("Tavi's Grocery","SEASONAL STOCK","Here's what's on the shelves today. Seed packets, cookware, and baking supplies arrive with the seasonal cart. Pots and pans work from your kitchen cabinet or satchel.",offers)
 
 func smith_shop() -> void:
@@ -1661,7 +1665,7 @@ func development_tools() -> void:
 		["Back to settings",settings]])
 
 func development_materials() -> void:
-	for id in ["wood","stones","coal","copper","star_bulbs","turnips"]:
+	for id in ["wood","stones","coal","copper","star_bulbs","turnips","seeds"]:
 		var index=state.chest.find_custom(func(stack):return stack.get("id","")==id)
 		if index<0: index=state.chest.find({})
 		if index<0:
