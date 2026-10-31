@@ -35,10 +35,13 @@ func run() -> void:
 		check(s.crucibles[0].bars==0,"pausing the world also pauses smelting")
 		s.advance(30)
 		s.storage_transfer("chest",4,"copper_bars")
+		var filler=""
 		for id in s.Items.CATALOG:
-			if id!="copper_bars" and int(s.get(id))==0 and s.carried_slots()<s.INVENTORY_SLOTS: s.set(id,1)
+			if id!="copper_bars" and int(s.get(id))==0 and s.carried_slots()<s.INVENTORY_SLOTS:
+				s.set(id,1)
+				filler=id
 		check(not s.collect_copper_bar(0) and s.crucibles[0].bars==1,"a full satchel leaves the finished bar safely inside the crucible")
-		s.storage_transfer("chest",5,"bread")
+		s.storage_transfer("chest",5,filler)
 		check(s.collect_copper_bar(0),"the finished bar can be collected after making room")
 		var loaded=State.new()
 		check(loaded.restore(s.to_dict()) and loaded.crucibles==s.crucibles and loaded.crucible_known,"blueprints and placed crucibles survive saving")

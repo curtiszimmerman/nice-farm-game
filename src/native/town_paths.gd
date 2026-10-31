@@ -56,6 +56,8 @@ static func residential_garden(world: Node2D,building: Dictionary) -> void:
 						var cell=rectangle.position+Vector2i(dx,dy)
 						if (cell.y==52 and cell.x<=48) or (cell.y==58 and cell.x>=45 and cell.x<=63): clear=false
 						if world.blocked(Grid.center(cell)) or world.schedule_cells.has(cell) or world.road_cells.has(cell) or world.paved_cells.has(cell) or world.SQUARE.has_point(cell) or building_door_approach(world,cell) or coastal_path_contains(cell) or cell.distance_to(door)<=1.5 or (cell.x in [door.x,gate.x] and cell.y>=door.y): clear=false
+						# Iona's tower has no fence, so people walk right past its base. Keep the garden out of those side lanes.
+						if building.kind=="tower" and cell.x in [building.cell.x-1,building.cell.x+building.tiles.x] and cell.y>=building.cell.y and cell.y<building.cell.y+building.tiles.y: clear=false
 				if clear: candidates.append(rectangle)
 	var origin=building.cell
 	var offsets=[]

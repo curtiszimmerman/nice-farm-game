@@ -67,7 +67,7 @@ static func grow_watered_days(state: RefCounted,days: int=3) -> void:
 	state.selected_slot=slot
 
 static func advance_dialogue(game: Node2D) -> void:
-	var farming=game.ui.modal_box.get_children().filter(func(node):return node is Button and "And the spell" in node.text)
+	var farming=game.ui.modal_box.get_children().filter(func(node):return node is Button and "You mentioned magic" in node.text)
 	if not farming.is_empty(): farming[0].pressed.emit()
 	else: game.ui.modal_box.get_child(3).pressed.emit()
 
@@ -76,11 +76,14 @@ static func finish_welcome(game: Node2D) -> void:
 	game.state.storage_transfer("cabinet",0)
 	for task in game.state.house_tasks: game.tidy_farmhouse(task)
 	game._process(8)
-	while game.state.welcome_phase!="complete":
+	for i in range(1200):
+		if game.state.welcome_phase=="complete":
+			game.leave_building()
+			return
 		if game.window_open:
 			advance_dialogue(game)
 		else: game._process(0.25)
-	game.leave_building()
+	assert(false,"The welcome must finish once the captain answers every visitor")
 
 static func await_visitors(game: Node2D) -> void:
 	for i in range(1200):

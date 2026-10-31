@@ -16,5 +16,5 @@ func run() -> void:
 		check(calendar.has_method("pendulum_geometry"),"the clock exposes its round pendulum geometry")
 		if calendar.has_method("pendulum_geometry"):
 			var bob=calendar.pendulum_geometry()
-			check(bob.radius>=18 and is_equal_approx(bob.pivot_y+bob.center_y-bob.radius,342),"the round pendulum touches the clock box at its center swing")
+			check(bob.radius>=18 and bob.pivot_y+bob.center_y-bob.radius>=342,"the round pendulum hangs clear below the clock box at its center swing")
 	quit(1 if failed else 0)

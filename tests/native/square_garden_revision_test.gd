@@ -11,9 +11,14 @@ func run() -> void:
 	root.add_child(game)
 	game.set_process(false)
 	var w=game.outdoors
-	for seed_value in [1,123456,917]:
+	for seed_value in [1,4,123456,917]:
 		game.state.world_seed=seed_value
 		w.rebuild_visit(game.state)
+		var tower=w.buildings.filter(func(b):return b.kind=="tower")[0]
+		var lanes_clear=true
+		for y in range(tower.cell.y,tower.cell.y+tower.tiles.y):
+			for x in [tower.cell.x-1,tower.cell.x+tower.tiles.x]: lanes_clear=lanes_clear and not w.blocked(w.Grid.center(Vector2i(x,y)))
+		check(lanes_clear,"Iona's garden leaves both sides of the tower walkable: seed %d" % seed_value)
 		for home in w.garden_cells_by_home:
 			var cells=w.garden_cells_by_home[home]
 			var bounds=Rect2i(cells[0],Vector2i.ONE) if not cells.is_empty() else Rect2i()

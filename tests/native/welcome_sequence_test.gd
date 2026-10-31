@@ -78,7 +78,7 @@ func run() -> void:
 			game.ui.modal_box.get_child(3).pressed.emit()
 			check("Bram" in game.ui.modal_box.get_child(2).text and "protect" in game.ui.modal_box.get_child(2).text,"Moss first answers the captain's copper question and warns about protection")
 			game.ui.modal_box.get_child(3).pressed.emit()
-			game.ui.modal_box.get_child(4).pressed.emit()
+			game.ui.modal_box.get_children().filter(func(node):return node is Button and "You mentioned magic" in node.text)[0].pressed.emit()
 			check("Iona" in game.ui.modal_box.get_child(2).text and "deities" in game.ui.modal_box.get_child(2).text,"Moss introduces the tower wizard and regional magic")
 		if game.window_open: game.ui.modal_box.get_child(3).pressed.emit()
 		if game.state.welcome_phase=="complete": break
