@@ -28,7 +28,7 @@ static func pendulum_angle(minute: float) -> float:
 	return lerpf(-0.5,0.5,eased) if step%2==0 else lerpf(0.5,-0.5,eased)
 
 static func pendulum_geometry() -> Dictionary:
-	return {"pivot_y":245.0,"center_y":115.0,"radius":18.0}
+	return {"pivot_y":266.0,"center_y":112.8,"radius":18.0}
 
 func refresh() -> void:
 	if displayed_day<0: displayed_day=state.day

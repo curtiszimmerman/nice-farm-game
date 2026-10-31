@@ -20,6 +20,8 @@ func run() -> void:
 	game.ui.update()
 	check(game.ui.clock.text=="10:10","clock display advances in ten-minute steps")
 	check(game.ui.calendar_ring.has_method("pendulum_angle"),"the calendar includes a clock-driven pendulum")
+	var clock_plate=game.ui.clock.get_parent().get_parent()
+	check(is_equal_approx(game.ui.calendar_ring.position.y+game.ui.calendar_ring.pendulum_geometry().pivot_y,clock_plate.position.y),"the pendulum hangs from the top edge of the clock plate")
 	check(game.ui.quick_tray.scale.is_equal_approx(Vector2(1.2,1.2)),"HUD tray is enlarged by twenty percent")
 	game.state.magic_learned=true
 	var quests=game.ui.quest_lines()

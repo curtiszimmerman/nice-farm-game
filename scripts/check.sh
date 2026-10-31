@@ -21,7 +21,7 @@ run_native() {
         cat "$check_log"
         return 1
     fi
-    if rg -q 'SCRIPT ERROR:|^ERROR:|^WARNING:|FAIL:' "$check_log"; then
+    if grep -qE 'SCRIPT ERROR:|^ERROR:|^WARNING:|FAIL:' "$check_log"; then
         return 1
     fi
 }
