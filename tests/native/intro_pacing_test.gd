@@ -15,9 +15,22 @@ func run() -> void:
 	check(intro.has_method("bridge_composition"),"the bridge exposes its window and captain placement")
 	if intro.has_method("bridge_composition"):
 		var bridge=intro.bridge_composition()
-		check(bridge.window.encloses(bridge.planet),"the planet stays completely inside a bridge window")
+		check(bridge.planet.intersects(bridge.window) and not bridge.window.encloses(bridge.planet),"the bridge frame hides part of the planet outside the window")
+		var Art=preload("res://art.gd")
+		var source=Art.region("planet")
+		var top_half=Art.source_within("planet",Rect2(0,0,100,100),Rect2(0,0,100,50))
+		check(top_half.position==source.position and top_half.size==Vector2(source.size.x,source.size.y/2),"a clipped planet samples only the visible part of its sprite")
+		var sprite=Art.region("bridge")
+		var to_sprite=sprite.size/Vector2(1280,620)
+		var pane=Rect2i(Rect2(sprite.position+bridge.window.position*to_sprite,bridge.window.size*to_sprite))
+		var other_panes={}
+		for y in range(pane.position.y,pane.end.y):
+			for x in range(int(sprite.position.x),pane.position.x): other_panes[Art.pixels.get_pixel(x,y)]=true
+		var uniform=true
+		for y in range(pane.position.y,pane.end.y):
+			for x in range(pane.position.x,pane.end.x): uniform=uniform and other_panes.has(Art.pixels.get_pixel(x,y))
+		check(uniform,"the planet window shows the same glass, glare and stars as the other bridge windows")
 		check(bridge.captain.size.x>=150 and bridge.captain.size.y>=300,"the seated captain reads at three times the old scale")
-		check(bridge.has("sky") and bridge.window.encloses(bridge.sky) and bridge.sky.encloses(Rect2(920,132,140,105)),"the damaged bridge covers the old planet painted into its window")
 		check(bridge.has("left_display") and bridge.left_console.encloses(bridge.left_display) and bridge.right_console.encloses(bridge.right_display),"screen flicker stays on the console displays")
 	check(intro.has_method("bridge_spark_positions"),"bridge sparks use positions confined to the consoles")
 	if intro.has_method("bridge_spark_positions"):

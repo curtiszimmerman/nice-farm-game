@@ -221,12 +221,9 @@ func paint_pixels(c: CanvasItem) -> void:
 
 func paint_bridge_details(c: CanvasItem) -> void:
 	var bridge=bridge_composition()
-	c.draw_rect(bridge.sky,Color("0b1a2c") if Art.option==3 else Color("1a3348"))
-	c.draw_rect(Rect2(1072,154,6,5),Color("e3eef0"))
-	c.draw_rect(Rect2(925,185,4,4),Color("8da5ad"))
-	Art.sprite(c,"planet",bridge.planet.position,bridge.planet.size)
-	for step in range(12):
-		c.draw_rect(Rect2(1063-step*8,126+step*8,5,4),Color(0.36,0.52,0.61,0.55))
+	# The window glass in the bridge sprite is opaque, so we paint the planet over it but only inside
+	# the glass. The frame and sill then cover its edges and it looks like it's outside the ship.
+	Art.sprite_within(c,"planet",bridge.planet,bridge.window)
 	# The chair covers the small figure painted into the original bridge sprite.
 	c.draw_rect(Rect2(560,307,160,222),Color("344955"))
 	c.draw_rect(Rect2(572,315,136,184),Color("607986"))
@@ -248,7 +245,7 @@ func paint_bridge_details(c: CanvasItem) -> void:
 			Art.sprite(c,"spark"+str(frame%6),point,Vector2(28,28))
 
 func bridge_composition() -> Dictionary:
-	return {"window":Rect2(912,122,210,124),"sky":Rect2(914,124,206,120),"planet":Rect2(950,130,108,108),"captain":Rect2(565,220,150,300),"left_console":Rect2(188,322,235,157),"right_console":Rect2(849,322,235,157),"left_display":Rect2(206,341,198,58),"right_display":Rect2(865,341,202,58)}
+	return {"window":Rect2(912,120,216,128),"planet":Rect2(968,150,192,192),"captain":Rect2(565,220,150,300),"left_console":Rect2(188,322,235,157),"right_console":Rect2(849,322,235,157),"left_display":Rect2(206,341,198,58),"right_display":Rect2(865,341,202,58)}
 
 func bridge_spark_positions(frame: int) -> Array:
 	var rng=RandomNumberGenerator.new()

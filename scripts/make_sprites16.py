@@ -1884,7 +1884,6 @@ def bridge(p):
     p.box(15, 12, 130, 22, METAL[3]); p.box(19, 15, 122, 16, "0b1a2c")
     for x, y in [(30, 18), (52, 24), (70, 17), (97, 27), (115, 20), (133, 25), (40, 28), (85, 21)]:
         p.dot(x, y, "ffffff"); p.dot(x + 1, y, "8fb0d0")
-    p.oval(120, 26, 9, 9, "3f6a7a"); p.oval(118, 24, 7, 6, "6d9fa3")
     for y in range(15, 31):
         for x in range(19, 141):
             if p.get(x, y)[:3] == (0x0b, 0x1a, 0x2c) and (x + y) % 37 == 0: p.dot(x, y, "6c909f")

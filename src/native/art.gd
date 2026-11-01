@@ -94,6 +94,17 @@ static func sprite(c: CanvasItem,id: String,p: Vector2,size: Vector2=Vector2.ZER
 	var source=region(id)
 	c.draw_texture_rect_region(atlas,Rect2(p.round(),sprite_size(id) if size==Vector2.ZERO else size),source,tint)
 
+# Draws only the part of a sprite that falls inside clip, as if the rest were hidden behind something.
+static func sprite_within(c: CanvasItem,id: String,rect: Rect2,clip: Rect2) -> void:
+	var view=rect.intersection(clip)
+	if view.has_area(): c.draw_texture_rect_region(atlas,view,source_within(id,rect,view))
+
+# The part of the sprite's atlas region that lands in view when the whole sprite is drawn at rect.
+static func source_within(id: String,rect: Rect2,view: Rect2) -> Rect2:
+	var source=region(id)
+	var scale=source.size/rect.size
+	return Rect2(source.position+(view.position-rect.position)*scale,view.size*scale)
+
 static func stone_sprite(c: CanvasItem,id: String,p: Vector2,state: RefCounted) -> void:
 	load_atlas()
 	var paving=Borders.surface_id("paving",state.season_name(),state.weather_name(),0)

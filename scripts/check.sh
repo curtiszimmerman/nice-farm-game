@@ -13,6 +13,8 @@ python3 -B tests/test_sprite_assets.py
 python3 -B tests/test_border_surfaces.py
 python3 -B tests/test_terrain_edges.py
 mkdir -p internal/verification
+# Running a script doesn't reimport changed assets, so regenerated art would otherwise be tested from Godot's stale cache.
+timeout 300 bash scripts/play.sh --headless --import > internal/verification/import.log 2>&1
 run_native() {
     local check_log="$project_dir/internal/verification/check-current.log"
     if timeout 120 bash scripts/play.sh "$@" > "$check_log" 2>&1; then
