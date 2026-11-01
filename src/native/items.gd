@@ -64,7 +64,10 @@ const CATALOG={
 static var textures: Dictionary={}
 
 static func icon(id: String) -> Texture2D:
-	if preload("res://crop_art.gd").SEEDS.has(id) or preload("res://crop_art.gd").COLORS.has(id): return preload("res://crop_art.gd").icon(id)
+	var crop_art=preload("res://crop_art.gd")
+	if crop_art.SEEDS.has(id) or crop_art.COLORS.has(id):
+		Art.load_atlas()
+		if not Art.catalog.has("item_"+id): return crop_art.icon(id)
 	var related={"berry_preserves":"berries","berry_cobbler":"bread","flour":"rations","sugar":"rations","butter":"rations","winter_sparkbloom":"golden_sparkfire_bloom"}
 	if related.has(id):
 		Art.load_atlas()

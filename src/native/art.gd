@@ -205,7 +205,7 @@ static func building(c: CanvasItem,b: Dictionary) -> void:
 	var rows=maxi(2,int(b.h/32)-2)
 	if b.kind=="windmill": rows=5
 	if b.kind=="tower": rows=4
-	var variant="log" if b.kind in ["cabin","reed_farm"] else "stone" if b.kind in ["tower","hall","smithy"] else "shop" if b.kind in ["store","bakery","tavern"] else "plaster"
+	var variant=wall_style(b)
 	var door=int(columns/2)
 	for y in range(rows):
 		for x in range(columns):
@@ -218,13 +218,18 @@ static func building(c: CanvasItem,b: Dictionary) -> void:
 			if b.kind=="tower" and x==door and y==1: component="window"
 			var id="tower_left" if b.kind=="tower" and x==0 else "tower_right" if b.kind=="tower" and x==columns-1 else variant+"_"+component
 			tile(c,id,Vector2i(x,y-rows))
+	var style=roof_style(b)
+	var season=b.get("season","spring")
 	for y in range(2):
 		for x in range(columns):
 			var component="roof" if y==1 else "ridge"
 			if y==0 and x==0: component="roof_left"
 			if y==0 and x==columns-1: component="roof_right"
-			tile(c,component,Vector2i(x,y-rows-2),roof_tint(b.roof))
-			if b.get("season")=="winter": tile(c,"roof_snow",Vector2i(x,y-rows-2))
+			var at=Grid.origin(Vector2i(x,y-rows-2))
+			sprite(c,seasonal(roof_part(style,component),season),at,Vector2.ZERO,roof_tint(b.roof))
+			# Leaves and snow sit on top untinted, so they keep their own colours on every roof.
+			var cover="tile_roof_cover_%s_%s" % [season,component]
+			if catalog.has(cover): sprite(c,cover,at)
 	if b.id!="priest_outhouse": tile(c,"chimney",Vector2i(maxi(1,columns-2),-rows-3))
 	if b.kind=="store": sprite(c,"sign_general_store" if catalog.has("sign_general_store") else "general_store_sign",Vector2(columns*16-56,-(rows+1)*32+8),Vector2(112,24))
 	for x in ([1] if b.kind=="store" else [1,columns-2]):
@@ -255,6 +260,21 @@ static func building(c: CanvasItem,b: Dictionary) -> void:
 		c.draw_string(font,pos+Vector2(5,8),"WAYWARD",HORIZONTAL_ALIGNMENT_LEFT,-1,6,Color("f1e7c9"))
 		c.draw_string(font,pos+Vector2(5,16),"WREN",HORIZONTAL_ALIGNMENT_LEFT,-1,6,Color("f1e7c9"))
 		c.draw_string(font,pos+Vector2(39,15),"TAVERN",HORIZONTAL_ALIGNMENT_LEFT,-1,11,Color("f1e7c9"))
+
+static func wall_style(b: Dictionary) -> String:
+	return "log" if b.kind in ["cabin","reed_farm"] else "stone" if b.kind in ["tower","hall","smithy"] else "shop" if b.kind in ["store","bakery","tavern"] else "plaster"
+
+static func roof_style(b: Dictionary) -> String:
+	return {"log":"thatch","stone":"slate","shop":"clay","plaster":"shingle"}[wall_style(b)]
+
+static func roof_part(style: String,part: String) -> String:
+	var id="tile_%s_%s" % [style,part]
+	return id if catalog.has(id) else "tile_"+part
+
+static func plant_overlay(crop: String,ripe: bool) -> String:
+	var id="plant_overlay_%s_%s" % [crop,"ripe" if ripe else "growing"]
+	if catalog.has(id): return id
+	return "plant_overlay_"+("bulb" if ripe and crop=="star_bulbs" else "turnip" if ripe else "sprout")
 
 static func roof_tint(value: String) -> Color:
 	return Color(value).lerp(Color.WHITE,0.65)
@@ -327,11 +347,12 @@ static func crops(w: Node2D,c: CanvasItem) -> void:
 			var wet=Borders.sprite_id(material,Borders.mask(w.farm_cells,cell),w.state.season_name(),"rainy",Borders.variant(cell,w.state.world_seed))
 			sprite(c,wet,Grid.origin(cell),Vector2.ZERO,Color(1,1,1,moisture))
 		if p.planted>=0:
-			if w.state.ripe(i) and preload("res://crop_art.gd").COLORS.has(p.crop):
+			var plant=plant_overlay(p.crop,w.state.ripe(i))
+			# Packs without field art for the newer crops show their code-drawn icon when ripe.
+			if w.state.ripe(i) and not plant.ends_with("_ripe") and preload("res://crop_art.gd").COLORS.has(p.crop):
 				c.draw_texture_rect(preload("res://crop_art.gd").icon(p.crop),Rect2(Grid.origin(cell)-Vector2(0,16),Vector2(32,32)),false)
 				continue
-			var plant="bulb" if w.state.ripe(i) and p.crop=="star_bulbs" else "turnip" if w.state.ripe(i) else "sprout"
-			sprite(c,"plant_overlay_"+plant,Grid.origin(cell))
+			sprite(c,plant,Grid.origin(cell))
 
 static func particles(w: Node2D,c: CanvasItem) -> void:
 	for p in w.particles:

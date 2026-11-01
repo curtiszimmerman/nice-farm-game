@@ -580,22 +580,74 @@ def building_tile(p, variant, kind):
             p.dot(5, 9, WATER[4]); p.dot(6, 10, WATER[3])
 
 
-def roof_tile(p, kind):
+# Each roof style is a ramp plus a surface pattern. The game tints the whole roof with the
+# building's colour, so the ramps stay fairly neutral within their material.
+ROOF_STYLES = {
+    "shingle": ROOF,
+    "thatch": ["4a3a1e", "6e5628", "957636", "b89646", "d4b45e", "ecd488"],
+    "slate": ["2a2e38", "3c4250", "525a6a", "6c7486", "8c94a4", "b0b8c4"],
+    "clay": ["4a1e14", "6e2e1c", "964228", "b85a32", "d27a48", "eaa070"],
+}
+ROOF_PARTS = ("roof", "roof_left", "roof_right", "ridge")
+
+
+def roof_sprite_name(style, kind):
+    return kind if style == "shingle" else style + "_" + kind
+
+
+def roof_covers(kind, x, y):
+    """The top corner tiles are triangles; everything else fills the tile."""
+    return not ((kind == "roof_left" and x < 15 - y) or (kind == "roof_right" and x > y))
+
+
+def roof_surface(style, ramp, x, y):
+    if style == "thatch":
+        # Bundled straw in courses five pixels deep, each course overhanging the one below.
+        row, ry = y // 5, y % 5
+        c = ramp[3] if (x + row) % 3 else ramp[2]
+        if hash01(x, row, 61) > 0.8: c = ramp[4]
+        if ry == 0: c = ramp[5] if x % 2 else ramp[4]
+        if ry == 3 and hash01(x, row, 62) > 0.6: c = ramp[2]
+        if ry == 4: c = ramp[1]
+        return c
+    if style == "slate":
+        # Long staggered slates with the odd patch of moss.
+        row, ry = y // 4, y % 4
+        off = 3 if row % 2 else 0
+        col = (x + off) % 6
+        c = ramp[3]
+        if ry == 0: c = ramp[4]
+        if ry == 3: c = ramp[1]
+        if col == 0 and ry < 3: c = ramp[2]
+        if col == 1 and ry == 1: c = ramp[5]
+        if hash01((x + off) // 6, row, 63) > 0.8 and ry in (1, 2) and col in (2, 3): c = mix(c, "5f7a4a", 0.45)
+        return c
+    if style == "clay":
+        # Rounded barrel tiles in unbroken vertical channels: lit on the left, shadowed where courses overlap.
+        row, ry = y // 4, y % 4
+        col = x % 4
+        c = (ramp[4], ramp[3], ramp[3], ramp[1])[col]
+        if ry == 0 and col in (1, 2): c = ramp[4]
+        if ry == 3: c = ramp[2] if col != 3 else ramp[0]
+        return c
+    row, ry = y // 4, y % 4
+    off = 2 if row % 2 else 0
+    col = (x + off) % 4
+    c = ramp[3]
+    if ry == 0: c = ramp[4]
+    if ry == 3: c = ramp[1]
+    if ry == 2 and col == 0: c = ramp[2]
+    if col == 3 and ry < 3: c = ramp[2]
+    if ry == 1 and col == 0: c = ramp[5] if hash01(x, y, 5) > 0.5 else ramp[4]
+    if hash01(x // 4 + off, row, 31) > 0.82 and ry in (1, 2) and col in (1, 2): c = mix(c, "8a6b4a", 0.45)
+    return c
+
+
+def roof_tile(p, kind, style="shingle"):
+    ramp = ROOF_STYLES[style]
     for y in range(16):
         for x in range(16):
-            if kind == "roof_left" and x < 15 - y: continue
-            if kind == "roof_right" and x > y: continue
-            row, ry = y // 4, y % 4
-            off = 2 if row % 2 else 0
-            col = (x + off) % 4
-            c = ROOF[3]
-            if ry == 0: c = ROOF[4]
-            if ry == 3: c = ROOF[1]
-            if ry == 2 and col == 0: c = ROOF[2]
-            if col == 3 and ry < 3: c = ROOF[2]
-            if ry == 1 and col == 0: c = ROOF[5] if hash01(x, y, 5) > 0.5 else ROOF[4]
-            if hash01(x // 4 + off, row, 31) > 0.82 and ry in (1, 2) and col in (1, 2): c = mix(c, "8a6b4a", 0.45)
-            p.dot(x, y, c)
+            if roof_covers(kind, x, y): p.dot(x, y, roof_surface(style, ramp, x, y))
     if kind == "roof_left":
         for y in range(16):
             x = 15 - y
@@ -604,10 +656,47 @@ def roof_tile(p, kind):
         for y in range(16):
             p.dot(y, y, WOOD[4]); p.dot(y - 1, y, WOOD[2])
     if kind == "ridge":
-        p.box(0, 0, 16, 3, ROOF[4])
+        p.box(0, 0, 16, 3, ramp[4])
         for x in range(0, 16, 4):
-            p.hline(x, x + 2, 0, ROOF[5]); p.vline(x + 3, 0, 2, ROOF[2])
-        p.hline(0, 15, 3, ROOF[0]); p.hline(0, 15, 4, ROOF[1])
+            p.hline(x, x + 2, 0, ramp[5]); p.vline(x + 3, 0, 2, ramp[2])
+        p.hline(0, 15, 3, ramp[0]); p.hline(0, 15, 4, ramp[1])
+
+
+def sun_bleached(p):
+    """Summer version of a roof tile: the same tile, faded a little toward warm cream."""
+    out = Pixels(p.w, p.h)
+    for y in range(p.h):
+        for x in range(p.w):
+            color = p.get(x, y)
+            if color[3]: out.dot(x, y, mix(color, "f4e6c0", 0.22))
+    return out
+
+
+def roof_cover(kind, season):
+    """Untinted autumn leaves or winter snow laid over any roof style, so they keep their own colours."""
+    p = Pixels(16, 16)
+    eave = kind == "roof"
+    for y in range(16):
+        for x in range(16):
+            if not roof_covers(kind, x, y): continue
+            if season == "winter":
+                # The upper row is snowed over; the eave row shows a wavy snow line and short icicles.
+                # The wave repeats every 8 pixels so it lines up across neighbouring tiles.
+                if not eave:
+                    p.dot(x, y, "ffffff" if y < 2 else "eef4f8" if (y + x // 4) % 6 else "dce6ee")
+                    continue
+                edge = 5 + round(1.4 * math.sin(x * math.tau / 8))
+                if y < edge:
+                    p.dot(x, y, "eef4f8" if y < edge - 1 else "c4d4e0")
+                elif y == edge:
+                    p.dot(x, y, (168, 188, 204, 140))
+                elif x % 4 == 1 and y <= edge + 1 + x % 3:
+                    p.dot(x, y, "dce6ee")
+            elif x % 2 == 0 and y % 2 == 0 and hash01(x, y, 73 if eave else 74) > (0.8 if eave else 0.9):
+                # Two-pixel leaves, more of them on the eave row where they collect.
+                color = ("c8643a", "e2a040", "a8452c", "d8b85a")[int(hash01(x, y, 75) * 4)]
+                p.dot(x, y, color); p.dot(x + 1, y, shade(color, -1))
+    return p
 
 
 def chimney(p):
@@ -747,8 +836,14 @@ def buildings():
     for variant in ("plaster", "log", "stone", "shop"):
         for kind in ("wall", "left", "right", "foundation", "window", "door", "door_top", "door_bottom"):
             building_tile(tile(variant + "_" + kind), variant, kind)
-    for kind in ("roof", "roof_left", "roof_right", "ridge"):
-        roof_tile(tile(kind), kind)
+    for style in ROOF_STYLES:
+        for kind in ROOF_PARTS:
+            roof_tile(tile(roof_sprite_name(style, kind)), kind, style)
+            name = "tile_" + roof_sprite_name(style, kind)
+            add(name + "_summer", sun_bleached(ASSETS[name][0]))
+    for season in ("autumn", "winter"):
+        for kind in ROOF_PARTS:
+            add("tile_roof_cover_%s_%s" % (season, kind), roof_cover(kind, season))
     chimney(tile("chimney"))
     small_fixtures()
     fences()
@@ -2055,7 +2150,8 @@ def item_icon(name):
     else:
         specs = {"fish": (9, 4, "7aa0b0", "d8e4dc", "5a7a90"), "moon_pike": (11, 3, "8a92b8", "e6e8f2", "5a6290"),
                  "sea_sprat": (7, 3, "a8c4c4", "eef4ee", "6a9494"), "blue_mackerel": (10, 4, "3a6aa8", "dde8ee", "2a4a78"),
-                 "storm_eel": (11, 2, "4a5868", "8a9aa8", "e2d84f")}
+                 "storm_eel": (11, 2, "4a5868", "8a9aa8", "e2d84f"), "rain_glassfish": (9, 3, "a8ccd8", "f0f8f8", "7aa8c0"),
+                 "storm_shiner": (8, 3, "8a96a8", "f4f6f8", "4a5868")}
         length, height, body, belly, fin = specs.get(name, specs["fish"])
         fish_icon(p, length, height, body, belly, fin, name == "blue_mackerel", name == "storm_eel")
     p.outline(k=-3.0)
@@ -2169,6 +2265,8 @@ def main():
     from journey_sprites16 import sprites as journey_sprites
     additions = dict(sprites(Pixels), **calendar_sprites(Pixels), **observatory_sprites(Pixels), **harvest_sprites(Pixels), **border_surfaces(Pixels), **terrain_edges(Pixels), **town_additions(Pixels))
     additions.update(journey_sprites(Pixels))
+    from farm_additions16 import sprites as farm_sprites
+    additions.update(farm_sprites(Pixels))
     copper_bar = additions["item_copper_bars"]
     silver_bar = Pixels(copper_bar.w, copper_bar.h)
     for yy in range(copper_bar.h):
