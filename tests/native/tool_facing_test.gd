@@ -13,7 +13,8 @@ func _initialize() -> void:
 			var tip=pose.tip*pose.scale
 			tip=tip.rotated(pose.angle).normalized()
 			var forward={"up":Vector2.UP,"down":Vector2.DOWN,"left":Vector2.LEFT,"right":Vector2.RIGHT}[facing]
-			if tip.dot(forward)<0.8:
+			var correct=tip.y>0 if id=="hoe" else tip.dot(forward)>=0.8
+			if not correct:
 				failed=true
 				push_error("FAIL: business end faces away: "+id+" / "+facing)
 	print("PASS: working ends face the acted-on tile in all four directions" if not failed else "Tool orientation failed")

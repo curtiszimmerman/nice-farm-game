@@ -20,7 +20,7 @@ func run() -> void:
 	check(game.outdoors.people.all(func(person):return greetings.has(person.id)),"every town NPC has a distinct first-meeting line")
 	game.talk("smith")
 	check(game.ui.modal_box.get_child(2).text.contains("Dain") and game.ui.modal_box.get_child(1).get_child_count()>0,"the first meeting has a tailored greeting and a prominent portrait")
-	button(game,"Go on.").pressed.emit()
+	preload("fixture.gd").greet(game)
 	check(button(game,"Tell me about your work")!=null,"the greeting leads to the ordinary conversation root")
 	button(game,"Tell me about your work").pressed.emit()
 	check(game.ui.modal_box.get_children().filter(func(child):return child is Button).size()>=2,"an informational reply remains in dialogue")
@@ -42,7 +42,7 @@ func run() -> void:
 	game.state.minute=800
 	game.outdoors.update_villagers(0,true)
 	game.talk("iona")
-	button(game,"Go on.").pressed.emit()
+	preload("fixture.gd").greet(game)
 	var iona_options=game.ui.modal_box.get_children().filter(func(child):return child is Button)
 	check(iona_options[0].text.contains("seven days") and iona_options[1].text.contains("local lore"),"Iona leads with the seven days and local lore before spell lessons")
 	check(button(game,"next Rift")==null,"Iona's forecast is hidden before a weekday lesson")
@@ -64,7 +64,7 @@ func run() -> void:
 	game.close_window()
 	game.state.meet_person("baker")
 	game.talk("baker")
-	check(button(game,"Go on.")!=null,"hearing about someone through town does not consume their first spoken greeting")
+	check(preload("fixture.gd").greeting(game)!=null,"hearing about someone through town does not consume their first spoken greeting")
 	game.close_window()
 	game.state.needs.hardcore=true
 	game.ui.update_hud()

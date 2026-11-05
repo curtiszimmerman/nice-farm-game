@@ -47,15 +47,15 @@ const STORIES={
 	"priest":"Brother Aven|The bees don't care whether a hymn's in tune. I find that comforting. I keep the garden here, and a light for anyone who needs somewhere quiet. Before I came to Briar Glen I tended the roadside shrines. These days a shorter walk suits me, though I still keep a kettle ready for travelers.",
 	"astronomer":"Saeren|You came from the stars. No, don't look so alarmed. I was at the eyepiece when your light crossed the sky. It turned against the fall, twice. Stones don't do that. I don't pretend to understand what carried you, but I've spent fifty years learning the difference between what I see and what I expect to see. Your secret is safe in this room.",
 	"woodcutter":"Rowan|My mother taught me these woods. I'd like somebody else's daughter to know them too.",
-	"farmer_mother":"Elin Reed|Grafting trees is mostly persuading two stubborn things to get along. Jory says that's how we met. We brought a handful of cuttings when the river took our old orchard. Corin kept them alive in his warm back room that first winter. These trees have quite a few people to thank.",
+	"farmer_mother":"Elin Reed|Jory, Pip and I came here after a flood took our old farm. We saved a few cuttings from the orchard, and Corin kept them warm behind his bakery while we found our feet. They're growing well now. Starting over was hard, but people here made room for us. I hope you're finding the same welcome. If you need advice about your garden, you're always welcome to ask.",
 	"farmer_father":"Jory Reed|Elin and I run the farm east of town. A flood took our old place, so we moved here with Pip and started again. Moss helped us clear these fields. We grow vegetables for Corin's bakery now, and a little grain for Tomas to mill. It's good soil. We're doing all right.",
-	"farmer_son":"Pip Reed|I label all my seed jars now. Last time I didn't, we grew squash in the flower pots. Mum says that still counts as an experiment. Nessa lets me listen to faraway stations sometimes. Do you think they grow the same things on the other side of the sea?",
+	"farmer_son":"Pip Reed|I label all my seed jars now. Last time I didn't, we grew squash in the flower pots. Mum says that still counts as an experiment. Nessa lets me listen to faraway stations sometimes. I'd love to see what grows on the other side of the sea.",
 	"smith":"Dain Rusk|Mind the scale on the floor. Hotter than it looks. I used to make hinges for canal gates, until the foundry decided swords paid better. I left. A good hinge lets someone through a door for fifty years. Hard to improve on that sort of work. Bring your tools by sometime; I like seeing honest wear.",
 	"miller":"Tomas Bell|Mara rebuilt the gearing after the old mill seized. I put the kettle on, which I maintain was essential work. Rafe and I used to race sacks down this hill as boys. Now he keeps a tavern, I grind the grain, and Corin tells us both when we've been talking too long. Some things improve with age.",
 	"miller_wife":"Mara Bell|Hear that? A little knock every fourth turn. Nothing dangerous, but I'll find it. I learned millwrighting on a river barge. Tomas wrote to ask about a replacement cog and kept writing after I sent it. Eventually I came to see whether the mill was really as charming as he claimed.",
 	"miller_daughter":"Nessa Bell|The mill's got a rhythm, once you've listened long enough. So does a radio signal. Finch is helping me build a receiver from a cracked valve and an old clock case. I'd like Mum to hear the river weather reports she grew up with. Afternoons are best, before the club gets noisy.",
 	"barkeep":"Rafe Fen|Welcome to the Wayward Wren. Tomas and I meant to see the whole world when we were young. He got as far as the mill; I got as far as this bar. Plenty of the world comes through here, though. Corin brings the morning bread and stays to hear who's arrived. Save him a chair and he'll introduce you to half the valley.",
-	"baker":"Corin Hale|You're just in time. Well, I say that to everyone, but there's usually something warm. Tomas brings the flour, the Reeds bring whatever's plentiful, Moss brings opinions about the weather, and Rafe brings my baskets back eventually. I started baking after my hearing began to go. People will tell you their whole lives while waiting for a loaf. Pull up a stool."
+	"baker":"Corin Hale|You're just in time. Well, I say that to everyone, but there's usually something warm. Tomas brings the flour, the Reeds bring whatever's plentiful, Moss brings opinions about the weather, and Rafe brings my baskets back eventually. I've been baking all my life. I could barely see over the counter when I shaped my first loaf. People will tell you their whole lives while waiting for one. Pull up a stool."
 }
 const WORKPLACES={"astronomer":"observatory","smith":"smithy","miller":"windmill","miller_wife":"windmill","miller_daughter":"radio","barkeep":"tavern","baker":"bakery"}
 const OFF_DUTY={
@@ -81,17 +81,18 @@ static func talk(game: Node2D,id: String) -> bool:
 	if id=="priest" and posmod(game.state.day-1,7)==6 and game.state.minute>=600 and game.state.minute<720 and game.current_room=="temple":
 		text="A single lamp may tremble, but look how many we've brought together. Vorisel keeps the far mysteries; Elunai asks us to tend the light within reach. Let the darkness beyond the stars remind us to make room beside our own hearths. No neighbor should have to face this day alone."
 	var choices=[]
+	if id=="farmer_son": choices.append(["Maybe one day you'll venture there and find out!",func(): pass])
 	if id=="barkeep" and working:
 		choices.append(["What have you got for sale?",func():
 			var offers=[]
 			for drink in game.state.Shop.DRINKS:
 				var selected=drink
-				offers.append(["health_elixir",game.state.Shop.DRINKS[drink].name,game.state.Shop.CATALOG[drink].price,drink,func(): game.state.purchase_drink(selected)])
+				offers.append(["health_elixir",game.state.Shop.DRINKS[drink].name,game.state.Shop.CATALOG[drink].price,drink,func(): return game.state.purchase_drink(selected)])
 			game.shop_menu("The Wayward Wren","A DRINK AT THE BAR","These are served here, ready to drink. Wrenlight is warm apple cordial, a splash of mead, and toasted spice. Rafe first mixed it for the mill crew after a winter wheel repair; they said it put the light back in their fingers, and the name stuck.",offers)])
 	if id=="smith" and working:
 		choices.append(["What have you got for sale?",func(): game.smith_shop()])
 	if id in ["miller","miller_wife"] and working:
-		choices.append(["What have you got for sale?",func(): game.shop_menu("The Bells' Mill","FRESHLY MILLED","A sack of flour, ground here from the Reeds' grain. We mill a fresh supply each morning.",[["flour","Sack of flour",5,"flour",func(): game.state.purchase("flour")]])])
+		choices.append(["What have you got for sale?",func(): game.shop_menu("The Bells' Mill","FRESHLY MILLED","A sack of flour, ground here from the Reeds' grain. We mill a fresh supply each morning.",[["flour","Sack of flour",5,"flour",func(): return game.state.purchase("flour")]])])
 	if id=="astronomer" and working and game.state.star_origin_reply=="":
 		choices.append(["You're right. Our ship fell on the mountain.",func():
 			game.state.record_star_origin(true)
@@ -102,15 +103,7 @@ static func talk(game: Node2D,id: String) -> bool:
 			game.save_visit()
 			game.dialog("Saeren","AN OBSERVER'S PATIENCE","Saeren squints, then slowly shakes his head. 'I don't believe you. Lying to me is a mistake. I know more about this universe than you think, and one day you may need my help. Go now. I have observations to make.'")])
 	if id=="priest" and not game.state.beehive_known:
-		choices.append(["Learn beehive blueprint · 2 silver ingots",func():
-			if game.state.silver_bars<2:
-				game.dialog("Brother Aven","A HOME FOR THE BEES","Two silver ingots for the temple fund, when you can spare them. I'll show you how to give a swarm a sound home. No hurry; the bees have their own calendar.")
-			else:
-				game.state.silver_bars-=2
-				game.state.beehive_known=true
-				game.state.change_friendship("priest",20)
-				game.save_visit()
-				game.dialog("Brother Aven","A HOME FOR THE BEES","Here are the plans. Keep the entrance out of the prevailing wind and leave room to work behind the hive. Most of beekeeping is learning when to leave them alone."),game.state.silver_bars>=2])
+		choices.append(["Tell me about your beehives.",func(): beekeeping(game)])
 	if id=="miller_wife":
 		if game.state.ladder_returned: text="There you are! That ladder's back where it belongs. Next time Nessa needs to borrow it, she can try asking."
 		elif game.state.ladder>0:
@@ -127,6 +120,16 @@ static func talk(game: Node2D,id: String) -> bool:
 			game.dialog("Nessa Bell","A BORROWED LADDER","Oh. Mum noticed? I needed it to get the aerial above the shed roof. Meant to put it back before she missed it. It's leaning inside our tool shed, east of the house. Would you take it back? I'll go and apologise.")
 		])
 	if id=="baker" and working:
-		choices=[["What have you got for sale?",func(): game.shop_menu("Corin's Bakery","FRESH FROM THE OVEN","A warm loaf for six crowns. Best eaten today, though it will keep a little while.",[["bread","Fresh bread · %s energy" % str(game.state.energy_recovery(game.state.Items.FOOD.bread.energy)),6,"bread",func(): game.state.buy_bread()]])]]
+		choices=[["What have you got for sale?",func(): game.shop_menu("Corin's Bakery","FRESH FROM THE OVEN","A warm loaf for six crowns. Best eaten today, though it will keep a little while.",[["bread","Fresh bread · %s energy" % str(game.state.energy_recovery(game.state.Items.FOOD.bread.energy)),6,"bread",func(): return game.state.buy_bread()]])]]
 	game.dialog(story[0],PEOPLE.filter(func(p):return p.id==id)[0].role,text,choices)
 	return true
+
+static func beekeeping(game: Node2D) -> void:
+	game.dialog("Brother Aven","A LIFETIME WITH BEES","I've kept bees since long before I became a priest. You learn patience from them, and how much good a little steady care can do. I love teaching the craft. If you'd like to start, I can share my plans for two silver ingots toward the temple fund.",[
+		["Learn beehive blueprint · 2 silver ingots",func():
+			if game.state.silver_bars<2: return
+			game.state.silver_bars-=2
+			game.state.beehive_known=true
+			game.state.change_friendship("priest",20)
+			game.save_visit()
+			game.dialog("Brother Aven","A HOME FOR THE BEES","Here are the plans. Keep the entrance out of the prevailing wind and leave room to work behind the hive. Most of beekeeping is learning when to leave them alone."),game.state.silver_bars>=2]])

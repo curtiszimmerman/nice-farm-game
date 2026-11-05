@@ -20,7 +20,7 @@ func run() -> void:
 		game.enter_building("observatory")
 		check(game.world.furnishings.any(func(f):return f.kind=="great_telescope" and f.bounds.size==Vector2i(4,3)),"the observatory contains a huge telescope")
 		game.talk("astronomer")
-		game.ui.modal_box.get_children().filter(func(node):return node is Button and node.text=="Go on.")[0].pressed.emit()
+		preload("fixture.gd").greet(game)
 		check(game.ui.modal_box.get_child(2).text.contains("stars"),"the astronomer recognizes where the captain came from")
 	await game.sound.shutdown()
 	game.queue_free()

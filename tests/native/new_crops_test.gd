@@ -47,7 +47,7 @@ func _initialize() -> void:
 		s.advance(1440-s.minute)
 		check((s.plots[0].planted>=0)==(recipe[3]>0),"correct spring-to-summer survival: "+recipe[1])
 		s.day=29
-		s.plots[1].tilled=true
+		s.plots.append({"x":10,"y":60,"tilled":true,"planted":-1.0,"crop":"turnips","growth":0.0,"watered":false,"water_day":0})
 		s.selected_seed=recipe[0]
 		s.tend(1)
 		check((s.plots[1].planted>=0)==(recipe[3]>0),"correct summer planting restriction: "+recipe[1])
@@ -55,7 +55,7 @@ func _initialize() -> void:
 		s.plots[0].planted=s.total()
 		s.plots[0].crop=recipe[1]
 		s.advance(1440-s.minute)
-		check(s.plots[0].planted<0,"crop withers at autumn: "+recipe[1])
+		check(s.plots.all(func(plot):return plot.planted<0),"crop withers at autumn: "+recipe[1])
 		check(preload("res://items.gd").icon(recipe[0])!=null and preload("res://items.gd").icon(recipe[1])!=null,"seed and produce have distinct pixel icons")
 		var crowns=s.money
 		var value=s.sale_value()

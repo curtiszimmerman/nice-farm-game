@@ -367,6 +367,9 @@ func _build_layout() -> void:
 			if Coast.is_ocean(cell,state.world_seed) or pond.length_squared()<1.0:
 				water_cells[cell]=true
 				solid_cells[cell]="water"
+			elif Coast.is_cliff(cell,state.world_seed):
+				cliff_cells[cell]=true
+				solid_cells[cell]="coastal cliff"
 	for cell in Coast.dock_cells():
 		solid_cells.erase(cell)
 		reserved_cells[cell]=true
@@ -504,7 +507,7 @@ func prepare_terrain_cells() -> void:
 			if ship_mountain_cell(cell) and not mountain_cells.has(cell): path_cells[cell]=true; trail_cells.erase(cell)
 	for cell in path_cells:
 		if not paved_cells.has(cell) and not trail_cells.has(cell): dirt_cells[cell]=true
-	cliff_cells=mountain_cells.duplicate()
+	cliff_cells.merge(mountain_cells)
 	for bounds in [OUTCROP_CELLS,MINE_RIDGE]: cliff_cells.merge(Borders.rect_cells(bounds))
 	farm_cells={}
 	for index in range(state.plots.size()): farm_cells[state.plot_cell(index)]=true

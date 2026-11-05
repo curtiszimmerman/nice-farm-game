@@ -18,6 +18,17 @@ static func shoreline(row: int,seed_value: int) -> int:
 static func is_ocean(cell: Vector2i,seed_value: int) -> bool:
 	return cell.x<shoreline(cell.y,seed_value)
 
+static func beach_width(row: int,seed_value: int) -> int:
+	return 2+posmod(hash(Vector2i(int(row/5.0),seed_value)),2)
+
+static func is_beach(cell: Vector2i,seed_value: int) -> bool:
+	var shore=shoreline(cell.y,seed_value)
+	return cell.y>=JETTY.end.y and cell.x>=shore and cell.x<shore+beach_width(cell.y,seed_value)
+
+static func is_cliff(cell: Vector2i,seed_value: int) -> bool:
+	var shore=shoreline(cell.y,seed_value)
+	return cell.y<JETTY.position.y and cell.x>=shore and cell.x<shore+3 and not PLATFORM.has_point(cell)
+
 static func dock_cells() -> Dictionary:
 	var cells={}
 	for bounds in [JETTY,PLATFORM]:
@@ -36,6 +47,7 @@ static func connection(cells: Dictionary,cell: Vector2i,seed_value: int) -> int:
 static func fishing_site(world: Node2D,p: Vector2) -> Dictionary:
 	if world.state.active_item()!="fishing_pole": return {}
 	var cell=Grid.world_to_cell(p)
+	if cell.x<0 and cell.y<JETTY.position.y and not PLATFORM.has_point(cell): return {}
 	if world.blocked(p) and not is_ocean(cell,world.state.world_seed) and not world.in_water(p): return {}
 	var habitat="ocean_tip" if TIP.has_point(cell) else "ocean"
 	var available=JETTY.has_point(cell) or PLATFORM.has_point(cell) or is_ocean(cell,world.state.world_seed)
@@ -59,7 +71,7 @@ static func build_texture(world: Node2D) -> ImageTexture:
 		var shore=shoreline(y,world.state.world_seed)
 		for x in range(shore,0):
 			var tile=Art.tile_image(Art.seasonal("tile_grass"+str(rng.randi_range(0,3)),world.state.season_name()).trim_prefix("tile_")).duplicate()
-			if x-shore<2:
+			if y>=JETTY.end.y and x-shore<beach_width(y,world.state.world_seed):
 				for py in range(32):
 					for px in range(32): tile.set_pixel(px,py,tile.get_pixel(px,py).lerp(Color("c6b48d"),0.8 if x==shore else 0.38))
 			image.blit_rect(tile,Rect2i(0,0,32,32),Vector2i((x-MIN_X)*32,y*32))
@@ -86,7 +98,13 @@ static func build_connected_texture(world: Node2D) -> ImageTexture:
 			var position=Vector2i((x-MIN_X)*32,y*32)
 			var variation=Borders.variant(cell,world.state.world_seed)
 			var grass=Art.seasonal("tile_grass"+str(variation),world.state.season_name()).trim_prefix("tile_")
-			image.blit_rect(Art.tile_image(grass),Rect2i(0,0,32,32),position)
+			var ground=Art.tile_image(grass).duplicate()
+			if is_beach(cell,world.state.world_seed):
+				for py in range(32):
+					for px in range(32):
+						var fleck=posmod(hash(Vector2i(x*32+px,y*32+py)),29)
+						ground.set_pixel(px,py,Color("d3c19b").darkened(0.12 if fleck<2 else 0.0).lightened(0.07 if fleck==3 else 0.0))
+			image.blit_rect(ground,Rect2i(0,0,32,32),position)
 			if is_ocean(cell,world.state.world_seed):
 				var id=Borders.sprite_id("ocean",world.water_connection(cell),world.state.season_name(),world.state.weather_name(),variation)
 				image.blend_rect(Art.tile_image(id.trim_prefix("tile_")),Rect2i(0,0,32,32),position)
@@ -94,6 +112,9 @@ static func build_connected_texture(world: Node2D) -> ImageTexture:
 
 static func draw(world: Node2D) -> void:
 	if world.west_terrain!=null: world.draw_texture(world.west_terrain,Vector2(MIN_X*32,0))
+	if Art.option!=2:
+		for cell in world.cliff_cells:
+			if cell.x<0: Art.border(world,"cliff",world.cliff_cells,cell,world.state,world.state.world_seed)
 	var cells=dock_cells()
 	for cell in cells:
 		var id=Borders.surface_id("jetty",world.state.season_name(),world.state.weather_name(),Borders.variant(cell,world.state.world_seed))
@@ -101,3 +122,10 @@ static func draw(world: Node2D) -> void:
 		var mask=connection(cells,cell,world.state.world_seed)
 		for edge in [[1,"n",Rect2i(0,0,16,5)],[2,"e",Rect2i(11,0,5,16)],[4,"s",Rect2i(0,10,16,6)],[8,"w",Rect2i(0,0,5,16)]]:
 			if (mask&edge[0])==0: Art.tile_strip(world,"stone_jetty_edge_"+edge[1],cell,edge[2])
+
+static func draw_beach_waves(world: Node2D,canvas: CanvasItem) -> void:
+	for row in range(JETTY.end.y,Grid.MAP_SIZE.y):
+		var origin=Vector2(shoreline(row,world.state.world_seed)*32,row*32+4)
+		if origin.distance_to(world.state.player_position)>850: continue
+		var phase=fposmod(world.elapsed*0.25+posmod(hash(Vector2i(row,world.state.world_seed)),100)*0.01,1)
+		Art.sprite(canvas,"ripple",origin+Vector2(-9+phase*13,0),Vector2(5,24),Color(0.9,0.95,0.9,sin(phase*PI)*0.45))

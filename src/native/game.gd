@@ -602,7 +602,7 @@ func choose_dialogue(action: Callable) -> void:
 
 func is_exit_reply(label: String) -> bool:
 	var reply=label.to_lower()
-	return ["see you","have a nice day","have a good day","take care","i'll leave you","i'll come back","just passing","enjoy your walk","thanks, i'm all set","goodbye"].any(func(ending):return reply.contains(ending))
+	return ["see you","have a nice day","have a good day","take care","i'll leave you","i'll come back","just passing","enjoy your walk","thanks, i'm all set","goodbye","maybe one day you'll venture there"].any(func(ending):return reply.contains(ending))
 
 func dialog(title: String,role: String,text: String,choices: Array = []) -> void:
 	if not conversation_members.is_empty():
@@ -655,9 +655,10 @@ func dialogue_speaker(title: String) -> String:
 	return conversation_members[0] if conversation_members.size()==1 else ""
 
 func neutral_reply(text: String) -> String:
+	if ["danger","protect yourself","army kit"].any(func(word):return text.to_lower().contains(word)): return "Thanks for the warning."
 	if "thank" in text.to_lower(): return "You're welcome."
 	if "?" in text: return "I'll keep that in mind."
-	return ["Sounds good.","I see.","That helps.","I'll keep that in mind."][posmod(hash(text)+state.day,4)]
+	return ["Sounds good.","I see.","That's useful to know.","I'll keep that in mind."][posmod(hash(text)+state.day,4)]
 
 func panel(title: String,eyebrow: String,text: String,choices: Array = []) -> void:
 	if welcome_control_locked(): return
@@ -1151,7 +1152,7 @@ func talk(id: String) -> void:
 	begin_conversation([id],id in ["veteran","finch","vale"] or (id=="moss" and not state.invited))
 	var greetings=preload("res://npc_greetings.gd").LINES
 	if first_meeting and id not in ["vale","moss","mayor","assistant"] and greetings.has(id):
-		dialog(person_name(id),"A FIRST HELLO",greetings[id],[["Go on.",func(): talk(id)]])
+		dialog(person_name(id),"A FIRST HELLO",greetings[id],[[preload("res://npc_greetings.gd").REPLIES[id],func(): talk(id)]])
 		return
 	if id not in ["smith","woodcutter"] and preload("res://neighbors.gd").talk(self,id): return
 	match id:
@@ -1239,7 +1240,7 @@ func buy_ingredient(id: String) -> void:
 		toast("Bought "+state.Items.CATALOG[id].name+".")
 	else: toast("Out of stock. Delivery tomorrow." if state.stock(id)==0 else "You need enough crowns and room in your satchel.")
 
-func shop_menu(title: String,role: String,text: String,offers: Array) -> void:
+func shop_menu(title: String,role: String,text: String,offers: Array,scroll_position: int=0) -> void:
 	var choices=[]
 	for offer in offers:
 		var item: String=offer[0]
@@ -1247,43 +1248,74 @@ func shop_menu(title: String,role: String,text: String,offers: Array) -> void:
 		var price: int=offer[2]
 		var stock_id: String=offer[3]
 		var action: Callable=offer[4]
+		var selected_offer=offer
 		var count=state.stock(stock_id)
 		var delivery="tomorrow" if state.Shop.daily(stock_id) else "next season"
 		var status="Out of stock · delivery "+delivery if count==0 else "%s crowns · %d available" % [crowns(price),count]
 		var can_buy=count>0 and state.money>=price
 		choices.append([label+" · "+status,func():
-			var scroll_position=ui.modal_scroll.scroll_vertical
+			var previous_scroll=ui.modal_scroll.scroll_vertical
 			if count==0: toast("Out of stock. Delivery "+delivery+".")
 			elif state.money<price: toast("You need %d crowns." % price)
 			elif not action.call(): toast("Make room in your satchel before buying that.")
 			else:
 				save_visit()
 				toast("Bought "+label+".")
-			shop_menu(title,role,text,offers)
-			ui.modal_scroll.set_deferred("scroll_vertical",scroll_position),can_buy,item,true])
+			shop_menu(title,role,text,offers,previous_scroll),can_buy,item,true,func(): shop_quantity(title,role,text,offers,selected_offer,ui.modal_scroll.scroll_vertical)])
 	choices.append(["Thanks, I'm all set.",func(): pass])
 	panel(title,role,text,choices)
+	ui.modal_scroll.set_deferred("scroll_vertical",scroll_position)
+
+func shop_quantity(title: String,role: String,text: String,offers: Array,offer: Array,scroll_position: int) -> void:
+	var price=int(offer[2])
+	var maximum=mini(state.stock(offer[3]),int(state.money/float(price)))
+	if maximum<1:
+		toast("No purchases available with your current crowns and store stock.")
+		shop_menu(title,role,text,offers,scroll_position)
+		return
+	var amount=SpinBox.new()
+	amount.min_value=1
+	amount.max_value=maximum
+	amount.step=1
+	amount.value=1
+	ui.quantity_control=amount
+	var bundle=int(state.Shop.CATALOG[offer[3]].count)
+	panel("How much would you like to buy?","BUY QUANTITY","%s. Each purchase contains %d. Up to %d purchases available; %d crowns each." % [offer[1],bundle,maximum,price],[
+		["Buy selected quantity",func():
+			var bought=0
+			for index in range(int(amount.value)):
+				if not offer[4].call(): break
+				bought+=1
+			save_visit()
+			toast("Bought %d · %d crowns." % [bought*bundle,bought*price])
+			shop_menu(title,role,text,offers,scroll_position)],
+		["Cancel",func(): shop_menu(title,role,text,offers,scroll_position)]])
+	ui.modal_box.add_child(amount)
+	ui.modal_box.move_child(amount,3)
+	var buy_button=ui.modal_box.get_children().filter(func(child):return child is Button)[0]
+	amount.value_changed.connect(func(value): buy_button.text="Buy %d · %d crowns" % [int(value)*bundle,int(value)*price])
 
 func crowns(amount: int) -> String:
 	return "1,000" if amount==1000 else str(amount)
 
 func tavi_shop() -> void:
 	var offers=[
-		["seeds","Five moon-turnip seeds",10,"seeds",func(): state.buy_seeds()],
-		["star_seeds","Three star-bulb seeds",12,"star_seeds",func(): state.buy_star_seeds()],
-		["pan","Frying pan",20,"pan",func(): state.buy_utensil("pan")],
-		["pot","Cooking pot",20,"pot",func(): state.buy_utensil("pot")],
-		["health_elixir","Health elixir",15,"health_elixir",func(): state.purchase("health_elixir")],
-		["sugar","Sugar",4,"sugar",func(): state.purchase("sugar")],
-		["butter","Butter",6,"butter",func(): state.purchase("butter")]]
+		["seeds","Five moon-turnip seeds",10,"seeds",func(): return state.buy_seeds()],
+		["star_seeds","Three star-bulb seeds",12,"star_seeds",func(): return state.buy_star_seeds()],
+		["pan","Frying pan",20,"pan",func(): return state.buy_utensil("pan")],
+		["pot","Cooking pot",20,"pot",func(): return state.buy_utensil("pot")],
+		["health_elixir","Health elixir",15,"health_elixir",func(): return state.purchase("health_elixir")],
+		["sugar","Sugar",4,"sugar",func(): return state.purchase("sugar")],
+		["glass_jars","Glass jar",3,"glass_jars",func(): return state.purchase("glass_jars")],
+		["butter","Butter",6,"butter",func(): return state.purchase("butter")]]
 	for crop in state.CROPS:
 		var seed_id=state.CROPS[crop].seed
 		if seed_id in ["seeds","star_seeds"] or state.season_name() not in state.CROPS[crop].seasons: continue
-		offers.append([seed_id,"Five "+state.Items.CATALOG[seed_id].name.to_lower(),10,seed_id,func(): state.purchase(seed_id)])
+		offers.append([seed_id,"Five "+state.Items.CATALOG[seed_id].name.to_lower(),10,seed_id,func(): return state.purchase(seed_id)])
 	shop_menu("Tavi's Grocery","SEASONAL STOCK","Here's what's on the shelves today. Seed packets, cookware, and baking supplies arrive with the seasonal cart. Pots and pans work from your kitchen cabinet or satchel.",offers)
 
 func smith_shop() -> void:
-	var offers=[["rusty_sword","Rusty sword",1000,"rusty_sword",func(): state.buy_sword()]]
+	var offers=[["rusty_sword","Rusty sword",1000,"rusty_sword",func(): return state.buy_sword()]]
 	shop_menu("Dain's Smithy","FORGED GOODS","A plain blade, kept sharp enough. One thousand crowns. More steelwork is possible once you have the right materials.",offers)
 
 func vale_checkin_choices() -> Array:

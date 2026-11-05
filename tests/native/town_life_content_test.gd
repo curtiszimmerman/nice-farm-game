@@ -33,10 +33,11 @@ func run() -> void:
 		game.leave_building()
 	game.state.silver_bars=2
 	game.talk("priest")
-	var greeting=game.ui.modal_box.get_children().filter(func(node):return node is Button and node.text=="Go on.")
-	if not greeting.is_empty(): greeting[0].pressed.emit()
+	if preload("fixture.gd").greeting(game)!=null: preload("fixture.gd").greet(game)
 	var blueprint=game.ui.modal_box.get_children().filter(func(node):return node is Button and node.text.contains("beehive"))
 	if not blueprint.is_empty(): blueprint[0].pressed.emit()
+	var plans=game.ui.modal_box.get_children().filter(func(node):return node is Button and node.text.contains("Learn beehive"))
+	if not plans.is_empty(): plans[0].pressed.emit()
 	check(game.state.beehive_known and game.state.silver_bars==0,"the priest teaches beehive plans for exactly two silver ingots")
 	game.close_window()
 	game.state.minute=1380

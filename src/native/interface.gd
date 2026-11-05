@@ -523,7 +523,20 @@ func open_modal(title: String,eyebrow: String,body: String,choices: Array,wide =
 		if option.size()>4 and option[4] and option.size()>2 and not option[2]: b.modulate=Color("a0a0a0")
 		if option.size()>4 and option[4]: b.disabled=false
 		var action = option[1]
-		b.pressed.connect(func(): game.choose_dialogue(action))
+		if option.size()>5 and option[5] is Callable:
+			var hold_action: Callable=option[5]
+			var held={"fired":false}
+			var timer=Timer.new()
+			timer.one_shot=true
+			timer.wait_time=0.5
+			b.add_child(timer)
+			b.tooltip_text="Hold to choose a quantity."
+			b.button_down.connect(func(): held.fired=false; timer.start())
+			b.button_up.connect(func(): timer.stop())
+			timer.timeout.connect(func(): held.fired=true; game.choose_dialogue(hold_action))
+			b.pressed.connect(func():
+				if not held.fired: game.choose_dialogue(action))
+		else: b.pressed.connect(func(): game.choose_dialogue(action))
 		modal_box.add_child(b)
 	var footer = Label.new()
 	footer.text = "" if eyebrow=="YOUR JOURNEY" or game.clock_held() else "ESC closes · " + ("Time keeps moving" if game.state.pause_mode=="none" else "Calendar paused; world active" if game.state.pause_mode=="clock" else "World paused")

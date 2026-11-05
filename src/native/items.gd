@@ -8,6 +8,7 @@ const FOOD={"berry_preserves":{"health":4,"energy":15,"mana":0},"berry_cobbler":
 const FISH={"lantern_ray":{"habitat":"ocean_tip","hard":true,"price":90,"weight":1,"color":"e4cf8b"},"fish":{"habitat":"pond","hard":false,"price":10,"color":"9dbcc0"},"moon_pike":{"habitat":"pond","hard":true,"price":35,"color":"a8ad7b"},"sea_sprat":{"habitat":"ocean","hard":false,"price":12,"color":"c1c7b2"},"blue_mackerel":{"habitat":"ocean","hard":false,"price":16,"color":"729ab6"},"storm_eel":{"habitat":"ocean","hard":true,"price":50,"color":"a58bb6"},"rain_glassfish":{"habitat":"pond","hard":false,"price":24,"color":"9fd8cc","rainy_only":true},"storm_shiner":{"habitat":"ocean","hard":true,"price":34,"color":"8aa9c8","rainy_only":true}}
 
 const CATALOG={
+	"glass_jars":{"name":"Glass jar","description":"A clear glass jar with a snug lid. Pip collects seeds in these.","action":"Gift or crafting supply"},
 	"green_onion_seeds":{"name":"Green onion seeds","description":"Spring crop. Six watered days to harvest.","action":"Plant"},
 	"tomato_seeds":{"name":"Tomato seeds","description":"Spring and summer. Six watered days, then another tomato every three watered days.","action":"Plant"},
 	"cucumber_seeds":{"name":"Cucumber seeds","description":"Spring and summer. Four watered days to grow and four between harvests.","action":"Plant"},
@@ -92,6 +93,10 @@ static func icon(id: String) -> Texture2D:
 		for x in range(24):
 			var color=Color.TRANSPARENT
 			match id:
+				"glass_jars":
+					if x in range(6,19) and y in range(6,21): color=Color("8fb9bd") if x in [6,18] or y==20 else Color("5d858955")
+					if x in range(5,20) and y in range(3,7): color=Color("b8a17a") if y<5 else Color("766854")
+					if x in [8,9] and y in range(9,17): color=Color("c8e3d8")
 				"wildgrowth":
 					if pow((x-12)/7.0,2)+pow((y-12)/9.0,2)<1: color=Color("9ac483") if x<12 else Color("547c63")
 					if abs(x-y)<2: color=Color("e2dfaa")

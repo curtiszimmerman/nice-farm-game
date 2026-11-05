@@ -7,12 +7,12 @@ const LINES={
 	"assistant":"Neral. I help the mayor keep track of who comes through Briar Glen. With the trouble along the border, a little care is everyone's concern. I'd like to know more about where you've come from.",
 	"tavi":"New faces! I'm Tavi. If you're settling in, you'll soon learn which floorboard squeaks and which jar holds the good tea. I'd offer directions, but I'd probably send you past my shop twice. What brought you to the square?",
 	"iona":"Ah, someone I haven't met. I'm Iona. Forgive the ink on my hands; a promising thought arrived just as I was leaving. If you've come about magic, you're welcome to ask. Curiosity's a perfectly good place to begin.",
-	"finch":"Mind the wire by your feet. Finch, from the radio club. I keep meaning to tidy that coil, but then something interesting comes through. A voice from somewhere new is always worth listening to. What should I call you?",
+	"finch":"Mind the wire by your feet. Finch, from the radio club. I keep meaning to tidy that coil, but then something interesting comes through. A voice from somewhere new is always worth listening to. Are you settling into the old farmhouse?",
 	"veteran":"Bram. Wipe your boots if you come by the cabin; I finally got the mud out. I spent enough years marching to appreciate a quiet visitor. You need something, or just finding your way around?",
 	"keeper":"Oren's the name. If the wind stole your hat, check behind the steps before blaming the sea. Happens more than you'd think. Have you walked all the way from town? It's good to have company out this way.",
 	"priest":"Welcome. I'm Brother Aven. You don't need to know the prayers to sit awhile in the temple garden. Some people come for quiet, some for company. We try to leave room for both. How are you settling in?",
 	"astronomer":"Saeren. I watch the sky. People tend to think that means I miss what happens on the ground. Occasionally they're right. You may find that I ask more questions than most people here.",
-	"farmer_mother":"Elin Reed. These grafts need a careful hand, so forgive me if I talk while I work. Jory says I can hear a branch cracking from the kitchen. Mostly I hear him trying to fix it. You're the travelers Moss mentioned?",
+	"farmer_mother":"Hello! I'm Elin Reed. Jory and I farm out east with our son, Pip. Moss said someone was moving into the old farmhouse. It's good to see the place lived in again. Have you had a chance to get settled?",
 	"farmer_father":"Jory Reed. Our fields keep us busy, but there's always time to greet a neighbor. Moss said someone was taking on the old place. Good soil there, once you persuade the weeds to share it. How is it treating you?",
 	"farmer_son":"I'm Pip. I collect seeds that look odd. Some grow into nothing special, but you never know until you plant them. Mum says I have to label the pots this time. Do you know any plants we don't have here?",
 	"smith":"Dain Rusk. Stay clear of the hot end of the forge. Cold-looking iron can still take the skin off your fingers. I'll put the hammer down if you've got a question; I'd rather hear it properly than have you shout over the anvil.",
@@ -22,4 +22,28 @@ const LINES={
 	"barkeep":"Rafe Fen. I run the Wayward Wren. Take a seat when you come by; the regulars don't own them, whatever they tell you. You'll know half the town after an evening there. The other half will hear about you before breakfast.",
 	"baker":"Corin Hale. If you're wondering about the flour on my sleeve, there's more on the other one. I bake before most of the town wakes, so forgive a yawn. A new neighbor's worth staying awake for. How are you finding the place?",
 	"woodcutter":"Rowan. Watch where you step; I leave the young trees standing. That crooked sapling will be useful shade one day, if nobody flattens it first. I can talk while I sharpen this edge. What brings you into the woods?"
+}
+
+const REPLIES={
+	"vale":"Show me what we've got left.",
+	"moss":"We're all right, thank you. We're travelers looking for somewhere to stay.",
+	"mayor":"Thank you. We'd be grateful for a place to stay.",
+	"assistant":"We're travelers hoping to stay awhile.",
+	"tavi":"I'm looking for supplies for our new place.",
+	"iona":"I'd like to learn about the local magic.",
+	"finch":"We are. I'd love to hear more about the radio club.",
+	"veteran":"I'm finding my way around, and Moss suggested I speak with you.",
+	"keeper":"I have. I wanted to see the lighthouse and meet its keeper.",
+	"priest":"Still learning, but it's going well, thanks!",
+	"astronomer":"What have you been observing lately?",
+	"farmer_mother":"We're settling in, thank you. Moss has been a great help.",
+	"farmer_father":"I'm learning as I go. It's good to meet another farmer.",
+	"farmer_son":"The plants I know are much different than the ones growing here.",
+	"smith":"Thanks. I'll keep clear of the forge. Could I ask you something?",
+	"miller":"I'd like a look around. I'll mind the gears.",
+	"miller_wife":"We're still finding a few things, but we're getting there.",
+	"miller_daughter":"I've worked with radios a little. What are you building?",
+	"barkeep":"I'll have to stop by. I'd like to meet the neighbors.",
+	"baker":"I'm doing a lot better knowing where to get fresh bread!",
+	"woodcutter":"I'm hoping to gather some firewood. Could you point me in the right direction?"
 }

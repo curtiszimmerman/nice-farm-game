@@ -54,6 +54,7 @@ static func update(world: Node2D) -> void:
 
 static func draw(world: Node2D,canvas: CanvasItem) -> void:
 	if world.ambient.is_empty(): return
+	world.Coast.draw_beach_waves(world,canvas)
 	if world.Art.catalog.has_all(["bee0","bee1"]) and world.state.minute>=360 and world.state.minute<1140 and world.state.season_name()!="winter":
 		for hive in [Vector2i(58,56),Vector2i(60,56)]:
 			for i in range(3):

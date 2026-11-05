@@ -117,6 +117,7 @@ var berry_cobbler=0
 var flour=0
 var sugar=0
 var butter=0
+var glass_jars=0
 var green_onion_seeds=0
 var tomato_seeds=0
 var cucumber_seeds=0
@@ -129,7 +130,7 @@ const CROPS={"turnips":{"seed":"seeds","days":3,"regrow":0,"seasons":["spring","
 var mayor_due=-1.0
 var house_tasks={"sofa":false,"bed":false,"guest_bed":false,"radio":false,"living_light":false,"bathroom_light":false}
 const INVENTORY_SLOTS=16
-const EXTRA_ITEMS=["pot","pan","fish_sticks","fish_stew","health_elixir","rations","light_bulbs","moon_pike","sea_sprat","blue_mackerel","storm_eel","rain_glassfish","storm_shiner","pickaxe","stones","cave_moth_chrysalis","golden_sparkfire_bloom","lantern_ray","axe","wood","bread","copper_bars","berries","apples","ladder","fishing_pole","coal","silver_bars","winter_sparkbloom","berry_preserves","berry_cobbler","flour","sugar","butter","green_onion_seeds","tomato_seeds","cucumber_seeds","gladain_seeds","green_onions","tomatoes","cucumbers","gladain"]
+const EXTRA_ITEMS=["pot","pan","fish_sticks","fish_stew","health_elixir","rations","light_bulbs","moon_pike","sea_sprat","blue_mackerel","storm_eel","rain_glassfish","storm_shiner","pickaxe","stones","cave_moth_chrysalis","golden_sparkfire_bloom","lantern_ray","axe","wood","bread","copper_bars","berries","apples","ladder","fishing_pole","coal","silver_bars","winter_sparkbloom","berry_preserves","berry_cobbler","flour","sugar","butter","green_onion_seeds","tomato_seeds","cucumber_seeds","gladain_seeds","green_onions","tomatoes","cucumbers","gladain","glass_jars"]
 const CROP_MINUTES=4320.0
 const CROP_PRICES={"green_onions":16,"tomatoes":14,"cucumbers":12,"gladain":40}
 
@@ -371,6 +372,7 @@ func advance(minutes: float, window_open = false,sleeping: bool=false) -> void:
 		for index in range(plots.size()-1,-1,-1):
 			var plot=plots[index]
 			var rain=weather_name(crop_day)=="rainy"
+			var tended=plot.tilled and plot.planted>=0 and (rain or (plot.watered and plot.water_day==crop_day))
 			if posmod(crop_day,DEVELOPMENT_SEASON_DAYS)==0 and plot.planted>=0 and not (CROPS[plot.crop].regrow>0 and ["spring","summer","autumn","winter"][int(crop_day/28.0)%4] in CROPS[plot.crop].seasons):
 				plot.planted=-1.0
 				plot.growth=-1.0
@@ -383,12 +385,12 @@ func advance(minutes: float, window_open = false,sleeping: bool=false) -> void:
 					plot.planted=-1.0
 					plot.growth=-1.0
 				plot.watered=false
-			if plot.planted<0 and (plot.growth<0 or plot.tilled):
-				var decay=RandomNumberGenerator.new()
-				decay.seed=hash("plot-decay:%d:%d:%d" % [world_seed,plot.x*10000+plot.y,crop_day])
-				if decay.randf()<0.15:
-					plots.remove_at(index)
-					continue
+			plot.idle_days=0 if tended else int(plot.get("idle_days",0))+1
+			var decay=RandomNumberGenerator.new()
+			decay.seed=hash("plot-decay:%d:%d:%d" % [world_seed,plot.x,plot.y])
+			if plot.idle_days>=decay.randi_range(1,3):
+				plots.remove_at(index)
+				continue
 			plot.watered=false
 	if weather_name()=="rainy":
 		for plot in plots:
@@ -745,6 +747,7 @@ func chat_with(id: String) -> void:
 	change_friendship(id,1)
 
 func gift_preference(id: String,item: String) -> int:
+	if id=="farmer_son" and item=="glass_jars": return 5
 	if id=="veteran" and item=="turnips": return 5
 	if item in ["coal","stones"]: return 1 if id in ["smith","miller"] else -1
 	if item in ["cave_moth_chrysalis","golden_sparkfire_bloom","star_bulbs"]: return 5 if id in ["iona","astronomer"] else -5 if id=="assistant" else 0

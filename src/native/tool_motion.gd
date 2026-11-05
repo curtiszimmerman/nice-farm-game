@@ -28,8 +28,9 @@ static func pose(id: String,facing: String,t: float,combat: bool=false) -> Dicti
 		"watering_can":
 			angle+=stroke*0.35
 		"hoe":
+			scale.y=-1
+			angle=stroke*0.2*(-1 if facing=="left" else 1)
 			pivot+=direction*stroke*14
-			angle+=stroke*0.2
 		"pickaxe","axe":
 			angle+=lerpf(-1.2,0,pow(minf(t/0.6,1),0.7)) if t<=0.6 else (t-0.6)*1.5
 			pivot.y-=10*(1-stroke)

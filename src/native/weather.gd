@@ -65,15 +65,23 @@ func cloud_positions(time: float) -> PackedVector2Array:
 	return positions
 
 func rain_positions(time: float) -> PackedVector2Array:
-	var positions=PackedVector2Array()
-	for i in range(110):
-		positions.append(world.state.player_position-Vector2(410,280)+Vector2(fposmod(i*127-time*25,820),fposmod(i*71+time*(150+i%4*20),560)))
-	return positions
+	return precipitation_positions(time,false)
 
 func snow_positions(time: float) -> PackedVector2Array:
+	return precipitation_positions(time,true)
+
+func precipitation_positions(time: float,snow: bool) -> PackedVector2Array:
 	var positions=PackedVector2Array()
-	for i in range(110):
-		positions.append(world.state.player_position-Vector2(410,280)+Vector2(fposmod(i*127+sin(time*0.7+i)*12,820),fposmod(i*71+time*(22+i%4*4),560)))
+	var center=Vector2i(floori(world.state.player_position.x/256),floori(world.state.player_position.y/256))
+	for y in range(center.y-3,center.y+4):
+		for x in range(center.x-3,center.x+4):
+			var rng=RandomNumberGenerator.new()
+			rng.seed=hash(Vector3i(x,y,world.state.world_seed))
+			for i in range(7):
+				var origin=Vector2(rng.randf_range(0,256),rng.randf_range(0,256))
+				var speed=rng.randf_range(20,40) if snow else rng.randf_range(150,230)
+				var wind=sin(time*0.7+origin.y)*12 if snow else -time*rng.randf_range(18,30)
+				positions.append(Vector2(x,y)*256+Vector2(fposmod(origin.x+wind,256),fposmod(origin.y+time*speed,256)))
 	return positions
 
 func _draw() -> void:
@@ -95,12 +103,12 @@ func paint_sky(canvas: CanvasItem) -> void:
 			if snow:
 				canvas.draw_rect(Rect2(point,Vector2(2,2)),Color(0.9,0.94,1,0.72))
 			else: Art.sprite(canvas,"rain_streak",point,Vector2(3,11),Color(0.75,0.85,0.94,0.42))
-		for i in range(20):
-			if snow: break
-			var phase=fposmod(world.elapsed*2+i*0.17,1)
-			if phase<0.3:
-				var point=world.state.player_position+Vector2((i*97)%740-370,(i*137)%430-215)
-				Art.sprite(canvas,"rain_splash",point,Vector2(12,5),Color(0.7,0.8,0.9,(0.3-phase)*1.5))
+		if not snow:
+			for point in rain_positions(0):
+				var key=posmod(hash(point),1000)
+				if key%8!=0: continue
+				var phase=fposmod(world.elapsed*1.7+key*0.001,1)
+				if phase<0.2: Art.sprite(canvas,"rain_splash",point,Vector2(12,5),Color(0.7,0.8,0.9,(0.2-phase)*2))
 		if lightning_frames>0:
 			var tint=world.night_tint.color
 			canvas.draw_rect(Rect2(world.state.player_position-Vector2(800,600),Vector2(1600,1200)),Color(1/tint.r,1/tint.g,1/tint.b,0.75))

@@ -1,5 +1,17 @@
 extends RefCounted
 
+static func greeting(game: Node2D) -> Button:
+	var id=game.conversation_members[0] if game.conversation_members.size()==1 else ""
+	var reply=preload("res://npc_greetings.gd").REPLIES.get(id,"")
+	for node in game.ui.modal_box.get_children():
+		if node is Button and node.text==reply: return node
+	return null
+
+static func greet(game: Node2D) -> void:
+	var button=greeting(game)
+	assert(button!=null,"The NPC must offer their introductory reply.")
+	button.pressed.emit()
+
 static func explore(game: Node2D,meet_moss: bool=false) -> void:
 	if game.opening!=null: game.opening.finish()
 	while not game.state.briefing_complete:

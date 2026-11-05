@@ -47,8 +47,7 @@ func run() -> void:
 	game.enter_building("store")
 	game.state.player_position=game.world.villagers.tavi.position+Vector2(0,12)
 	preload("fixture.gd").activate(game)
-	for choice in game.ui.modal_box.get_children():
-		if choice is Button and choice.text=="Go on.": choice.pressed.emit(); break
+	preload("fixture.gd").greet(game)
 	for choice in game.ui.modal_box.get_children():
 		if choice is Button and choice.text.begins_with("Sell produce"): choice.pressed.emit(); break
 	check(game.state.turnips==0 and game.state.money==32,"merchant dialogue actually sells inventory")

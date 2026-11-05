@@ -47,7 +47,7 @@ func run() -> void:
 			if w.blocked(w.Grid.center(cell)) or w.Coast.JETTY.has_point(cell) or w.Coast.PLATFORM.has_point(cell): continue
 			shore_cells[cell]=true
 			if w.call("coastal_fishing",w.Grid.center(cell)).get("id")!="ocean": shore_fishable=false
-	check(shore_cells.size()>20 and shore_fishable,"every reachable stretch of the western shoreline supports ocean fishing")
+	check(shore_cells.size()>=10 and shore_fishable,"every reachable stretch of the southern beach supports ocean fishing")
 	if houses.size()==1:
 		game.enter_building("keeper")
 		check(game.current_room=="keeper" and not game.world.blocked(game.state.player_position),"the keeper has an enterable lighthouse home")
