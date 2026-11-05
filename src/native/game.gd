@@ -1249,13 +1249,15 @@ func shop_menu(title: String,role: String,text: String,offers: Array) -> void:
 		var status="Out of stock · delivery "+delivery if count==0 else "%s crowns · %d available" % [crowns(price),count]
 		var can_buy=count>0 and state.money>=price
 		choices.append([label+" · "+status,func():
+			var scroll_position=ui.modal_scroll.scroll_vertical
 			if count==0: toast("Out of stock. Delivery "+delivery+".")
 			elif state.money<price: toast("You need %d crowns." % price)
 			elif not action.call(): toast("Make room in your satchel before buying that.")
 			else:
 				save_visit()
 				toast("Bought "+label+".")
-			shop_menu(title,role,text,offers),can_buy,item,true])
+			shop_menu(title,role,text,offers)
+			ui.modal_scroll.set_deferred("scroll_vertical",scroll_position),can_buy,item,true])
 	choices.append(["Thanks, I'm all set.",func(): pass])
 	panel(title,role,text,choices)
 

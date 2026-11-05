@@ -19,8 +19,23 @@ func run() -> void:
 		check(button.size()==1,"spring shop offers "+id)
 		if not button.is_empty(): button[0].pressed.emit()
 		check(game.state.get(id)==5,"buying the seed packet supplies "+id)
+	game.tavi_shop()
+	for i in range(3): await process_frame
+	for purchase in range(3):
+		if purchase==2: game.state.money=0
+		var scroll=game.ui.modal_scroll
+		scroll.scroll_vertical=int(scroll.get_v_scroll_bar().max_value)
+		var position=scroll.scroll_vertical
+		check(position>0,"the shop has a genuinely scrolling list")
+		var buttons=game.ui.modal_box.find_children("*","Button",true,false).filter(func(b):return b.text.to_lower().contains("gladain seeds"))
+		var before=game.state.gladain_seeds
+		buttons[0].pressed.emit()
+		for i in range(3): await process_frame
+		check(game.state.gladain_seeds==before+(0 if purchase==2 else 5) and game.ui.modal_scroll.scroll_vertical==position,"purchases and insufficient funds preserve the shop scroll position")
 	game.state.day=29
 	game.tavi_shop()
+	for i in range(3): await process_frame
+	check(game.ui.modal_scroll.scroll_vertical==0,"opening a different seasonal listing starts at the top")
 	var summer=game.ui.modal_box.find_children("*","Button",true,false)
 	check(not summer.any(func(b):return b.text.contains("gladain") or b.text.contains("green onion")),"spring-only seeds leave the summer shop")
 	await game.sound.shutdown()
