@@ -855,6 +855,9 @@ func tidy_farmhouse(task: String) -> void:
 	else: toast("Take a replacement bulb from the kitchen cabinet first." if task.ends_with("light") and not state.house_tasks[task] else "Already taken care of.")
 
 func learn_local_spell(id: String) -> void:
+	if not state.chat_days.has("wildgrowth_lore") or not state.chat_days.has("weekday_lore"):
+		dialog("Iona","FIRST THINGS FIRST","Let's finish the seven days and your Wildgrowth lesson before we try anything more demanding.")
+		return
 	if state.learn_spell(id):
 		save_visit()
 		dialog("Iona","A LITTLE PRACTICE", "Think of the warmth of a hearth, and let it find the hurt. Gently. Healing isn't a contest." if id=="hearthmend" else "Follow the thread of warmth out of your hand. Keep it narrow, and mind where you point it. We're learning a spell, not burning my garden down.")
@@ -1208,9 +1211,9 @@ func talk(id: String) -> void:
 			else:
 				var lessons=[
 					["Tell me about the seven days",weekday_lore]]
-				if state.chat_days.has("weekday_lore"): lessons.append(["Which magic might be stronger or weaker on the next Rift?",next_rift_omen])
+				if state.chat_days.has("weekday_lore"): lessons.append(["Which magic is stronger or weaker today?" if posmod(state.day-1,7)==0 else "Which magic might be stronger or weaker on the next Rift?",next_rift_omen])
 				lessons.append(["Learn the local lore",local_magic_lore])
-				lessons.append_array([
+				if state.chat_days.has("wildgrowth_lore") and state.chat_days.has("weekday_lore"): lessons.append_array([
 					["Hearthmend · one Golden Sparkfire Bloom",func(): learn_local_spell("hearthmend"),state.golden_sparkfire_bloom>=1],
 					["Emberthread · one Cave Moth Chrysalis + 10 logs",func(): learn_local_spell("emberthread"),state.cave_moth_chrysalis>=1 and state.wood>=10]])
 				dialog("Iona","MAGIC OF BRIAR GLEN","You'll find our deities gentler than the ones near the Veyr border. Mostly they want things to grow. I can show you Wildgrowth, if you like. Water a seed first, then give it a little encouragement. Fifteen mana, and no fee for the lesson. For something more adventurous, bring me a Cave Moth Chrysalis from deep underground, or a Golden Sparkfire Bloom. Mind you, that flower only opens while the sun is rising. Walk past at noon and you'd never give it a second glance.",lessons)
@@ -1324,15 +1327,25 @@ func local_magic_lore() -> void:
 	dialog("Iona","MAGIC OF BRIAR GLEN","Here, Thessil's growing things answer more readily than they do near the border. Wildgrowth lends a watered seed a little of that strength. It costs fifteen mana, and I can teach you for free.",[["Teach me Wildgrowth" if not state.magic_learned else "Practice Wildgrowth",func():
 		state.magic_learned=true
 		save_visit()
-		dialog("Iona","WILDGROWTH","There you are. Water a seed first, then give it a little encouragement. You can assign Wildgrowth under Actions, in Spells and skills.")]])
+		dialog("Iona","WILDGROWTH","There you are. Water a seed first, then give it a little encouragement. You can assign Wildgrowth under Actions, in Spells and skills.",[["I've got it.",func():
+			state.chat_days["wildgrowth_lore"]=state.day
+			save_visit()
+			talk("iona")]])]])
 
 func next_rift_omen() -> void:
 	var faith=preload("res://weekday_magic.gd")
-	var next_day=state.day+(7-posmod(state.day-1,7))
-	var omen=faith.chaos(next_day,state.world_seed)
-	var body="On the next Rift, I expect %s magic to answer more strongly, while %s magic may be harder to shape." % [omen.favored,omen.weakened]
-	if omen.favored==omen.weakened: body="The two signs both point to %s magic. On that Rift it may %s." % [omen.favored,"be twice as strong" if omen.collision>1 else "fail entirely"]
-	dialog("Iona","THE NEXT RIFT",body)
+	var prediction=faith.forecast(state.day,state.world_seed)
+	var omen=prediction.omen
+	var today=prediction.days_until==0
+	var body="Today is Rift. The signs are clear: " if today else "The next Rift is in %d %s. I think " % [prediction.days_until,"day" if prediction.days_until==1 else "days"]
+	if state.day==1:
+		body+="all forms of magic are equally strong today. A quiet turn of the spiral."
+	elif omen.favored==omen.weakened:
+		body+="%s magic %s %s." % [omen.favored,"will" if today else "may","be twice as strong" if omen.collision>1 else "fail entirely"]
+	else:
+		body+="%s magic %s answer more strongly, while %s magic %s be harder to shape." % [omen.favored,"will" if today else "may",omen.weakened,"will" if today else "may"]
+	if not today: body+=" Ask me again as Rift draws closer; the signs become easier to read."
+	dialog("Iona","TODAY'S RIFT" if today else "THE NEXT RIFT",body)
 
 func buy_cookware(id: String) -> void:
 	if state.stock(id)==0:

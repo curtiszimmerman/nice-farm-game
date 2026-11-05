@@ -32,3 +32,16 @@ static func strength(day: int,world_seed: int,school: String) -> float:
 	if school==favored[weekday]: return 1.5
 	if school==weakened[weekday]: return 0.5
 	return 1.0
+
+static func forecast(day: int,world_seed: int) -> Dictionary:
+	var weekday=posmod(day-1,7)
+	var days_until=0 if weekday==0 else 7-weekday
+	var target_day=day+days_until
+	var confidence=1.0 if days_until==0 else 0.6+0.05*(6-days_until)
+	var omen=chaos(target_day,world_seed)
+	var rng=RandomNumberGenerator.new()
+	rng.seed=hash("rift-forecast:%d:%d" % [world_seed,target_day])
+	if rng.randf()>=confidence:
+		omen.favored=SCHOOLS[(SCHOOLS.find(omen.favored)+rng.randi_range(1,SCHOOLS.size()-1))%SCHOOLS.size()]
+		omen.weakened=SCHOOLS[(SCHOOLS.find(omen.weakened)+rng.randi_range(1,SCHOOLS.size()-1))%SCHOOLS.size()]
+	return {"target_day":target_day,"days_until":days_until,"confidence":confidence,"omen":omen}

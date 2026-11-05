@@ -315,6 +315,8 @@ func _ready() -> void:
 	needs_panel=_panel(Vector2.ZERO,Vector2(160,44),Color("172b2bf5"))
 	needs_panel.get_theme_stylebox("panel").border_width_bottom=0
 	needs_panel.scale=quick_tray.scale
+	root.move_child(needs_panel,quick_tray.get_index()+1)
+	root.move_child(log_panel,needs_panel.get_index()+1)
 	_label("WATER",health_label.position,10,MUTED,false,needs_panel)
 	hydration_bar=_bar(health_bar.position,health_bar.size,Color("90b9d2"),needs_panel)
 	_label("FOOD",vitality.position,10,MUTED,false,needs_panel)
@@ -1084,6 +1086,7 @@ func _process(dt: float) -> void:
 	var avatar=Rect2(screen-Vector2(15,58)*game.camera.zoom,Vector2(30,64)*game.camera.zoom)
 	var obscured=quick_tray.get_global_rect().intersects(avatar)
 	quick_tray.modulate.a=move_toward(quick_tray.modulate.a,0.22 if obscured else 1.0,dt*4)
+	needs_panel.modulate.a=quick_tray.modulate.a
 
 func update() -> void:
 	game.state.clear_empty_slots()

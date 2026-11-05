@@ -21,6 +21,10 @@ func run() -> void:
 	check(ui.quick_tray.size.y<=64 and ui.needs_panel.visible and ui.needs_panel.get_parent()==ui.root,"hardcore adds only a separate needs panel above the vitals")
 	check(ui.needs_panel.get_global_rect().end.y>ui.quick_tray.get_global_rect().position.y and ui.needs_panel.get_theme_stylebox("panel").border_width_bottom==0 and ui.needs_panel.get_global_rect().size.x<ui.quick_tray.get_global_rect().size.x*0.25,"the needs panel overlaps the tray border without a separating seam")
 	var needs_labels=ui.needs_panel.get_children().filter(func(child):return child is Label)
+	check(ui.needs_panel.get_index()<ui.log_panel.get_index(),"the needs panel draws underneath the Crew Log")
+	game.state.player_position=game.get_viewport().get_canvas_transform().affine_inverse()*ui.quick_tray.get_global_rect().get_center()
+	ui._process(1.0)
+	check(ui.quick_tray.modulate.a<0.3 and is_equal_approx(ui.needs_panel.modulate.a,ui.quick_tray.modulate.a),"survival meters fade together with the action bar")
 	check(needs_labels.size()==2 and is_equal_approx(needs_labels[0].position.y,ui.health_label.position.y) and is_equal_approx(needs_labels[1].position.y,ui.vitality.position.y) and is_equal_approx(ui.hydration_bar.position.y,ui.health_bar.position.y) and is_equal_approx(ui.nourishment_bar.position.y,ui.energy_bar.position.y),"water and food use the exact vital-row text and bar spacing")
 	game.state.awake_minutes=1441
 	game.state.apply_poison()

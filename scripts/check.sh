@@ -41,6 +41,8 @@ run_native --headless --script "../../tests/native/cave_opening_art_test.gd"
 for test_file in terrain_borders_test border_atlas_test terrain_art_integration_test town_life_state_test town_life_rules_test town_life_world_test town_life_content_test tavern_life_test calendar_transition_test spell_lessons_test cave_levels_test town_icons_test partial_pack_test; do
     run_native --headless --script "../../tests/native/$test_file.gd"
 done
+run_native --headless --script "../../tests/native/rift_forecast_test.gd"
+run_native --headless --script "../../tests/native/iona_prerequisites_test.gd"
 run_native --headless -- --smoke-test
 for test_file in supply_dialogue_revision_test hardcore_needs_test journey_mode_test weekday_magic_test social_days_test berry_kitchen_test seasonal_weather_test farm_radius_test farm_radius_world_test temple_service_test temple_complex_test cave_generation_variation_test latest_feedback_test dialogue_flow_polish_test new_crops_test crop_shop_test npc_passing_test square_garden_revision_test shop_performance_revision_test farm_art_test; do
     run_native --headless --script "../../tests/native/$test_file.gd"
