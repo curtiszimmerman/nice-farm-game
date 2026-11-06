@@ -28,6 +28,7 @@ func _initialize() -> void:
 	check(s.turnips == 1 and s.harvested == 1, "harvesting yields produce once")
 	s.tend(0)
 	s.tend(0)
+	s.day=5 # Tide leaves growth magic at ordinary strength.
 	var mana = s.mana
 	check(s.grow(0) and s.mana == mana - 15.0 and s.ripe(0), "growth spell ripens crops and charges mana")
 	s.mana = 0.0

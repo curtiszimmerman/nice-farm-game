@@ -181,4 +181,6 @@ NPC route searches begin in a nine-square-wide corridor between their current ti
 
 Iona names each weekday and explains its magical effects plainly. Gale strengthens wind and weakens growth, leaving water unchanged. Her daily reading distinguishes today's known effects from her uncertain forecast for the next Rift. Spoken spell-effort descriptions use a fraction of a full reserve; exact numerical costs remain in interface descriptions. The prototype currently has a fixed full mana reserve.
 
+Wildgrowth adds a full crop's growth duration multiplied by the day's growth-magic strength, capped at maturity. Every new journey's first day has neutral magic. Bram accepts three moon turnips once for five friendship points, giving his sword only if the player does not already own one.
+
 Tavern drinks restore hydration, a small amount of nourishment, and one energy. They cause one game hour of drunkenness, halving movement speed and inflicted combat damage; another drink refreshes the hour. Tavern guests gather around tables in groups that remain stable for the evening and vary between nights. House lanterns stay lit from dusk until dawn even when the occupants sleep.

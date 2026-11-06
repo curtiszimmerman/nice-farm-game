@@ -40,6 +40,16 @@ func run() -> void:
 	game.talk("veteran")
 	check(game.state.requests.bram_requested and game.ui.modal_box.get_child(2).text.contains("copper caverns"),"Dain's referral leads directly to Bram's protection offer")
 	game.close_window()
+	game.state.rusty_sword=1
+	game.state.turnips=3
+	var friendship=int(game.state.friendships.get("veteran",0))
+	preload("res://local_guidance.gd").sword_terms(game)
+	check(game.ui.modal_box.get_child(2).text.contains("already got a sword") and not choices(game).any(func(b):return b.text.begins_with("Trade three")),"Bram acknowledges an existing sword and asks only for supper")
+	choices(game)[0].pressed.emit()
+	check(game.state.turnips==0 and game.state.rusty_sword==1 and game.state.friendships.veteran==friendship+5,"Bram's supper dialogue rewards friendship without duplicating the sword")
+	var quest=game.ui.quest_lines().filter(func(line):return line.id=="bram_sword")
+	check(quest.size()==1 and quest[0].tasks[0].done,"Bram's supper completes the quest even when already armed")
+	game.close_window()
 	game.state.player_position=game.Grid.center(Vector2i(63,47))
 	preload("res://neighbors.gd").talk(game,"farmer_son")
 	check(game.ui.modal_box.get_child(2).text.contains("other side of the sea") and not game.ui.modal_box.get_child(2).text.contains("Have you seen Nessa"),"Pip's off-duty conversation matches the travel reply")

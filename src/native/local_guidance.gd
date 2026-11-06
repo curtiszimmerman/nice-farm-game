@@ -71,7 +71,7 @@ static func bram(game: Node2D) -> void:
 		return
 	var choices=[]
 	if not game.state.requests.bram_traded:
-		choices.append(["You mentioned a sword I could take into the mines?",func(): sword_terms(game)])
+		choices.append(["You wanted three moon turnips for supper?" if game.state.has_sword() else "You mentioned a sword I could take into the mines?",func(): sword_terms(game)])
 	choices.append(["What should we know about Veyr?",func(): game.dialog("Bram","RETIRED ARMY","Don't let a uniform do your thinking for you. I learned that rather late. A family in Veyr hid me in their cellar for three nights. No reason to help an Aldermere soldier, and they did it anyway. I still think about them.")])
 	choices.append(["Take care, Bram.",func(): pass])
 	game.dialog("Bram","A CABIN IN THE SOUTH WOODS","Come in. Mind the boots by the door. Aldermere's army had me for a good many years; these days a quiet fire and something decent for dinner suit me fine.",choices)
@@ -79,10 +79,13 @@ static func bram(game: Node2D) -> void:
 static func sword_terms(game: Node2D) -> void:
 	game.state.requests.bram_requested=true
 	game.save_visit()
-	game.dialog("Bram","SOMETHING TO KEEP THE RATS BACK","Bram raises his eyebrows and gives a low whistle. 'The copper caverns can get hairy. Rats down there, and things I'd rather not meet in the dark. That's why I say mostly peaceful. I've an old sword. Bit rusty, but sound. Bring me three moon turnips for dinner and it's yours.'"+(" You seem to have a blade already; keep it handy down there." if game.state.has_sword() else ""),[
-		["Trade three moon turnips for the sword",func():
-			if game.state.accept_sword(): game.save_visit(); game.dialog("Bram","A FAIR TRADE","Lovely. That'll make a proper supper. Here's the sword. Keep it between you and anything with too many teeth.")
-			else: game.dialog("Bram","WHEN THEY'RE READY","Three moon turnips, and a little room to carry the sword. I'm in no hurry for dinner."),game.state.turnips>=3 and not game.state.has_sword()],
+	var owns_sword=game.state.has_sword()
+	var offer="I see you've already got a sword. I'd have offered you my old one otherwise. Keep yours handy down there. I'd still be grateful for three moon turnips for supper, if you can spare them." if owns_sword else "I've an old sword. Bit rusty, but sound. Bring me three moon turnips for dinner and it's yours."
+	game.dialog("Bram","SOMETHING TO KEEP THE RATS BACK","Bram raises his eyebrows and gives a low whistle. 'The copper caverns can get hairy. Rats down there, and things I'd rather not meet in the dark. That's why I say mostly peaceful. "+offer+"'",[
+		["Bring three moon turnips for supper" if owns_sword else "Trade three moon turnips for the sword",func():
+			var already_armed=game.state.has_sword()
+			if game.state.accept_sword(): game.save_visit(); game.dialog("Bram","A PROPER SUPPER","Lovely. That'll make a proper supper. Kind of you to think of an old soldier." if already_armed else "Lovely. That'll make a proper supper. Here's the sword. Keep it between you and anything with too many teeth.")
+			else: game.dialog("Bram","WHEN THEY'RE READY","Three moon turnips, and a little room if you need the sword. I'm in no hurry for dinner."),game.state.turnips>=3],
 		["I've some turnips in the ground. I'm waiting for them to grow.",func(): game.dialog("Bram","A TRICK OR TWO","Go see Iona. She might teach you a useful trick or two to hurry them along. She's a night owl, so don't try her too early. Tower north of town, a little east of Saeren the astronomer's place. You'll know it when you see it.")],
 		["I'll come back with dinner.",func(): pass]])
 

@@ -575,7 +575,7 @@ func grow(index: int) -> bool:
 	if mana < 15.0 or p.planted < 0.0 or p.growth<0 or not p.watered or ripe(index):
 		return false
 	mana -= 15.0
-	p.growth=crop_minutes(p.crop)
+	p.growth=minf(crop_minutes(p.crop),p.growth+crop_minutes(p.crop)*magic_strength("nature"))
 	return true
 
 func sell() -> bool:
@@ -625,10 +625,13 @@ func consume(id: String) -> bool:
 	return true
 
 func accept_sword() -> bool:
-	if has_sword() or turnips<3 or (not can_carry("rusty_sword") and turnips!=3): return false
+	if requests.bram_traded or turnips<3: return false
+	var needs_sword=not has_sword()
+	if needs_sword and not can_carry("rusty_sword") and turnips!=3: return false
 	turnips-=3
 	requests.bram_traded=true
-	rusty_sword=1
+	if needs_sword: rusty_sword=1
+	change_friendship("veteran",5)
 	clear_empty_slots()
 	return true
 
