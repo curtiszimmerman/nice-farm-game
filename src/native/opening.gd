@@ -94,7 +94,7 @@ func _process(dt: float) -> void:
 	animation_time+=dt
 	if caption_step<CAPTION_TIMES.size()-1: elapsed=minf(elapsed+dt,CAPTION_TIMES[caption_step+1]-0.001)
 	else: elapsed+=dt
-	game.sound.set_bridge_ambience(scene_at(elapsed)=="bridge",elapsed>=21 and elapsed<24)
+	game.sound.set_bridge_ambience(scene_at(elapsed)=="bridge",elapsed>=12.5 and elapsed<24)
 	if elapsed>=3 and not reveal_played:
 		reveal_played=true
 		game.sound.play_battle("decloak")

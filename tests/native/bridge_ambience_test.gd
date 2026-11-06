@@ -25,7 +25,7 @@ func run() -> void:
 		check(gentle,"the distant planet moves gently during descent")
 	check(game.sound.has_method("set_bridge_ambience"),"bridge ambience is controlled separately from exterior battle audio")
 	if game.sound.has_method("set_bridge_ambience"):
-		for pair in [[2.0,0,false,false],[5.0,2,true,false],[13.0,4,true,false],[21.5,6,true,true],[24.5,7,false,false]]:
+		for pair in [[2.0,0,false,false],[5.0,2,true,false],[13.0,4,true,true],[18.5,5,false,false],[21.5,6,true,true],[24.5,7,false,false]]:
 			intro.elapsed=pair[0]
 			intro.caption_step=pair[1]
 			intro._process(0)
