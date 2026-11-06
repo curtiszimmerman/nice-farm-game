@@ -89,7 +89,7 @@ func caption_at(time: float) -> String:
 	return "A quiet course through unfamiliar space."
 
 func _process(dt: float) -> void:
-	if finished: return
+	if finished or game.sound.shutting_down: return
 	shake_remaining=maxf(0,shake_remaining-dt)
 	animation_time+=dt
 	if caption_step<CAPTION_TIMES.size()-1: elapsed=minf(elapsed+dt,CAPTION_TIMES[caption_step+1]-0.001)

@@ -15,7 +15,7 @@ static func moss(game: Node2D) -> void:
 static func copper(game: Node2D) -> void:
 	game.state.requests.copper_advice=true
 	game.save_visit()
-	game.dialog("Moss","BEFORE YOU GO UNDERGROUND","There's copper ore in the caves southeast of town. But listen: don't go down there without something to protect yourself. Rats, for a start, and worse things farther in. Go see Bram first. The old army fellow lives south of here, next door to Rowan the woodcutter. He may have something that would help.",[["And the garden?" if game.state.welcome_phase=="moss_lesson" else "Thanks. What else should I know?",func():
+	game.dialog("Moss","BEFORE YOU GO UNDERGROUND","Our blacksmith sells various kinds of metals, if you've got the coin. If not, there's copper ore in the caves southeast of town. But listen: don't go down there without something to protect yourself. There are nasty little things living down there. Go see Bram first. He's an old army veteran. Lives south of here, next door to Rowan the woodcutter. He may have something that would help.",[["And the garden?" if game.state.welcome_phase=="moss_lesson" else "Thanks. What else should I know?",func():
 		if game.state.welcome_phase=="moss_lesson": game.moss_lesson()
 		else: moss(game)]])
 

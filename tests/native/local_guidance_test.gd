@@ -27,6 +27,7 @@ func run() -> void:
 	check(buttons().any(func(button):return button.text=="Thanks, Moss. Have a good day.") and not buttons().any(func(button):return button.text=="Goodbye."),"Moss's existing farewell is the only exit option")
 	choose("copper")
 	check("southeast" in body() and "protect" in body() and "Bram" in body(),"Moss warns about the mines and directs the captain to Bram")
+	check(body().begins_with("Our blacksmith sells various kinds of metals, if you've got the coin.") and "He's an old army veteran." in body(),"Moss explains buying metals before describing the caves and Bram")
 	game.close_window()
 	game.bulletin_board()
 	check("firewood" in buttons()[0].text and buttons().size()==4,"the four-position board puts Oren ahead of the ladder")

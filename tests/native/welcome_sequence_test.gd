@@ -88,6 +88,7 @@ func run() -> void:
 			game.ui.modal_box.get_child(3).pressed.emit()
 			game.ui.modal_box.get_children().filter(func(node):return node is Button and "You mentioned magic" in node.text)[0].pressed.emit()
 			check("Iona" in game.ui.modal_box.get_child(2).text and "deities" in game.ui.modal_box.get_child(2).text,"Moss introduces the tower wizard and regional magic")
+			check("heading back to work in her tower up north. She's a good teacher." in game.ui.modal_box.get_child(2).text,"Moss describes Iona's afternoons and teaching plainly")
 		if game.window_open: game.ui.modal_box.get_child(3).pressed.emit()
 		if game.state.welcome_phase=="complete": break
 		game._process(0.25)

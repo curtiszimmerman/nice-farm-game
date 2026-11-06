@@ -31,6 +31,7 @@ run_native --headless --script "../../tests/native/welcome_polish_test.gd"
 run_native --headless --script "../../tests/native/ship_bridge_test.gd"
 run_native --headless --script "../../tests/native/bridge_ambience_test.gd"
 run_native --headless --script "../../tests/native/attacker_reveal_test.gd"
+run_native --headless --script "../../tests/native/shutdown_playback_test.gd"
 run_native --headless --script "../../tests/native/first_departure_music_test.gd"
 run_native --headless --script "../../tests/native/occlusion_test.gd"
 for test_file in player_status_test status_hud_test bread_shop_test cave_spider_test cave_resources_test crucible_test construction_test interaction_footprint_test shop_continuity_test welcome_queue_test watered_growth_test weather_test inventory_order_test storage_drag_test facing_interaction_test character_screen_test combat_feedback_test cutscene_hud_test battle_audio_test house_circulation_test tool_facing_test pause_sources_test farmhouse_revision_test cave_arrival_test tool_motion_test wall_width_test observatory_test town_lighting_test calendar_test route_stability_test quest_log_test town_paths_test interior_revision_test tool_sources_test npc_priority_test action_controls_test neighbors_test intro_pacing_test active_item_test welcome_walk_test coast_test firewood_test randomization_test npc_transition_test hud_pause_test art_pack_test rustic_art_test crew_flow_test art_test; do

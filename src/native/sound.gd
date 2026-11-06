@@ -41,6 +41,7 @@ var ambience_level = 0.65
 var effects_level = 0.65
 var dirty = false
 var active = false
+var shutting_down=false
 var current_mix = {"birds":0.0,"crickets":0.0,"drips":0.0,"wreck":0.0}
 
 func _ready() -> void:
@@ -139,7 +140,7 @@ func _play_track(id: String,repeat: bool) -> void:
 		stream.loop=repeat
 	music.stream=stream
 	music_track=id
-	if active: music.play()
+	if active and not shutting_down: music.play()
 	_apply_volumes()
 
 func _on_music_finished() -> void:
@@ -188,7 +189,7 @@ func _db(value: float) -> float:
 	return linear_to_db(value) if value>0.0001 else -80.0
 
 func update_weather(mode: String,outdoors: bool,dt: float,allow_lightning: bool=true,snow: bool=false) -> void:
-	var wet=outdoors and mode=="rainy" and not cinematic
+	var wet=outdoors and mode=="rainy" and not cinematic and not shutting_down
 	rain_weight=lerpf(rain_weight,1.0 if wet and not snow else 0.0,1-exp(-dt*1.8))
 	if wet and active and allow_lightning:
 		if thunder_pending>=0:
@@ -223,6 +224,7 @@ func _apply_volumes() -> void:
 	bridge_klaxon.volume_db=_db(effects_level*0.55*1.25)
 
 func set_bridge_ambience(interior: bool,descent: bool) -> void:
+	interior=interior and not shutting_down
 	for pair in [[bridge_electrical,interior],[bridge_klaxon,interior and descent]]:
 		if pair[1] and not pair[0].playing: pair[0].play()
 		elif not pair[1] and pair[0].playing: pair[0].stop()
@@ -236,7 +238,7 @@ func set_cinematic(value: bool) -> void:
 	_apply_volumes()
 
 func start() -> void:
-	if active: return
+	if active or shutting_down: return
 	active=true
 	for player in [music,birds,crickets,drips,wreck,rain]: player.play()
 
@@ -247,6 +249,7 @@ func stop() -> void:
 	set_bridge_ambience(false,false)
 
 func shutdown() -> void:
+	shutting_down=true
 	# Playback can be queued until the next frame, including a just-cast spell.
 	await get_tree().process_frame
 	await get_tree().process_frame
@@ -265,13 +268,13 @@ func set_level(channel: String,value: float) -> void:
 	_apply_volumes()
 
 func play_spell(id: String) -> bool:
-	if id not in ["wildgrowth","hearthmend","emberthread"] or effects_level<=0.0: return false
+	if shutting_down or id not in ["wildgrowth","hearthmend","emberthread"] or effects_level<=0.0: return false
 	spell.pitch_scale={"wildgrowth":1.0,"hearthmend":0.85,"emberthread":1.3}[id]
 	spell.play()
 	return true
 
 func play_battle(id: String,friendly: bool=false) -> void:
-	if not battle.has(id) or effects_level<=0: return
+	if shutting_down or not battle.has(id) or effects_level<=0: return
 	battle[id].pitch_scale=1.0 if id=="decloak" else (1.06 if id=="laser" and friendly else 0.93 if id=="laser" else 1.0)/4.0
 	battle[id].play()
 
