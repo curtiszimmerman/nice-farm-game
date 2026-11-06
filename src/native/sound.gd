@@ -6,7 +6,7 @@ const TRACKS = ["music","birds","crickets","drips","wreck","wildgrowth","crash",
 # The original theme is built by make_audio.py. The other songs come from generate_music.py, which
 # stores them as Ogg Vorbis and lists each one's theme and menu label in this manifest.
 const MUSIC_MANIFEST = "res://audio/music/tracks.json"
-const MUSIC_FADE_SECONDS = 1.5
+const MUSIC_FADE_SECONDS = 0.6
 var mining: AudioStreamPlayer
 var rain: AudioStreamPlayer
 var thunder: AudioStreamPlayer
@@ -220,7 +220,7 @@ func _apply_volumes() -> void:
 	thunder.volume_db=_db(ambience_level*0.65 if not cinematic else 0.0)
 	for player in battle.values(): player.volume_db=_db(effects_level)
 	bridge_electrical.volume_db=_db(effects_level*0.65)
-	bridge_klaxon.volume_db=_db(effects_level*0.55)
+	bridge_klaxon.volume_db=_db(effects_level*0.55*1.25)
 
 func set_bridge_ambience(interior: bool,descent: bool) -> void:
 	for pair in [[bridge_electrical,interior],[bridge_klaxon,interior and descent]]:

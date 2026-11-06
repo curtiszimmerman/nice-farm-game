@@ -311,11 +311,11 @@ def bridge_electrical():
 
 def bridge_klaxon():
     """A low rounded warning tone, breathing in two gentle warbling pulses."""
-    track = buffer(6)
+    track = buffer(4.5)
     for i in range(len(track)):
         t = i / RATE
-        pulse = (.5 - .5 * cos(TAU * t / 3)) ** 2
-        phase = TAU * 150 * t + 6 * (1 - cos(TAU * t / 3))
+        pulse = (.5 - .5 * cos(TAU * t / 2.25)) ** 2
+        phase = TAU * 150 * t + 6 * (1 - cos(TAU * t / 2.25))
         track[i] = pulse * (.21 * sin(phase) + .025 * sin(2 * phase))
     return track
 

@@ -189,7 +189,7 @@ After the crash, the captain wakes on the 12×12 upper bridge. The two-square st
 
 Both staircases are solid objects activated from an adjacent square. Engineering's stairs sit directly left of its first broken console. The upper bridge is prepared during the opaque crash whiteout, so the fade reveals the correct deck immediately.
 
-In the final cinematic bridge cut, the planet moves more slowly and gently than the shaking cabin, while remaining clipped behind its window. All bridge cuts have soft electrical hiss and sputtering; the second and final bridge cuts add a low pulsing, warbling klaxon. These sounds follow the effects volume and stop outside the bridge or when the intro ends. Rebuild only these WAVs with `python3 scripts/make_audio.py --only bridge_electrical` and `--only bridge_klaxon`.
+In the final cinematic bridge cut, the planet moves more slowly and gently than the shaking cabin, while remaining clipped behind its window. All three bridge cuts have soft electrical hiss, sputtering, and a low pulsing, warbling klaxon. The klaxon loops every 4.5 seconds. These sounds follow the effects volume and stop outside the bridge or when the intro ends. Rebuild only these WAVs with `python3 scripts/make_audio.py --only bridge_electrical` and `--only bridge_klaxon`. Area music fades out and in over 0.6 seconds each.
 
 Tavern drinks restore hydration, a small amount of nourishment, and one energy. They cause one game hour of drunkenness, halving movement speed and inflicted combat damage; another drink refreshes the hour. Tavern guests gather around tables in groups that remain stable for the evening and vary between nights. House lanterns stay lit from dusk until dawn even when the occupants sleep.
 
