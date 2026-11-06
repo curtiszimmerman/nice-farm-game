@@ -58,6 +58,7 @@ func run() -> void:
 	check(intro.has_method("whiteout_alpha"),"the crash fade has an explicit acknowledgement gate")
 	if intro.has_method("whiteout_alpha"): check(intro.call("whiteout_alpha")==0,"the brace-for-impact line remains visible until acknowledged")
 	intro.finish()
+	preload("fixture.gd").reach_vale(game)
 	var before=game.ui.modal_box.get_child(2).text
 	key.physical_keycode=KEY_E
 	game._input(key)

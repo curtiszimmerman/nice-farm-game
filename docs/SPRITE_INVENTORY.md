@@ -17,3 +17,5 @@ All 23,403 preexisting option-3 sprites were compared pixel-for-pixel against th
 Beehive construction, honey and beeswax production remain future features. The priest can teach the blueprint for two silver ingots. Future blueprint year gates must be explicit per blueprint.
 
 No further town-life sprites are pending. The older dedicated paving/jetty corner work remains listed in [ART_TODO.md](ART_TODO.md).
+
+Ship decks: `ship_art.gd` supplies cached pixel bitmaps for a padded metal bridge seat (16×24 pixels, drawn 32×48) and a two-tile metal stairwell (32×16 pixels, drawn 64×32). Packs may override them with `furniture_ship_chair_1x1` and `furniture_ship_stairs_2x1`. Existing console, machine, cable and spark sprites are reused unchanged; wiring is grouped at bulkhead attachment plates. No new atlas generation is pending for these objects.

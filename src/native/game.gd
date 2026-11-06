@@ -164,7 +164,7 @@ func begin() -> void:
 		opening=Opening.new()
 		opening.game=self
 		add_child(opening)
-	elif not state.briefing_complete: show_briefing()
+	elif not state.briefing_complete: toast("Find Vale downstairs in engineering for a status report.",7)
 	elif state.welcome_phase=="meeting":
 		place_welcome_party()
 		mayor()
@@ -185,9 +185,10 @@ func begin() -> void:
 func finish_intro() -> void:
 	opening=null
 	state.intro_complete=true
-	state.player_position=Grid.center(Vector2i(7,9))
+	change_ship_deck()
+	state.player_position=Grid.center(Vector2i(6,6))
 	world.refresh()
-	show_briefing()
+	toast("Find Vale downstairs in engineering. The stairwell is on the left.",7)
 
 func show_briefing(step: int=0) -> void:
 	if step>=BRIEFING.size():
@@ -372,7 +373,7 @@ func enter_building(id: String) -> void:
 	var building={}
 	for b in outdoors.buildings:
 		if b.id==id: building=b; break
-	if id=="ship": building={"id":"ship","cell":World.SHIP_CELL+Vector2i(-1,0),"tiles":Vector2i(2,2)}
+	if id in ["ship","ship_bridge"]: building={"id":id,"cell":World.SHIP_CELL+Vector2i(-1,0),"tiles":Vector2i(2,2)}
 	if id=="cave": building={"id":"cave","cell":World.CAVE_MOUTH.position+Vector2i.DOWN,"tiles":Vector2i(2,1)}
 	if id=="home" and not state.invited and state.briefing_complete:
 		if outdoors.villagers.moss.position.distance_to(state.player_position)<75: talk("moss")
@@ -438,11 +439,14 @@ func change_cave_level(direction: int) -> void:
 
 func leave_building() -> void:
 	if world==outdoors: return
+	if current_room=="ship_bridge":
+		change_ship_deck()
+		return
 	if current_room=="home" and (state.welcome_phase=="waiting" or welcome_control_locked()):
 		toast("Wait for Moss and the mayor's party to finish their visit.")
 		return
 	if current_room=="ship" and not state.briefing_complete:
-		show_briefing()
+		toast("Find Vale in engineering before heading outside.")
 		return
 	if current_room=="ship": state.ship_departed=true
 	world.visible=false
@@ -459,6 +463,16 @@ func leave_building() -> void:
 	camera.limit_bottom=int(Grid.WORLD_SIZE.y)
 	camera.position=state.player_position
 	activity=""
+
+func change_ship_deck() -> void:
+	if current_room not in ["ship","ship_bridge"]: return
+	var destination="ship_bridge" if current_room=="ship" else "ship"
+	world.visible=false
+	world=outdoors
+	enter_building(destination)
+	state.player_position=Grid.center(Vector2i(2,9))
+	world.refresh()
+	camera.position=state.player_position
 
 func _input(event: InputEvent) -> void:
 	if remapping!="" and event is InputEventKey and event.pressed and not event.echo:
@@ -794,6 +808,7 @@ func interact() -> void:
 			enter_building(nearest.door)
 			return
 		match nearest.id:
+			"ship_stairs": change_ship_deck()
 			"ladder":
 				if state.ladder_taken: return
 				if not state.can_carry("ladder"): toast("Make room in your satchel for the ladder."); return

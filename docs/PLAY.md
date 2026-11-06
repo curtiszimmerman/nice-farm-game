@@ -185,4 +185,6 @@ Wildgrowth adds a full crop's growth duration multiplied by the day's growth-mag
 
 Moss leads the first arrivals down the mountain path, pauses at the farmhouse road to explain the cleanup, then heads east as the captain continues inside. The mayor's visitors follow fixed, separated arrival paths around the captain. The crew log reveals crucible construction after asking Dain about refining copper. The debug header displays the current music track after `NP:`.
 
+After the crash, the captain wakes on the 12×12 upper bridge. The two-square staircase on the left descends to engineering, where speaking to Vale begins the status report. The stairs return to the bridge; the exterior hatch remains on the lower deck. Both decks have damaged displays and wall-mounted clusters of exposed cables. Ship time stays halted until the captain leaves the exterior hatch.
+
 Tavern drinks restore hydration, a small amount of nourishment, and one energy. They cause one game hour of drunkenness, halving movement speed and inflicted combat damage; another drink refreshes the hour. Tavern guests gather around tables in groups that remain stable for the evening and vary between nights. House lanterns stay lit from dusk until dawn even when the occupants sleep.

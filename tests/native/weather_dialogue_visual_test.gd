@@ -23,6 +23,7 @@ func run() -> void:
 	root.add_child(game)
 	game.set_process(false)
 	game.opening.finish()
+	preload("fixture.gd").reach_vale(game)
 	await process_frame
 	var before=game.ui.modal_box.get_child(2).text
 	await press_key(KEY_SPACE)

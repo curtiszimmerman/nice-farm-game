@@ -11,6 +11,7 @@ func run() -> void:
 	root.add_child(game)
 	game.set_process(false)
 	game.opening.finish()
+	preload("fixture.gd").reach_vale(game)
 	var now=game.state.total()
 	game._process(20)
 	check(game.state.total()==now,"time stays halted throughout the ship briefing")

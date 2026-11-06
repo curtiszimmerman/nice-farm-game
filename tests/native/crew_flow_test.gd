@@ -11,6 +11,7 @@ func run() -> void:
 	root.add_child(game)
 	game.set_process(false)
 	game.opening.finish()
+	preload("fixture.gd").reach_vale(game)
 	var lines=[]
 	while game.window_open:
 		lines.append(game.ui.modal_box.get_child(2).text)

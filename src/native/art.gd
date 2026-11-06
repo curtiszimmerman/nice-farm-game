@@ -317,12 +317,12 @@ static func outdoors(w: Node2D) -> void:
 	sprite(w,"crossroads_sign",w.site_position("sign")-Vector2(16,40),Vector2(32,48))
 
 static func interior_wall(room: Node2D) -> String:
-	return "metal_wall" if room.building.id=="ship" else "wall"
+	return "metal_wall" if room.is_starship() else "wall"
 
 static func interior(room: Node2D) -> void:
 	room.draw_rect(Rect2(-400,-250,room.ROOM_SIZE.x+800,room.ROOM_SIZE.y+500),Color("263732"))
 	for cell in room.floor_cells:
-		var id="metal" if room.building.id=="ship" else "bath" if room.floor_cells[cell] in ["bathroom","kitchen"] else "wood"+str(posmod(hash([room.state.world_seed,room.building.id,cell]),4))
+		var id="metal" if room.is_starship() else "bath" if room.floor_cells[cell] in ["bathroom","kitchen"] else "wood"+str(posmod(hash([room.state.world_seed,room.building.id,cell]),4))
 		var tint=Color.WHITE
 		if room.building.id=="home" and ((room.floor_cells[cell]=="living" and not room.state.house_tasks.living_light) or (room.floor_cells[cell]=="bedroom" and not room.state.house_tasks.bathroom_light)): tint=Color("8b9690")
 		tile(room,id,cell,tint)
@@ -331,7 +331,7 @@ static func interior(room: Node2D) -> void:
 		room.draw_set_transform(Grid.origin(item.bounds.position+Vector2i(0,item.bounds.size.y)))
 		furniture(room,item)
 	room.draw_set_transform(Vector2.ZERO)
-	tile(room,"metal" if room.building.id=="ship" else "jetty",room.layout.exit)
+	tile(room,"metal" if room.is_starship() else "jetty",room.layout.exit)
 	for cell in room.layout.get("private_doors",[]):
 		tile(room,"plaster_door_top",cell+Vector2i.UP)
 		tile(room,"plaster_door_bottom",cell)
@@ -379,8 +379,9 @@ static func indoor_effects(room: Node2D,c: CanvasItem) -> void:
 			if item.kind!="floor_lamp": continue
 			var task="living_light" if room.floor_cells[item.bounds.position]=="living" else "bathroom_light"
 			if room.state.house_tasks[task]: c.draw_circle(Grid.center(item.bounds.position)-Vector2(0,24),19,Color("f7d78c22"))
-	if room.building.id=="ship":
-		for origin in [Vector2(135,282),Vector2(265,337),Vector2(385,402)]:
+	if room.is_starship():
+		for origin in room.wire_ends():
+			c.draw_rect(Rect2(origin-Vector2(18,64),Vector2(18,6)),Color("657d88"))
 			sprite(c,"cable",origin-Vector2(16,60))
 			if fmod(room.elapsed+origin.x*.03,3.7)<.16: sprite(c,"spark"+str(int(room.elapsed*30)%6),origin-Vector2(8,8))
 	for actor in room.villagers.values():

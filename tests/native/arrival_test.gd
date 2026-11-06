@@ -20,8 +20,9 @@ func run() -> void:
 	opening._process(0.2)
 	check(game.sound.crash.playing,"impact triggers the dedicated crash sound")
 	opening.finish()
-	check(game.Grid.world_to_cell(game.state.player_position)==Vector2i(7,9),"the captain wakes in the ship's main aisle away from the exit")
-	check(game.state.intro_complete and game.window_open and game.ui.modal_box.get_child(2).text=="Status report?","the white fade leads to the captain's status-report dialogue")
+	check(game.current_room=="ship_bridge" and game.Grid.world_to_cell(game.state.player_position)==Vector2i(6,6),"the captain wakes on the upper bridge away from its stairwell")
+	preload("fixture.gd").reach_vale(game)
+	check(game.state.intro_complete and game.window_open and game.ui.modal_box.get_child(2).text=="Status report?","descending to Vale starts the status-report dialogue")
 	var lines=[]
 	while game.window_open:
 		lines.append(game.ui.modal_box.get_child(2).text)

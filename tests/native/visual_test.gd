@@ -114,6 +114,8 @@ func run() -> void:
 		game.opening.view.queue_redraw()
 		await capture(shot[1])
 	game.opening.finish()
+	await capture("crashed-upper-bridge")
+	preload("fixture.gd").reach_vale(game)
 	await capture("opening-status-report")
 	while game.window_open: game.ui.modal_box.get_child(3).pressed.emit()
 	game.inventory()

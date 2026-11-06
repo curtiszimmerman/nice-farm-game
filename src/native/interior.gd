@@ -36,7 +36,7 @@ class Wall extends Node2D:
 	var mask=0
 	func _draw() -> void:
 		if Art.option==2:
-			Art.sprite(self,"tile_metal_wall" if room.building.id=="ship" else "wall_house_mask"+str(mask),Vector2(0,-64),Vector2(32,64))
+			Art.sprite(self,"tile_metal_wall" if room.is_starship() else "wall_house_mask"+str(mask),Vector2(0,-64),Vector2(32,64))
 			return
 		room.r(self,0,-40,32,40,"3e554e")
 		if front:
@@ -78,8 +78,12 @@ func _ready() -> void:
 	for item in layout.furniture:
 		if item[0]=="shed_ladder" and state.ladder_taken: continue
 		add_furniture(item[0],item[1],item[0] not in ["rug","art"])
-	add_site("exit",layout.exit,"Leave "+room_name())
+	if is_starship(): add_furniture("ship_stairs",Rect2i(1,8,2,1),false)
+	add_site("exit",layout.exit,"Descend to engineering" if building.id=="ship_bridge" else "Leave "+room_name())
 	for site in layout.sites:
+		if site[0]=="ship_stairs":
+			add_site(site[0],site[1],"Ascend to the bridge")
+			continue
 		if site[0]=="ladder":
 			if not state.ladder_taken: add_site("ladder",site[1],"Collect Mrs. Bell's ladder")
 			continue
@@ -141,6 +145,8 @@ func add_furniture(kind: String,bounds: Rect2i,solid: bool=true) -> void:
 		prop.add_child(display)
 		animated_displays.append(display)
 
+func is_starship() -> bool: return building.id in ["ship","ship_bridge"]
+
 func entry_position() -> Vector2: return Grid.center(layout.entry)
 
 func bed_position(resident: String="") -> Vector2:
@@ -163,6 +169,7 @@ func room_name() -> String:
 	if Neighbors.NAMES.has(building.id): return Neighbors.NAMES[building.id]
 	match building.id:
 		"ship": return "Cloaked ship · engineering & bunks"
+		"ship_bridge": return "Cloaked ship · upper bridge"
 		"home": return "Your farmhouse"
 		"radio": return "Briar Glen Radio Club"
 		"store": return "Tavi's provisions"
@@ -188,7 +195,7 @@ func in_water(_p: Vector2) -> bool: return false
 func audio_context(_p: Vector2) -> Dictionary:
 	# Until the captain first steps outside, the ship still sounds like a fresh wreck.
 	var environment="indoors"
-	if building.id=="ship": environment="ship" if state.ship_departed else "wreck"
+	if is_starship(): environment="ship" if state.ship_departed else "wreck"
 	return {"environment":environment,"season":state.season_name(),"cave_weight":0.0}
 
 func prepare_departures() -> void:
@@ -333,6 +340,7 @@ func find_nearest() -> Dictionary:
 
 func activation_cells(site: Dictionary) -> Array:
 	if site.id=="ladder": return [Vector2i(6,2)]
+	if site.id=="ship_stairs" or (site.id=="exit" and building.id=="ship_bridge"): return [Vector2i(1,8),Vector2i(2,8)]
 	if site.id=="exit": return [layout.exit,layout.exit+Vector2i.DOWN]
 	if site.id=="private_door": return layout.private_doors
 	var kind={"bed":"bed","uncover_guest_bed":"bed","uncover_sofa":"sofa","radio":"radio","stove":"kitchen","cabinet":"cabinet","shop":"counter","ship_storage":"cabinet","diagnostics":"machine","living_light":"floor_lamp","bathroom_light":"floor_lamp"}.get(site.id,"")
@@ -358,7 +366,7 @@ func refresh() -> void:
 	player.data.bed_height=bed_height()
 	player.z_index=2 if player.data.sleeping else 0
 	player.queue_redraw()
-	night_tint.color=Color("b3c9d0") if building.id=="ship" else Color("d5c4ae") if state.minute<360 or state.minute>1200 else Color.WHITE
+	night_tint.color=Color("b3c9d0") if is_starship() else Color("d5c4ae") if state.minute<360 or state.minute>1200 else Color.WHITE
 	for child in moving_layer.get_children():
 		if child is Prop and child.kind=="effects": child.queue_redraw()
 	for child in get_children():
@@ -376,6 +384,9 @@ func refresh() -> void:
 			if child is Wall: covers=covers and wall_can_fade(child) and floor_cells.get(Grid.world_to_cell(state.player_position),"") in ["hall","back_hall","doorway"]
 			child.modulate.a=0.3 if covers and not player.data.sleeping else 1.0
 
+func wire_ends() -> Array:
+	return [Vector2(70,76),Vector2(82,72),Vector2(94,78),Vector2(198,76),Vector2(210,72)] if building.id=="ship_bridge" else [Vector2(88,248),Vector2(100,250),Vector2(112,246),Vector2(184,248),Vector2(196,250)]
+
 func bed_height() -> float:
 	for item in furnishings:
 		if item.kind=="bed": return item.bounds.size.y*32.0
@@ -386,7 +397,7 @@ func _draw() -> void:
 	r(self,-400,-250,ROOM_SIZE.x+800,ROOM_SIZE.y+500,"263732")
 	for cell in floor_cells:
 		var p=Grid.origin(cell)
-		if building.id=="ship":
+		if is_starship():
 			r(self,p.x,p.y,32,32,"35454f")
 			r(self,p.x+2,p.y+2,28,28,"52636b" if (cell.x+cell.y)%3 else "485a63")
 			r(self,p.x+5,p.y+4,2,2,"8ba0a1")
@@ -408,7 +419,7 @@ func _draw() -> void:
 	var door=site_position("exit")
 	r(self,door.x-23,door.y-13,46,25,"586d62")
 	r(self,door.x-20,door.y-10,40,18,"b69a65")
-	if building.id=="ship": return
+	if is_starship(): return
 	for area in layout.areas:
 		if area[0] in ["bathroom","hall"]: continue
 		var bounds: Rect2i=area[1]
@@ -418,10 +429,18 @@ func _draw() -> void:
 		r(self,p.x,p.y+11,28,2,"e3d4ab")
 
 func paint_furniture(c: CanvasItem,item: Dictionary) -> void:
+	if item.kind=="ship_stairs":
+		if Art.catalog.has("furniture_ship_stairs_2x1"): Art.sprite(c,"furniture_ship_stairs_2x1",Vector2(0,-32),Vector2(64,32))
+		else: preload("res://ship_art.gd").stairs(c)
+		return
+	if item.kind=="ship_chair":
+		if Art.catalog.has("furniture_ship_chair_1x1"): Art.sprite(c,"furniture_ship_chair_1x1",Vector2(0,-48),Vector2(32,48))
+		else: preload("res://ship_art.gd").chair(c)
+		return
 	if building.id=="temple" and item.kind=="table" and item.bounds.position==Vector2i(2,1) and Art.catalog.has("temple_altar"):
 		Art.sprite(c,"temple_altar",Vector2(-4,-56))
 		return
-	if building.id=="ship" and Art.option==2:
+	if is_starship() and Art.option==2:
 		var sprite_id={"bed":"ship_bunk_2x3","cabinet":"ship_locker_3x1","table":"ship_table_2x1"}.get(item.kind,"")
 		if sprite_id!="" and Art.catalog.has(sprite_id):
 			Art.sprite(c,sprite_id,Vector2(-4,-item.bounds.size.y*32-24))
@@ -625,8 +644,9 @@ func paint_effects(c: CanvasItem) -> void:
 			if working: oval(c,p.x,p.y+2,18,11,"e7d39833")
 			oval(c,p.x,p.y,4,6,"ead9a2" if working else "737c76")
 			if not working: r(c,p.x-2,p.y-1,5,2,"384b46")
-	if building.id=="ship":
-		for origin in [Vector2(135,282),Vector2(265,337),Vector2(385,402)]:
+	if is_starship():
+		for origin in wire_ends():
+			r(c,origin.x-18,origin.y-64,18,6,"657d88")
 			c.draw_polyline(PackedVector2Array([origin-Vector2(14,60),origin-Vector2(5,35),origin+Vector2(-11,-15),origin]),Color("172a35"),3)
 			c.draw_polyline(PackedVector2Array([origin-Vector2(9,60),origin-Vector2(2,34),origin+Vector2(-6,-13),origin+Vector2(4,1)]),Color("aa7b54"),1)
 			if fmod(elapsed+origin.x*0.03,3.7)<0.16:

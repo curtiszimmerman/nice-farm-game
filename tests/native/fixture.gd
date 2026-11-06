@@ -14,6 +14,7 @@ static func greet(game: Node2D) -> void:
 
 static func explore(game: Node2D,meet_moss: bool=false) -> void:
 	if game.opening!=null: game.opening.finish()
+	if not game.state.briefing_complete: reach_vale(game)
 	while not game.state.briefing_complete:
 		game.ui.modal_box.get_child(3).pressed.emit()
 	game.leave_building()
@@ -22,6 +23,10 @@ static func explore(game: Node2D,meet_moss: bool=false) -> void:
 	if meet_moss:
 		game.state.invite_mayor()
 	game.world.refresh()
+
+static func reach_vale(game: Node2D) -> void:
+	if game.current_room=="ship_bridge": game.leave_building()
+	game.talk("vale")
 
 static func tools(state: RefCounted) -> void:
 	garden(state)

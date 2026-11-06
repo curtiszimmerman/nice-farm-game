@@ -9,6 +9,7 @@ static func for_building(id: String) -> Dictionary:
 		"home":
 			plan=_farmhouse()
 		"ship": plan=_ship()
+		"ship_bridge": plan=_bridge()
 		"finch": plan=_finch()
 		"moss": plan=_moss()
 		"tavi": plan=_tavi()
@@ -143,8 +144,16 @@ static func _ship() -> Dictionary:
 		"furniture":[["reactor",Rect2i(10,8,3,3)],["machine",Rect2i(1,10,3,2)],["machine",Rect2i(5,10,2,2)],
 		["console",Rect2i(2,7,2,1)],["console",Rect2i(5,7,2,1)],["console",Rect2i(8,7,2,1)],
 		["bed",Rect2i(1,1,2,3)],["bed",Rect2i(4,1,2,3)],["cabinet",Rect2i(10,1,3,1)],["table",Rect2i(10,4,2,1)]],
-		"sites":[["bed",Vector2i(3,3)],["ship_storage",Vector2i(11,2)],["diagnostics",Vector2i(8,10)]],
+		"sites":[["bed",Vector2i(3,3)],["ship_storage",Vector2i(11,2)],["diagnostics",Vector2i(8,10)],["ship_stairs",Vector2i(1,8)]],
 		"work":[Vector2i(8,9),Vector2i(9,11),Vector2i(7,10)]}
+
+static func _bridge() -> Dictionary:
+	return {"size":Vector2i(12,12),"areas":[["bridge",Rect2i(1,1,10,10)]],"doors":[],
+		"entry":Vector2i(2,9),"exit":Vector2i(1,8),
+		"furniture":[["console",Rect2i(1,1,2,1)],["console",Rect2i(4,1,2,1)],["console",Rect2i(7,1,2,1)],["console",Rect2i(9,1,2,1)],
+		["machine",Rect2i(9,4,2,2)],["console",Rect2i(5,10,2,1)],["console",Rect2i(8,10,2,1)],
+		["ship_chair",Rect2i(4,4,1,1)],["ship_chair",Rect2i(7,4,1,1)],["ship_chair",Rect2i(4,7,1,1)],["ship_chair",Rect2i(7,7,1,1)]],
+		"sites":[],"work":[Vector2i(6,6)]}
 
 static func _open_house(h: int,guest: bool) -> Dictionary:
 	var furniture=[
