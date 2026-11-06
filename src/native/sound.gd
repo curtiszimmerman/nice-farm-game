@@ -88,7 +88,8 @@ func mix_for(minute: float,environment: String,season: String,cave_weight = 0.0)
 	return {"birds":day*bird_season*(1.0-shelter),"crickets":(1.0-day)*insect_season*(1.0-shelter),"drips":shelter,"wreck":0.0}
 
 func load_music_tracks() -> void:
-	music_tracks={"original":{"label":"Original","theme":"spring","path":"res://audio/music.wav"}}
+	# The original theme has a theme of its own that nothing shuffles, so it only plays when chosen.
+	music_tracks={"original":{"label":"Original","theme":"classic","path":"res://audio/music.wav"}}
 	if not FileAccess.file_exists(MUSIC_MANIFEST): return
 	var manifest=JSON.parse_string(FileAccess.get_file_as_string(MUSIC_MANIFEST))
 	if not manifest is Dictionary: return

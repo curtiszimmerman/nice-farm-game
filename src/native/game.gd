@@ -1763,7 +1763,7 @@ func development_tools() -> void:
 
 func development_music_options() -> Array:
 	var options=[["Automatic · shuffles by season, weather and place","auto"]]
-	for theme in ["spring","summer","autumn","winter","rain","cave","ship"]:
+	for theme in ["spring","summer","autumn","winter","rain","cave","ship","classic"]:
 		for id in sound.tracks_for_theme(theme): options.append([theme.capitalize()+" · "+sound.music_tracks[id].label,id])
 	return options
 

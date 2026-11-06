@@ -61,6 +61,7 @@ func run() -> void:
 	check(sound.mix_for(720.0,"wreck","spring").wreck==1.0 and sound.mix_for(720.0,"ship","spring").wreck==0.0 and sound.mix_for(720.0,"farm","spring").wreck==0.0,"wreck sounds belong to the first visit aboard only")
 	var themes=["spring","summer","autumn","winter","rain","cave","ship"]
 	check(themes.all(func(theme):return not sound.tracks_for_theme(theme).is_empty()),"every theme has songs to play")
+	check(themes.all(func(theme):return "original" not in sound.tracks_for_theme(theme)) and sound.music_tracks.has("original"),"the original theme is out of the shuffle but can still be chosen")
 	var songs=sound.music_tracks.keys().filter(func(id):return id!="original")
 	check(songs.all(func(id):
 		var stream=AudioStreamOggVorbis.load_from_file(sound.music_tracks[id].path)
