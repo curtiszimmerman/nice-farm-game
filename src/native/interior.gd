@@ -78,7 +78,7 @@ func _ready() -> void:
 	for item in layout.furniture:
 		if item[0]=="shed_ladder" and state.ladder_taken: continue
 		add_furniture(item[0],item[1],item[0] not in ["rug","art"])
-	if is_starship(): add_furniture("ship_stairs",Rect2i(1,8,2,1),false)
+	if is_starship(): add_furniture("ship_stairs",stair_bounds())
 	add_site("exit",layout.exit,"Descend to engineering" if building.id=="ship_bridge" else "Leave "+room_name())
 	for site in layout.sites:
 		if site[0]=="ship_stairs":
@@ -146,6 +146,9 @@ func add_furniture(kind: String,bounds: Rect2i,solid: bool=true) -> void:
 		animated_displays.append(display)
 
 func is_starship() -> bool: return building.id in ["ship","ship_bridge"]
+
+func stair_bounds() -> Rect2i:
+	return Rect2i(1,7 if building.id=="ship" else 8,2,1)
 
 func entry_position() -> Vector2: return Grid.center(layout.entry)
 
@@ -340,7 +343,7 @@ func find_nearest() -> Dictionary:
 
 func activation_cells(site: Dictionary) -> Array:
 	if site.id=="ladder": return [Vector2i(6,2)]
-	if site.id=="ship_stairs" or (site.id=="exit" and building.id=="ship_bridge"): return [Vector2i(1,8),Vector2i(2,8)]
+	if site.id=="ship_stairs" or (site.id=="exit" and building.id=="ship_bridge"): return [stair_bounds().position,stair_bounds().position+Vector2i.RIGHT]
 	if site.id=="exit": return [layout.exit,layout.exit+Vector2i.DOWN]
 	if site.id=="private_door": return layout.private_doors
 	var kind={"bed":"bed","uncover_guest_bed":"bed","uncover_sofa":"sofa","radio":"radio","stove":"kitchen","cabinet":"cabinet","shop":"counter","ship_storage":"cabinet","diagnostics":"machine","living_light":"floor_lamp","bathroom_light":"floor_lamp"}.get(site.id,"")
@@ -385,7 +388,7 @@ func refresh() -> void:
 			child.modulate.a=0.3 if covers and not player.data.sleeping else 1.0
 
 func wire_ends() -> Array:
-	return [Vector2(70,76),Vector2(82,72),Vector2(94,78),Vector2(198,76),Vector2(210,72)] if building.id=="ship_bridge" else [Vector2(88,248),Vector2(100,250),Vector2(112,246),Vector2(184,248),Vector2(196,250)]
+	return [Vector2(70,76),Vector2(82,72),Vector2(94,78),Vector2(198,76),Vector2(210,72)] if building.id=="ship_bridge" else [Vector2(120,248),Vector2(132,250),Vector2(144,246),Vector2(184,248),Vector2(196,250)]
 
 func bed_height() -> float:
 	for item in furnishings:

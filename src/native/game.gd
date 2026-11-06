@@ -185,10 +185,15 @@ func begin() -> void:
 func finish_intro() -> void:
 	opening=null
 	state.intro_complete=true
+	prepare_crash_landing()
+	toast("Find Vale downstairs in engineering. The stairwell is on the left.",7)
+
+func prepare_crash_landing() -> void:
+	if current_room=="ship_bridge": return
 	change_ship_deck()
 	state.player_position=Grid.center(Vector2i(6,6))
+	camera.position=state.player_position
 	world.refresh()
-	toast("Find Vale downstairs in engineering. The stairwell is on the left.",7)
 
 func show_briefing(step: int=0) -> void:
 	if step>=BRIEFING.size():
@@ -470,7 +475,7 @@ func change_ship_deck() -> void:
 	world.visible=false
 	world=outdoors
 	enter_building(destination)
-	state.player_position=Grid.center(Vector2i(2,9))
+	state.player_position=Grid.center(Vector2i(2,8) if destination=="ship" else Vector2i(2,9))
 	world.refresh()
 	camera.position=state.player_position
 

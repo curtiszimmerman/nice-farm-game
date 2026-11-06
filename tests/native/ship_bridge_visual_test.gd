@@ -5,6 +5,10 @@ func run() -> void:
 	game.testing=true
 	root.add_child(game)
 	game.set_process(false)
+	game.opening.caption_step=7
+	game.opening.elapsed=26.5
+	game.opening._process(0)
+	await capture("whiteout-reveals-bridge")
 	game.opening.finish()
 	await capture("upper-bridge")
 	game.leave_building()

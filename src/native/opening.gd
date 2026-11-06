@@ -107,6 +107,8 @@ func _process(dt: float) -> void:
 		impact_played=true
 		game.sound.crash.play()
 	view.queue_redraw()
+	# Prepare the room while the whiteout is opaque, before it starts revealing the world.
+	if elapsed>=24.2: game.prepare_crash_landing()
 	if elapsed>=DURATION: finish()
 
 func finish() -> void:
