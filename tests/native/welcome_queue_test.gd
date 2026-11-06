@@ -49,6 +49,8 @@ func run() -> void:
 	check(seen==game.WELCOME_MEMBERS and separated,"visitors enter in order and remain physically separated")
 	check(entry_times.size()==3 and entry_times.moss-entry_times.mayor>=0.5 and entry_times.assistant-entry_times.moss>=0.5,"visitors enter with at least half a second between them")
 	check(overlapping_arrival,"the next visitor enters before the leader reaches his final meeting position")
+	if game.state.welcome_phase!="meeting":
+		for id in game.WELCOME_MEMBERS: print(id," ",game.world.villagers[id].position," path ",game.welcome_paths.get(id,[]))
 	check(game.state.welcome_phase=="meeting","all visitors reach their meeting positions")
 	check(followed_motion,"the guided captain faces the direction he is walking")
 	var facing_player=true

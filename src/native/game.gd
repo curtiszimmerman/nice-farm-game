@@ -63,6 +63,9 @@ const WELCOME_MEMBERS=["mayor","moss","assistant"]
 const WELCOME_POSITIONS=[Vector2i(2,10),Vector2i(3,12),Vector2i(5,12)]
 var departure_paths: Dictionary={}
 var escort_path: Array=[]
+var escort_moss_path: Array=[]
+var escort_briefed=false
+var welcome_paths: Dictionary={}
 var fishing_species="fish"
 var fishing_phase=0.0
 var fishing_rng=RandomNumberGenerator.new()
@@ -256,7 +259,7 @@ func _process(dt: float) -> void:
 		world.moving=false
 		if state.welcome_phase=="escorting":
 			update_escort(dt)
-			outdoors.update_villagers(dt)
+			if escort_briefed: outdoors.update_villagers(dt)
 		elif state.welcome_phase=="arriving": update_welcome_arrival(dt)
 		elif state.welcome_phase=="departing": update_welcome_departure(dt)
 		elif state.welcome_phase=="moss_departing": update_welcome_departure(dt,["moss"])
@@ -296,9 +299,31 @@ func welcome_control_locked() -> bool:
 	return state.welcome_phase in ["escorting","arriving","meeting","departing","moss_lesson","moss_departing"] or ("moss" in conversation_members and not state.invited)
 
 func update_escort(dt: float) -> void:
+	if window_open: return
 	if escort_path.is_empty():
 		escort_path=outdoors.farmhouse_approach(Grid.world_to_cell(state.player_position))
+	if not escort_briefed:
+		var moss=outdoors.villagers.moss
+		if escort_moss_path.is_empty() and moss.position.distance_to(Grid.center(Vector2i(18,52)))>1:
+			escort_moss_path=outdoors.farmhouse_approach(Grid.world_to_cell(moss.position))
+			while not escort_moss_path.is_empty() and escort_moss_path.back()!=Grid.center(Vector2i(18,52)): escort_moss_path.pop_back()
+		if not escort_moss_path.is_empty():
+			var target: Vector2=escort_moss_path[0]
+			moss.data.direction=World.Bodies.facing_for(target-moss.position)
+			moss.position=moss.position.move_toward(target,dt*120)
+			moss.data.walking=true
+			if moss.position.distance_to(target)<0.1: escort_moss_path.pop_front()
+			moss.queue_redraw()
+		if moss.position.distance_to(Grid.center(Vector2i(18,52)))<1 and state.player_position.distance_to(moss.position)<65:
+			moss.data.walking=false
+			begin_conversation(["moss"],true)
+			dialog("Moss","AT THE FARMHOUSE ROAD","I'll fetch the mayor from town. Go on inside and make yourselves comfortable while you wait. There are clean beds under the covers, and spare bulbs in the kitchen cabinet. You could take the covers off and fix the lamps while I'm gone.",[["Thank you. We'll get the house ready.",func():
+				escort_briefed=true
+				outdoors.story_destinations.moss={"cell":Vector2i(48,52),"room":"","sleeping":false}]])
+			return
+		if state.player_position.distance_to(moss.position)<48: return
 	var distance=dt*180
+	if not escort_briefed: distance=minf(distance,maxf(0,state.player_position.distance_to(outdoors.villagers.moss.position)-48))
 	while distance>0 and not escort_path.is_empty():
 		var target: Vector2=escort_path[0]
 		var step=state.player_position.distance_to(target)
@@ -1111,6 +1136,7 @@ func use_crucible(index: int) -> void:
 		else: dialog("Stone crucible","MORE MATERIALS NEEDED","You need two copper ore and one coal in your satchel.")
 
 func learn_crucible() -> void:
+	state.chat_days.smith_refining=state.day
 	if not state.learn_crucible():
 		dialog("Dain Rusk","A FAIR EXCHANGE","Bring me ten star bulbs and I'll show you how to build a stone crucible. I use them to check the temper of a blade; that little glow shows up a crack beautifully.")
 		return
@@ -1155,6 +1181,10 @@ func talk(id: String) -> void:
 		"smith":
 			var at_work=shopkeeper_at_work("smith","smithy")
 			var choices=[
+				["How could I refine copper ore?",func():
+					state.chat_days.smith_refining=state.day
+					save_visit()
+					dialog("Dain Rusk","REFINING COPPER","A stone crucible will do for copper. I can teach you to build one, in exchange for ten star bulbs. Bring them by the forge when you're ready.")],
 				["What should I know about mining copper?",func(): preload("res://local_guidance.gd").smith_copper(self)],
 				["Tell me about your work.",func(): dialog("Dain Rusk","IRON & HONEST WEAR",preload("res://neighbors.gd").STORIES.smith.split("|",true,1)[1]+" A sound handle, a balanced head, an edge that holds. Bring your tools to the forge and we'll talk about what they need.")],
 				["See you around.",func(): pass]]
@@ -1178,13 +1208,14 @@ func talk(id: String) -> void:
 			if not state.invited:
 				dialog("Moss","AT THE FOOT OF THE MOUNTAIN TRAIL","Hold on there! What was that flash and crashing sound up on the mountain? Looked as though someone cast quite a spell. Are you travelers?",[
 					["Answer Moss",func(): dialog("Captain","TRAVELERS","A spell? Oh! Yes, we're travelers. Could you suggest somewhere we might stay for a while?",[
-						["Let Moss answer",func(): dialog("Moss","YOUR NEIGHBOR","There's no hotel here, but this farmhouse is abandoned. It can house you for a bit. I live down the road. Go on in while I fetch the mayor. There are clean beds under the covers, and spare bulbs in the kitchen cabinet.",[
-							["Thank you. We'll wait inside.",func():
+						["Let Moss answer",func(): dialog("Moss","YOUR NEIGHBOR","There's no hotel here, but the farmhouse at the end of this path has been empty for some years. Follow me; I'll show you the way.",[
+							["Lead the way.",func():
 								state.invite_mayor()
 								state.welcome_phase="escorting"
 								escort_path=outdoors.farmhouse_approach(Grid.world_to_cell(state.player_position))
 								save_visit()
-								toast("You follow Moss's directions into the farmhouse.",7)]])]])]])
+								escort_briefed=false
+								escort_moss_path.clear()]])]])]])
 			elif state.mayor_available(): mayor()
 			elif state.met_mayor: preload("res://local_guidance.gd").moss(self)
 			else: dialog("Moss","NEIGHBOR · SOUTH FARM","Go on inside. I'll bring Alder and Neral back shortly. Make yourselves comfortable and see what needs tidying.")
@@ -1450,6 +1481,7 @@ func read_local_request(id: String) -> void:
 
 func prepare_welcome_party() -> void:
 	welcome_entry_times.clear()
+	welcome_paths.clear()
 	for visitor in WELCOME_MEMBERS:
 		outdoors.story_destinations[visitor]={"cell":Grid.world_to_cell(outdoors.site_position("bed")),"room":"","sleeping":false}
 
@@ -1472,7 +1504,7 @@ func mayor() -> void:
 	begin_conversation(["mayor","assistant","moss"],true)
 	dialog("Mayor Alder","BRIAR GLEN · AT YOUR FARM","Well, look at that. The lamps are working again! Moss says you're travelers in need of a roof. It's been a long time since anyone called this place home. You're welcome to stay, so long as you look after it. Keep it clean, and we'll get along nicely.",[
 		["We can promise that.",func(): dialog("Neral","MAYOR'S ASSISTANT · DARK ELF","Alder, a long stay? With matters as they stand along the border with Veyr, oughtn't we find out more before handing over a house? We don't know anything about them. They're strangers! How can we take them at their word? And that flash on the mountain still has no explanation.",[
-			["Thank you, Neral.",func(): dialog("Mayor Alder","BRIAR GLEN","Now, Neral, let our guests catch their breath. There's a garden out there if you'd like to earn your keep. Moss left seeds and tools in the chest, and Tavi buys produce in the square. Good food on your table and a little money in your pocket. Not a bad place to begin.",[
+			["Thank you, Neral.",func(): dialog("Mayor Alder","BRIAR GLEN","Now, Neral, our guests certainly look worse for wear and in need of rest. Let them get cleaned up and catch their breath... There's plenty of space to start a garden out there. Tavi runs the grocery store in town, if you're looking for provisions or to earn a few coin in exchange for goods you've grown or gathered. Good food on your table and a little money in your pocket. Not a bad place to start, if you ask me.",[
 				["We'll keep the house clean and make a start in the garden.",func():
 					state.met_mayor=true
 					end_conversation()
@@ -1532,7 +1564,17 @@ func update_welcome_arrival(dt: float) -> void:
 			actor.position=world.entry_position()
 			actor.visible=true
 			welcome_entry_times[id]=elapsed
-		if not walk_visitor(id,WELCOME_POSITIONS[i],dt): arrived=false
+		if not welcome_paths.has(id): welcome_paths[id]=world._route(Grid.world_to_cell(actor.position),WELCOME_POSITIONS[i],true)
+		var path: Array=welcome_paths[id]
+		if not path.is_empty():
+			var target: Vector2=path[0]
+			var previous=actor.position
+			actor.position=World.Bodies.step(world,actor,target,dt*100)
+			actor.data.walking=actor.position!=previous
+			if actor.data.walking: actor.data.direction=World.Bodies.facing_for(target-previous)
+			if actor.position.distance_to(target)<0.1: path.pop_front()
+			actor.queue_redraw()
+		if actor.position.distance_to(Grid.center(WELCOME_POSITIONS[i]))>1: arrived=false
 		else:
 			actor.data.direction=World.Bodies.facing_for(state.player_position-actor.position)
 			actor.queue_redraw()
@@ -1556,7 +1598,7 @@ func update_welcome_departure(dt: float,members: Array=["mayor","assistant"]) ->
 func moss_lesson() -> void:
 	state.welcome_phase="moss_lesson"
 	begin_conversation(["moss"],true)
-	dialog("Moss","A LITTLE HELP GETTING STARTED","Before I go, those seeds will do you more good in the ground than in a chest. Hoe a little patch and plant them. The can's empty, but there's a pond south of here. Give them water each day; three watered nights and you should have a crop. The soil dries out by sunrise, so don't forget the next morning. Use the sickle when it's ready. Mind your energy, though. A meal and a rest in your own bed will set you right. And listen to the radio regularly; news travels farther than any of us can walk.",[
+	dialog("Moss","A LITTLE HELP GETTING STARTED","Before I go, there are seeds and some tools in the chest outside. Hoe a little patch and plant them. The can's empty, but there's a pond south of here. Give them water each day; three watered nights and you should have a crop. The soil dries out by sunrise, so don't forget the next morning. Use the sickle when it's ready. Mind your energy, though. A meal and a rest in your own bed will set you right. And listen to the radio regularly; news travels farther than any of us can walk.",[
 		["I need some copper. Any idea where I could find some?",func(): preload("res://local_guidance.gd").copper(self)],
 		["Where can I learn more about the town?",func(): dialog("Moss","GETTING YOUR BEARINGS","Start with the bulletin board in town square. Jobs, missing things, news from your neighbors. Then come ask me if anything puzzles you. I've lived here all my life, and I still find something to learn.",[["And about the garden?",moss_lesson]])],
 		["You mentioned magic? Or a spell?",func(): dialog("Moss","THE WIZARD IN THE NORTHERN CLIFFS","Go see Iona. She'll introduce you to this area's deities and magic. Might save you a sore back in the garden. She's a night owl and sleeps till noon, then spends a few hours around the square before working at her northern tower. Ask her whenever she's awake; she's happy to teach.",[

@@ -31,7 +31,14 @@ func run() -> void:
 		lines.append(game.ui.modal_box.get_child(2).text)
 		game.ui.modal_box.get_child(3).pressed.emit()
 	check(lines.any(func(line): return "spell" in line) and lines.any(func(line): return "hotel" in line),"Moss asks about the mountain flash and offers the abandoned house")
-	while game.state.welcome_phase=="escorting": game._process(0.1)
+	for i in range(1000):
+		if game.state.welcome_phase!="escorting": break
+		game._process(0.1)
+		if game.window_open:
+			check(game.outdoors.villagers.moss.position.distance_to(game.Grid.center(Vector2i(18,52)))<1,"Moss stops at the main road for his housekeeping instructions")
+			check("fetch the mayor" in game.ui.modal_box.get_child(2).text,"Moss gives the second half of his welcome at the road")
+			game.ui.modal_box.get_child(3).pressed.emit()
+	check(game.current_room=="home","the guided walk reaches the farmhouse after the roadside conversation")
 	game.enter_building("home")
 	game.leave_building()
 	check(game.current_room=="home","the first farmhouse visit cannot be exited before the welcome")

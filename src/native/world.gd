@@ -900,7 +900,7 @@ func find_nearest() -> Dictionary:
 			distance = d
 	if best.is_empty() and state.active_item()=="build_crucible":
 		best={"type":"build","cell":front_cell(),"label":"Build stone crucible · %d stone" % state.CRUCIBLE_STONE}
-	if best.is_empty() and active=="":
+	if best.is_empty() and (active=="" or solid_cells.get(action_cell,"")=="fountain"):
 		var water_cell=action_cell
 		if solid_cells.get(water_cell,"")=="fountain":
 			best={"id":"drink_fountain","type":"site","cell":water_cell,"label":"Drink from the fountain"}

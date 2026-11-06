@@ -83,8 +83,15 @@ static func advance_dialogue(game: Node2D) -> void:
 	if not farming.is_empty(): farming[0].pressed.emit()
 	else: game.ui.modal_box.get_child(3).pressed.emit()
 
+static func follow_moss(game: Node2D) -> void:
+	for i in range(1200):
+		if game.state.welcome_phase!="escorting": return
+		game._process(0.1)
+		if game.window_open: advance_dialogue(game)
+	assert(false,"Moss's guided walk must reach the farmhouse.")
+
 static func finish_welcome(game: Node2D) -> void:
-	while game.state.welcome_phase=="escorting": game._process(0.1)
+	follow_moss(game)
 	game.state.storage_transfer("cabinet",0)
 	for task in game.state.house_tasks: game.tidy_farmhouse(task)
 	game._process(8)

@@ -24,9 +24,7 @@ func run() -> void:
 	check(game.window_open and moss.position==waiting,"Moss starts at the trail foot and never teleports into the encounter")
 	while game.window_open: game.ui.modal_box.get_child(3).pressed.emit()
 	check(game.state.welcome_phase=="escorting" and game.clock_held(),"Moss's invitation starts a guided walk without releasing the clock")
-	for i in range(1000):
-		game._process(0.05)
-		if game.current_room=="home": break
+	preload("fixture.gd").follow_moss(game)
 	check(game.current_room=="home" and game.state.welcome_phase=="waiting","the guided walk brings the captain inside the farmhouse automatically")
 	var s=game.State.new()
 	preload("fixture.gd").garden(s)

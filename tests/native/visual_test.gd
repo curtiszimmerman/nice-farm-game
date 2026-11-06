@@ -126,7 +126,7 @@ func run() -> void:
 	game._process(0)
 	await capture("moss-first-meeting")
 	while game.window_open: game.ui.modal_box.get_child(3).pressed.emit()
-	while game.state.welcome_phase=="escorting": game._process(0.1)
+	preload("fixture.gd").follow_moss(game)
 	game.enter_building("home")
 	await capture("welcome-waiting")
 	game.state.storage_transfer("cabinet",0)

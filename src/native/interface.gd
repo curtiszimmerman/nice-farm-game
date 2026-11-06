@@ -122,6 +122,8 @@ var needs_panel: Control
 var hydration_bar: ProgressBar
 var nourishment_bar: ProgressBar
 var health_label: Label
+var music_label: Label
+var tray_top: Line2D
 var modal: Control
 var modal_box: VBoxContainer
 var modal_scroll: ScrollContainer
@@ -148,7 +150,8 @@ func _ready() -> void:
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(root)
 	_label("FIRST LANDING / NATIVE PLAYABLE STUDY",Vector2(32,23),11,GOLD)
-	place = _label("Briar Glen",Vector2(30,42),32,CREAM,true)
+	music_label=_label("NP: —",Vector2(32,35),9,MUTED)
+	place = _label("Briar Glen",Vector2(30,49),32,CREAM,true)
 	region = _label("The old south farm",Vector2(33,88),13,MUTED)
 	calendar_ring=preload("res://calendar.gd").new()
 	calendar_ring.state=game.state
@@ -191,6 +194,11 @@ func _ready() -> void:
 	toggle_log()
 	var tray = _panel(Vector2(140,602),Vector2(900,80),Color("172b2bf5"))
 	quick_tray=tray
+	tray.get_theme_stylebox("panel").border_width_top=0
+	tray_top=Line2D.new()
+	tray_top.width=2
+	tray_top.default_color=tray.get_theme_stylebox("panel").border_color
+	tray.add_child(tray_top)
 	tray.scale=Vector2(1.2,1.2)
 	tray.position=Vector2(100,582)
 	health_label = _label("HP  100",Vector2(19,7),10,MUTED,false,tray)
@@ -328,6 +336,8 @@ func _ready() -> void:
 
 func update_hud() -> void:
 	layout_survival_hud()
+	music_label.text="NP: "+str(game.sound.music_tracks.get(game.sound.music_track,{}).get("label","Silence"))
+	tray_top.points=PackedVector2Array([Vector2(160 if game.state.needs.hardcore else 0,1),Vector2(quick_tray.size.x,1)])
 	var hidden=not game.started or game.cutscene_active()
 	if hidden and not hud_hidden:
 		for node in hud_nodes: hud_visibility[node]=node.visible
@@ -1008,7 +1018,7 @@ func fit_quest_log() -> void:
 
 func quest_lines() -> Array:
 	var s=game.state
-	var lines=[{"id":"crew_supplies","title":"A quiet signal home","description":"Vale needs three copper bars for the repeater. Find someone in the settlement who can help refine ore, and keep prepared food in the ship locker.","tasks":[{"text":"Learn Dain's crucible blueprint" if s.crucible_known else "Find a way to refine copper","done":s.crucible_known},{"text":"Build a stone crucible · 10 stone","done":not s.crucibles.is_empty()},{"text":"Bring Vale three copper bars","done":s.delivered},{"text":"Leave food in the ship locker","done":s.crew_food_delivered}]}]
+	var lines=[{"id":"crew_supplies","title":"A quiet signal home","description":"Vale needs three copper bars for the repeater. Find someone in the settlement who can help refine ore, and keep prepared food in the ship locker.","tasks":[{"text":"Build a stone crucible" if s.crucible_known or s.chat_days.has("smith_refining") else "Find a way to refine copper","done":not s.crucibles.is_empty()},{"text":"Bring Vale three copper bars","done":s.delivered},{"text":"Leave food in the ship locker","done":s.crew_food_delivered}]}]
 	if s.ladder_requested: lines.append({"id":"bells_ladder","title":"A ladder with legs","description":"Nessa borrowed the ladder for her aerial. Look in the Bell tool shed, then return it to Mara." if s.ladder_located else "Mrs. Bell's ladder has gone missing. Nessa was asking about radio aerials; ask whether she has seen it.","tasks":[{"text":"Find Mrs. Bell's ladder","done":s.ladder_taken},{"text":"Return the ladder to Mrs. Bell","done":s.ladder_returned}]})
 	if s.invited:
 		lines.append({"id":"restore_farmhouse","title":"A place to begin","description":"Make the abandoned farmhouse welcoming before Moss brings the mayor.","tasks":[{"text":"Remove the covers from the furniture","done":["sofa","bed","guest_bed","radio"].all(func(id):return s.house_tasks[id])},{"text":"Change the lightbulbs around the house","done":s.house_tasks.living_light and s.house_tasks.bathroom_light}]})

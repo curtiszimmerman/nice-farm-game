@@ -183,4 +183,6 @@ Iona names each weekday and explains its magical effects plainly. Gale strengthe
 
 Wildgrowth adds a full crop's growth duration multiplied by the day's growth-magic strength, capped at maturity. Every new journey's first day has neutral magic. Bram accepts three moon turnips once for five friendship points, giving his sword only if the player does not already own one.
 
+Moss leads the first arrivals down the mountain path, pauses at the farmhouse road to explain the cleanup, then heads east as the captain continues inside. The mayor's visitors follow fixed, separated arrival paths around the captain. The crew log reveals crucible construction after asking Dain about refining copper. The debug header displays the current music track after `NP:`.
+
 Tavern drinks restore hydration, a small amount of nourishment, and one energy. They cause one game hour of drunkenness, halving movement speed and inflicted combat damage; another drink refreshes the hour. Tavern guests gather around tables in groups that remain stable for the evening and vary between nights. House lanterns stay lit from dusk until dawn even when the occupants sleep.
