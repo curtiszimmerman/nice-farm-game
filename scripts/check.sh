@@ -56,6 +56,6 @@ for test_file in production_soil_revision_test shop_hold_test rain_beach_test np
     run_native --headless --script "../../tests/native/$test_file.gd"
 done
 run_native --headless -- --smoke-test
-for test_file in supply_dialogue_revision_test hardcore_needs_test journey_mode_test weekday_magic_test social_days_test berry_kitchen_test seasonal_weather_test farm_radius_test farm_radius_world_test temple_service_test temple_complex_test cave_generation_variation_test latest_feedback_test dialogue_flow_polish_test new_crops_test crop_shop_test npc_passing_test square_garden_revision_test shop_performance_revision_test farm_art_test plot_decay_test; do
+for test_file in supply_dialogue_revision_test hardcore_needs_test journey_mode_test weekday_magic_test social_days_test berry_kitchen_test seasonal_weather_test farm_radius_test farm_radius_world_test temple_service_test temple_complex_test cave_generation_variation_test latest_feedback_test dialogue_flow_polish_test new_crops_test crop_shop_test npc_passing_test square_garden_revision_test shop_performance_revision_test farm_art_test plot_decay_test tool_sounds_test; do
     run_native --headless --script "../../tests/native/$test_file.gd"
 done

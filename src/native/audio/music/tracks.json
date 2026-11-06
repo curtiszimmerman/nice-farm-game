@@ -9,6 +9,16 @@
     "theme": "autumn",
     "file": "autumn_2.ogg"
   },
+  "autumn_night_1": {
+    "label": "Harvest Moon",
+    "theme": "autumn_night",
+    "file": "autumn_night_1.ogg"
+  },
+  "autumn_night_2": {
+    "label": "Owl in the Fog",
+    "theme": "autumn_night",
+    "file": "autumn_night_2.ogg"
+  },
   "cave_1": {
     "label": "Dripping Crystals",
     "theme": "cave",
@@ -29,10 +39,25 @@
     "theme": "rain",
     "file": "rain_2.ogg"
   },
+  "rain_night_1": {
+    "label": "Lamplight in the Gutters",
+    "theme": "rain_night",
+    "file": "rain_night_1.ogg"
+  },
+  "rain_night_2": {
+    "label": "Distant Thunder",
+    "theme": "rain_night",
+    "file": "rain_night_2.ogg"
+  },
   "ship_1": {
     "label": "Starship Hum",
     "theme": "ship",
     "file": "ship_1.ogg"
+  },
+  "snow_night_1": {
+    "label": "Footprints Filling In",
+    "theme": "snow_night",
+    "file": "snow_night_1.ogg"
   },
   "spring_1": {
     "label": "Meadow Morning",
@@ -49,6 +74,16 @@
     "theme": "spring",
     "file": "spring_3.ogg"
   },
+  "spring_night_1": {
+    "label": "Frogs by the Pond",
+    "theme": "spring_night",
+    "file": "spring_night_1.ogg"
+  },
+  "spring_night_2": {
+    "label": "Last Lantern",
+    "theme": "spring_night",
+    "file": "spring_night_2.ogg"
+  },
   "summer_1": {
     "label": "Village Square",
     "theme": "summer",
@@ -59,6 +94,16 @@
     "theme": "summer",
     "file": "summer_2.ogg"
   },
+  "summer_night_1": {
+    "label": "Warm Stones",
+    "theme": "summer_night",
+    "file": "summer_night_1.ogg"
+  },
+  "summer_night_2": {
+    "label": "After the Tavern Closes",
+    "theme": "summer_night",
+    "file": "summer_night_2.ogg"
+  },
   "winter_1": {
     "label": "Fresh Snow",
     "theme": "winter",
@@ -68,5 +113,15 @@
     "label": "Starry Village",
     "theme": "winter",
     "file": "winter_2.ogg"
+  },
+  "winter_night_1": {
+    "label": "Holding Its Breath",
+    "theme": "winter_night",
+    "file": "winter_night_1.ogg"
+  },
+  "winter_night_2": {
+    "label": "Banked Hearth",
+    "theme": "winter_night",
+    "file": "winter_night_2.ogg"
   }
 }

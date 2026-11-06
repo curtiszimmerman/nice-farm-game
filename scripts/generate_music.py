@@ -46,6 +46,18 @@ def acoustic(mood, music):
     return "\n\n".join([GAME + " " + mood, ACOUSTIC, music + " " + FORM, AVOID])
 
 
+NIGHT = """The night songs use the same ensemble but feel very different from the daytime music: slow, \
+hushed and introspective, a quiet night-owl mood rather than a bright morning one. The piano and guitar lead; the \
+flute appears rarely, low and breathy, or not at all. Harmony leans on minor chords and moves slowly, lingering on \
+each chord, with long sustained string notes and plenty of space and silence between phrases. There is a gentle, \
+subconscious pull toward going home to bed: a little lonely, a little heavy, never frightening."""
+NIGHT_AVOID = " Also avoid bright, bouncy or plucky playing, cheerful flute melodies, fast tempos and anything energetic."
+
+
+def night(mood, music):
+    return "\n\n".join([GAME + " " + mood, ACOUSTIC, NIGHT, music + " " + FORM, AVOID + NIGHT_AVOID])
+
+
 # Each theme lists one prompt per variant, so two songs of the same theme differ in key, tempo and lead voice.
 THEMES = {
     "spring": [acoustic("Warm, calm, hopeful and unhurried, like a sunny morning walking between the farmhouse fields and a small friendly village.",
@@ -70,6 +82,28 @@ THEMES = {
                       "About 66 BPM, in D Dorian, slow and spacious with long cavernous reverb. Low sustained strings and a bowed upright bass form a deep floor, the piano plays sparse low notes and quiet clusters of high notes like dripping water, and a breathy low flute plays a searching, modal melody. Use the same instruments as a gentle pastoral game soundtrack, but darker and sparser."),
              acoustic("Deep in the old copper mines: lantern light on stone walls, distant echoes, ancient secrets. Brooding and enigmatic, with a sense of slow discovery.",
                       "About 72 BPM, in C minor with Phrygian colour, patient and steady. The guitar picks slow, hollow open-string patterns, the strings swell and recede like breathing, the piano answers with low, resonant chords, and the flute enters only in the second section with a haunting line. Use the same instruments as a gentle pastoral game soundtrack, but darker and sparser.")],
+    "spring_night": [night("A cool spring night after the planting: frogs by the pond, damp earth, the village lights going out one by one.",
+                           "About 62 BPM, in A minor moving through F major and back, a slow 4/4. The felt piano carries a simple, unhurried melody over soft guitar arpeggios; long string chords swell under the second section."),
+                     night("A misty spring midnight on the farm: the fields asleep, a thin moon, the last lantern in the farmhouse window.",
+                           "About 58 BPM, in D minor, a slow, rocking 3/4. The guitar leads with a quiet, searching melody, the piano answers with soft low chords, and a low, breathy flute appears once in the second section.")],
+    "summer_night": [night("A warm, still summer night: crickets, fireflies drifting over the fields, heat slowly leaving the stones of the village square.",
+                           "About 66 BPM, in E minor with turns to C major, slow and swaying. The piano plays a drowsy, lingering melody, the guitar keeps a soft, sparse pulse, and the strings hold long, warm chords."),
+                     night("A late summer night under a sky full of stars: the tavern long closed, a warm breeze through the tall crops, everyone else asleep.",
+                           "About 60 BPM, in B minor moving to G major, a slow 4/4 with lots of space. The guitar leads with a tender, wandering melody, the upright bass plays a few long notes, and the piano adds quiet, high answers.")],
+    "autumn_night": [night("A long autumn night: cold wind, dry leaves skittering across the paths, a harvest moon, smoke from the last warm chimneys.",
+                           "About 60 BPM, in C minor, slow and heavy-hearted. The piano carries a melancholy melody in its middle register, low strings sustain beneath, and the guitar plays sparse, falling arpeggios."),
+                     night("A foggy autumn midnight: the fields stripped after harvest, an owl calling, the farmhouse dark and quiet.",
+                           "About 56 BPM, in F minor with moments in A-flat major, a slow 3/4. The guitar leads with a hushed, searching line, a low, breathy flute answers once in the second section, and the strings breathe slowly underneath.")],
+    "winter_night": [night("A deep, cold winter night: snow falling silently on the rooftops, frozen fields, every window dark, the world holding its breath.",
+                           "About 54 BPM, in E minor, very slow and spacious. The piano plays a sparse, fragile melody with long silences, the strings hold cold, glassy chords, and the guitar adds a few soft harmonics."),
+                     night("A long midwinter night: wind over the frozen pond, a faint glow from a banked hearth, the village asleep under heavy snow.",
+                           "About 58 BPM, in G minor moving to E-flat major, a slow 4/4. The guitar and piano share a quiet, lullaby-like melody, the upright bass and low strings form a deep, steady floor, and nothing hurries.")],
+    "rain_night": [night("A rainy night in the village: steady rain on the roofs, water running in the gutters, warm windows going dark one by one.",
+                         "About 60 BPM, in D minor moving to B-flat major, a slow 4/4. The felt piano plays a soft, rain-like melody of gently falling notes, the guitar adds quiet arpeggios underneath, and low strings hold long chords like the sound of the downpour."),
+                   night("A stormy night on the farm: rain against the farmhouse, a distant rumble over the hills, the fields soaked and dark.",
+                         "About 56 BPM, in G minor, a slow, heavy 3/4. The guitar leads with a low, brooding melody, the upright bass and low strings swell and recede like gusts of wind, and the piano answers with a few quiet, high notes.")],
+    "snow_night": [night("Snow falling at night: big soft flakes drifting past the lanterns, the whole valley muffled and still, footprints filling in behind you.",
+                         "About 54 BPM, in C-sharp minor moving to E major, very slow and weightless. The piano plays delicate, high, chime-like notes like falling snow, the strings hold hushed, airy chords, and the guitar adds a few soft harmonics; the flute appears once, low and breathy.")],
     "ship": ["""Chillout ambient science-fiction background music for the interior of a small crashed starship and its \
 opening cutscene in a cozy pixel-art farming game. Calm, curious and a little lonely: soft console lights, the \
 hum of engines, a planet glowing outside the window.

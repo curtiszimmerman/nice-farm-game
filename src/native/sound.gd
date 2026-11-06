@@ -2,12 +2,15 @@ extends Node
 
 signal lightning
 
-const TRACKS = ["music","birds","crickets","drips","wreck","wildgrowth","crash","laser","laser_hit","explosion","rain","thunder","mining","bridge_electrical","bridge_klaxon","decloak"]
+const TRACKS = ["music","birds","crickets","drips","wreck","wildgrowth","crash","laser","laser_hit","explosion","rain","thunder","bridge_electrical","bridge_klaxon","decloak"]
+# One-shot sounds for tools and weapons, all built by make_audio.py.
+const EFFECTS = ["till","pickaxe_stone","sword_hit","water_fill","water_pour","scythe","cast","chop","whoosh"]
 # The original theme is built by make_audio.py. The other songs come from generate_music.py, which
 # stores them as Ogg Vorbis and lists each one's theme and menu label in this manifest.
 const MUSIC_MANIFEST = "res://audio/music/tracks.json"
 const MUSIC_FADE_SECONDS = 0.6
-var mining: AudioStreamPlayer
+var effects: Dictionary={}
+var effect_rng=RandomNumberGenerator.new()
 var rain: AudioStreamPlayer
 var thunder: AudioStreamPlayer
 var rain_weight=0.0
@@ -35,6 +38,8 @@ var music_track = ""
 var music_theme = ""
 var wanted_theme = "spring"
 var music_fade = 1.0
+# Scales the shuffled music for the sunset and sunrise crossfade; see hour_gain_at.
+var hour_gain = 1.0
 var music_rng = RandomNumberGenerator.new()
 var music_level = 0.35
 var ambience_level = 0.65
@@ -48,9 +53,10 @@ func _ready() -> void:
 	weather_rng.randomize()
 	music_rng.randomize()
 	load_music_tracks()
-	for name in TRACKS:
+	effect_rng.randomize()
+	for name in TRACKS+EFFECTS:
 		var stream=AudioStreamWAV.load_from_file("res://audio/"+name+".wav")
-		if name not in ["wildgrowth","crash","laser","laser_hit","explosion","thunder","mining","decloak"]:
+		if name not in ["wildgrowth","crash","laser","laser_hit","explosion","thunder","decloak"]+EFFECTS:
 			stream.loop_mode=AudioStreamWAV.LOOP_FORWARD
 			stream.loop_end=stream.data.size()/2
 		streams[name]=stream
@@ -64,11 +70,12 @@ func _ready() -> void:
 	spell=_player("wildgrowth")
 	rain=_player("rain")
 	thunder=_player("thunder")
-	mining=_player("mining")
 	bridge_electrical=_player("bridge_electrical")
 	bridge_klaxon=_player("bridge_klaxon")
-	mining.max_polyphony=4
 	spell.max_polyphony=4
+	for name in EFFECTS:
+		effects[name]=_player(name)
+		effects[name].max_polyphony=3
 	for name in ["laser","laser_hit","explosion","decloak"]:
 		battle[name]=_player(name)
 		battle[name].max_polyphony=8
@@ -86,7 +93,7 @@ func mix_for(minute: float,environment: String,season: String,cave_weight = 0.0)
 	if environment=="wreck": return {"birds":0.0,"crickets":0.0,"drips":0.0,"wreck":1.0}
 	if environment in ["ship","indoors"]: return {"birds":0.0,"crickets":0.0,"drips":0.0,"wreck":0.0}
 	if environment in ["cave","mine"]: return {"birds":0.0,"crickets":0.0,"drips":1.0,"wreck":0.0}
-	var day=smoothstep(330.0,420.0,minute)*(1.0-smoothstep(1110.0,1200.0,minute))
+	var day=daylight(minute)
 	var bird_season={"spring":1.0,"summer":0.85,"autumn":0.25,"winter":0.25}.get(season,1.0)
 	var insect_season={"spring":0.55,"summer":1.0,"autumn":0.65,"winter":0.0}.get(season,0.55)
 	var shelter=clampf(cave_weight,0.0,1.0)
@@ -103,11 +110,34 @@ func load_music_tracks() -> void:
 		if entry is Dictionary and entry.get("label") is String and entry.get("theme") is String and entry.get("file") is String:
 			music_tracks[id]={"label":entry.label,"theme":entry.theme,"path":MUSIC_MANIFEST.get_base_dir().path_join(entry.file)}
 
+# 1 in full daylight, 0 at night, easing through dawn (05:30-07:00) and dusk (18:30-20:00).
+static func daylight(minute: float) -> float:
+	return smoothstep(330.0,420.0,minute)*(1.0-smoothstep(1110.0,1200.0,minute))
+
+# Day and night songs hand over at 06:15 and 19:15, the middle of dawn and dusk. For fifteen game
+# minutes either side the music fades by a steady number of decibels per minute, which sounds even
+# to the ear, reaching silence right at the handover. Time here follows the game clock.
+const HOUR_FADE_MINUTES = 15.0
+const HOUR_FADE_DB = -48.0
+static func hour_gain_at(minute: float) -> float:
+	var distance=minf(absf(minute-375.0),absf(minute-1155.0))
+	var progress=clampf(distance/HOUR_FADE_MINUTES,0.0,1.0)
+	return 0.0 if progress==0.0 else db_to_linear(HOUR_FADE_DB*(1.0-progress))
+
+# Places whose music doesn't change with the hour.
+static func timeless(environment: String) -> bool:
+	return environment in ["wreck","ship","cave","mine"]
+
 # An empty theme means no music at all.
-static func music_theme_for(environment: String,season: String,weather: String) -> String:
+static func music_theme_for(environment: String,season: String,weather: String,minute: float=720.0) -> String:
 	if environment=="wreck": return ""
 	if environment=="ship": return "ship"
 	if environment in ["cave","mine"]: return "cave"
+	# Night songs take over halfway through dusk, when the crossfade has the music at its quietest.
+	# Winter rain falls as snow.
+	if daylight(minute)<0.5:
+		if weather=="rainy": return "snow_night" if season=="winter" else "rain_night"
+		return season+"_night"
 	# Winter rain falls as snow, so it keeps the winter songs.
 	if weather=="rainy" and season!="winter": return "rain"
 	return season
@@ -179,7 +209,8 @@ func _play_fitting(theme: String) -> void:
 		_play_track(chosen,true)
 
 func update_context(minute: float,environment: String,season: String,cave_weight: float,dt: float,weather: String="") -> void:
-	update_music(music_theme_for(environment,season,weather),dt)
+	hour_gain=1.0 if timeless(environment) else hour_gain_at(minute)
+	update_music(music_theme_for(environment,season,weather,minute),dt)
 	var target=mix_for(minute,environment,season,cave_weight)
 	var blend=1.0-exp(-dt*1.8)
 	for name in current_mix: current_mix[name]=lerpf(current_mix[name],target[name],blend)
@@ -209,14 +240,16 @@ func update_weather(mode: String,outdoors: bool,dt: float,allow_lightning: bool=
 	_apply_volumes()
 
 func _apply_volumes() -> void:
-	music.volume_db=_db(music_level*music_fade if not cinematic else 0.0)
+	# A chosen song ignores the hour; shuffled songs dip with the sunset and sunrise crossfade.
+	var hour=hour_gain if _chosen_song(wanted_theme)=="" else 1.0
+	music.volume_db=_db(music_level*music_fade*hour if not cinematic else 0.0)
 	crash.volume_db=_db(effects_level)
 	birds.volume_db=_db(ambience_level*current_mix.birds if not cinematic else 0.0)
 	crickets.volume_db=_db(ambience_level*current_mix.crickets if not cinematic else 0.0)
 	drips.volume_db=_db(ambience_level*current_mix.drips if not cinematic else 0.0)
 	wreck.volume_db=_db(ambience_level*current_mix.wreck if not cinematic else 0.0)
 	spell.volume_db=_db(effects_level)
-	mining.volume_db=_db(effects_level if not cinematic else 0.0)
+	for player in effects.values(): player.volume_db=_db(effects_level if not cinematic else 0.0)
 	rain.volume_db=_db(ambience_level*rain_weight if not cinematic else 0.0)
 	thunder.volume_db=_db(ambience_level*0.65 if not cinematic else 0.0)
 	for player in battle.values(): player.volume_db=_db(effects_level)
@@ -244,7 +277,7 @@ func start() -> void:
 
 func stop() -> void:
 	active=false
-	for player in [music,birds,crickets,drips,wreck,spell,crash,rain,thunder,mining]: player.stop()
+	for player in [music,birds,crickets,drips,wreck,spell,crash,rain,thunder]+effects.values(): player.stop()
 	for player in battle.values(): player.stop()
 	set_bridge_ambience(false,false)
 
@@ -271,6 +304,13 @@ func play_spell(id: String) -> bool:
 	if shutting_down or id not in ["wildgrowth","hearthmend","emberthread"] or effects_level<=0.0: return false
 	spell.pitch_scale={"wildgrowth":1.0,"hearthmend":0.85,"emberthread":1.3}[id]
 	spell.play()
+	return true
+
+# Each play is nudged a little in pitch, so a run of swings or chops doesn't sound copy-pasted.
+func play_effect(id: String) -> bool:
+	if shutting_down or not effects.has(id) or effects_level<=0.0: return false
+	effects[id].pitch_scale=effect_rng.randf_range(0.94,1.06)
+	effects[id].play()
 	return true
 
 func play_battle(id: String,friendly: bool=false) -> void:

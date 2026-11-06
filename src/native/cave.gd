@@ -305,6 +305,7 @@ func damage_front_creatures(amount: float) -> void:
 		var cell=Grid.world_to_cell(rat.position)
 		if not rat.visible or not [Grid.world_to_cell(state.player_position),target-lateral,target,target+lateral].has(cell): continue
 		damage_creature(rat,amount)
+		swing_landed=true
 
 func creatures() -> Array: return rats+([spider] if spider!=null else [])
 

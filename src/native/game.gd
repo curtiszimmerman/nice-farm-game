@@ -742,6 +742,7 @@ func interact() -> void:
 	if world==outdoors and state.active_item()=="hoe" and world.target_plot()<0 and nearest.is_empty():
 		var cell=world.front_cell()
 		if world.can_build_crucible(cell) and state.prepare_plot(cell):
+			sound.play_effect("till")
 			world.farm_cells[cell]=true
 			preload("res://tool_motion.gd").start(world,"hoe")
 			save_visit()
@@ -756,11 +757,16 @@ func interact() -> void:
 		return
 	if nearest.get("id")=="stove": cooking(); return
 	if state.active_item()=="rusty_sword" and nearest.get("type") not in ["site","forage"]:
-		if world.attack(): burst(state.player_position+Vector2({"up":Vector2.UP,"down":Vector2.DOWN,"left":Vector2.LEFT,"right":Vector2.RIGHT}[world.facing])*26,"e8d2a0",10); save_visit()
+		if world.attack():
+			sound.play_effect("sword_hit" if world.swing_landed else "whoosh")
+			burst(state.player_position+Vector2({"up":Vector2.UP,"down":Vector2.DOWN,"left":Vector2.LEFT,"right":Vector2.RIGHT}[world.facing])*26,"e8d2a0",10)
+			save_visit()
 		else: toast("Carry and select your sword, and keep enough energy to swing.")
 		return
 	if state.active_item() in ["pickaxe","axe","sickle"] and (nearest.is_empty() or nearest.get("type")=="weapon"):
-		if world.attack_with_tool(state.active_item()): save_visit()
+		if world.attack_with_tool(state.active_item()):
+			sound.play_effect("sword_hit" if world.swing_landed else "whoosh")
+			save_visit()
 		else: toast("You need the tool and enough energy to swing.")
 		return
 	if ui.Items.FOOD.has(state.active_item()) and nearest.is_empty():
@@ -769,7 +775,10 @@ func interact() -> void:
 		save_visit()
 		return
 	if world==outdoors and state.active_item()=="watering_can" and world.in_water(Grid.center(world.front_cell())) and Grid.center(world.front_cell()).distance_to(Grid.center(world.POND_CELL))<190:
-		toast("Watering can filled · 20 / 20" if state.refill_water() else "Take your watering can from storage first.")
+		if state.refill_water():
+			sound.play_effect("water_fill")
+			toast("Watering can filled · 20 / 20")
+		else: toast("Take your watering can from storage first.")
 		save_visit()
 		return
 	if world==outdoors and nearest.get("id") in ["drink_pond","drink_fountain"]:
@@ -778,7 +787,7 @@ func interact() -> void:
 	if nearest.get("type")=="rock":
 		var position=Grid.center(world.rocks[nearest.id].cell)
 		if world.mine_rock(nearest.id):
-			sound.mining.play()
+			sound.play_effect("pickaxe_stone")
 			burst(position,"c6a47b",12)
 			save_visit()
 			toast("A blow lands. %d energy spent." % int(state.energy_cost(4)))
@@ -794,12 +803,17 @@ func interact() -> void:
 		var previous_water=state.water
 		toast(state.farm(nearest.index),2.5)
 		if before!=state.plots[nearest.index] or previous_water!=state.water:
-			preload("res://tool_motion.gd").start(world,state.active_item() if state.active_item()!="" else "sickle" if was_ripe else "hoe")
+			var tool=state.active_item() if state.active_item()!="" else "sickle" if was_ripe else "hoe"
+			preload("res://tool_motion.gd").start(world,tool)
+			# Planting seeds is quiet; the tools each have their own sound.
+			var effect={"hoe":"till","watering_can":"water_pour","sickle":"scythe"}.get(tool,"")
+			if effect!="": sound.play_effect(effect)
 			burst(world.plot_position(nearest.index),"e5d0a4" if was_ripe else "b8bf86",20 if was_ripe else 7)
 			world.crops.queue_redraw()
 			save_visit()
 	elif nearest.type=="tree":
 		if world.chop_tree(nearest.cell):
+			sound.play_effect("chop")
 			burst(Grid.center(nearest.cell),"b89662",12)
 			toast("Timber! Pick up the fallen logs." if not world.solid_cells.has(nearest.cell) else "The axe bites into the trunk.")
 			save_visit()
@@ -981,6 +995,7 @@ func start_fishing(habitat: String) -> void:
 	fishing_species=pool[fishing_rng.randi_range(0,pool.size()-1)]
 	fishing_phase=fishing_rng.randf_range(0,TAU)
 	activity="fishing"
+	sound.play_effect("cast")
 	activity_time=0
 	toast("Line cast. %s pull on the line. Activate in the gold band." % ("Erratic" if ui.Items.FISH[fishing_species].hard else "Gentle"))
 
@@ -1799,7 +1814,7 @@ func development_tools() -> void:
 
 func development_music_options() -> Array:
 	var options=[["Automatic · shuffles by season, weather and place","auto"]]
-	for theme in ["spring","summer","autumn","winter","rain","cave","ship","classic"]:
+	for theme in ["spring","summer","autumn","winter","spring_night","summer_night","autumn_night","winter_night","rain","rain_night","snow_night","cave","ship","classic"]:
 		for id in sound.tracks_for_theme(theme): options.append([theme.capitalize()+" · "+sound.music_tracks[id].label,id])
 	return options
 

@@ -310,13 +310,18 @@ func paint_build_preview(canvas: CanvasItem) -> void:
 	var valid=can_build_crucible(front_cell()) and state.stones>=state.CRUCIBLE_STONE
 	Art.sprite(canvas,"crucible",Grid.origin(front_cell()),Vector2(32,32),Color(0.7,1,0.8,0.65) if valid else Color(1,0.5,0.5,0.55))
 
+# Whether the last swing struck a creature. Nothing out here can be struck, so the cave sets it.
+var swing_landed=false
+
 func attack() -> bool:
 	if state.active_item()!="rusty_sword" or state.rusty_sword<1 or not state.spend_energy(2): return false
+	swing_landed=false
 	preload("res://tool_motion.gd").start(self,"rusty_sword")
 	return true
 
 func attack_with_tool(id: String) -> bool:
 	if id not in ["pickaxe","axe","sickle"] or state.active_item()!=id or int(state.get(id))<1 or not state.spend_energy(2): return false
+	swing_landed=false
 	preload("res://tool_motion.gd").start(self,id,true)
 	return true
 

@@ -59,7 +59,10 @@ func run() -> void:
 	check(sound.music_theme_for("cave","summer","rainy")=="cave" and sound.music_theme_for("ship","spring","sunny")=="ship","caves and the ship interior have their own music")
 	check(sound.music_theme_for("wreck","spring","sunny")=="","the first visit to the wrecked ship has no music")
 	check(sound.mix_for(720.0,"wreck","spring").wreck==1.0 and sound.mix_for(720.0,"ship","spring").wreck==0.0 and sound.mix_for(720.0,"farm","spring").wreck==0.0,"wreck sounds belong to the first visit aboard only")
-	var themes=["spring","summer","autumn","winter","rain","cave","ship"]
+	check(sound.music_theme_for("farm","autumn","sunny",1300.0)=="autumn_night" and sound.music_theme_for("indoors","winter","sunny",1300.0)=="winter_night","clear nights outdoors and indoors play the season's night songs")
+	check(sound.music_theme_for("town","spring","rainy",60.0)=="rain_night" and sound.music_theme_for("farm","winter","rainy",1300.0)=="snow_night" and sound.music_theme_for("farm","winter","rainy",720.0)=="winter","rainy nights and snowy nights have their own songs, while snowy days keep the winter songs")
+	check(sound.music_theme_for("farm","autumn","sunny",720.0)=="autumn" and sound.music_theme_for("cave","autumn","sunny",1300.0)=="cave" and sound.music_theme_for("ship","autumn","sunny",1300.0)=="ship","daytime songs are unchanged, and caves and the ship ignore the hour")
+	var themes=["spring","summer","autumn","winter","rain","cave","ship","spring_night","summer_night","autumn_night","winter_night","rain_night","snow_night"]
 	check(themes.all(func(theme):return not sound.tracks_for_theme(theme).is_empty()),"every theme has songs to play")
 	check(themes.all(func(theme):return "original" not in sound.tracks_for_theme(theme)) and sound.music_tracks.has("original"),"the original theme is out of the shuffle but can still be chosen")
 	var songs=sound.music_tracks.keys().filter(func(id):return id!="original")
@@ -100,6 +103,21 @@ func run() -> void:
 	check(sound.music_tracks[sound.music_track].theme=="ship" and sound.music.volume_db<-30,"after the cutscene the ship music starts quietly inside the ship instead of the song left playing underneath")
 	for i in range(20): sound.update_context(720.0,"ship","spring",0.0,0.1)
 	check(sound.music_tracks[sound.music_track].theme=="ship" and is_equal_approx(sound.music_fade,1.0),"the ship music fades up to full volume")
+	# Walk through a summer sunset one game minute at a time, the way the clock moves in play.
+	var sunset={}
+	for minute in range(1080,1231):
+		sound.update_context(float(minute),"farm","summer",0.0,1.0,"sunny")
+		sunset[minute]={"theme":sound.music_tracks[sound.music_track].theme,"volume":sound.music.volume_db}
+	check(sunset[1100].theme=="summer" and is_equal_approx(sunset[1140].volume,sunset[1100].volume) and sunset[1140].volume>sunset[1146].volume and sunset[1146].volume>sunset[1152].volume,"the day song holds until 19:00, then fades out over fifteen game minutes")
+	check(sunset[1160].theme=="summer_night" and sunset[1158].volume<sunset[1164].volume and sunset[1164].volume<sunset[1170].volume and is_equal_approx(sunset[1170].volume,sunset[1185].volume),"the night song fades in over the next fifteen and is at full volume by 19:30")
+	# The fade is linear in decibels so it sounds even to the ear: equal steps of time, equal steps of loudness.
+	check(is_equal_approx(sunset[1143].volume-sunset[1147].volume,sunset[1147].volume-sunset[1151].volume),"the sunset fade drops by the same number of decibels each minute")
+	check(range(1110,1200).filter(func(m):return sunset[m].theme!=sunset[m+1].theme).all(func(m):return sunset[m].volume<-30),"the songs only swap while the music is nearly silent")
+	var sunrise={}
+	for minute in range(300,451):
+		sound.update_context(float(minute),"farm","summer",0.0,1.0,"sunny")
+		sunrise[minute]={"theme":sound.music_tracks[sound.music_track].theme,"volume":sound.music.volume_db}
+	check(sunrise[320].theme=="summer_night" and sunrise[380].theme=="summer" and sunrise[380].volume<sunrise[386].volume and is_equal_approx(sunrise[390].volume,sunrise[440].volume),"sunrise fades the night song out and the day song back in")
 	await process_frame
 	check(sound.music.playing,"switching songs keeps the music playing")
 	sound.choose_music("winter_2")

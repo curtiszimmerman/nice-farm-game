@@ -187,11 +187,12 @@ def wreck():
     return track
 
 
-def write(name, samples):
-    # Short boundary fades prevent clicks at loop seams without a sustained drone.
+def write(name, samples, impact=False):
+    # Short boundary fades prevent clicks at loop seams without a sustained drone. Impacts keep
+    # their opening instead, since the first few milliseconds are what make a hit sound like one.
     fade = min(round(.02 * RATE), len(samples) // 2)
     for i in range(fade):
-        samples[i] *= i / fade
+        if not impact: samples[i] *= i / fade
         samples[-i - 1] *= i / fade
     peak = max(abs(v) for v in samples)
     if peak > .85:
@@ -279,14 +280,185 @@ def thunder():
     return track
 
 
-def mining():
-    track = buffer(.42)
-    noise = Random(861)
-    for i in range(len(track)):
+# ---------------------------------------------------------------- tool effects
+# These are built from shaped noise and short decaying partials, with lots of small random grains
+# so they sound like material rather than like an oscillator.
+
+class Biquad:
+    """A two-pole filter (the standard audio-cookbook recipe) whose centre can move while it runs."""
+
+    def __init__(self, kind, q):
+        self.kind, self.q = kind, q
+        self.x1 = self.x2 = self.y1 = self.y2 = 0.0
+        self.coefficients = (0.0, 0.0, 0.0, 0.0, 0.0)
+
+    def tune(self, hz):
+        w = TAU * min(hz, RATE * .45) / RATE
+        alpha, c = sin(w) / (2 * self.q), cos(w)
+        if self.kind == "band": b0, b1, b2 = alpha, 0.0, -alpha
+        elif self.kind == "low": b0, b1, b2 = (1 - c) / 2, 1 - c, (1 - c) / 2
+        else: b0, b1, b2 = (1 + c) / 2, -(1 + c), (1 + c) / 2
+        a0 = 1 + alpha
+        self.coefficients = (b0 / a0, b1 / a0, b2 / a0, -2 * c / a0, (1 - alpha) / a0)
+
+    def step(self, x):
+        b0, b1, b2, a1, a2 = self.coefficients
+        y = b0 * x + b1 * self.x1 + b2 * self.x2 - a1 * self.y1 - a2 * self.y2
+        self.x2, self.x1, self.y2, self.y1 = self.x1, x, self.y1, y
+        return y
+
+
+def noise(seconds, kind, q, hz, envelope, random, gain=1.0):
+    """Filtered white noise. hz and envelope are functions of time in seconds, so the colour and
+    loudness can both move; the filter is retuned every 16 samples, which is plenty for sweeps."""
+    result = buffer(seconds)
+    flt = Biquad(kind, q)
+    for i in range(len(result)):
         t = i / RATE
-        attack = min(1, t*1600)
-        ring = sum(sin(TAU*hz*t)*exp(-t*decay)*gain for hz,decay,gain in [(1260,18,.25),(2197,24,.14),(3421,35,.07)])
-        track[i] = attack*(ring+noise.uniform(-1,1)*exp(-t*110)*.22)
+        if i % 16 == 0: flt.tune(hz(t))
+        result[i] = flt.step(random.uniform(-1, 1)) * envelope(t) * gain
+    return result
+
+
+def grains(track, count, start, end, kind, q, hz_range, length_range, gain_range, random, fade=0.0):
+    """Scatters short noise bursts, like dirt crumbling or stalks snapping. Later grains are
+    quieter when fade is set, so the texture dies away naturally."""
+    for _ in range(count):
+        at = random.uniform(start, end)
+        length = random.uniform(*length_range)
+        hz = random.uniform(*hz_range)
+        level = random.uniform(*gain_range) * exp(-(at - start) * fade)
+        add(track, at, noise(length, kind, q, lambda t: hz, lambda t: sin(pi * t / length) ** 2, random, level))
+
+
+def partials(seconds, tones, glide=0.0):
+    """A struck object: (hz, gain, decay) partials, optionally sliding down in pitch by glide."""
+    result = buffer(seconds)
+    for i in range(len(result)):
+        t = i / RATE
+        bend = 1 - glide * (1 - exp(-t * 30))
+        result[i] = sum(sin(TAU * hz * bend * t) * gain * exp(-t * decay) for hz, gain, decay in tones) * min(1, t * 2000)
+    return result
+
+
+def glide_tone(seconds, start_hz, end_hz, gain, decay):
+    """A sine that slides between two pitches, for plops and bubbles."""
+    result = buffer(seconds)
+    phase = 0.0
+    for i in range(len(result)):
+        t = i / RATE
+        hz = end_hz + (start_hz - end_hz) * exp(-t * 60)
+        phase += TAU * hz / RATE
+        result[i] = sin(phase) * gain * exp(-t * decay) * min(1, t * 1500)
+    return result
+
+
+def till():
+    """A hoe or shovel biting into soil: a dull thump, a scrape, then crumbling dirt."""
+    random = Random(311)
+    track = buffer(.5)
+    add(track, 0, partials(.2, [(92, .45, 26), (1350, .05, 70)], glide=.3))
+    add(track, 0, noise(.3, "low", .7, lambda t: 1300, lambda t: min(1, t * 120) * exp(-t * 11), random, .55))
+    grains(track, 45, .02, .34, "band", 1.1, (500, 1700), (.006, .02), (.15, .45), random, fade=5)
+    return track
+
+
+def pickaxe_stone():
+    """Steel on rock: a sharp clank of inharmonic partials, a thud, then grit falling away."""
+    random = Random(523)
+    track = buffer(.6)
+    add(track, 0, partials(.5, [(1730, .26, 30), (2580, .2, 38), (3910, .13, 46), (5270, .07, 58), (140, .25, 40)]))
+    add(track, 0, noise(.02, "high", .8, lambda t: 3000, lambda t: exp(-t * 300), random, .55))
+    grains(track, 28, .03, .38, "high", .9, (2400, 5000), (.003, .009), (.06, .2), random, fade=6)
+    return track
+
+
+def sword_hit():
+    """A blade landing on a creature: a quick slice, a heavy thud and a wet, gushing squelch."""
+    random = Random(907)
+    track = buffer(.5)
+    add(track, 0, noise(.06, "band", 2.0, lambda t: 3200, lambda t: exp(-t * 70), random, .35))
+    add(track, 0, partials(.25, [(140, .4, 16), (210, .15, 22)], glide=.55))
+    wet = noise(.42, "low", .9, lambda t: 650 + 400 * exp(-t * 8), lambda t: min(1, t * 200) * exp(-t * 7.5), random, .9)
+    wobble = noise(.42, "low", .7, lambda t: 28, lambda t: 1.0, Random(908), 1.0)
+    peak = max(abs(v) for v in wobble) or 1
+    for i in range(len(wet)):
+        wet[i] *= .45 + .55 * abs(wobble[i]) / peak
+    add(track, .01, wet)
+    for _ in range(5):
+        add(track, random.uniform(.05, .3), glide_tone(.04, 260, 520, .1, 40))
+    return track
+
+
+def water_fill():
+    """Water running into a jug: a rushing bed, bubbles, and a hollow ring that rises as it fills."""
+    random = Random(144)
+    track = buffer(1.3)
+    shape = lambda t: min(1, t / .06) * min(1, (1.3 - t) / .22)
+    add(track, 0, noise(1.3, "low", .7, lambda t: 2400, shape, random, .32))
+    add(track, 0, noise(1.3, "band", 6.0, lambda t: 420 + 650 * t / 1.3, shape, random, .55))
+    for _ in range(80):
+        at = random.uniform(0, 1.15)
+        base = 340 + 520 * at / 1.15
+        add(track, at, glide_tone(random.uniform(.025, .055), base, base * random.uniform(1.4, 1.9), random.uniform(.06, .13), 45))
+    return track
+
+
+def water_pour():
+    """A watering can over plants: a soft spray, patter on leaves and little splashes in the soil."""
+    random = Random(266)
+    track = buffer(1.1)
+    shape = lambda t: min(1, t / .15) * min(1, (1.1 - t) / .3)
+    add(track, 0, noise(1.1, "band", .8, lambda t: 4300, shape, random, .32))
+    add(track, 0, noise(1.1, "high", .7, lambda t: 2200, shape, random, .12))
+    for _ in range(55):
+        add(track, random.uniform(.06, .95), partials(.02, [(random.uniform(1800, 3200), random.uniform(.05, .11), 140)]))
+    grains(track, 25, .08, .95, "low", .8, (700, 1100), (.012, .03), (.05, .12), random)
+    return track
+
+
+def scythe():
+    """A blade sweeping through grain: a rising swish with a burst of stalks snapping in the middle."""
+    random = Random(388)
+    track = buffer(.5)
+    sweep = lambda t: 1200 + 2600 * min(1, t / .18) - 1800 * max(0, t - .18) / .14
+    add(track, 0, noise(.34, "band", 1.3, sweep, lambda t: sin(pi * min(1, t / .32)) ** 2, random, .5))
+    grains(track, 32, .08, .26, "high", .8, (3200, 6000), (.002, .005), (.2, .45), random)
+    grains(track, 18, .2, .45, "band", .7, (4200, 5800), (.01, .03), (.04, .09), random, fade=6)
+    return track
+
+
+def cast():
+    """Casting a line: the ratchet of the reel, the line whistling out, then a plop and splash."""
+    random = Random(455)
+    track = buffer(1.0)
+    for k in range(6):
+        add(track, k * .022, partials(.012, [(random.uniform(3500, 4200), .12, 260)]))
+    add(track, .1, noise(.48, "band", 8.0, lambda t: 4200 - 2400 * min(1, t / .45), lambda t: sin(pi * min(1, t / .45)) ** 2, random, .55))
+    add(track, .6, glide_tone(.12, 1100, 280, .32, 22))
+    add(track, .6, noise(.32, "low", .8, lambda t: 1800, lambda t: min(1, t * 400) * exp(-t * 13), random, .45))
+    for _ in range(4):
+        add(track, random.uniform(.68, .85), glide_tone(.04, 380, 650, .07, 40))
+    return track
+
+
+def chop():
+    """An axe biting into a trunk: a hard knock with a hollow, woody body and a little splintering."""
+    random = Random(677)
+    track = buffer(.5)
+    add(track, 0, noise(.015, "band", 1.5, lambda t: 2200, lambda t: exp(-t * 200), random, .45))
+    add(track, 0, partials(.4, [(190, .32, 22), (410, .18, 30), (780, .1, 45), (1230, .05, 60), (82, .22, 30)], glide=.08))
+    grains(track, 8, .01, .08, "high", .9, (2500, 4500), (.004, .012), (.08, .18), random)
+    return track
+
+
+def whoosh():
+    """A swing through empty air: a rush of breath that rises and falls with the swing."""
+    random = Random(799)
+    track = buffer(.36)
+    swing = lambda t: sin(pi * min(1, t / .32)) ** 2
+    add(track, 0, noise(.34, "band", 1.4, lambda t: 600 + 1600 * sin(pi * min(1, t / .3)), swing, random, .55))
+    add(track, 0, noise(.34, "low", .7, lambda t: 420, swing, random, .25))
     return track
 
 def bridge_electrical():
@@ -334,14 +506,22 @@ def decloak():
     return track
 
 
+SOUNDS = {"music": music, "birds": birds, "crickets": crickets, "drips": drips, "wildgrowth": wildgrowth, "wreck": wreck,
+          "crash": crash, "laser": laser, "laser_hit": laser_hit, "explosion": explosion, "rain": rain, "thunder": thunder,
+          "bridge_electrical": bridge_electrical, "bridge_klaxon": bridge_klaxon, "decloak": decloak,
+          "till": till, "pickaxe_stone": pickaxe_stone, "sword_hit": sword_hit, "water_fill": water_fill,
+          "water_pour": water_pour, "scythe": scythe, "cast": cast, "chop": chop, "whoosh": whoosh}
+IMPACTS = {"till", "pickaxe_stone", "sword_hit", "chop"}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--only", choices=["music", "birds", "crickets", "drips", "wildgrowth", "wreck", "crash", "laser", "laser_hit", "explosion", "rain", "thunder", "mining", "bridge_electrical", "bridge_klaxon", "decloak"], help="Rebuild one sound instead of all assets.")
+    parser.add_argument("--only", choices=list(SOUNDS), help="Rebuild one sound instead of all assets.")
     args = parser.parse_args()
     OUTPUT.mkdir(parents=True, exist_ok=True)
-    for name, build in {"music": music, "birds": birds, "crickets": crickets, "drips": drips, "wildgrowth": wildgrowth, "wreck": wreck, "crash": crash, "laser": laser, "laser_hit": laser_hit, "explosion": explosion, "rain": rain, "thunder": thunder, "mining": mining, "bridge_electrical": bridge_electrical, "bridge_klaxon": bridge_klaxon, "decloak": decloak}.items():
+    for name, build in SOUNDS.items():
         if args.only is None or args.only == name:
-            write(name, build())
+            write(name, build(), impact=name in IMPACTS)
 
 
 if __name__ == "__main__":
