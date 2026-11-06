@@ -387,6 +387,7 @@ func refresh() -> void:
 			var height=64.0 if child is Wall else child.item.bounds.size.y*32.0+30
 			var bounds=Rect2(child.position-Vector2(0,height),Vector2(width,height))
 			child.z_index=OBJECT_Z-1 if player_beside(bounds,child.position.y) else OBJECT_Z
+			if child is Wall and state.player_position.y>=child.position.y: child.z_index=OBJECT_Z-1
 			var covers=player_behind(bounds,child.position.y)
 			if child is Wall: covers=covers and wall_can_fade(child) and floor_cells.get(Grid.world_to_cell(state.player_position),"") in ["hall","back_hall","doorway"]
 			child.modulate.a=0.3 if covers and not player.data.sleeping else 1.0

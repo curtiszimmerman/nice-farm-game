@@ -198,3 +198,5 @@ The attacking ship reveals itself with a 0.4-second fade and a 0.65-second settl
 Visibility fading requires the player to be behind an object with the avatar's center inside its horizontal extent. Side padding never triggers fading, and stepping clear restores opacity immediately. Tree canopies also test sprite opacity along the avatar, excluding transparent corners. Interior hallway-wall restrictions still apply.
 
 When the avatar overlaps an object's edge from the side, the avatar draws in front of it. Objects otherwise retain their usual depth sorting, including when the player walks behind them. This applies outdoors, to interior furniture and walls, and to cave objects.
+
+Dain stocks two copper bars at 550 crowns each and one silver ingot at 1,800 crowns per seasonal delivery. Existing shops receive these entries immediately when their saved stock lacks them; sold-out entries stay sold out until the seasonal delivery. The crew-link quest is titled “A quiet local signal.” Rear interior walls stay behind furnishings when the player stands in front of those walls, preserving furniture tops during side approaches.

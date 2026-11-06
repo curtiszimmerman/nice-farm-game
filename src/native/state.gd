@@ -732,6 +732,7 @@ func stock(id: String) -> int:
 	if shop_season!=season:
 		shop_season=season
 		shop_remaining=Shop.amounts()
+	if id in ["copper_bars","silver_bars"] and not shop_remaining.has(id): shop_remaining[id]=Shop.CATALOG[id].stock
 	return int(shop_remaining.get(id,0))
 
 func purchase_drink(id: String) -> bool:

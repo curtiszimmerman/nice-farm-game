@@ -1343,7 +1343,12 @@ func shop_quantity(title: String,role: String,text: String,offers: Array,offer: 
 	amount.value_changed.connect(func(value): buy_button.text="Buy %d · %d crowns" % [int(value)*bundle,int(value)*price])
 
 func crowns(amount: int) -> String:
-	return "1,000" if amount==1000 else str(amount)
+	var digits=str(absi(amount))
+	var grouped=""
+	while digits.length()>3:
+		grouped=","+digits.substr(digits.length()-3)+grouped
+		digits=digits.left(digits.length()-3)
+	return ("-" if amount<0 else "")+digits+grouped
 
 func tavi_shop() -> void:
 	var offers=[
@@ -1363,7 +1368,10 @@ func tavi_shop() -> void:
 
 func smith_shop() -> void:
 	var offers=[["rusty_sword","Rusty sword",1000,"rusty_sword",func(): return state.buy_sword()]]
-	shop_menu("Dain's Smithy","FORGED GOODS","A plain blade, kept sharp enough. One thousand crowns. More steelwork is possible once you have the right materials.",offers)
+	for id in ["copper_bars","silver_bars"]:
+		var metal=id
+		offers.append([metal,state.Items.CATALOG[metal].name,state.Shop.CATALOG[metal].price,metal,func(): return state.purchase(metal)])
+	shop_menu("Dain's Smithy","FORGED GOODS","A few refined metals, if you've coin to spare. And a plain blade, kept sharp enough. More steelwork is possible once you have the right materials.",offers)
 
 func vale_checkin_choices() -> Array:
 	return [["What's the status on repairs?",func(): dialog("Chief Vale","REPAIR STATUS","The cloak is steady. Everything else still needs parts and patience. I'm keeping the power sink stable and making a list of what can be repaired first. Ask me again whenever you like; I'll tell you when something changes.")]]
