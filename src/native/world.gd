@@ -537,6 +537,7 @@ func farmhouse_approach(start: Vector2i) -> Array:
 	for cell in FARMHOUSE_APPROACH.slice(1):
 		path.append_array(_route(start,cell))
 		start=cell
+	path.append_array(_route(start,Grid.world_to_cell(site_position("bed"))))
 	return path
 
 func exit_position(building: Dictionary) -> Vector2:

@@ -200,3 +200,5 @@ Visibility fading requires the player to be behind an object with the avatar's c
 When the avatar overlaps an object's edge from the side, the avatar draws in front of it. Objects otherwise retain their usual depth sorting, including when the player walks behind them. This applies outdoors, to interior furniture and walls, and to cave objects.
 
 Dain stocks two copper bars at 550 crowns each and one silver ingot at 1,800 crowns per seasonal delivery. Existing shops receive these entries immediately when their saved stock lacks them; sold-out entries stay sold out until the seasonal delivery. The crew-link quest is titled “A quiet local signal.” Rear interior walls stay behind furnishings when the player stands in front of those walls, preserving furniture tops during side approaches.
+
+During the first guided arrival, the captain walks to the farmhouse door, enters, and continues three squares north along the interior hallway before control returns. Saving during the indoor walk preserves the guided stage and resumes it on load.

@@ -307,8 +307,8 @@ func welcome_control_locked() -> bool:
 func update_escort(dt: float) -> void:
 	if window_open: return
 	if escort_path.is_empty():
-		escort_path=outdoors.farmhouse_approach(Grid.world_to_cell(state.player_position))
-	if not escort_briefed:
+		escort_path=world._route(Grid.world_to_cell(state.player_position),Vector2i(7,9)) if current_room=="home" else outdoors.farmhouse_approach(Grid.world_to_cell(state.player_position))
+	if current_room=="" and not escort_briefed:
 		var moss=outdoors.villagers.moss
 		if escort_moss_path.is_empty() and moss.position.distance_to(Grid.center(Vector2i(18,52)))>1:
 			escort_moss_path=outdoors.farmhouse_approach(Grid.world_to_cell(moss.position))
@@ -329,7 +329,7 @@ func update_escort(dt: float) -> void:
 			return
 		if state.player_position.distance_to(moss.position)<48: return
 	var distance=dt*180
-	if not escort_briefed: distance=minf(distance,maxf(0,state.player_position.distance_to(outdoors.villagers.moss.position)-48))
+	if current_room=="" and not escort_briefed: distance=minf(distance,maxf(0,state.player_position.distance_to(outdoors.villagers.moss.position)-48))
 	while distance>0 and not escort_path.is_empty():
 		var target: Vector2=escort_path[0]
 		var step=state.player_position.distance_to(target)
@@ -339,8 +339,16 @@ func update_escort(dt: float) -> void:
 		if state.player_position.distance_to(target)<0.1: escort_path.pop_front()
 	world.moving=true
 	if escort_path.is_empty():
-		state.welcome_phase="unvisited"
-		enter_building("home")
+		if current_room=="home":
+			state.welcome_phase="waiting"
+			state.welcome_elapsed=0
+			prepare_welcome_party()
+			world.moving=false
+		else:
+			state.welcome_phase="unvisited"
+			enter_building("home")
+			state.welcome_phase="escorting"
+			escort_path=world._route(Grid.world_to_cell(state.player_position),Vector2i(7,9))
 		save_visit()
 
 func _move(dt: float) -> void:
