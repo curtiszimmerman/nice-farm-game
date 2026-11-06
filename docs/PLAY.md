@@ -177,4 +177,8 @@ The development helper `scripts/restart.py` sends the normal close request to ex
 
 The dungeon CPU trace runs with `bash scripts/play.sh --headless --script ../../tests/native/dungeon_performance_trace.gd`. It uses a fresh in-memory visit, follows three cave levels and a return to the farm, then sleeps eight hours. It reports simulation-step timings and the slowest background route search. These timings measure CPU simulation, rather than display refresh or GPU work.
 
+NPC route searches begin in a nine-square-wide corridor between their current tile and destination. If an obstacle requires a detour, the corridor widens to seventeen and then thirty-three squares, with at most 4,096 expanded squares across the attempts. NPC searches never fall back to flooding the whole map. Full-map terrain reachability checks remain available when constructing or validating a world.
+
+Iona names each weekday and explains its magical effects plainly. Gale strengthens wind and weakens growth, leaving water unchanged. Her daily reading distinguishes today's known effects from her uncertain forecast for the next Rift. Spoken spell-effort descriptions use a fraction of a full reserve; exact numerical costs remain in interface descriptions. The prototype currently has a fixed full mana reserve.
+
 Tavern drinks restore hydration, a small amount of nourishment, and one energy. They cause one game hour of drunkenness, halving movement speed and inflicted combat damage; another drink refreshes the hour. Tavern guests gather around tables in groups that remain stable for the evening and vary between nights. House lanterns stay lit from dusk until dawn even when the occupants sleep.

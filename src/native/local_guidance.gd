@@ -64,9 +64,14 @@ static func rowan(game: Node2D) -> void:
 	game.dialog("Rowan","FOREST WOODCUTTER",body,choices)
 
 static func bram(game: Node2D) -> void:
+	var referred=game.state.requests.copper_advice or game.state.chat_days.has("bram_referral_smith")
+	if not game.state.requests.bram_requested and not game.state.requests.bram_traded:
+		if referred: sword_terms(game)
+		else: game.dialog("Bram","A CABIN IN THE SOUTH WOODS","I like it here. A warm fire, room for a little garden. After years in the army, peaceful suits me. And this place is peaceful, mostly.",[["Mostly? Is there danger in these lands I should keep in mind?",func(): sword_terms(game)]],false)
+		return
 	var choices=[]
-	if not game.state.has_sword():
-		choices.append(["I'm going into the mines for copper. Moss thought you might have something to protect me." if game.state.requests.copper_advice else "Have you got a weapon I could take into the mines?",func(): sword_terms(game)])
+	if not game.state.requests.bram_traded:
+		choices.append(["You mentioned a sword I could take into the mines?",func(): sword_terms(game)])
 	choices.append(["What should we know about Veyr?",func(): game.dialog("Bram","RETIRED ARMY","Don't let a uniform do your thinking for you. I learned that rather late. A family in Veyr hid me in their cellar for three nights. No reason to help an Aldermere soldier, and they did it anyway. I still think about them.")])
 	choices.append(["Take care, Bram.",func(): pass])
 	game.dialog("Bram","A CABIN IN THE SOUTH WOODS","Come in. Mind the boots by the door. Aldermere's army had me for a good many years; these days a quiet fire and something decent for dinner suit me fine.",choices)
@@ -74,17 +79,22 @@ static func bram(game: Node2D) -> void:
 static func sword_terms(game: Node2D) -> void:
 	game.state.requests.bram_requested=true
 	game.save_visit()
-	game.dialog("Bram","SOMETHING TO KEEP THE RATS BACK","Bram raises his eyebrows and gives a low whistle. 'The mines? Rats down there, and things I'd rather not meet in the dark. I've an old sword. Bit rusty, but sound. Bring me three moon turnips for dinner and it's yours.'",[
+	game.dialog("Bram","SOMETHING TO KEEP THE RATS BACK","Bram raises his eyebrows and gives a low whistle. 'The copper caverns can get hairy. Rats down there, and things I'd rather not meet in the dark. That's why I say mostly peaceful. I've an old sword. Bit rusty, but sound. Bring me three moon turnips for dinner and it's yours.'"+(" You seem to have a blade already; keep it handy down there." if game.state.has_sword() else ""),[
 		["Trade three moon turnips for the sword",func():
 			if game.state.accept_sword(): game.save_visit(); game.dialog("Bram","A FAIR TRADE","Lovely. That'll make a proper supper. Here's the sword. Keep it between you and anything with too many teeth.")
-			else: game.dialog("Bram","WHEN THEY'RE READY","Three moon turnips, and a little room to carry the sword. I'm in no hurry for dinner."),game.state.turnips>=3],
+			else: game.dialog("Bram","WHEN THEY'RE READY","Three moon turnips, and a little room to carry the sword. I'm in no hurry for dinner."),game.state.turnips>=3 and not game.state.has_sword()],
 		["I've some turnips in the ground. I'm waiting for them to grow.",func(): game.dialog("Bram","A TRICK OR TWO","Go see Iona. She might teach you a useful trick or two to hurry them along. She's a night owl, so don't try her too early. Tower north of town, a little east of Saeren the astronomer's place. You'll know it when you see it.")],
 		["I'll come back with dinner.",func(): pass]])
 
 static func smith_copper(game: Node2D) -> void:
 	var at_work=game.shopkeeper_at_work("smith","smithy")
 	if not at_work:
+		game.state.chat_days["bram_referral_smith"]=game.state.day
+		game.save_visit()
 		game.dialog("Dain Rusk","COPPER AND COMMON SENSE","The southeast caves have copper, but take something to defend yourself. Ask Moss or Bram if you need advice. Come by the forge when I'm working and we can talk equipment.")
 		return
 	game.dialog("Dain Rusk","COPPER AND COMMON SENSE","Southeast caves. Plenty of copper ore if you know what to look for, but don't go in without a way to protect yourself. Even the rats can make a mess of an unprepared traveler. I've a serviceable rusty sword at the forge for one thousand crowns.",[
-		["There's no way I could afford that right now.",func(): game.dialog("Dain Rusk","ASK AROUND","Fair enough. Ask Moss. Or the old veteran, Bram, down in the woods. He's been putting off clearing out his army kit for years. Might be something the two of you could work out.")]])
+		["There's no way I could afford that right now.",func():
+			game.state.chat_days["bram_referral_smith"]=game.state.day
+			game.save_visit()
+			game.dialog("Dain Rusk","ASK AROUND","Fair enough. Ask Moss. Or the old veteran, Bram, down in the woods. He's been putting off clearing out his army kit for years. Might be something the two of you could work out.")]])

@@ -1,6 +1,7 @@
 extends RefCounted
 
 const Grid = preload("res://grid.gd")
+const MAX_MANA=60.0
 const Items = preload("res://items.gd")
 
 # Four weeks in every season.
@@ -150,7 +151,7 @@ var selected_seed = "seeds"
 var location = "ship"
 var outdoor_position = Grid.center(Grid.SPAWN_CELL)
 var harvested = 0
-var mana = 60.0
+var mana = MAX_MANA
 var energy = 100.0
 var experience=0
 var quest_order: Array=[]
@@ -246,7 +247,7 @@ func restore_energy(base: float) -> void:
 	energy=minf(100,energy+energy_recovery(base))
 
 func restore_mana(base: float) -> void:
-	if not needs.deprived(): mana=minf(60,mana+base)
+	if not needs.deprived(): mana=minf(MAX_MANA,mana+base)
 
 func active_statuses() -> Array:
 	return (["tired"] if is_tired() else [])+(["thirsty"] if needs.thirsty() else [])+(["starving"] if needs.starving() else [])+status_effects.keys()
@@ -366,7 +367,7 @@ func advance(minutes: float, window_open = false,sleeping: bool=false) -> void:
 		restore_mana(minutes*0.12)
 		return
 	var recoverable=needs.advance(minutes,self)
-	mana=minf(60,mana+recoverable*0.12)
+	mana=minf(MAX_MANA,mana+recoverable*0.12)
 	advance_statuses(minutes,sleeping)
 	var elapsed = total() + minutes
 	var previous_day=day
@@ -561,7 +562,7 @@ func tend(index: int) -> String:
 		p.crop=crop
 		p.planted = total()
 		p.growth=0.0
-		return "%s planted. A little water next." % Items.CATALOG[p.crop].name
+		return "%s planted." % Items.CATALOG[p.crop].name
 	if not p.watered:
 		return water_plot(index)
 	return "Growing happily."
@@ -613,7 +614,7 @@ func consume(id: String) -> bool:
 	if not Items.FOOD.has(id) or int(get(id))<=0: return false
 	var food=Items.FOOD[id]
 	var restores_need=needs.hardcore and (needs.without_water>0 if id=="health_elixir" else id in Items.PREPARED_FOOD and needs.without_food>0)
-	if not restores_need and (health>=100 or food.health==0) and (energy>=100 or food.energy==0) and (mana>=60 or food.mana==0): return false
+	if not restores_need and (health>=100 or food.health==0) and (energy>=100 or food.energy==0) and (mana>=MAX_MANA or food.mana==0): return false
 	set(id,int(get(id))-1)
 	if id=="health_elixir": needs.drink()
 	elif id in Items.PREPARED_FOOD: needs.eat()
@@ -983,7 +984,7 @@ func restore(data: Variant) -> bool:
 	for field in ["minute", "mana", "energy", "x", "y","health","outdoor_x","outdoor_y"]:
 		if not _number(data.get(field)):
 			return false
-	if data.minute < 0 or data.minute >= 1440 or data.mana < 0 or data.mana > 60 or data.energy < 0 or data.energy > 100:
+	if data.minute < 0 or data.minute >= 1440 or data.mana < 0 or data.mana > MAX_MANA or data.energy < 0 or data.energy > 100:
 		return false
 	if data.health<0 or data.health>100 or data.rusty_sword>1: return false
 	if data.invitation_day>data.day: return false

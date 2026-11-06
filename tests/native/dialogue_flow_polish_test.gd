@@ -48,7 +48,7 @@ func run() -> void:
 	check(button(game,"next Rift")==null,"Iona's forecast is hidden before a weekday lesson")
 	button(game,"Tell me about the seven days").pressed.emit()
 	var days=["RIFT","BOUGH","EMBER","GALE","TIDE","GLEAM","VEIL"]
-	var openings=["A day of chaos","A day of growth","A day of fire","A day of air","A day of water","A day of light","A day of darkness"]
+	var openings=["The first day of the week is Rift","The second day of the week is Bough","The third day of the week is Ember","The fourth day of the week is Gale","The fifth day of the week is Tide","The sixth day of the week is Gleam","The seventh day of the week is Veil"]
 	for i in range(days.size()):
 		check(game.ui.modal_box.get_child(0).text==days[i] or game.ui.modal_box.get_child(0).text=="Iona","the first day lesson follows weekday order")
 		check(game.ui.modal_box.get_child(2).text.begins_with(openings[i]),"each day lesson names its nature first")
@@ -60,7 +60,7 @@ func run() -> void:
 	button(game,"Tell me about the seven days").pressed.emit()
 	check(button(game,"Ember")!=null,"a completed lesson unlocks the individual-day menu")
 	button(game,"Ember").pressed.emit()
-	check(game.ui.modal_box.get_child(2).text.begins_with("A day of fire"),"individual-day lore retains the day introduction")
+	check(game.ui.modal_box.get_child(2).text.begins_with("The third day of the week is Ember"),"individual-day lore retains the day introduction")
 	game.close_window()
 	game.state.meet_person("baker")
 	game.talk("baker")

@@ -23,6 +23,7 @@ func run() -> void:
 		cave.queue_free()
 	check(enough,"sixty cave seeds provide enough ore and stone for the first crucible and three bars")
 	var s=game.State.new()
+	s.cave_seed=12345
 	s.pickaxe=1
 	s.assign_active("primary","pickaxe")
 	s.energy=100
@@ -39,12 +40,14 @@ func run() -> void:
 	check(cave.find_nearest().get("id")==copper.id,"the highlighted action square targets ore from the edge of the player's tile")
 	check(cave.mine_rock(copper.id) and copper.hits==1 and s.energy==energy-4 and s.copper==0,"copper ore takes two four-energy hits before dropping")
 	check(cave.mine_rock(copper.id) and cave.floor_drops.size()==2 and s.copper==0 and s.stones==0,"ore and stone remain as separate floor pickups after mining")
+	s.assign_active("primary","")
 	check(cave.find_nearest().get("id")=="drop_"+copper.id+"_stones","the visible top stone is the first floor pickup")
 	check(cave.collect_drop(cave.find_nearest().id) and cave.find_nearest().get("id")=="drop_"+copper.id,"the copper beneath the stone becomes available next")
 	var drops=cave.floor_drops.duplicate()
 	for drop in drops: check(cave.collect_drop("drop_"+drop.id),"mined "+drop.item+" can be collected from the floor")
 	check(s.copper==1 and s.stones==1 and s.cave_broken.has(copper.id),"collecting both drops adds them to inventory and records the deposit")
 	var stone=cave.rocks.values().filter(func(rock):return rock.resource=="stones")[0]
+	s.assign_active("primary","pickaxe")
 	s.player_position=game.Grid.center(stone.cell+Vector2i.DOWN)
 	cave.facing="up"
 	check(cave.mine_rock(stone.id) and cave.floor_drops.any(func(drop):return drop.item=="stones"),"ordinary stone breaks in one hit and drops stone")

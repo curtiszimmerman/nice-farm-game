@@ -561,16 +561,48 @@ func _route(start: Vector2i,goal: Vector2i,avoid_player: bool=false,avoid_actors
 			for x in range(center.x-1,center.x+2):
 				var candidate=Vector2i(x,y)
 				if Grid.center(candidate).distance_to(state.player_position)<Bodies.RADIUS: player_cells[candidate]=true
+	var bounded=avoid_actors or ignore_actor!=null
+	var expanded=0
+	var radius=-1
+	var path: Array=[]
+	for half_width in [4,8,16] if bounded else [-1]:
+		radius=half_width
+		var result=_search_route(start,goal,actor_cells,player_cells,half_width,4096-expanded if bounded else -1)
+		expanded+=result.expanded
+		if result.found:
+			path=result.path
+			break
+		if bounded and expanded>=4096: break
+	if not route_profile.is_empty():
+		var duration=Time.get_ticks_usec()-began
+		route_profile.calls+=1
+		if duration>route_profile.max_us:
+			route_profile.max_us=duration
+			route_profile.expanded=expanded
+			route_profile.radius=radius
+			route_profile.actor=ignore_actor.data.get("id","") if ignore_actor!=null else "terrain"
+	return path
+
+func _search_route(start: Vector2i,goal: Vector2i,actor_cells: Dictionary,player_cells: Dictionary,radius: int,budget: int) -> Dictionary:
 	var frontier: Array=[goal]
 	var parents={goal:goal}
 	var cursor=0
+	var bounds=Rect2i(start,Vector2i.ONE).merge(Rect2i(goal,Vector2i.ONE)).grow(maxi(radius,0))
+	var span=Vector2(goal-start)
+	var length_squared=span.length_squared()
 	while cursor<frontier.size() and not parents.has(start):
+		if budget>=0 and cursor>=budget: break
 		var cell: Vector2i=frontier[cursor]
 		cursor+=1
 		for offset in [Vector2i.UP,Vector2i.RIGHT,Vector2i.DOWN,Vector2i.LEFT]:
 			var next: Vector2i=cell+offset
-			if parents.has(next) or cell_blocked(next): continue
-			if next!=start and (player_cells.has(next) or (next!=goal and actor_cells.has(next))): continue
+			if parents.has(next): continue
+			if radius>=0:
+				if not bounds.has_point(next): continue
+				var relative=Vector2(next-start)
+				var along=clampf(relative.dot(span)/length_squared,0,1)
+				if (relative-span*along).length_squared()>radius*radius: continue
+			if cell_blocked(next) or (next!=start and (player_cells.has(next) or (next!=goal and actor_cells.has(next)))): continue
 			parents[next]=cell
 			frontier.append(next)
 	var path: Array=[]
@@ -578,14 +610,7 @@ func _route(start: Vector2i,goal: Vector2i,avoid_player: bool=false,avoid_actors
 	while parents.has(current) and current!=goal:
 		current=parents[current]
 		path.append(Grid.center(current))
-	if not route_profile.is_empty():
-		var duration=Time.get_ticks_usec()-began
-		route_profile.calls+=1
-		if duration>route_profile.max_us:
-			route_profile.max_us=duration
-			route_profile.expanded=cursor
-			route_profile.actor=ignore_actor.data.get("id","") if ignore_actor!=null else "terrain"
-	return path
+	return {"path":path,"found":parents.has(start),"expanded":cursor}
 
 func scatter_cells(amount: int,spacing: int,rng: RandomNumberGenerator,require_reachable: bool=false) -> Array:
 	var chosen=[]

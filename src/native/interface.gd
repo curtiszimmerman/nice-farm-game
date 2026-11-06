@@ -827,7 +827,7 @@ func add_character_stats() -> void:
 	stats.add_theme_constant_override("separation",18)
 	row.add_child(stats)
 	var state=game.state
-	for text in ["CAPTAIN'S RECORD","Health: %d / 100" % state.health,"Energy: %d / 100" % state.energy,"Mana: %d / 60" % state.mana,"Experience: %d XP" % state.experience,"Crowns: %d" % state.money]:
+	for text in ["CAPTAIN'S RECORD","Health: %d / 100" % state.health,"Energy: %d / 100" % state.energy,"Mana: %d / %d" % [state.mana,game.State.MAX_MANA],"Experience: %d XP" % state.experience,"Crowns: %d" % state.money]:
 		var label=Label.new()
 		label.text=text
 		if text.begins_with("Experience"): stats_experience=label
@@ -1191,7 +1191,7 @@ func update() -> void:
 	vitality.text = "ENERGY  %d" % ceili(s.energy)
 	attunement.text = "MANA  %d" % int(s.mana)
 	energy_bar.value = s.energy
-	mana_bar.value = s.mana/60.0*100.0
+	mana_bar.value = s.mana/game.State.MAX_MANA*100.0
 	hydration_bar.value=s.needs.hydration()*100
 	nourishment_bar.value=s.needs.nourishment()*100
 	var p = s.player_position

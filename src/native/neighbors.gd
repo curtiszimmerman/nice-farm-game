@@ -62,7 +62,7 @@ const OFF_DUTY={
 	"astronomer":"A little air before the night's work. You see those pale streaks above the ridge? Most people call them clouds. Through the telescope they're quite another thing. Come up to the observatory sometime. There are matters best discussed away from the square.",
 	"farmer_mother":"Lovely to have a moment away from the fields. Pip has been trying to persuade me that three seed jars count as suitable supper-table decoration. You can guess how that's going.",
 	"farmer_father":"Elin's got the orchard in hand, so I can spare a little time for town. Corin's promised to save us a loaf. You'd think after all these years I'd know when to arrive before he sells out.",
-	"farmer_son":"I'm off duty. That's what Dad calls it when he comes into town, so I thought I'd try. Have you seen Nessa? I found a seed that looks just like a tiny radio valve.",
+	"farmer_son":"Nessa lets me listen to faraway stations at the radio club. I keep wondering what grows on the other side of the sea. Imagine coming home with seeds nobody here has ever seen!",
 	"smith":"No hammering for a little while. My shoulders have earned a walk.",
 	"miller":"Rafe still owes me a rematch at draughts. He says the last board was uneven. Funny how it only tilts when he's losing.",
 	"miller_wife":"I used to spend all my spare hours watching the river from the barge. Now a quiet walk and a visit to the bakery suit me nicely. Tomas says I can hear a bad gear from here. He's not entirely wrong.",

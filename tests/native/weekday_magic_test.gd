@@ -7,7 +7,7 @@ func check(ok: bool,label: String) -> void:
 func _initialize() -> void:
 	check(Faith.strength(2,42,"nature")==1.5 and Faith.strength(2,42,"air")==0.5,"Bough favors nature and weakens air")
 	check(Faith.strength(3,42,"fire")==1.5 and Faith.strength(3,42,"water")==0.5,"Ember favors fire and weakens water")
-	check(Faith.strength(4,42,"air")==1.5 and Faith.strength(4,42,"water")==0.5,"Gale favors air and weakens water")
+	check(Faith.strength(4,42,"air")==1.5 and Faith.strength(4,42,"nature")==0.5 and Faith.strength(4,42,"water")==1.0,"Gale favors air and weakens growth, leaving water unchanged")
 	check(Faith.strength(5,42,"water")==1.5 and Faith.strength(5,42,"fire")==0.5,"Tide favors water and weakens fire")
 	check(Faith.strength(6,42,"nature")==1.15 and Faith.strength(7,42,"fire")==0.85,"Light and Darkness affect every school")
 	var collision=false

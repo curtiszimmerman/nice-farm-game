@@ -604,13 +604,13 @@ func is_exit_reply(label: String) -> bool:
 	var reply=label.to_lower()
 	return ["see you","have a nice day","have a good day","take care","i'll leave you","i'll come back","just passing","enjoy your walk","thanks, i'm all set","goodbye","maybe one day you'll venture there"].any(func(ending):return reply.contains(ending))
 
-func dialog(title: String,role: String,text: String,choices: Array = []) -> void:
+func dialog(title: String,role: String,text: String,choices: Array = [],allow_exit: bool=true) -> void:
 	if not conversation_members.is_empty():
 		conversation_steps+=1
 		if conversation_steps>1 and not (conversation_members.size()==1 and conversation_members[0] in ["tavi","baker"]): conversation_sequence=true
 	window_open = true
 	if choices.is_empty(): choices=[[neutral_reply(text),func(): pass]]
-	var ordinary=conversation_members.size()==1 and state.briefing_complete and not welcome_control_locked()
+	var ordinary=allow_exit and conversation_members.size()==1 and state.briefing_complete and not welcome_control_locked()
 	if ordinary and not (conversation_members[0]=="keeper" and state.firewood_requested and not state.firewood_given):
 		var person=conversation_members[0]
 		state.requests.refresh(state)
@@ -1147,7 +1147,7 @@ func talk(id: String) -> void:
 	state.chat_with(id)
 	begin_conversation([id],id in ["veteran","finch","vale"] or (id=="moss" and not state.invited))
 	var greetings=preload("res://npc_greetings.gd").LINES
-	if first_meeting and id not in ["vale","moss","mayor","assistant"] and greetings.has(id):
+	if first_meeting and id not in ["vale","moss","mayor","assistant","veteran"] and greetings.has(id):
 		dialog(person_name(id),"A FIRST HELLO",greetings[id],[[preload("res://npc_greetings.gd").REPLIES[id],func(): talk(id)]])
 		return
 	if id not in ["smith","woodcutter"] and preload("res://neighbors.gd").talk(self,id): return
@@ -1208,12 +1208,12 @@ func talk(id: String) -> void:
 			else:
 				var lessons=[
 					["Tell me about the seven days",weekday_lore]]
-				if state.chat_days.has("weekday_lore"): lessons.append(["Which magic is stronger or weaker today?" if posmod(state.day-1,7)==0 else "Which magic might be stronger or weaker on the next Rift?",next_rift_omen])
+				if state.chat_days.has("weekday_lore"): lessons.append(["Which magic is stronger or weaker today?",next_rift_omen])
 				lessons.append(["Learn the local lore",local_magic_lore])
 				if state.chat_days.has("wildgrowth_lore") and state.chat_days.has("weekday_lore"): lessons.append_array([
 					["Hearthmend · one Golden Sparkfire Bloom",func(): learn_local_spell("hearthmend"),state.golden_sparkfire_bloom>=1],
 					["Emberthread · one Cave Moth Chrysalis + 10 logs",func(): learn_local_spell("emberthread"),state.cave_moth_chrysalis>=1 and state.wood>=10]])
-				dialog("Iona","MAGIC OF BRIAR GLEN","You'll find our deities gentler than the ones near the Veyr border. Mostly they want things to grow. I can show you Wildgrowth, if you like. Water a seed first, then give it a little encouragement. Fifteen mana, and no fee for the lesson. For something more adventurous, bring me a Cave Moth Chrysalis from deep underground, or a Golden Sparkfire Bloom. Mind you, that flower only opens while the sun is rising. Walk past at noon and you'd never give it a second glance.",lessons)
+				dialog("Iona","MAGIC OF BRIAR GLEN","You'll find our deities gentler than the ones near the Veyr border. Mostly they want things to grow. I can show you Wildgrowth, if you like. "+spell_effort_description(15,State.MAX_MANA)+" There's no fee for the lesson. Water a seed first, then give it a little encouragement. Once you're ready for something more adventurous, bring me a Cave Moth Chrysalis from deep underground, or a Golden Sparkfire Bloom. Mind you, that flower only opens while the sun is rising. Walk past at noon and you'd never give it a second glance.",lessons)
 		"finch": dialog("Finch","RADIO CLUB SECRETARY","Come in, come in. Mind that cable. Last week we picked up a dance band from Veyr, clear as anything. Governments can argue all they like; the air doesn't stop at a checkpoint." if current_room=="radio" else "Good to give my eyes a rest from the wiring. Nessa's coming along nicely with that receiver. Her mother will have river weather reports in the kitchen before long.",[["What's on the air today?",radio],["I'll come back sometime.",func(): pass]])
 		"vale":
 			if not state.briefing_complete: show_briefing(); return
@@ -1348,11 +1348,20 @@ func weekday_lore_chain(index: int) -> void:
 			talk("iona")]])
 
 func weekday_lore_text(index: int) -> String:
-	var openings=["A day of chaos.","A day of growth.","A day of fire.","A day of air.","A day of water.","A day of light.","A day of darkness."]
-	return openings[index]+" "+preload("res://weekday_magic.gd").DEITIES[index][1]
+	var faith=preload("res://weekday_magic.gd")
+	var ordinals=["first","second","third","fourth","fifth","sixth","seventh"]
+	var themes=["Chaos","Growth","Fire","Wind","Water","Light","Darkness"]
+	return "The %s day of the week is %s, a day of %s. %s %s" % [ordinals[index],faith.DAYS[index],themes[index],faith.DEITIES[index][1],faith.day_effects(index)]
+
+static func spell_effort_description(cost: float,capacity: float) -> String:
+	var fraction=cost/maxf(capacity,1)
+	if fraction<=0.05: return "Casting Wildgrowth is almost an afterthought for you, with your talent."
+	if fraction<=0.15: return "Wildgrowth should be a gentle effort for someone with your reserves."
+	if fraction<=0.35: return "Wildgrowth will be costly for you to cast, but not overwhelming."
+	return "Wildgrowth will take a great deal out of you. Give yourself time to recover between castings."
 
 func local_magic_lore() -> void:
-	dialog("Iona","MAGIC OF BRIAR GLEN","Here, Thessil's growing things answer more readily than they do near the border. Wildgrowth lends a watered seed a little of that strength. It costs fifteen mana, and I can teach you for free.",[["Teach me Wildgrowth" if not state.magic_learned else "Practice Wildgrowth",func():
+	dialog("Iona","MAGIC OF BRIAR GLEN","Here, Thessil's growing things answer more readily than they do near the border. Wildgrowth lends a watered seed a little of that strength. "+spell_effort_description(15,State.MAX_MANA)+" I can teach you for free.",[["Teach me Wildgrowth" if not state.magic_learned else "Practice Wildgrowth",func():
 		state.magic_learned=true
 		save_visit()
 		dialog("Iona","WILDGROWTH","There you are. Water a seed first, then give it a little encouragement. You can assign Wildgrowth under Actions, in Spells and skills.",[["I've got it.",func():
@@ -1362,18 +1371,16 @@ func local_magic_lore() -> void:
 
 func next_rift_omen() -> void:
 	var faith=preload("res://weekday_magic.gd")
-	var prediction=faith.forecast(state.day,state.world_seed)
+	var prediction=faith.forecast(state.day+1 if posmod(state.day-1,7)==0 else state.day,state.world_seed)
 	var omen=prediction.omen
-	var today=prediction.days_until==0
-	var body="Today is Rift. The signs are clear: " if today else "The next Rift is in %d %s. I think " % [prediction.days_until,"day" if prediction.days_until==1 else "days"]
-	if state.day==1:
-		body+="all forms of magic are equally strong today. A quiet turn of the spiral."
-	elif omen.favored==omen.weakened:
-		body+="%s magic %s %s." % [omen.favored,"will" if today else "may","be twice as strong" if omen.collision>1 else "fail entirely"]
+	var days_until=prediction.target_day-state.day
+	var body=faith.today_reading(state.day,state.world_seed)+"\n\nThe next Rift is in %d %s. I think " % [days_until,"day" if days_until==1 else "days"]
+	if omen.favored==omen.weakened:
+		body+="%s magic may %s." % [faith.school_name(omen.favored),"be twice as strong" if omen.collision>1 else "fail entirely"]
 	else:
-		body+="%s magic %s answer more strongly, while %s magic %s be harder to shape." % [omen.favored,"will" if today else "may",omen.weakened,"will" if today else "may"]
-	if not today: body+=" Ask me again as Rift draws closer; the signs become easier to read."
-	dialog("Iona","TODAY'S RIFT" if today else "THE NEXT RIFT",body)
+		body+="%s magic may answer more strongly, while %s magic may be weaker." % [faith.school_name(omen.favored),faith.school_name(omen.weakened)]
+	body+=" That's an early reading of the coming Rift, not a change to today's magic. Ask me again as it draws closer; the signs become easier to read."
+	dialog("Iona","TODAY'S MAGIC AND THE NEXT RIFT",body)
 
 func buy_cookware(id: String) -> void:
 	if state.stock(id)==0:
@@ -1733,7 +1740,7 @@ func development_materials() -> void:
 func development_supplies() -> void:
 	state.health=100
 	state.energy=100
-	state.mana=60
+	state.mana=State.MAX_MANA
 	state.needs.drink()
 	state.needs.eat()
 	state.money+=100000
