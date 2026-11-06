@@ -22,9 +22,13 @@ func run() -> void:
 	game.close_window()
 	game.state.player_position=game.world.entry_position()+Vector2(0,64)
 	await capture("cave-sky-exit")
+	# The spider lives on the deepest level, two floors down from the entrance.
+	game.change_cave_level(1)
+	game.change_cave_level(1)
 	game.state.player_position=game.world.spider.position+Vector2(48,16)
 	await capture("spider")
 	game.leave_building()
+	game.state.cave_level=0
 	game.state.minute=1260
 	game.state.player_position=game.Grid.center(Vector2i(-25,54))
 	await capture("night-glints")

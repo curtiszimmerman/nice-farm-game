@@ -19,6 +19,7 @@ func run() -> void:
 	game.state.player_position=game.Grid.center(Vector2i(-24,53))
 	await capture("coast-and-jetty")
 	game.state.player_position=game.Grid.center(Vector2i(11,51))
+	preload("fixture.gd").garden(game.state)
 	for i in range(6):
 		game.state.plots[i].tilled=true
 		game.state.plots[i].watered=i<3

@@ -5,7 +5,23 @@ var game: Node2D
 var prefix=""
 var failed=false
 
+const TIME_LIMIT_SECONDS = 180.0
+
+# When a test script hits an error, Godot stops that script but leaves the window open, so the
+# test would never quit. This logger ends the run as soon as any script error is reported.
+class QuitOnScriptError extends Logger:
+	var tree: SceneTree
+	func _log_error(_function: String,_file: String,_line: int,_code: String,_rationale: String,_editor_notify: bool,error_type: int,_script_backtraces: Array[ScriptBacktrace]) -> void:
+		if error_type==ERROR_TYPE_SCRIPT: tree.call_deferred("quit",1)
+
 func _initialize() -> void:
+	var logger=QuitOnScriptError.new()
+	logger.tree=self
+	OS.add_logger(logger)
+	# A stall without an error, like waiting on a dialogue that never opens, ends here instead.
+	create_timer(TIME_LIMIT_SECONDS,true).timeout.connect(func():
+		push_error("FAIL: visual test did not finish within %d seconds" % TIME_LIMIT_SECONDS)
+		quit(1))
 	call_deferred("run")
 
 func drag_inventory_item(id: String,index: int,channel: String="",source_slot: int=-1) -> void:
@@ -67,6 +83,10 @@ func capture(label: String) -> void:
 	game.world.refresh()
 	game.camera.position=game.state.player_position+Vector2(20,-5)
 	game.ui.update()
+	# Without a display nothing is drawn, so we skip the screenshot and only exercise the game logic.
+	if DisplayServer.get_name()=="headless":
+		await process_frame
+		return
 	for i in range(10):
 		game.world.refresh()
 		await process_frame
@@ -141,7 +161,8 @@ func run() -> void:
 		game.state.tend(i)
 		game.state.tend(i)
 	preload("fixture.gd").grow_watered_days(game.state)
-	game.state.player_position=game.world.plot_position(12)+Vector2(0,32)
+	# Only the twelve tended plots survive the dry days, so we frame the last of those.
+	game.state.player_position=game.world.plot_position(11)+Vector2(0,32)
 	await capture("garden")
 	game.state.player_position=game.world.Grid.center(game.world.PEOPLE[0].cell)+Vector2(0,20)
 	game.talk("moss")
@@ -245,7 +266,11 @@ func run() -> void:
 	await capture("interior-radio-club")
 	game.leave_building()
 	for id in ["moss","finch","tavi","mayor","assistant","veteran","iona","store","hall","reed_farm","windmill","mill_home","smithy","tavern","bakery","woodcutter","observatory"]:
+		# Iona sleeps until noon, so her tower is visited in the early afternoon.
+		game.state.minute=780 if id=="iona" else 600
+		game.outdoors.update_villagers(0.0,true)
 		game.enter_building(id)
+		assert(game.current_room==id,"The "+id+" interior must open for its screenshot")
 		game.state.player_position=game.world.entry_position()
 		await capture("interior-"+id)
 		if id=="observatory":
@@ -280,15 +305,24 @@ func run() -> void:
 	await capture("lighthouse-workshop")
 	game.talk("keeper")
 	await capture("oren-firewood-offer")
-	game.ui.modal_box.get_child(3).pressed.emit()
-	while game.window_open: game.ui.modal_box.get_child(3).pressed.emit()
+	# Oren greets first-time visitors before his topics. His replies lead back to the menu, so we close it after.
+	for i in range(3):
+		var firewood=game.ui.modal_box.get_children().filter(func(node):return node is Button and "firewood" in node.text)
+		if not firewood.is_empty():
+			firewood[0].pressed.emit()
+			break
+		game.ui.modal_box.get_child(3).pressed.emit()
+	assert(game.state.firewood_requested,"Oren must offer the firewood request")
+	game.close_window()
 	game.state.accept_tool("axe")
 	await drag_inventory_item("axe",7)
 	await capture("inventory-dragged-axe")
 	await drag_inventory_item("axe",6,"",7)
-	if game.state.quick_slots[7]!="":
+	# Items this test grants directly have no slot yet, so the next sync may place one in the gap
+	# the axe leaves. What matters is that the axe moved rather than being copied.
+	if game.state.quick_slots[7]=="axe" or game.state.quick_slots[6]!="axe":
 		failed=true
-		push_error("FAIL: moving a quick-slot assignment left its source occupied")
+		push_error("FAIL: moving a quick-slot assignment copied it instead of moving it: %s" % [game.state.quick_slots])
 	game.close_window()
 	var primary=game.state.active_item("primary")
 	await drag_inventory_item("wildgrowth",-1,"aux")

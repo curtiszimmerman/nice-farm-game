@@ -33,6 +33,7 @@ func run() -> void:
 	game.close_window()
 	game.enter_building("smithy")
 	game.talk("smith")
+	if preload("fixture.gd").greeting(game)!=null: preload("fixture.gd").greet(game)
 	var mining=game.ui.modal_box.get_children().filter(func(node):return node is Button and "mining copper" in node.text)
 	mining[0].pressed.emit()
 	await capture("smith")

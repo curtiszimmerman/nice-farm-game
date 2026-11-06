@@ -169,7 +169,7 @@ bash scripts/play.sh --headless -- --smoke-test
 bash scripts/play.sh --script ../../tests/native/visual_test.gd
 ```
 
-The last command briefly uses the host display to capture native screenshots into `internal/verification/`, checks optional audio start/stop, and exits. It uses a fresh in-memory game without touching the real save. Headless checks cover simulation, actual interface choices, resource transactions, scheduled events, layout regressions, and reachability of every interaction destination.
+The last command briefly uses the host display to capture native screenshots into `internal/verification/`, checks optional audio start/stop, and exits. Every `*_visual_test.gd` shares this harness: a script error ends the run at once and any test still running after three minutes fails, so no window is left open. Run with `--headless`, they skip the screenshots and only exercise the game logic, which is a quick way to catch stale steps; checks that drag or click through the real GUI only pass with a display. It uses a fresh in-memory game without touching the real save. Headless checks cover simulation, actual interface choices, resource transactions, scheduled events, layout regressions, and reachability of every interaction destination.
 
 The native build has been rendered on the development host's Quadro P3200. Performance on the target GeForce 940MX is still unverified.
 
