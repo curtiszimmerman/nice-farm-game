@@ -43,7 +43,7 @@ for test_file in terrain_borders_test border_atlas_test terrain_art_integration_
 done
 run_native --headless --script "../../tests/native/rift_forecast_test.gd"
 run_native --headless --script "../../tests/native/iona_prerequisites_test.gd"
-for test_file in production_soil_revision_test shop_hold_test rain_beach_test npc_dialogue_polish_test; do
+for test_file in production_soil_revision_test shop_hold_test rain_beach_test npc_dialogue_polish_test town_systems_revision_test; do
     run_native --headless --script "../../tests/native/$test_file.gd"
 done
 run_native --headless -- --smoke-test

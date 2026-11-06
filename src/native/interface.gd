@@ -57,6 +57,7 @@ var auxiliary_button: ItemButton
 const Skills=preload("res://skills.gd")
 var equipment_slots: Dictionary={}
 var skill_buttons: Array=[]
+var crafting_buttons: Array=[]
 var dialogue_open=false
 var controls_hint: Label
 var container_view=""
@@ -607,6 +608,7 @@ func open_character_inventory() -> void:
 	root.move_child(quick_tray,-1)
 	inventory_slots.clear()
 	skill_buttons.clear()
+	crafting_buttons.clear()
 	equipment_slots.clear()
 	inventory_tabs=TabContainer.new()
 	var tab_padding=style(Color("172b2bf0"))
@@ -713,24 +715,46 @@ func open_character_inventory() -> void:
 		empty.text="[ None Known ]"
 		list.add_child(empty)
 	for id in Skills.learned(game.state):
-		var button=ItemButton.new()
-		button.interface=self
-		button.skill_source=true
-		button.set_meta("item_id",id)
-		button.text=Skills.CATALOG[id].name+"\n"+Skills.CATALOG[id].kind
-		button.icon=Items.icon(id)
-		button.expand_icon=true
-		button.add_theme_constant_override("icon_max_width",32)
-		button.custom_minimum_size=Vector2(245,60)
-		button.tooltip_text=Skills.CATALOG[id].description+" Drag to E, Q or a quick slot."
-		_button_style(button)
-		button.pressed.connect(func(): game.state.assign_active("primary",id); update())
-		list.add_child(button)
-		skill_buttons.append(button)
+		skill_buttons.append(ability_button(id,list))
 	add_character_stats()
 	add_relationships()
+	add_crafting()
 	inventory_tabs.current_tab=inventory_tab
 	inventory_tabs.tab_changed.connect(func(index): inventory_tab=index)
+
+func ability_button(id: String,parent: Node) -> ItemButton:
+	var button=ItemButton.new()
+	button.interface=self
+	button.skill_source=true
+	button.set_meta("item_id",id)
+	button.text=Skills.CATALOG[id].name+"\n"+Skills.CATALOG[id].kind
+	button.icon=Items.icon(id)
+	button.expand_icon=true
+	button.add_theme_constant_override("icon_max_width",32)
+	button.custom_minimum_size=Vector2(245,60)
+	button.tooltip_text=Skills.CATALOG[id].description+" Drag to E, Q or a quick slot."
+	_button_style(button)
+	button.pressed.connect(func(): game.state.assign_active("primary",id); update())
+	parent.add_child(button)
+	return button
+
+func add_crafting() -> void:
+	var scroll=ScrollContainer.new()
+	scroll.name="Crafting"
+	inventory_tabs.add_child(scroll)
+	var list=VBoxContainer.new()
+	list.add_theme_constant_override("separation",16)
+	scroll.add_child(list)
+	for id in Skills.CATALOG:
+		if Skills.CATALOG[id].kind=="Blueprint" and Skills.known(game.state,id): crafting_buttons.append(ability_button(id,list))
+	if game.state.beehive_known:
+		var plans=Label.new()
+		plans.text="Beehive plans\nA sheltered hive with room to tend the bees."
+		list.add_child(plans)
+	if crafting_buttons.is_empty() and not game.state.beehive_known:
+		var empty=Label.new()
+		empty.text="[ None Known ]"
+		list.add_child(empty)
 
 func add_relationships() -> void:
 	var scroll=ScrollContainer.new()
@@ -785,10 +809,6 @@ func add_character_stats() -> void:
 		label.text=text
 		if text.begins_with("Experience"): stats_experience=label
 		stats.add_child(label)
-	if state.beehive_known:
-		var blueprint=Label.new()
-		blueprint.text="Beehive plans: learned"
-		stats.add_child(blueprint)
 	var scroll=ScrollContainer.new()
 	scroll.custom_minimum_size=Vector2(730,420)
 	row.add_child(scroll)
@@ -1045,7 +1065,7 @@ func status_picture(id: String) -> TextureRect:
 	var texture=AtlasTexture.new()
 	texture.atlas=Items.Art.atlas
 	var sprite_id=id
-	if not Items.Art.catalog.has(sprite_id): sprite_id="item_watering_can" if id=="status_thirsty" else "item_rations" if id=="status_starving" else id
+	if not Items.Art.catalog.has(sprite_id): sprite_id="item_watering_can" if id=="status_thirsty" else "item_rations" if id=="status_starving" else "item_health_elixir" if id=="status_drunk" else id
 	texture.region=Items.Art.region(sprite_id)
 	picture.texture=texture
 	picture.position=Vector2(6,6)
@@ -1077,6 +1097,7 @@ func update_statuses() -> void:
 		status_icons[id].tooltip_text=status.name+"\n"+status.description
 		if id=="tired": status_icons[id].tooltip_text+="\n%d days awake · costs ×%d · recovery ÷%d" % [game.state.tired_days(),game.state.tired_days()+1,game.state.tired_days()+1]
 		if id=="poison": status_icons[id].tooltip_text+="\n%d game minutes remaining" % ceili(game.state.status_effects.poison.remaining)
+		if id=="drunk": status_icons[id].tooltip_text+="\n%d game minutes remaining" % ceili(game.state.status_effects.drunk.remaining)
 	var width=maxi(0,active.size()*48-4)
 	status_strip.size=Vector2(width,44)
 	status_strip.position=Vector2(640-width/2.0,14)

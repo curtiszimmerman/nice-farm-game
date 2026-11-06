@@ -24,6 +24,13 @@ func run() -> void:
 		positions.append(actor.position)
 		if id!="barkeep" and actor.position.y<9*32: distinct=false
 	check(positions.size()>4 and distinct,"tavern patrons have distinct places in the public taproom")
+	var guests=game.world.villagers.values().filter(func(actor):return actor.visible and actor.data.id!="barkeep")
+	var clustered=guests.filter(func(actor):return guests.any(func(other):return other!=actor and actor.position.distance_to(other.position)<=70)).size()
+	check(clustered>=guests.size()/2,"most tavern guests gather close enough for small conversations")
+	var old=guests.map(func(actor):return game.world.tavern_guest_spot(actor.data.id))
+	check(old==guests.map(func(actor):return game.world.tavern_guest_spot(actor.data.id)),"tavern places stay stable throughout the evening")
+	game.state.day+=1
+	check(old!=guests.map(func(actor):return game.world.tavern_guest_spot(actor.data.id)),"a different evening changes the clustered seating")
 	var schedule=game.outdoors.Schedule
 	check(schedule.TAVERN_DAYS.moss.size()==4 and schedule.TAVERN_DAYS.miller.size()>4 and schedule.TAVERN_DAYS.assistant.size()<4,"weekly attendance varies between residents")
 	check(schedule.stop("priest",1200,1).room!="tavern","the priest never visits the tavern")

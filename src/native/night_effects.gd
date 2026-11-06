@@ -44,7 +44,8 @@ func _draw() -> void:
 			for x in [door_x-1,door_x+1]:
 				if x<0 or x>=building.tiles.x: continue
 				var lamp=Vector2(building.x+x*32+16,building.y+building.h-64)
-				Art.sprite(self,"lamp_halo",lamp-Vector2(54,20),Vector2(108,62),Color(1,0.9,0.68,0.6))
+				Art.sprite(self,"lamp_halo",lamp-Vector2(54,20),Vector2(108,62),Color(1,0.9,0.68,0.78))
+				Art.sprite(self,"particle",lamp-Vector2(3,4),Vector2(6,8),Color(1,0.82,0.5,0.8))
 	for building in world.buildings:
 		var columns=building.tiles.x
 		var anchor=Vector2(building.x,building.y+building.h)

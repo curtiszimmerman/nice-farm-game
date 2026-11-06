@@ -161,8 +161,8 @@ var status_effects: Dictionary={}
 var needs=preload("res://journey_needs.gd").new()
 var damage_events: Array=[]
 const CRUCIBLE_STONE=10
-const ORE_PER_BAR=5
-const COAL_PER_BAR=2
+const ORE_PER_BAR=2
+const COAL_PER_BAR=1
 const SMELT_MINUTES=30.0
 var crucible_known=false
 var crucibles: Array=[]
@@ -251,6 +251,12 @@ func restore_mana(base: float) -> void:
 func active_statuses() -> Array:
 	return (["tired"] if is_tired() else [])+(["thirsty"] if needs.thirsty() else [])+(["starving"] if needs.starving() else [])+status_effects.keys()
 
+func movement_multiplier() -> float:
+	return 0.5 if status_effects.has("drunk") else 1.0
+
+func damage_multiplier() -> float:
+	return 0.5 if status_effects.has("drunk") else 1.0
+
 func learn_spell(id: String) -> bool:
 	if id in learned_spells: return false
 	if id=="hearthmend":
@@ -280,6 +286,9 @@ func apply_poison() -> void:
 	else: status_effects.poison={"remaining":60.0,"tick":5.0}
 
 func advance_statuses(minutes: float,sleeping: bool) -> void:
+	if status_effects.has("drunk"):
+		status_effects.drunk.remaining-=minutes
+		if status_effects.drunk.remaining<=0: status_effects.erase("drunk")
 	if sleeping:
 		var remaining=minutes
 		while remaining>0.000001:
@@ -723,7 +732,9 @@ func purchase_drink(id: String) -> bool:
 	money-=Shop.CATALOG[id].price
 	shop_remaining[id]-=1
 	needs.drink()
+	needs.without_food=maxf(0,needs.without_food-180)
 	restore_energy(Shop.DRINKS[id].energy)
+	status_effects.drunk={"remaining":60.0}
 	return true
 
 func purchase(id: String) -> bool:
@@ -900,10 +911,10 @@ func restore(data: Variant) -> bool:
 		if station.ready_at<0 and station.ready_at!= -1: return false
 		if station.ready_at>=0 and station.bars>0: return false
 	for id in data.status_effects:
-		if id!="poison" or not data.status_effects[id] is Dictionary: return false
+		if id not in ["poison","drunk"] or not data.status_effects[id] is Dictionary: return false
 		var effect=data.status_effects[id]
 		if not _number(effect.get("remaining")) or effect.remaining<=0 or effect.remaining>60: return false
-		if not _number(effect.get("tick")) or effect.tick<=0 or effect.tick>5: return false
+		if id=="poison" and (not _number(effect.get("tick")) or effect.tick<=0 or effect.tick>5): return false
 	if not data.get("inventory_order") is Array or data.inventory_order.size()!=INVENTORY_SLOTS: return false
 	var ordered=[]
 	if not _number(data.get("experience")) or data.experience<0 or data.experience!=floor(data.experience): return false

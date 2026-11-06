@@ -30,13 +30,14 @@ func run() -> void:
 	game.state.assign_active("primary","")
 	game.world.elapsed+=0.61
 	game.interact()
-	check(game.window_open and game.ui.modal_box.get_child(1).text.contains("crucible"),"facing the built crucible opens its smelting menu")
+	check(not game.window_open and game.ui.message.text.contains("Select copper ore"),"an empty-handed crucible activation explains which item to select without a menu")
 	game.close_window()
 	var body=game.outdoors.scenery_layer.get_children().filter(func(node):return node.kind=="crucible")[0]
 	await process_frame
 	var draws=body.draw_count
 	game.state.copper=2
-	game.state.start_smelting(0)
+	game.state.coal=1
+	check(game.state.start_smelting(0),"a real smelting batch starts for the retained-body render check")
 	for i in range(4):
 		game.outdoors.elapsed+=0.1
 		game.outdoors.refresh()

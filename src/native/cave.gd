@@ -204,8 +204,8 @@ func in_water(_p: Vector2) -> bool: return false
 func audio_context(_p: Vector2) -> Dictionary:
 	return {"environment":"cave","season":state.season_name(),"cave_weight":1.0}
 func update_villagers(_dt: float,_snap: bool=false) -> void: pass
-func blocked(p: Vector2) -> bool:
-	return not floor_cells.has(Grid.world_to_cell(p)) or solid_cells.has(Grid.world_to_cell(p))
+func cell_blocked(cell: Vector2i) -> bool:
+	return not floor_cells.has(cell) or solid_cells.has(cell)
 
 func find_nearest() -> Dictionary:
 	if state.active_item()=="pickaxe":
@@ -308,6 +308,7 @@ func damage_front_creatures(amount: float) -> void:
 func creatures() -> Array: return rats+([spider] if spider!=null else [])
 
 func damage_creature(creature: Node2D,amount: float) -> void:
+	amount*=state.damage_multiplier()
 	creature.info.health-=amount
 	var label=str(int(amount)) if is_equal_approx(amount,roundf(amount)) else "%.2f"%amount
 	combat_text("-"+label,creature.position+Vector2(0,30),Color("ffe7a0"))

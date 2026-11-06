@@ -87,6 +87,7 @@ var story_destinations: Dictionary={}
 var indoor_departures: Dictionary={}
 var villagers: Dictionary = {}
 var routes: Dictionary = {}
+var route_profile: Dictionary={}
 var buildings: Array = []
 var sites: Array = []
 var road_segments: Array = []
@@ -231,7 +232,9 @@ func _ready() -> void:
 		solid_cells[cell]="tree"
 		trees.append(tree)
 		tree.node=_prop("tree",p,tree)
-	for cell in Foraging.choose(bushes,state.world_seed+391): forage_nodes.berries[cell]=bush_nodes[cell]
+	var reachable=Foraging.reachable_cells(self)
+	var harvestable_bushes=bushes.filter(func(cell):return Foraging.can_harvest(cell,reachable))
+	for cell in Foraging.choose(harvestable_bushes,state.world_seed+391): forage_nodes.berries[cell]=bush_nodes[cell]
 	var oaks=tree_population.filter(func(tree):return Art.tree_species(tree)=="oak").map(func(tree):return tree.cell)
 	for cell in Foraging.choose(oaks,state.world_seed+392):
 		for tree in trees:
@@ -541,6 +544,23 @@ func exit_position(building: Dictionary) -> Vector2:
 	return Grid.center(Grid.SPAWN_CELL)
 
 func _route(start: Vector2i,goal: Vector2i,avoid_player: bool=false,avoid_actors: bool=false,ignore_actor: Node2D=null) -> Array:
+	var began=Time.get_ticks_usec() if not route_profile.is_empty() else 0
+	var actor_cells={}
+	var player_cells={}
+	if avoid_actors:
+		for actor in villagers.values():
+			if actor==ignore_actor or not actor.visible: continue
+			var center=Grid.world_to_cell(actor.position)
+			for y in range(center.y-1,center.y+2):
+				for x in range(center.x-1,center.x+2):
+					var candidate=Vector2i(x,y)
+					if Grid.center(candidate).distance_to(actor.position)<Bodies.RADIUS: actor_cells[candidate]=true
+	if avoid_player and state.location==(get("building").id if get("building")!=null else ""):
+		var center=Grid.world_to_cell(state.player_position)
+		for y in range(center.y-1,center.y+2):
+			for x in range(center.x-1,center.x+2):
+				var candidate=Vector2i(x,y)
+				if Grid.center(candidate).distance_to(state.player_position)<Bodies.RADIUS: player_cells[candidate]=true
 	var frontier: Array=[goal]
 	var parents={goal:goal}
 	var cursor=0
@@ -549,9 +569,8 @@ func _route(start: Vector2i,goal: Vector2i,avoid_player: bool=false,avoid_actors
 		cursor+=1
 		for offset in [Vector2i.UP,Vector2i.RIGHT,Vector2i.DOWN,Vector2i.LEFT]:
 			var next: Vector2i=cell+offset
-			if parents.has(next) or blocked(Grid.center(next)): continue
-			if avoid_player and next!=start and state.location==(get("building").id if get("building")!=null else "") and Grid.center(next).distance_to(state.player_position)<Bodies.RADIUS: continue
-			if avoid_actors and next!=goal and next!=start and villagers.values().any(func(actor):return actor!=ignore_actor and actor.visible and Grid.center(next).distance_to(actor.position)<Bodies.RADIUS): continue
+			if parents.has(next) or cell_blocked(next): continue
+			if next!=start and (player_cells.has(next) or (next!=goal and actor_cells.has(next))): continue
 			parents[next]=cell
 			frontier.append(next)
 	var path: Array=[]
@@ -559,6 +578,13 @@ func _route(start: Vector2i,goal: Vector2i,avoid_player: bool=false,avoid_actors
 	while parents.has(current) and current!=goal:
 		current=parents[current]
 		path.append(Grid.center(current))
+	if not route_profile.is_empty():
+		var duration=Time.get_ticks_usec()-began
+		route_profile.calls+=1
+		if duration>route_profile.max_us:
+			route_profile.max_us=duration
+			route_profile.expanded=cursor
+			route_profile.actor=ignore_actor.data.get("id","") if ignore_actor!=null else "terrain"
 	return path
 
 func scatter_cells(amount: int,spacing: int,rng: RandomNumberGenerator,require_reachable: bool=false) -> Array:
@@ -792,7 +818,9 @@ func fence_mask(cell: Vector2i) -> int:
 	return mask
 
 func blocked(p: Vector2) -> bool:
-	var cell=Grid.world_to_cell(p)
+	return cell_blocked(Grid.world_to_cell(p))
+
+func cell_blocked(cell: Vector2i) -> bool:
 	return not Grid.PLAYABLE_CELLS.has_point(cell) or solid_cells.has(cell)
 
 func find_nearest() -> Dictionary:

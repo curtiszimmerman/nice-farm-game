@@ -325,7 +325,7 @@ func _move(dt: float) -> void:
 	if absf(direction.x)>absf(direction.y): world.facing="right" if direction.x>0 else "left"
 	else: world.facing="down" if direction.y>0 else "up"
 	var development_multiplier = 3.0 if OS.is_debug_build() else 1.0
-	var distance = direction.normalized()*(160.0 if controls.held("run") else 105.0)*development_multiplier*minf(dt,0.05)
+	var distance = direction.normalized()*(160.0 if controls.held("run") else 105.0)*development_multiplier*state.movement_multiplier()*minf(dt,0.05)
 	# Resolve each axis independently so walking along a wall never feels sticky.
 	# Small steps preserve collision at development running speeds, even on slow frames.
 	var steps=maxi(1,ceili(distance.length()/6.0))
@@ -711,7 +711,7 @@ func interact() -> void:
 		if world.attack_with_tool(state.active_item()): save_visit()
 		else: toast("You need the tool and enough energy to swing.")
 		return
-	if ui.Items.FOOD.has(state.active_item()):
+	if ui.Items.FOOD.has(state.active_item()) and nearest.is_empty():
 		var food_id=state.active_item()
 		toast("Used %s." % ui.Items.CATALOG[food_id].name if state.consume(food_id) else "Nothing to restore, or none carried.")
 		save_visit()
@@ -782,7 +782,7 @@ func interact() -> void:
 					if child is Interior.Furniture and child.item.kind=="shed_ladder": child.queue_free()
 				toast("Mrs. Bell's ladder. Better take it back to Mara.")
 				save_visit()
-			"crucible": crucible_menu(nearest.index)
+			"crucible": use_crucible(nearest.index)
 			"private_door": dialog("A private door","THE WAYWARD WREN","Rafe's living quarters are beyond the bar. Best to leave him his privacy.")
 			"cave_pickaxe":
 				if state.accept_tool("pickaxe"):
@@ -1095,31 +1095,27 @@ func build_crucible() -> void:
 	save_visit()
 	toast("Stone crucible built. Face it to smelt copper ore.")
 
-func crucible_menu(index: int) -> void:
+func use_crucible(index: int) -> void:
 	var station=state.crucibles[index]
-	var choices=[]
-	var description="%d copper ore and %d coal become one bar in %d game minutes." % [State.ORE_PER_BAR,State.COAL_PER_BAR,int(State.SMELT_MINUTES)]
 	if station.bars>0:
-		choices.append(["Collect copper bar",func():
-			toast("Copper bar collected." if state.collect_copper_bar(index) else "Make room in your satchel for the copper bar.")
-			save_visit()
-			crucible_menu(index)])
+		toast("Copper bar collected." if state.collect_copper_bar(index) else "Make room in your satchel for the copper bar.")
+		save_visit()
 	elif station.ready_at>=0:
-		description+="\n\nSmelting: %d game minutes remaining. Leave it working while you get on with your day." % ceili(station.ready_at-state.total())
+		toast("Smelting · %d game minutes remaining." % ceili(station.ready_at-state.total()))
+	elif state.active_item()!="copper":
+		toast("Select copper ore, then activate the crucible to add two ore and one coal.")
 	else:
-		choices.append(["Smelt %d copper ore + %d coal · %d minutes" % [State.ORE_PER_BAR,State.COAL_PER_BAR,int(State.SMELT_MINUTES)],func():
-			toast("The copper begins to melt." if state.start_smelting(index) else "You need %d copper ore and %d coal in your satchel." % [State.ORE_PER_BAR,State.COAL_PER_BAR])
+		if state.start_smelting(index):
+			toast("Two copper ore and one coal added. The copper begins to melt.")
 			save_visit()
-			crucible_menu(index),state.copper>=State.ORE_PER_BAR and state.coal>=State.COAL_PER_BAR])
-	choices.append(["Leave the crucible",func(): pass])
-	panel("Stone crucible","COPPER REFINING",description,choices)
+		else: dialog("Stone crucible","MORE MATERIALS NEEDED","You need two copper ore and one coal in your satchel.")
 
 func learn_crucible() -> void:
 	if not state.learn_crucible():
 		dialog("Dain Rusk","A FAIR EXCHANGE","Bring me ten star bulbs and I'll show you how to build a stone crucible. I use them to check the temper of a blade; that little glow shows up a crack beautifully.")
 		return
 	save_visit()
-	dialog("Dain Rusk","CRUCIBLE BLUEPRINT LEARNED","There you are. Ten pieces of stone make a small crucible. Select the plans, then face a clear patch near your farmhouse. Five pieces of ore and two coal make a bar in half an hour. Set it going and get on with your day. Good metal's useful wherever your travels take you.")
+	dialog("Dain Rusk","CRUCIBLE BLUEPRINT LEARNED","There you are. Ten pieces of stone make a small crucible. Select the plans from your Crafting tab, then face a clear patch near your farmhouse. Two pieces of ore and one coal make a bar in half an hour. Select your ore and put it straight into the crucible. Set it going and get on with your day. Good metal's useful wherever your travels take you.")
 
 func cooking() -> void:
 	if current_room!="home" or world.front_cell() not in world.activation_cells(world.sites.filter(func(site):return site.id=="stove")[0]):

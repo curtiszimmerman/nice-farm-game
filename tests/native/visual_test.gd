@@ -13,6 +13,10 @@ func drag_inventory_item(id: String,index: int,channel: String="",source_slot: i
 	game.ui.inventory_tabs.current_tab=0
 	await process_frame
 	var sources=game.ui.skill_buttons if game.state.Skills.CATALOG.has(id) else game.ui.inventory_slots
+	if game.state.Skills.CATALOG.has(id) and game.state.Skills.CATALOG[id].kind=="Blueprint":
+		game.ui.inventory_tabs.current_tab=3
+		sources=game.ui.crafting_buttons
+		await process_frame
 	var slots=sources.filter(func(slot): return slot.get_meta("item_id","")==id)
 	if source_slot>=0: slots=[game.ui.quick_buttons[source_slot]]
 	assert(not slots.is_empty(),"Drag source must be carried")

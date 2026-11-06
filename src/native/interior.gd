@@ -10,6 +10,8 @@ var outdoors: Node2D
 var furnishings: Array=[]
 var rendered_tasks: Dictionary={}
 var animated_displays: Array=[]
+var tavern_places: Dictionary={}
+var tavern_place_day=-1
 
 class Furniture extends Node2D:
 	var room: Node2D
@@ -171,8 +173,7 @@ func room_name() -> String:
 		"keeper": return "Oren's lighthouse"
 		_: return building.id.capitalize()+"'s home"
 
-func blocked(p: Vector2) -> bool:
-	var cell=Grid.world_to_cell(p)
+func cell_blocked(cell: Vector2i) -> bool:
 	return not Rect2i(Vector2i.ZERO,ROOM_CELLS).has_point(cell) or solid_cells.has(cell)
 
 func player_blocked(p: Vector2) -> bool:
@@ -269,14 +270,26 @@ func update_villagers(dt: float,snap: bool=false) -> void:
 		actor.queue_redraw()
 
 func tavern_guest_spot(id: String) -> Vector2i:
-	var guests=outdoors.people.filter(func(person):return person.id!="barkeep" and outdoors.stop_for(person.id).room=="tavern").map(func(person):return person.id)
-	guests.sort()
+	if tavern_place_day!=state.day:
+		tavern_place_day=state.day
+		tavern_places.clear()
+	if tavern_places.has(id): return tavern_places[id]
+	var rng=RandomNumberGenerator.new()
+	rng.seed=hash("tavern:%d:%d:%s" % [state.world_seed,state.day,id])
+	var anchors=[Vector2i(3,11),Vector2i(13,11),Vector2i(16,9)]
+	var anchor: Vector2i=anchors[rng.randi_range(0,anchors.size()-1)]
 	var spots=[]
-	for y in [10,12]:
-		for x in range(2,18,2):
+	var scores={}
+	for y in range(9,14):
+		for x in range(1,18):
 			var cell=Vector2i(x,y)
-			if not blocked(Grid.center(cell)): spots.append(cell)
-	return spots[posmod(guests.find(id),spots.size())] if not spots.is_empty() else layout.entry
+			if blocked(Grid.center(cell)) or cell.x in [8,9,10] or cell.distance_to(layout.entry)<2 or cell in tavern_places.values(): continue
+			spots.append(cell)
+			scores[cell]=cell.distance_squared_to(anchor)+rng.randf_range(0,4)
+	spots.sort_custom(func(a,b):return scores[a]<scores[b])
+	var chosen: Vector2i=spots[0] if not spots.is_empty() else layout.entry
+	tavern_places[id]=chosen
+	return chosen
 
 func find_nearest() -> Dictionary:
 	if building.id=="home" and not state.met_mayor:
