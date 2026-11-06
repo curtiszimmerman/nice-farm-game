@@ -92,6 +92,7 @@ func _process(dt: float) -> void:
 	animation_time+=dt
 	if caption_step<CAPTION_TIMES.size()-1: elapsed=minf(elapsed+dt,CAPTION_TIMES[caption_step+1]-0.001)
 	else: elapsed+=dt
+	game.sound.set_bridge_ambience(scene_at(elapsed)=="bridge",elapsed>=21 and elapsed<24)
 	if battle_at(elapsed).enemy_fire:
 		var previous=battle_clock if battle_started else -0.001
 		battle_started=true
@@ -210,6 +211,13 @@ func bridge_offset() -> Vector2:
 	var strength=shake_remaining/0.28
 	return Vector2(roundf(sin(age*83+1)*4*strength),roundf(sin(age*109+2)*3*strength))
 
+func bridge_planet_rect() -> Rect2:
+	var planet: Rect2=bridge_composition().planet
+	if elapsed>=21 and elapsed<24:
+		var drift=Vector2(sin(animation_time*5)*1.5,sin(animation_time*7+1))
+		planet.position+=drift-bridge_offset()
+	return planet
+
 func paint_pixels(c: CanvasItem) -> void:
 	var scene=scene_at(elapsed)
 	if scene=="aftermath":
@@ -245,7 +253,7 @@ func paint_bridge_details(c: CanvasItem) -> void:
 	var bridge=bridge_composition()
 	# The window glass in the bridge sprite is opaque, so we paint the planet over it but only inside
 	# the glass. The frame and sill then cover its edges and it looks like it's outside the ship.
-	Art.sprite_within(c,"planet",bridge.planet,bridge.window)
+	Art.sprite_within(c,"planet",bridge_planet_rect(),bridge.window)
 	# The chair covers the small figure painted into the original bridge sprite.
 	c.draw_rect(Rect2(560,307,160,222),Color("344955"))
 	c.draw_rect(Rect2(572,315,136,184),Color("607986"))

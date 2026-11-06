@@ -187,4 +187,6 @@ Moss leads the first arrivals down the mountain path, pauses at the farmhouse ro
 
 After the crash, the captain wakes on the 12×12 upper bridge. The two-square staircase on the left descends to engineering, where speaking to Vale begins the status report. The stairs return to the bridge; the exterior hatch remains on the lower deck. Both decks have damaged displays and wall-mounted clusters of exposed cables. Ship time stays halted until the captain leaves the exterior hatch.
 
+In the final cinematic bridge cut, the planet moves more slowly and gently than the shaking cabin, while remaining clipped behind its window. All bridge cuts have soft electrical hiss and sputtering; the descent adds a low pulsing, warbling klaxon. These sounds follow the effects volume and stop outside the bridge or when the intro ends. Rebuild only these WAVs with `python3 scripts/make_audio.py --only bridge_electrical` and `--only bridge_klaxon`.
+
 Tavern drinks restore hydration, a small amount of nourishment, and one energy. They cause one game hour of drunkenness, halving movement speed and inflicted combat damage; another drink refreshes the hour. Tavern guests gather around tables in groups that remain stable for the evening and vary between nights. House lanterns stay lit from dusk until dawn even when the occupants sleep.

@@ -6,7 +6,7 @@ the native game plays these assets directly, with no synthesis work during play.
 """
 import argparse
 from array import array
-from math import exp, pi, sin, tanh
+from math import cos, exp, pi, sin, tanh
 from pathlib import Path
 from random import Random
 import sys
@@ -289,12 +289,43 @@ def mining():
         track[i] = attack*(ring+noise.uniform(-1,1)*exp(-t*110)*.22)
     return track
 
+def bridge_electrical():
+    """Soft filtered hiss with irregular, short electrical sputters."""
+    track = buffer(12)
+    noise = Random(862)
+    low = 0.0
+    for i in range(len(track)):
+        low += (noise.uniform(-1, 1) - low) * .12
+        track[i] = low * .12
+    for _ in range(24):
+        duration = noise.uniform(.04, .21)
+        burst = buffer(duration)
+        low = 0.0
+        for i in range(len(burst)):
+            t = i / RATE
+            low += (noise.uniform(-1, 1) - low) * .28
+            burst[i] = low * sin(pi * t / duration) ** 2 * .32
+        add(track, noise.uniform(.1, 11.7), burst)
+    return track
+
+
+def bridge_klaxon():
+    """A low rounded warning tone, breathing in two gentle warbling pulses."""
+    track = buffer(6)
+    for i in range(len(track)):
+        t = i / RATE
+        pulse = (.5 - .5 * cos(TAU * t / 3)) ** 2
+        phase = TAU * 150 * t + 6 * (1 - cos(TAU * t / 3))
+        track[i] = pulse * (.21 * sin(phase) + .025 * sin(2 * phase))
+    return track
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--only", choices=["music", "birds", "crickets", "drips", "wildgrowth", "wreck", "crash", "laser", "laser_hit", "explosion", "rain", "thunder", "mining"], help="Rebuild one sound instead of all assets.")
+    parser.add_argument("--only", choices=["music", "birds", "crickets", "drips", "wildgrowth", "wreck", "crash", "laser", "laser_hit", "explosion", "rain", "thunder", "mining", "bridge_electrical", "bridge_klaxon"], help="Rebuild one sound instead of all assets.")
     args = parser.parse_args()
     OUTPUT.mkdir(parents=True, exist_ok=True)
-    for name, build in {"music": music, "birds": birds, "crickets": crickets, "drips": drips, "wildgrowth": wildgrowth, "wreck": wreck, "crash": crash, "laser": laser, "laser_hit": laser_hit, "explosion": explosion, "rain": rain, "thunder": thunder, "mining": mining}.items():
+    for name, build in {"music": music, "birds": birds, "crickets": crickets, "drips": drips, "wildgrowth": wildgrowth, "wreck": wreck, "crash": crash, "laser": laser, "laser_hit": laser_hit, "explosion": explosion, "rain": rain, "thunder": thunder, "mining": mining, "bridge_electrical": bridge_electrical, "bridge_klaxon": bridge_klaxon}.items():
         if args.only is None or args.only == name:
             write(name, build())
 

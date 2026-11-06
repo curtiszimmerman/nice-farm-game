@@ -2,7 +2,7 @@ extends Node
 
 signal lightning
 
-const TRACKS = ["music","birds","crickets","drips","wreck","wildgrowth","crash","laser","laser_hit","explosion","rain","thunder","mining"]
+const TRACKS = ["music","birds","crickets","drips","wreck","wildgrowth","crash","laser","laser_hit","explosion","rain","thunder","mining","bridge_electrical","bridge_klaxon"]
 # The original theme is built by make_audio.py. The other songs come from generate_music.py, which
 # stores them as Ogg Vorbis and lists each one's theme and menu label in this manifest.
 const MUSIC_MANIFEST = "res://audio/music/tracks.json"
@@ -17,6 +17,8 @@ var weather_rng=RandomNumberGenerator.new()
 var battle: Dictionary={}
 var crash: AudioStreamPlayer
 var cinematic=false
+var bridge_electrical: AudioStreamPlayer
+var bridge_klaxon: AudioStreamPlayer
 var testing = false
 var music: AudioStreamPlayer
 var birds: AudioStreamPlayer
@@ -62,6 +64,8 @@ func _ready() -> void:
 	rain=_player("rain")
 	thunder=_player("thunder")
 	mining=_player("mining")
+	bridge_electrical=_player("bridge_electrical")
+	bridge_klaxon=_player("bridge_klaxon")
 	mining.max_polyphony=4
 	spell.max_polyphony=4
 	for name in ["laser","laser_hit","explosion"]:
@@ -214,9 +218,17 @@ func _apply_volumes() -> void:
 	rain.volume_db=_db(ambience_level*rain_weight if not cinematic else 0.0)
 	thunder.volume_db=_db(ambience_level*0.65 if not cinematic else 0.0)
 	for player in battle.values(): player.volume_db=_db(effects_level)
+	bridge_electrical.volume_db=_db(effects_level*0.65)
+	bridge_klaxon.volume_db=_db(effects_level*0.55)
+
+func set_bridge_ambience(interior: bool,descent: bool) -> void:
+	for pair in [[bridge_electrical,interior],[bridge_klaxon,interior and descent]]:
+		if pair[1] and not pair[0].playing: pair[0].play()
+		elif not pair[1] and pair[0].playing: pair[0].stop()
 
 func set_cinematic(value: bool) -> void:
 	cinematic=value
+	if not value: set_bridge_ambience(false,false)
 	# The intro has only sound effects. Whatever song keeps running underneath starts from silence
 	# afterwards, so the next theme fades in cleanly instead of that song cutting back in.
 	if value: music_fade=0.0
@@ -231,6 +243,7 @@ func stop() -> void:
 	active=false
 	for player in [music,birds,crickets,drips,wreck,spell,crash,rain,thunder,mining]: player.stop()
 	for player in battle.values(): player.stop()
+	set_bridge_ambience(false,false)
 
 func shutdown() -> void:
 	# Playback can be queued until the next frame, including a just-cast spell.
