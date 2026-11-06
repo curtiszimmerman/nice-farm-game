@@ -160,7 +160,8 @@ func update_music(theme: String,dt: float) -> void:
 		return
 	var chosen=_chosen_song(theme)
 	var fits=music_track==chosen if chosen!="" else music_track!="" and theme==music_theme
-	if music_track=="": _play_fitting(theme)
+	# A song can finish while a silent location suppresses its successor.
+	if music_track=="" or (active and not music.playing): _play_fitting(theme)
 	elif not fits:
 		music_fade=maxf(0.0,music_fade-dt/MUSIC_FADE_SECONDS)
 		if music_fade==0.0: _play_fitting(theme)
