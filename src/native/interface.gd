@@ -547,6 +547,29 @@ func open_modal(title: String,eyebrow: String,body: String,choices: Array,wide =
 	modal_box.add_child(footer)
 	call_deferred("fit_modal",panel,wide)
 
+# Adds a labelled dropdown to the open modal at the given child position. options are [text,value]
+# pairs, and on_select receives the chosen value.
+func add_modal_dropdown(label: String,options: Array,selected: int,on_select: Callable,index: int) -> OptionButton:
+	var row=HBoxContainer.new()
+	row.add_theme_constant_override("separation",12)
+	var title=Label.new()
+	title.text=label
+	title.add_theme_font_size_override("font_size",20)
+	title.add_theme_color_override("font_color",CREAM)
+	row.add_child(title)
+	var dropdown=OptionButton.new()
+	for option in options: dropdown.add_item(option[0])
+	dropdown.select(maxi(0,selected))
+	dropdown.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	dropdown.add_theme_font_size_override("font_size",20)
+	_button_style(dropdown)
+	dropdown.get_popup().add_theme_font_size_override("font_size",18)
+	dropdown.item_selected.connect(func(chosen: int): on_select.call(options[chosen][1]))
+	row.add_child(dropdown)
+	modal_box.add_child(row)
+	modal_box.move_child(row,mini(index,modal_box.get_child_count()-1))
+	return dropdown
+
 func fit_modal(panel: PanelContainer,wide: bool) -> void:
 	if not is_instance_valid(panel) or modal_box==null or not is_instance_valid(modal_box): return
 	var viewport=get_viewport().get_visible_rect().size

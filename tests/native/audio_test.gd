@@ -54,6 +54,37 @@ func run() -> void:
 	sound.set_level("effects",0.6)
 	check(sound.play_spell("wildgrowth") and sound.spell.playing,"Wildgrowth plays its dedicated one-shot sound")
 	check(not sound.play_spell("unknown"),"unimplemented spells do not borrow another spell's sound")
+	check(sound.music_theme_for("farm","summer","sunny",false)=="summer" and sound.music_theme_for("town","spring","rainy",false)=="rain","outdoor music follows the season, and rainy days get rain songs")
+	check(sound.music_theme_for("farm","winter","rainy",false)=="winter","winter rain falls as snow, so winter songs keep playing")
+	check(sound.music_theme_for("cave","summer","rainy",false)=="cave" and sound.music_theme_for("ship","spring","sunny",false)=="ship" and sound.music_theme_for("farm","spring","sunny",true)=="ship","caves, the ship and the intro cutscene have their own music")
+	var themes=["spring","summer","autumn","winter","rain","cave","ship"]
+	check(themes.all(func(theme):return not sound.tracks_for_theme(theme).is_empty()),"every theme has songs to play")
+	var songs=sound.music_tracks.keys().filter(func(id):return id!="original")
+	check(songs.all(func(id):
+		var stream=AudioStreamOggVorbis.load_from_file(sound.music_tracks[id].path)
+		return stream!=null and stream.get_length()>120),"every generated song loads as a full-length piece")
+	check(sound.music_tracks[sound.music_track].theme=="spring","a spring day outdoors plays a spring song")
+	for i in range(4): sound.update_music("summer",0.5)
+	check(sound.music_tracks[sound.music_track].theme=="summer" and not sound.music.stream.loop,"summer songs take over and hand over to the next song instead of repeating")
+	var summer_song=sound.music_track
+	sound.update_music("winter",0.5)
+	check(sound.music_track==summer_song and sound.music_fade<1.0,"a change of theme fades the current song out first")
+	for i in range(4): sound.update_music("winter",0.5)
+	check(sound.music_tracks[sound.music_track].theme=="winter","once faded out, a winter song takes over")
+	var winter_song=sound.music_track
+	sound._on_music_finished()
+	check(sound.music_track!=winter_song and sound.music_tracks[sound.music_track].theme=="winter","when a song ends, a different song of the same theme follows")
+	check(sound.choose_music("cave_1") and sound.music_track=="cave_1" and sound.music.stream.loop,"choosing a song plays it on repeat")
+	sound.update_music("summer",5.0)
+	check(sound.music_track=="cave_1" and sound.music_fade==1.0,"a chosen song stays put whatever the season")
+	check(not sound.choose_music("missing") and sound.music_choice=="cave_1","unknown track names leave the current music alone")
+	sound.choose_music("auto")
+	sound.set_cinematic(true)
+	check(sound.music_tracks[sound.music_track].theme=="ship","the intro cutscene starts the ship music right away")
+	sound.set_cinematic(false)
+	await process_frame
+	check(sound.music.playing,"switching songs keeps the music playing")
+	sound.choose_music("winter_2")
 	sound.testing=false
 	sound.set_level("music",0.22)
 	sound.set_level("ambience",0.41)
@@ -62,8 +93,10 @@ func run() -> void:
 	sound.set_level("music",1.0)
 	sound.set_level("ambience",1.0)
 	sound.set_level("effects",1.0)
+	sound.choose_music("auto")
 	sound.load_preferences()
 	check(is_equal_approx(sound.music_level,0.22) and is_equal_approx(sound.ambience_level,0.41) and is_equal_approx(sound.effects_level,0.55),"all three volume preferences survive file save and reload")
+	check(sound.music_choice=="winter_2","the chosen music survives file save and reload")
 	check(DirAccess.remove_absolute(sound.config_file)==OK,"isolated audio preference test stays inside project and cleans up")
 	for name in sound.TRACKS:
 		var stream=sound.streams[name]

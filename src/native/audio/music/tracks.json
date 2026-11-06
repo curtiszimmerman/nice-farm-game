@@ -1,0 +1,72 @@
+{
+  "autumn_1": {
+    "label": "Harvest Baskets",
+    "theme": "autumn",
+    "file": "autumn_1.ogg"
+  },
+  "autumn_2": {
+    "label": "Chimney Smoke",
+    "theme": "autumn",
+    "file": "autumn_2.ogg"
+  },
+  "cave_1": {
+    "label": "Dripping Crystals",
+    "theme": "cave",
+    "file": "cave_1.ogg"
+  },
+  "cave_2": {
+    "label": "Lantern in the Mine",
+    "theme": "cave",
+    "file": "cave_2.ogg"
+  },
+  "rain_1": {
+    "label": "Tea by the Window",
+    "theme": "rain",
+    "file": "rain_1.ogg"
+  },
+  "rain_2": {
+    "label": "Puddle Waltz",
+    "theme": "rain",
+    "file": "rain_2.ogg"
+  },
+  "ship_1": {
+    "label": "Starship Hum",
+    "theme": "ship",
+    "file": "ship_1.ogg"
+  },
+  "spring_1": {
+    "label": "Meadow Morning",
+    "theme": "spring",
+    "file": "spring_1.ogg"
+  },
+  "spring_2": {
+    "label": "Village Path",
+    "theme": "spring",
+    "file": "spring_2.ogg"
+  },
+  "spring_3": {
+    "label": "First Sprouts",
+    "theme": "spring",
+    "file": "spring_3.ogg"
+  },
+  "summer_1": {
+    "label": "Village Square",
+    "theme": "summer",
+    "file": "summer_1.ogg"
+  },
+  "summer_2": {
+    "label": "Fireflies",
+    "theme": "summer",
+    "file": "summer_2.ogg"
+  },
+  "winter_1": {
+    "label": "Fresh Snow",
+    "theme": "winter",
+    "file": "winter_1.ogg"
+  },
+  "winter_2": {
+    "label": "Starry Village",
+    "theme": "winter",
+    "file": "winter_2.ogg"
+  }
+}

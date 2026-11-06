@@ -69,6 +69,14 @@ func run() -> void:
 	check(game.state.season_name()=="summer" and game.world.audio_context(game.state.player_position).season=="summer","season jump updates calendar and environmental audio together")
 	game.state.day=SEASON_DAYS*4+1
 	check(game.state.season_name()=="spring" and game.state.calendar_year()==2,"development calendar wraps seasons into a new year")
+	game.development_tools()
+	var dropdowns=game.ui.modal_box.find_children("*","OptionButton",true,false)
+	check(dropdowns.size()==1 and dropdowns[0].item_count==game.sound.music_tracks.size()+1 and dropdowns[0].get_item_text(dropdowns[0].selected).begins_with("Automatic"),"development menu lists automatic music and every song in a dropdown")
+	if dropdowns.size()==1:
+		var cave=range(dropdowns[0].item_count).filter(func(i):return dropdowns[0].get_item_text(i).begins_with("Cave"))[0]
+		dropdowns[0].select(cave)
+		dropdowns[0].item_selected.emit(cave)
+		check(game.sound.music_tracks[game.sound.music_choice].theme=="cave" and game.sound.music_track==game.sound.music_choice,"picking a song from the dropdown plays it")
 	game.close_window()
 	game.ui.update()
 	check(game.ui.date.text=="01" and game.ui.season_word.text=="SPRING","calendar displays the day beside its separate season label")

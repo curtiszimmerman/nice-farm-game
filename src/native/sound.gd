@@ -3,6 +3,10 @@ extends Node
 signal lightning
 
 const TRACKS = ["music","birds","crickets","drips","wildgrowth","ship","crash","laser","laser_hit","explosion","rain","thunder","mining"]
+# The original theme is built by make_audio.py. The other songs come from generate_music.py, which
+# stores them as Ogg Vorbis and lists each one's theme and menu label in this manifest.
+const MUSIC_MANIFEST = "res://audio/music/tracks.json"
+const MUSIC_FADE_SECONDS = 1.5
 var mining: AudioStreamPlayer
 var rain: AudioStreamPlayer
 var thunder: AudioStreamPlayer
@@ -22,6 +26,15 @@ var crickets: AudioStreamPlayer
 var drips: AudioStreamPlayer
 var spell: AudioStreamPlayer
 var streams: Dictionary = {}
+# id -> {label, theme, path}
+var music_tracks: Dictionary = {}
+# "auto" shuffles songs that suit the moment; a track id plays only that song, on repeat.
+var music_choice = "auto"
+var music_track = ""
+var music_theme = ""
+var wanted_theme = "spring"
+var music_fade = 1.0
+var music_rng = RandomNumberGenerator.new()
 var music_level = 0.35
 var ambience_level = 0.65
 var effects_level = 0.65
@@ -31,6 +44,8 @@ var current_mix = {"birds":0.0,"crickets":0.0,"drips":0.0}
 
 func _ready() -> void:
 	weather_rng.randomize()
+	music_rng.randomize()
+	load_music_tracks()
 	for name in TRACKS:
 		var stream=AudioStreamWAV.load_from_file("res://audio/"+name+".wav")
 		if name not in ["wildgrowth","crash","laser","laser_hit","explosion","thunder","mining"]:
@@ -38,6 +53,7 @@ func _ready() -> void:
 			stream.loop_end=stream.data.size()/2
 		streams[name]=stream
 	music=_player("music")
+	music.finished.connect(_on_music_finished)
 	birds=_player("birds")
 	crickets=_player("crickets")
 	drips=_player("drips")
@@ -72,7 +88,74 @@ func mix_for(minute: float,environment: String,season: String,cave_weight = 0.0)
 	var shelter=clampf(cave_weight,0.0,1.0)
 	return {"birds":day*bird_season*(1.0-shelter),"crickets":(1.0-day)*insect_season*(1.0-shelter),"drips":shelter}
 
-func update_context(minute: float,environment: String,season: String,cave_weight: float,dt: float) -> void:
+func load_music_tracks() -> void:
+	music_tracks={"original":{"label":"Original","theme":"spring","path":"res://audio/music.wav"}}
+	if not FileAccess.file_exists(MUSIC_MANIFEST): return
+	var manifest=JSON.parse_string(FileAccess.get_file_as_string(MUSIC_MANIFEST))
+	if not manifest is Dictionary: return
+	for id in manifest:
+		var entry=manifest[id]
+		if entry is Dictionary and entry.get("label") is String and entry.get("theme") is String and entry.get("file") is String:
+			music_tracks[id]={"label":entry.label,"theme":entry.theme,"path":MUSIC_MANIFEST.get_base_dir().path_join(entry.file)}
+
+static func music_theme_for(environment: String,season: String,weather: String,in_cutscene: bool) -> String:
+	if in_cutscene or environment=="ship": return "ship"
+	if environment in ["cave","mine"]: return "cave"
+	# Winter rain falls as snow, so it keeps the winter songs.
+	if weather=="rainy" and season!="winter": return "rain"
+	return season
+
+func tracks_for_theme(theme: String) -> Array:
+	return music_tracks.keys().filter(func(id):return music_tracks[id].theme==theme)
+
+func choose_music(choice: String) -> bool:
+	if choice!="auto" and not music_tracks.has(choice): return false
+	music_choice=choice
+	dirty=true
+	if choice=="auto": _play_next_for(wanted_theme)
+	else: _play_track(choice,true)
+	return true
+
+# Picks a random song for the theme, avoiding the one that just played when there's another choice.
+func _play_next_for(theme: String) -> void:
+	var ids=tracks_for_theme(theme)
+	if ids.is_empty(): ids=tracks_for_theme("spring")
+	if ids.size()>1: ids.erase(music_track)
+	music_theme=theme
+	_play_track(ids[music_rng.randi_range(0,ids.size()-1)],false)
+
+func _play_track(id: String,repeat: bool) -> void:
+	var stream: AudioStream
+	if id=="original":
+		stream=streams.music
+		stream.loop_mode=AudioStreamWAV.LOOP_FORWARD if repeat else AudioStreamWAV.LOOP_DISABLED
+	else:
+		stream=AudioStreamOggVorbis.load_from_file(music_tracks[id].path)
+		stream.loop=repeat
+	music.stream=stream
+	music_track=id
+	music_fade=1.0
+	if active: music.play()
+	_apply_volumes()
+
+func _on_music_finished() -> void:
+	if music_choice=="auto" and active: _play_next_for(wanted_theme)
+
+# Fades the current song out when the moment calls for a different theme, then starts one that fits.
+func update_music(theme: String,dt: float) -> void:
+	wanted_theme=theme
+	if music_choice!="auto": return
+	if music_track=="":
+		_play_next_for(theme)
+		return
+	if theme!=music_theme:
+		music_fade=maxf(0.0,music_fade-dt/MUSIC_FADE_SECONDS)
+		if music_fade==0.0: _play_next_for(theme)
+	else: music_fade=minf(1.0,music_fade+dt/MUSIC_FADE_SECONDS)
+	_apply_volumes()
+
+func update_context(minute: float,environment: String,season: String,cave_weight: float,dt: float,weather: String="") -> void:
+	update_music(music_theme_for(environment,season,weather,cinematic),dt)
 	var target=mix_for(minute,environment,season,cave_weight)
 	var blend=1.0-exp(-dt*1.8)
 	ship_weight=lerpf(ship_weight,1.0 if environment=="ship" else 0.0,blend)
@@ -103,7 +186,7 @@ func update_weather(mode: String,outdoors: bool,dt: float,allow_lightning: bool=
 	_apply_volumes()
 
 func _apply_volumes() -> void:
-	music.volume_db=_db(music_level*(1.0-ship_weight) if not cinematic else 0.0)
+	music.volume_db=_db(music_level*music_fade)
 	ship.volume_db=_db(ambience_level*ship_weight if not cinematic else 0.0)
 	crash.volume_db=_db(effects_level)
 	birds.volume_db=_db(ambience_level*current_mix.birds if not cinematic else 0.0)
@@ -117,6 +200,10 @@ func _apply_volumes() -> void:
 
 func set_cinematic(value: bool) -> void:
 	cinematic=value
+	# The intro doesn't update the sound context, so its ship music has to start right away.
+	if value and music_choice=="auto" and music_theme!="ship":
+		wanted_theme="ship"
+		_play_next_for("ship")
 	_apply_volumes()
 
 func start() -> void:
@@ -167,6 +254,8 @@ func load_preferences() -> void:
 	for name in ["music","ambience","effects"]:
 		var value=config.get_value("volume",name,null)
 		if (value is float or value is int) and is_finite(float(value)): set_level(name,value)
+	var choice=config.get_value("music","choice","auto")
+	if choice is String: choose_music(choice)
 	dirty=false
 
 func save_preferences() -> void:
@@ -175,4 +264,5 @@ func save_preferences() -> void:
 	config.set_value("volume","music",music_level)
 	config.set_value("volume","ambience",ambience_level)
 	config.set_value("volume","effects",effects_level)
+	config.set_value("music","choice",music_choice)
 	if config.save(preferences_path())==OK: dirty=false

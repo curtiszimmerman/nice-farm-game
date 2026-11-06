@@ -280,7 +280,7 @@ func _process(dt: float) -> void:
 		save_visit()
 	if elapsed>message_until: ui.message.text=""
 	var context=world.audio_context(state.player_position)
-	sound.update_context(state.minute,context.environment,context.season,context.cave_weight,dt)
+	sound.update_context(state.minute,context.environment,context.season,context.cave_weight,dt,state.weather_name())
 	update_weather_sound(dt)
 	world.refresh()
 	camera.position = state.player_position.round()+Vector2(20,-5)
@@ -1706,6 +1706,17 @@ func development_tools() -> void:
 		["Restore vitals, grant tools and 100,000 crowns",development_supplies],
 		["Stock farmhouse chest with 500 basic materials each",development_materials],
 		["Back to settings",settings]])
+	# The music list sits right after the Weather button.
+	var music=development_music_options()
+	ui.add_modal_dropdown("Music",music,music.find_custom(func(option):return option[1]==sound.music_choice),func(choice):
+		sound.choose_music(choice)
+		sound.save_preferences(),8)
+
+func development_music_options() -> Array:
+	var options=[["Automatic · shuffles by season, weather and place","auto"]]
+	for theme in ["spring","summer","autumn","winter","rain","cave","ship"]:
+		for id in sound.tracks_for_theme(theme): options.append([theme.capitalize()+" · "+sound.music_tracks[id].label,id])
+	return options
 
 func development_materials() -> void:
 	for id in ["wood","stones","coal","copper","star_bulbs","turnips","seeds"]:
