@@ -12,6 +12,21 @@ func run() -> void:
 	game.set_process(false)
 	game.begin()
 	var opening=game.opening
+	check(opening.has_method("play_battle_event"),"incoming impacts can rock the bridge alongside their sound")
+	if opening.has_method("play_battle_event"):
+		var rocked=0
+		for i in range(200):
+			opening.set("shake_remaining",0.0)
+			opening.call("play_battle_event",{"sound":"laser_hit","friendly":false})
+			if opening.get("shake_remaining")>0: rocked+=1
+		check(rocked>70 and rocked<130,"roughly half the incoming impacts rock the bridge")
+		opening.set("shake_remaining",0.0)
+		opening.call("play_battle_event",{"sound":"laser_hit","friendly":true})
+		check(opening.get("shake_remaining")==0,"hits on the enemy do not rock the crew's bridge")
+		opening.set("shake_remaining",0.2)
+		check(opening.call("bridge_offset").length()>0,"an active impact produces a small bridge displacement")
+		opening._process(0.4)
+		check(opening.call("bridge_offset")==Vector2.ZERO,"the bridge settles promptly after impact")
 	check(opening.has_method("battle_events"),"battle sounds follow the same timeline as visible laser bolts")
 	if opening.has_method("battle_events"):
 		var first=opening.battle_events(-0.001,0.9)

@@ -15,6 +15,8 @@ var battle_clock=0.0
 var battle_started=false
 var shot_times: Array=[]
 var finished=false
+var shake_remaining=0.0
+var impact_rng=RandomNumberGenerator.new()
 var view: Control
 
 class View extends Control:
@@ -33,6 +35,7 @@ func _ready() -> void:
 	rng.randomize()
 	for i in range(120): stars.append({"pos":Vector2(rng.randf_range(0,1280),rng.randf_range(0,570)),"speed":rng.randf_range(3,11),"size":rng.randi_range(1,2),"alpha":rng.randf_range(0.35,1)})
 	rng.seed=game.state.world_seed
+	impact_rng.seed=hash("bridge-impacts:%s" % game.state.world_seed)
 	for side in [false,true]:
 		var clusters=[3.4,6.4,9.7,12.9,15.8] if not side else [9.25,12.0,15.0]
 		for cluster in clusters:
@@ -85,6 +88,7 @@ func caption_at(time: float) -> String:
 
 func _process(dt: float) -> void:
 	if finished: return
+	shake_remaining=maxf(0,shake_remaining-dt)
 	animation_time+=dt
 	if caption_step<CAPTION_TIMES.size()-1: elapsed=minf(elapsed+dt,CAPTION_TIMES[caption_step+1]-0.001)
 	else: elapsed+=dt
@@ -94,7 +98,7 @@ func _process(dt: float) -> void:
 		battle_clock+=dt
 		for event in battle_events(previous,battle_clock):
 			if event.friendly and not battle_at(elapsed).return_fire: continue
-			game.sound.play_battle(event.sound,event.friendly)
+			play_battle_event(event)
 	if elapsed>=18 and not explosion_played:
 		explosion_played=true
 		game.sound.play_battle("explosion")
@@ -149,6 +153,7 @@ func paint(c: CanvasItem) -> void:
 			w.oval(c,1100,600,265,240,"799a76")
 	else:
 		# The bridge is intact before impact, with the captain seated at its center.
+		c.draw_set_transform(bridge_offset())
 		w.poly(c,[Vector2(80,520),Vector2(250,190),Vector2(1030,190),Vector2(1200,520)],"728187")
 		w.r(c,130,110,1020,170,"a2ada9")
 		w.r(c,165,125,950,132,"192f48")
@@ -177,18 +182,30 @@ func paint(c: CanvasItem) -> void:
 		w.r(c,677,408,20,44,"9faba3")
 		w.r(c,601,447,78,25,"4d666d")
 		w.r(c,616,442,50,5,"8d9c98")
-		c.draw_set_transform(Vector2(410,465),0,Vector2.ONE*2)
+		c.draw_set_transform(Vector2(410,465)+bridge_offset(),0,Vector2.ONE*2)
 		w.paint_person(c,{"id":"vale","coat":"8b9baf","hair":"b5a68e","skin":"a97959"},0,"right")
-		c.draw_set_transform(Vector2.ZERO)
+		c.draw_set_transform(bridge_offset())
 		if elapsed>=12.5:
 			for x in [110,1140]: w.r(c,x,285,20,45,"b67972" if sin(elapsed*5)>0 else "614c52")
 			c.draw_rect(Rect2(0,0,1280,620),Color(0.8,0.3,0.2,0.05+maxf(0,sin(elapsed*8))*0.06))
+	c.draw_set_transform(Vector2.ZERO)
 	w.r(c,0,0,1280,75,"090f20")
 	w.r(c,0,572,1280,148,"090f20")
 	var caption=caption_at(elapsed)
 	c.draw_multiline_string(preload("res://pixel_ui.gd").font(),Vector2(115,626),caption,HORIZONTAL_ALIGNMENT_CENTER,1050,22,-1,Color("eee6cf"))
 	paint_continue_hint(c)
 	if whiteout_alpha()>0: c.draw_rect(Rect2(0,0,1280,720),Color(1,1,1,whiteout_alpha()))
+
+func play_battle_event(event: Dictionary) -> void:
+	game.sound.play_battle(event.sound,event.friendly)
+	if event.sound=="laser_hit" and not event.friendly and impact_rng.randf()<0.5:
+		shake_remaining=0.28
+
+func bridge_offset() -> Vector2:
+	if shake_remaining<=0: return Vector2.ZERO
+	var age=0.28-shake_remaining
+	var strength=shake_remaining/0.28
+	return Vector2(roundf(sin(age*83+1)*4*strength),roundf(sin(age*109+2)*3*strength))
 
 func paint_pixels(c: CanvasItem) -> void:
 	var scene=scene_at(elapsed)
@@ -211,8 +228,10 @@ func paint_pixels(c: CanvasItem) -> void:
 		if elapsed>=18:
 			Art.sprite(c,"explosion"+str(int(animation_time*8)%6),center+Vector2(-150,10),Vector2(48,48))
 	else:
+		c.draw_set_transform(bridge_offset())
 		Art.sprite(c,"bridge",Vector2.ZERO,Vector2(1280,620))
 		paint_bridge_details(c)
+		c.draw_set_transform(Vector2.ZERO)
 	c.draw_rect(Rect2(0,0,1280,75),Color("090f20"))
 	c.draw_rect(Rect2(0,572,1280,148),Color("090f20"))
 	c.draw_multiline_string(preload("res://pixel_ui.gd").font(),Vector2(115,626),caption_at(elapsed),HORIZONTAL_ALIGNMENT_CENTER,1050,22,-1,Color("eee6cf"))
