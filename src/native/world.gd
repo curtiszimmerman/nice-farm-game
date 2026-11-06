@@ -774,21 +774,38 @@ func refresh() -> void:
 				if child.data.bloom!=bloom: child.data.bloom=bloom; child.queue_redraw()
 			elif child.kind in ["tree","building"] and not child.data.get("falling",false):
 				var hidden=prop_hides_player(child)
-				child.modulate.a=move_toward(child.modulate.a,0.22 if hidden else 1.0,0.14)
+				child.modulate.a=move_toward(child.modulate.a,0.22,0.14) if hidden else 1.0
+
+func player_behind(bounds: Rect2,baseline: float) -> bool:
+	var feet=state.player_position
+	return feet.y<baseline and feet.x>=bounds.position.x and feet.x<bounds.end.x and feet.y>bounds.position.y and feet.y-44<bounds.end.y
 
 func prop_hides_player(prop: Prop) -> bool:
 	if state.player_position.y>=prop.position.y: return false
 	var bounds: Rect2
+	var sprite=""
 	if prop.kind=="tree":
 		if Art.option==2:
-			return Rect2(prop.position+Vector2(-48,-Art.sprite_size(Art.tree_id(prop.data)).y),Vector2(96,Art.sprite_size(Art.tree_id(prop.data)).y)).has_point(state.player_position-Vector2(0,20))
-		var scale_factor=prop.data.size
-		bounds=Rect2(prop.position+Vector2(-34,-92)*scale_factor,Vector2(68,94)*scale_factor)
+			sprite=Art.tree_id(prop.data)
+			var size=Art.sprite_size(sprite)
+			bounds=Rect2(prop.position+Vector2(-48,-size.y+5),size)
+		else:
+			var scale_factor=prop.data.size
+			bounds=Rect2(prop.position+Vector2(-34,-92)*scale_factor,Vector2(68,94)*scale_factor)
 	elif prop.kind=="building":
 		var height=prop.data.get("visual_height",prop.data.h)
-		bounds=Rect2(prop.position+Vector2(-14,-height-80),Vector2(prop.data.w+28,height+90))
+		bounds=Rect2(prop.position+Vector2(0,-height-80),Vector2(prop.data.w,height+80))
 	else: return false
-	return bounds.intersects(Rect2(state.player_position-Vector2(12,44),Vector2(24,46)))
+	if not player_behind(bounds,prop.position.y): return false
+	if sprite!="":
+		var source=Art.region(sprite)
+		for height in [36,20,8]:
+			var point=state.player_position-Vector2(0,height)
+			if not bounds.has_point(point): continue
+			var pixel=source.position+(point-bounds.position)*source.size/bounds.size
+			if Art.pixels.get_pixel(int(pixel.x),int(pixel.y)).a>0.5: return true
+		return false
+	return true
 
 func target_plot() -> int:
 	for index in range(state.plots.size()):
