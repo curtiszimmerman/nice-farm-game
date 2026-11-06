@@ -155,6 +155,38 @@ def wildgrowth():
     return track
 
 
+def wreck():
+    """Sparse sounds of the damaged ship on the first visit: sputtering sparks, soft console
+    chirps and the odd metal tick as the hull cools. Mostly quiet, with no sustained drone."""
+    track = buffer(41)
+    random = Random(7)
+    # Sparks are short bursts of crackling noise, a few pops close together.
+    for start in [2.4, 11.8, 19.5, 30.2, 36.6]:
+        for pop in range(random.randint(3, 6)):
+            burst = buffer(.05)
+            for i in range(len(burst)):
+                t = i / RATE
+                burst[i] = random.uniform(-1, 1) * exp(-t * 90) * .16
+            add(track, start + pop * random.uniform(.03, .11), burst)
+    # Console chirps are two quiet rising tones, like a system still trying to report in.
+    for start, low in [(6.1, 740), (16.4, 880), (25.7, 660), (33.9, 784)]:
+        for step, hz in enumerate([low, low * 1.5]):
+            tone = buffer(.11)
+            for i in range(len(tone)):
+                t = i / RATE
+                tone[i] = sin(TAU * hz * t) * sin(pi * t / .11) ** 2 * .05
+            add(track, start + step * .14, tone)
+    # The hull ticks as it cools: a low, damped knock with a short ringing tail.
+    for start in [8.9, 22.3, 28.8]:
+        knock = buffer(.6)
+        pitch = random.uniform(180, 260)
+        for i in range(len(knock)):
+            t = i / RATE
+            knock[i] = (sin(TAU * pitch * t) + .4 * sin(TAU * pitch * 2.7 * t)) * exp(-t * 9) * (1 - exp(-t * 900)) * .09
+        add(track, start, knock)
+    return track
+
+
 def write(name, samples):
     # Short boundary fades prevent clicks at loop seams without a sustained drone.
     fade = min(round(.02 * RATE), len(samples) // 2)
@@ -173,20 +205,6 @@ def write(name, samples):
         wav.setframerate(RATE)
         wav.writeframes(pcm.tobytes())
     print(f"{name}: {len(samples)/RATE:.1f}s, peak {peak:.3f}")
-
-
-def ship():
-    track = buffer(16)
-    for i in range(len(track)):
-        t = i / RATE
-        track[i] = (sin(TAU * 55 * t) * .10 + sin(TAU * 110 * t) * .025 + sin(TAU * 82.5 * t) * .018) * (1 + .12 * sin(TAU * .25 * t))
-    for start, hz in [(2.1, 880), (2.32, 1100), (7.7, 660), (11.2, 990), (11.5, 740)]:
-        tone = buffer(.12)
-        for i in range(len(tone)):
-            t = i / RATE
-            tone[i] = sin(TAU * hz * t) * sin(pi * t / .12) ** 2 * .035
-        add(track, start, tone)
-    return track
 
 
 def crash():
@@ -273,10 +291,10 @@ def mining():
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--only", choices=["music", "birds", "crickets", "drips", "wildgrowth", "ship", "crash", "laser", "laser_hit", "explosion", "rain", "thunder", "mining"], help="Rebuild one sound instead of all assets.")
+    parser.add_argument("--only", choices=["music", "birds", "crickets", "drips", "wildgrowth", "wreck", "crash", "laser", "laser_hit", "explosion", "rain", "thunder", "mining"], help="Rebuild one sound instead of all assets.")
     args = parser.parse_args()
     OUTPUT.mkdir(parents=True, exist_ok=True)
-    for name, build in {"music": music, "birds": birds, "crickets": crickets, "drips": drips, "wildgrowth": wildgrowth, "ship": ship, "crash": crash, "laser": laser, "laser_hit": laser_hit, "explosion": explosion, "rain": rain, "thunder": thunder, "mining": mining}.items():
+    for name, build in {"music": music, "birds": birds, "crickets": crickets, "drips": drips, "wildgrowth": wildgrowth, "wreck": wreck, "crash": crash, "laser": laser, "laser_hit": laser_hit, "explosion": explosion, "rain": rain, "thunder": thunder, "mining": mining}.items():
         if args.only is None or args.only == name:
             write(name, build())
 

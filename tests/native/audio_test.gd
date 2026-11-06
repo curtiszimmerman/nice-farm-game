@@ -57,6 +57,8 @@ func run() -> void:
 	check(sound.music_theme_for("farm","summer","sunny")=="summer" and sound.music_theme_for("town","spring","rainy")=="rain","outdoor music follows the season, and rainy days get rain songs")
 	check(sound.music_theme_for("farm","winter","rainy")=="winter","winter rain falls as snow, so winter songs keep playing")
 	check(sound.music_theme_for("cave","summer","rainy")=="cave" and sound.music_theme_for("ship","spring","sunny")=="ship","caves and the ship interior have their own music")
+	check(sound.music_theme_for("wreck","spring","sunny")=="","the first visit to the wrecked ship has no music")
+	check(sound.mix_for(720.0,"wreck","spring").wreck==1.0 and sound.mix_for(720.0,"ship","spring").wreck==0.0 and sound.mix_for(720.0,"farm","spring").wreck==0.0,"wreck sounds belong to the first visit aboard only")
 	var themes=["spring","summer","autumn","winter","rain","cave","ship"]
 	check(themes.all(func(theme):return not sound.tracks_for_theme(theme).is_empty()),"every theme has songs to play")
 	var songs=sound.music_tracks.keys().filter(func(id):return id!="original")

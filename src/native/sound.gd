@@ -2,7 +2,7 @@ extends Node
 
 signal lightning
 
-const TRACKS = ["music","birds","crickets","drips","wildgrowth","ship","crash","laser","laser_hit","explosion","rain","thunder","mining"]
+const TRACKS = ["music","birds","crickets","drips","wreck","wildgrowth","crash","laser","laser_hit","explosion","rain","thunder","mining"]
 # The original theme is built by make_audio.py. The other songs come from generate_music.py, which
 # stores them as Ogg Vorbis and lists each one's theme and menu label in this manifest.
 const MUSIC_MANIFEST = "res://audio/music/tracks.json"
@@ -17,13 +17,12 @@ var weather_rng=RandomNumberGenerator.new()
 var battle: Dictionary={}
 var crash: AudioStreamPlayer
 var cinematic=false
-var ship: AudioStreamPlayer
-var ship_weight=0.0
 var testing = false
 var music: AudioStreamPlayer
 var birds: AudioStreamPlayer
 var crickets: AudioStreamPlayer
 var drips: AudioStreamPlayer
+var wreck: AudioStreamPlayer
 var spell: AudioStreamPlayer
 var streams: Dictionary = {}
 # id -> {label, theme, path}
@@ -40,7 +39,7 @@ var ambience_level = 0.65
 var effects_level = 0.65
 var dirty = false
 var active = false
-var current_mix = {"birds":0.0,"crickets":0.0,"drips":0.0}
+var current_mix = {"birds":0.0,"crickets":0.0,"drips":0.0,"wreck":0.0}
 
 func _ready() -> void:
 	weather_rng.randomize()
@@ -57,7 +56,7 @@ func _ready() -> void:
 	birds=_player("birds")
 	crickets=_player("crickets")
 	drips=_player("drips")
-	ship=_player("ship")
+	wreck=_player("wreck")
 	crash=_player("crash")
 	spell=_player("wildgrowth")
 	rain=_player("rain")
@@ -79,14 +78,14 @@ func _player(track: String) -> AudioStreamPlayer:
 	return player
 
 func mix_for(minute: float,environment: String,season: String,cave_weight = 0.0) -> Dictionary:
-	if environment=="ship": return {"birds":0.0,"crickets":0.0,"drips":0.0}
-	if environment=="indoors": return {"birds":0.0,"crickets":0.0,"drips":0.0}
-	if environment in ["cave","mine"]: return {"birds":0.0,"crickets":0.0,"drips":1.0}
+	if environment=="wreck": return {"birds":0.0,"crickets":0.0,"drips":0.0,"wreck":1.0}
+	if environment in ["ship","indoors"]: return {"birds":0.0,"crickets":0.0,"drips":0.0,"wreck":0.0}
+	if environment in ["cave","mine"]: return {"birds":0.0,"crickets":0.0,"drips":1.0,"wreck":0.0}
 	var day=smoothstep(330.0,420.0,minute)*(1.0-smoothstep(1110.0,1200.0,minute))
 	var bird_season={"spring":1.0,"summer":0.85,"autumn":0.25,"winter":0.25}.get(season,1.0)
 	var insect_season={"spring":0.55,"summer":1.0,"autumn":0.65,"winter":0.0}.get(season,0.55)
 	var shelter=clampf(cave_weight,0.0,1.0)
-	return {"birds":day*bird_season*(1.0-shelter),"crickets":(1.0-day)*insect_season*(1.0-shelter),"drips":shelter}
+	return {"birds":day*bird_season*(1.0-shelter),"crickets":(1.0-day)*insect_season*(1.0-shelter),"drips":shelter,"wreck":0.0}
 
 func load_music_tracks() -> void:
 	music_tracks={"original":{"label":"Original","theme":"spring","path":"res://audio/music.wav"}}
@@ -98,7 +97,9 @@ func load_music_tracks() -> void:
 		if entry is Dictionary and entry.get("label") is String and entry.get("theme") is String and entry.get("file") is String:
 			music_tracks[id]={"label":entry.label,"theme":entry.theme,"path":MUSIC_MANIFEST.get_base_dir().path_join(entry.file)}
 
+# An empty theme means no music at all.
 static func music_theme_for(environment: String,season: String,weather: String) -> String:
+	if environment=="wreck": return ""
 	if environment=="ship": return "ship"
 	if environment in ["cave","mine"]: return "cave"
 	# Winter rain falls as snow, so it keeps the winter songs.
@@ -137,7 +138,7 @@ func _play_track(id: String,repeat: bool) -> void:
 	_apply_volumes()
 
 func _on_music_finished() -> void:
-	if active and _chosen_song(wanted_theme)=="": _play_next_for(wanted_theme)
+	if active and wanted_theme!="" and _chosen_song(wanted_theme)=="": _play_next_for(wanted_theme)
 
 # The song that should play right now: inside the ship it's always the ship music, elsewhere a
 # chosen song wins, and "" means any song of the current theme will do.
@@ -148,6 +149,10 @@ func _chosen_song(theme: String) -> String:
 # fades it in. This also brings the music back up after the cutscene.
 func update_music(theme: String,dt: float) -> void:
 	wanted_theme=theme
+	if theme=="":
+		music_fade=maxf(0.0,music_fade-dt/MUSIC_FADE_SECONDS)
+		_apply_volumes()
+		return
 	var chosen=_chosen_song(theme)
 	var fits=music_track==chosen if chosen!="" else music_track!="" and theme==music_theme
 	if music_track=="": _play_fitting(theme)
@@ -170,7 +175,6 @@ func update_context(minute: float,environment: String,season: String,cave_weight
 	update_music(music_theme_for(environment,season,weather),dt)
 	var target=mix_for(minute,environment,season,cave_weight)
 	var blend=1.0-exp(-dt*1.8)
-	ship_weight=lerpf(ship_weight,1.0 if environment=="ship" else 0.0,blend)
 	for name in current_mix: current_mix[name]=lerpf(current_mix[name],target[name],blend)
 	_apply_volumes()
 
@@ -199,11 +203,11 @@ func update_weather(mode: String,outdoors: bool,dt: float,allow_lightning: bool=
 
 func _apply_volumes() -> void:
 	music.volume_db=_db(music_level*music_fade if not cinematic else 0.0)
-	ship.volume_db=_db(ambience_level*ship_weight if not cinematic else 0.0)
 	crash.volume_db=_db(effects_level)
 	birds.volume_db=_db(ambience_level*current_mix.birds if not cinematic else 0.0)
 	crickets.volume_db=_db(ambience_level*current_mix.crickets if not cinematic else 0.0)
 	drips.volume_db=_db(ambience_level*current_mix.drips if not cinematic else 0.0)
+	wreck.volume_db=_db(ambience_level*current_mix.wreck if not cinematic else 0.0)
 	spell.volume_db=_db(effects_level)
 	mining.volume_db=_db(effects_level if not cinematic else 0.0)
 	rain.volume_db=_db(ambience_level*rain_weight if not cinematic else 0.0)
@@ -220,11 +224,11 @@ func set_cinematic(value: bool) -> void:
 func start() -> void:
 	if active: return
 	active=true
-	for player in [music,birds,crickets,drips,ship,rain]: player.play()
+	for player in [music,birds,crickets,drips,wreck,rain]: player.play()
 
 func stop() -> void:
 	active=false
-	for player in [music,birds,crickets,drips,ship,spell,crash,rain,thunder,mining]: player.stop()
+	for player in [music,birds,crickets,drips,wreck,spell,crash,rain,thunder,mining]: player.stop()
 	for player in battle.values(): player.stop()
 
 func shutdown() -> void:

@@ -186,7 +186,10 @@ func wall_can_fade(wall: Wall) -> bool:
 func target_plot() -> int: return -1
 func in_water(_p: Vector2) -> bool: return false
 func audio_context(_p: Vector2) -> Dictionary:
-	return {"environment":"ship" if building.id=="ship" else "indoors","season":state.season_name(),"cave_weight":0.0}
+	# Until the captain first steps outside, the ship still sounds like a fresh wreck.
+	var environment="indoors"
+	if building.id=="ship": environment="ship" if state.ship_departed else "wreck"
+	return {"environment":environment,"season":state.season_name(),"cave_weight":0.0}
 
 func prepare_departures() -> void:
 	for id in villagers:

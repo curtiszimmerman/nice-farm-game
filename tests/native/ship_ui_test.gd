@@ -44,9 +44,16 @@ func run() -> void:
 		if item.kind in ["reactor","machine","console"] and item.bounds.position.y<7: separated=false
 	check(separated,"bunks and supplies occupy the upper rear while broken machinery stays in front")
 	check(game.world.villagers.vale.visible,"Vale works inside the damaged ship")
-	check(game.world.audio_context(Vector2.ZERO).environment=="ship","ship requests engineering ambience")
+	game.state.ship_departed=false
+	check(game.world.audio_context(Vector2.ZERO).environment=="wreck","the first visit aboard sounds like a fresh wreck")
+	for i in range(5): game.sound.update_context(720,"wreck","spring",0,1)
+	var first_visit=game.sound.get_children().filter(func(player):return player is AudioStreamPlayer and player.playing and player.volume_db>-79)
+	check(first_visit==[game.sound.wreck],"the first visit has sparks and console chirps but no music")
+	game.state.ship_departed=true
+	check(game.world.audio_context(Vector2.ZERO).environment=="ship","later visits aboard are the settled ship")
 	game.sound.update_context(720,"ship","spring",0,10)
-	check(game.sound.ship.playing and game.sound.ship.volume_db>-79 and game.sound.birds.volume_db<-70,"engineering hum plays while wildlife fades out")
+	var audible=game.sound.get_children().filter(func(player):return player is AudioStreamPlayer and player.playing and player.volume_db>-79)
+	check(audible==[game.sound.music],"inside the ship the music is the only thing playing")
 	check(game.sound.music_tracks[game.sound.music_track].theme=="ship" and game.sound.music.volume_db>-79,"the ship interior plays its own music")
 	game.begin_rest(240)
 	check(game.resting>0,"crew bunks permit player rest")
