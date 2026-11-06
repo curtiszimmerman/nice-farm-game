@@ -382,7 +382,7 @@ func advance(minutes: float, window_open = false,sleeping: bool=false) -> void:
 		for index in range(plots.size()-1,-1,-1):
 			var plot=plots[index]
 			var rain=weather_name(crop_day)=="rainy"
-			var tended=plot.tilled and plot.planted>=0 and (rain or (plot.watered and plot.water_day==crop_day))
+			var was_planted=plot.planted>=0
 			if posmod(crop_day,DEVELOPMENT_SEASON_DAYS)==0 and plot.planted>=0 and not (CROPS[plot.crop].regrow>0 and ["spring","summer","autumn","winter"][int(crop_day/28.0)%4] in CROPS[plot.crop].seasons):
 				plot.planted=-1.0
 				plot.growth=-1.0
@@ -391,11 +391,14 @@ func advance(minutes: float, window_open = false,sleeping: bool=false) -> void:
 				if rain or (plot.watered and plot.water_day==crop_day):
 					plot.growth=minf(crop_minutes(plot.crop),plot.growth+1440)
 					plot.water_day=crop_day if rain else plot.water_day
-				elif crop_day-int(plot.water_day)>=2:
+				# A ripe crop waits for the harvest; only a growing one withers after two dry days.
+				elif crop_day-int(plot.water_day)>=2 and plot.growth<crop_minutes(plot.crop):
 					plot.planted=-1.0
 					plot.growth=-1.0
 				plot.watered=false
-			plot.idle_days=0 if tended else int(plot.get("idle_days",0))+1
+			# Only an empty plot drifts back to grass, counting from the night after it was cleared,
+			# so a planted field is never lost overnight.
+			plot.idle_days=0 if was_planted else int(plot.get("idle_days",0))+1
 			var decay=RandomNumberGenerator.new()
 			decay.seed=hash("plot-decay:%d:%d:%d" % [world_seed,plot.x,plot.y])
 			if plot.idle_days>=decay.randi_range(1,3):
