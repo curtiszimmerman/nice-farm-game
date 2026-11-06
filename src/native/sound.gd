@@ -98,8 +98,8 @@ func load_music_tracks() -> void:
 		if entry is Dictionary and entry.get("label") is String and entry.get("theme") is String and entry.get("file") is String:
 			music_tracks[id]={"label":entry.label,"theme":entry.theme,"path":MUSIC_MANIFEST.get_base_dir().path_join(entry.file)}
 
-static func music_theme_for(environment: String,season: String,weather: String,in_cutscene: bool) -> String:
-	if in_cutscene or environment=="ship": return "ship"
+static func music_theme_for(environment: String,season: String,weather: String) -> String:
+	if environment=="ship": return "ship"
 	if environment in ["cave","mine"]: return "cave"
 	# Winter rain falls as snow, so it keeps the winter songs.
 	if weather=="rainy" and season!="winter": return "rain"
@@ -112,8 +112,7 @@ func choose_music(choice: String) -> bool:
 	if choice!="auto" and not music_tracks.has(choice): return false
 	music_choice=choice
 	dirty=true
-	if choice=="auto": _play_next_for(wanted_theme)
-	else: _play_track(choice,true)
+	_play_fitting(wanted_theme)
 	return true
 
 # Picks a random song for the theme, avoiding the one that just played when there's another choice.
@@ -134,28 +133,41 @@ func _play_track(id: String,repeat: bool) -> void:
 		stream.loop=repeat
 	music.stream=stream
 	music_track=id
-	music_fade=1.0
 	if active: music.play()
 	_apply_volumes()
 
 func _on_music_finished() -> void:
-	if music_choice=="auto" and active: _play_next_for(wanted_theme)
+	if active and _chosen_song(wanted_theme)=="": _play_next_for(wanted_theme)
 
-# Fades the current song out when the moment calls for a different theme, then starts one that fits.
+# The song that should play right now: inside the ship it's always the ship music, elsewhere a
+# chosen song wins, and "" means any song of the current theme will do.
+func _chosen_song(theme: String) -> String:
+	return music_choice if music_choice!="auto" and theme!="ship" else ""
+
+# Fades the current song out when the moment calls for something else, starts what fits, and
+# fades it in. This also brings the music back up after the cutscene.
 func update_music(theme: String,dt: float) -> void:
 	wanted_theme=theme
-	if music_choice!="auto": return
-	if music_track=="":
-		_play_next_for(theme)
-		return
-	if theme!=music_theme:
+	var chosen=_chosen_song(theme)
+	var fits=music_track==chosen if chosen!="" else music_track!="" and theme==music_theme
+	if music_track=="": _play_fitting(theme)
+	elif not fits:
 		music_fade=maxf(0.0,music_fade-dt/MUSIC_FADE_SECONDS)
-		if music_fade==0.0: _play_next_for(theme)
-	else: music_fade=minf(1.0,music_fade+dt/MUSIC_FADE_SECONDS)
+		if music_fade==0.0: _play_fitting(theme)
+		_apply_volumes()
+		return
+	music_fade=minf(1.0,music_fade+dt/MUSIC_FADE_SECONDS)
 	_apply_volumes()
 
+func _play_fitting(theme: String) -> void:
+	var chosen=_chosen_song(theme)
+	if chosen=="": _play_next_for(theme)
+	else:
+		music_theme=""
+		_play_track(chosen,true)
+
 func update_context(minute: float,environment: String,season: String,cave_weight: float,dt: float,weather: String="") -> void:
-	update_music(music_theme_for(environment,season,weather,cinematic),dt)
+	update_music(music_theme_for(environment,season,weather),dt)
 	var target=mix_for(minute,environment,season,cave_weight)
 	var blend=1.0-exp(-dt*1.8)
 	ship_weight=lerpf(ship_weight,1.0 if environment=="ship" else 0.0,blend)
@@ -186,7 +198,7 @@ func update_weather(mode: String,outdoors: bool,dt: float,allow_lightning: bool=
 	_apply_volumes()
 
 func _apply_volumes() -> void:
-	music.volume_db=_db(music_level*music_fade)
+	music.volume_db=_db(music_level*music_fade if not cinematic else 0.0)
 	ship.volume_db=_db(ambience_level*ship_weight if not cinematic else 0.0)
 	crash.volume_db=_db(effects_level)
 	birds.volume_db=_db(ambience_level*current_mix.birds if not cinematic else 0.0)
@@ -200,10 +212,9 @@ func _apply_volumes() -> void:
 
 func set_cinematic(value: bool) -> void:
 	cinematic=value
-	# The intro doesn't update the sound context, so its ship music has to start right away.
-	if value and music_choice=="auto" and music_theme!="ship":
-		wanted_theme="ship"
-		_play_next_for("ship")
+	# The intro has only sound effects. Whatever song keeps running underneath starts from silence
+	# afterwards, so the next theme fades in cleanly instead of that song cutting back in.
+	if value: music_fade=0.0
 	_apply_volumes()
 
 func start() -> void:
