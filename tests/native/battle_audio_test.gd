@@ -14,19 +14,35 @@ func run() -> void:
 	var opening=game.opening
 	check(opening.has_method("play_battle_event"),"incoming impacts can rock the bridge alongside their sound")
 	if opening.has_method("play_battle_event"):
+		opening.elapsed=5.0
+		var first_cut_hits=0
+		for i in range(40):
+			opening.shake_remaining=0.0
+			opening.play_battle_event({"sound":"laser_hit","friendly":false})
+			if opening.shake_remaining>0: first_cut_hits+=1
+		check(first_cut_hits==40,"every impact rocks the first bridge cut")
+		opening.elapsed=13.0
 		var rocked=0
 		for i in range(200):
 			opening.set("shake_remaining",0.0)
-			opening.call("play_battle_event",{"sound":"laser_hit","friendly":false})
+			opening.call("play_battle_event",{"sound":"laser_hit","friendly":i%2==0})
 			if opening.get("shake_remaining")>0: rocked+=1
-		check(rocked>70 and rocked<130,"roughly half the incoming impacts rock the bridge")
+		check(rocked>70 and rocked<130,"roughly half of all impact sounds rock the second bridge cut")
 		opening.set("shake_remaining",0.0)
-		opening.call("play_battle_event",{"sound":"laser_hit","friendly":true})
-		check(opening.get("shake_remaining")==0,"hits on the enemy do not rock the crew's bridge")
+		opening.call("play_battle_event",{"sound":"laser","friendly":true})
+		check(opening.get("shake_remaining")==0,"laser firing alone does not rock the bridge")
 		opening.set("shake_remaining",0.2)
 		check(opening.call("bridge_offset").length()>0,"an active impact produces a small bridge displacement")
+		opening.elapsed=0
 		opening._process(0.4)
 		check(opening.call("bridge_offset")==Vector2.ZERO,"the bridge settles promptly after impact")
+		opening.elapsed=21.5
+		var descent_offsets=[]
+		for i in range(60):
+			opening.animation_time=i/60.0
+			descent_offsets.append(opening.bridge_offset())
+		check(descent_offsets.any(func(offset):return offset!=Vector2.ZERO) and descent_offsets.any(func(offset):return offset!=descent_offsets[0]),"the final bridge cut shakes continuously without weapon impacts")
+		opening.elapsed=0
 	check(opening.has_method("battle_events"),"battle sounds follow the same timeline as visible laser bolts")
 	if opening.has_method("battle_events"):
 		var first=opening.battle_events(-0.001,0.9)

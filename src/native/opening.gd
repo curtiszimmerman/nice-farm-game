@@ -198,10 +198,13 @@ func paint(c: CanvasItem) -> void:
 
 func play_battle_event(event: Dictionary) -> void:
 	game.sound.play_battle(event.sound,event.friendly)
-	if event.sound=="laser_hit" and not event.friendly and impact_rng.randf()<0.5:
+	# Once both ships fire, use all audible impacts as the shake opportunities.
+	if event.sound=="laser_hit" and ((elapsed>=4.5 and elapsed<9) or impact_rng.randf()<0.5):
 		shake_remaining=0.28
 
 func bridge_offset() -> Vector2:
+	if elapsed>=21 and elapsed<24:
+		return Vector2(roundf(sin(animation_time*39)*4),roundf(sin(animation_time*53+1)*3))
 	if shake_remaining<=0: return Vector2.ZERO
 	var age=0.28-shake_remaining
 	var strength=shake_remaining/0.28
