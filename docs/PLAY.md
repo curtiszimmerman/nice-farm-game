@@ -196,3 +196,5 @@ Tavern drinks restore hydration, a small amount of nourishment, and one energy. 
 The attacking ship reveals itself with a 0.4-second fade and a 0.65-second settling jitter, accompanied by one low electrical zap. Rebuild that sound with `python3 scripts/make_audio.py --only decloak`. Bridge window reflections are extracted from the selected bridge artwork into a translucent layer above the planet, so the glare moves with the glass during descent.
 
 Visibility fading requires the player to be behind an object with the avatar's center inside its horizontal extent. Side padding never triggers fading, and stepping clear restores opacity immediately. Tree canopies also test sprite opacity along the avatar, excluding transparent corners. Interior hallway-wall restrictions still apply.
+
+When the avatar overlaps an object's edge from the side, the avatar draws in front of it. Objects otherwise retain their usual depth sorting, including when the player walks behind them. This applies outdoors, to interior furniture and walls, and to cave objects.

@@ -187,6 +187,7 @@ func floor_connected_without(rocks_on_floor: Array) -> bool:
 
 func object(info: Dictionary) -> Node2D:
 	var prop=CaveObject.new()
+	prop.z_index=OBJECT_Z
 	prop.cave=self
 	prop.info=info
 	prop.position=Grid.center(info.cell)
@@ -360,6 +361,9 @@ func refresh() -> void:
 		queue_redraw()
 	player.position=state.player_position.round()
 	player.queue_redraw()
+	for child in get_children():
+		if child is CaveObject and child.info.kind not in ["rat","spider"]:
+			child.z_index=OBJECT_Z-1 if player_beside(Rect2(child.position-Vector2(16,40),Vector2(32,40)),child.position.y) else OBJECT_Z
 	for child in moving_layer.get_children():
 		if child is Prop and child.kind=="effects": child.queue_redraw()
 

@@ -1,6 +1,8 @@
 extends Node2D
 
 const Grid = preload("res://grid.gd")
+const OBJECT_Z=1
+const PROP_SPRITE_OFFSETS={"bush":Vector2(-32,-42),"chest":Vector2(-16,-40),"stump":Vector2(-16,-16),"bench":Vector2(0,-48),"fountain":Vector2(0,-80),"bulletin_board":Vector2(-16,-96),"lamp":Vector2(-16,-86)}
 const Art = preload("res://art.gd")
 const Schedule = preload("res://villager_schedule.gd")
 const Coast=preload("res://coast.gd")
@@ -722,6 +724,7 @@ func _prop(kind: String, pos: Vector2, data: Dictionary) -> Prop:
 	p.kind = kind
 	p.data = data
 	p.position = pos
+	p.z_index=OBJECT_Z
 	(scenery_layer if kind in ["tree","building","bush","stump","bench","crucible","chest","beehive"] else moving_layer).add_child(p)
 	return p
 
@@ -755,6 +758,9 @@ func refresh() -> void:
 	player.position = state.player_position.round()
 	player.queue_redraw()
 	for child in scenery_layer.get_children()+moving_layer.get_children():
+		if child is Prop and not child.data.get("falling",false):
+			var bounds=prop_visual_bounds(child)
+			if bounds.has_area(): child.z_index=OBJECT_Z-1 if player_beside(bounds,child.position.y) else OBJECT_Z
 		if child is Prop:
 			if child.data.get("falling",false):
 				var progress=clampf((elapsed-child.data.fall_started)/0.6,0,1)
@@ -780,23 +786,33 @@ func player_behind(bounds: Rect2,baseline: float) -> bool:
 	var feet=state.player_position
 	return feet.y<baseline and feet.x>=bounds.position.x and feet.x<bounds.end.x and feet.y>bounds.position.y and feet.y-44<bounds.end.y
 
-func prop_hides_player(prop: Prop) -> bool:
-	if state.player_position.y>=prop.position.y: return false
-	var bounds: Rect2
-	var sprite=""
+func player_beside(bounds: Rect2,baseline: float) -> bool:
+	var feet=state.player_position
+	return feet.y<baseline and (feet.x<bounds.position.x or feet.x>=bounds.end.x) and bounds.intersects(Rect2(feet-Vector2(12,44),Vector2(24,44)))
+
+func prop_visual_bounds(prop: Prop) -> Rect2:
 	if prop.kind=="tree":
 		if Art.option==2:
-			sprite=Art.tree_id(prop.data)
-			var size=Art.sprite_size(sprite)
-			bounds=Rect2(prop.position+Vector2(-48,-size.y+5),size)
+			var size=Art.sprite_size(Art.tree_id(prop.data))
+			return Rect2(prop.position+Vector2(-48,-size.y+5),size)
 		else:
 			var scale_factor=prop.data.size
-			bounds=Rect2(prop.position+Vector2(-34,-92)*scale_factor,Vector2(68,94)*scale_factor)
+			return Rect2(prop.position+Vector2(-34,-92)*scale_factor,Vector2(68,94)*scale_factor)
 	elif prop.kind=="building":
 		var height=prop.data.get("visual_height",prop.data.h)
-		bounds=Rect2(prop.position+Vector2(0,-height-80),Vector2(prop.data.w,height+80))
-	else: return false
+		return Rect2(prop.position+Vector2(0,-height-80),Vector2(prop.data.w,height+80))
+	if PROP_SPRITE_OFFSETS.has(prop.kind):
+		var sprite="bush"+str(prop.data.variant) if prop.kind=="bush" else "fountain0" if prop.kind=="fountain" else prop.kind
+		return Rect2(prop.position+PROP_SPRITE_OFFSETS[prop.kind],Art.sprite_size(sprite))
+	if prop.kind=="crucible": return Rect2(prop.position-Vector2(0,32),Vector2(32,32))
+	if prop.kind=="beehive": return Rect2(prop.position-Vector2(16,48),Vector2(32,48))
+	return Rect2()
+
+func prop_hides_player(prop: Prop) -> bool:
+	if prop.kind not in ["tree","building"]: return false
+	var bounds=prop_visual_bounds(prop)
 	if not player_behind(bounds,prop.position.y): return false
+	var sprite=Art.tree_id(prop.data) if prop.kind=="tree" and Art.option==2 else ""
 	if sprite!="":
 		var source=Art.region(sprite)
 		for height in [36,20,8]:

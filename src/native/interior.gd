@@ -69,6 +69,7 @@ func _ready() -> void:
 	for cell in solid_cells:
 		if not [Vector2i.UP,Vector2i.RIGHT,Vector2i.DOWN,Vector2i.LEFT].any(func(direction):return floor_cells.has(cell+direction)): continue
 		var wall=Wall.new()
+		wall.z_index=OBJECT_Z
 		wall.room=self
 		wall.front=floor_cells.has(cell+Vector2i.DOWN)
 		for pair in [[Vector2i.LEFT,1],[Vector2i.RIGHT,2],[Vector2i.UP,4],[Vector2i.DOWN,8]]:
@@ -134,6 +135,7 @@ func add_furniture(kind: String,bounds: Rect2i,solid: bool=true) -> void:
 				assert(not solid_cells.has(Vector2i(x,y)),"Furniture footprints must not overlap: %s in %s" % [kind,building.id])
 				solid_cells[Vector2i(x,y)]="furniture"
 	var prop=Furniture.new()
+	prop.z_index=OBJECT_Z
 	prop.room=self
 	prop.item=data
 	prop.position=Grid.origin(bounds.position+Vector2i(0,bounds.size.y))
@@ -249,7 +251,7 @@ func update_villagers(dt: float,snap: bool=false) -> void:
 		var sleeping=outside.data.get("sleeping",false)
 		actor.data.sleeping=false
 		actor.rotation=0.0
-		actor.z_index=0
+		actor.z_index=OBJECT_Z
 		if sleeping:
 			var bed=bed_position(id)
 			if snap: actor.position=bed
@@ -258,7 +260,7 @@ func update_villagers(dt: float,snap: bool=false) -> void:
 				actor.data.walking=true
 			else: walk_actor(id,Grid.world_to_cell(bed)+Vector2i.DOWN,dt)
 			actor.data.sleeping=actor.position.distance_to(bed)<1
-			actor.z_index=2 if actor.data.sleeping else 0
+			actor.z_index=2 if actor.data.sleeping else OBJECT_Z
 			actor.data.bed_height=bed_height()
 			actor.queue_redraw()
 			continue
@@ -367,7 +369,7 @@ func refresh() -> void:
 	player.position=state.player_position.round()
 	player.data.sleeping=get_parent().resting>0
 	player.data.bed_height=bed_height()
-	player.z_index=2 if player.data.sleeping else 0
+	player.z_index=2 if player.data.sleeping else OBJECT_Z
 	player.queue_redraw()
 	night_tint.color=Color("b3c9d0") if is_starship() else Color("d5c4ae") if state.minute<360 or state.minute>1200 else Color.WHITE
 	for child in moving_layer.get_children():
@@ -383,7 +385,9 @@ func refresh() -> void:
 		if child is Furniture or child is Wall:
 			var width=32.0 if child is Wall else child.item.bounds.size.x*32.0
 			var height=64.0 if child is Wall else child.item.bounds.size.y*32.0+30
-			var covers=player_behind(Rect2(child.position-Vector2(0,height),Vector2(width,height)),child.position.y)
+			var bounds=Rect2(child.position-Vector2(0,height),Vector2(width,height))
+			child.z_index=OBJECT_Z-1 if player_beside(bounds,child.position.y) else OBJECT_Z
+			var covers=player_behind(bounds,child.position.y)
 			if child is Wall: covers=covers and wall_can_fade(child) and floor_cells.get(Grid.world_to_cell(state.player_position),"") in ["hall","back_hall","doorway"]
 			child.modulate.a=0.3 if covers and not player.data.sleeping else 1.0
 
