@@ -320,12 +320,26 @@ def bridge_klaxon():
     return track
 
 
+def decloak():
+    """A low descending electrical snap with a short unstable rumble."""
+    track = buffer(.75)
+    noise = Random(863)
+    low = 0.0
+    for i in range(len(track)):
+        t = i / RATE
+        low += (noise.uniform(-1, 1) - low) * .22
+        phase = TAU * (60 * t + 25 * (1 - exp(-8 * t)))
+        envelope = min(1, t / .008) * exp(-t * 5) * min(1, (.75 - t) / .08)
+        track[i] = (.38 * sin(phase) + .12 * sin(phase * 1.47) + .28 * low) * envelope
+    return track
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--only", choices=["music", "birds", "crickets", "drips", "wildgrowth", "wreck", "crash", "laser", "laser_hit", "explosion", "rain", "thunder", "mining", "bridge_electrical", "bridge_klaxon"], help="Rebuild one sound instead of all assets.")
+    parser.add_argument("--only", choices=["music", "birds", "crickets", "drips", "wildgrowth", "wreck", "crash", "laser", "laser_hit", "explosion", "rain", "thunder", "mining", "bridge_electrical", "bridge_klaxon", "decloak"], help="Rebuild one sound instead of all assets.")
     args = parser.parse_args()
     OUTPUT.mkdir(parents=True, exist_ok=True)
-    for name, build in {"music": music, "birds": birds, "crickets": crickets, "drips": drips, "wildgrowth": wildgrowth, "wreck": wreck, "crash": crash, "laser": laser, "laser_hit": laser_hit, "explosion": explosion, "rain": rain, "thunder": thunder, "mining": mining, "bridge_electrical": bridge_electrical, "bridge_klaxon": bridge_klaxon}.items():
+    for name, build in {"music": music, "birds": birds, "crickets": crickets, "drips": drips, "wildgrowth": wildgrowth, "wreck": wreck, "crash": crash, "laser": laser, "laser_hit": laser_hit, "explosion": explosion, "rain": rain, "thunder": thunder, "mining": mining, "bridge_electrical": bridge_electrical, "bridge_klaxon": bridge_klaxon, "decloak": decloak}.items():
         if args.only is None or args.only == name:
             write(name, build())
 

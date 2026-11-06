@@ -2,7 +2,7 @@ extends Node
 
 signal lightning
 
-const TRACKS = ["music","birds","crickets","drips","wreck","wildgrowth","crash","laser","laser_hit","explosion","rain","thunder","mining","bridge_electrical","bridge_klaxon"]
+const TRACKS = ["music","birds","crickets","drips","wreck","wildgrowth","crash","laser","laser_hit","explosion","rain","thunder","mining","bridge_electrical","bridge_klaxon","decloak"]
 # The original theme is built by make_audio.py. The other songs come from generate_music.py, which
 # stores them as Ogg Vorbis and lists each one's theme and menu label in this manifest.
 const MUSIC_MANIFEST = "res://audio/music/tracks.json"
@@ -49,7 +49,7 @@ func _ready() -> void:
 	load_music_tracks()
 	for name in TRACKS:
 		var stream=AudioStreamWAV.load_from_file("res://audio/"+name+".wav")
-		if name not in ["wildgrowth","crash","laser","laser_hit","explosion","thunder","mining"]:
+		if name not in ["wildgrowth","crash","laser","laser_hit","explosion","thunder","mining","decloak"]:
 			stream.loop_mode=AudioStreamWAV.LOOP_FORWARD
 			stream.loop_end=stream.data.size()/2
 		streams[name]=stream
@@ -68,7 +68,7 @@ func _ready() -> void:
 	bridge_klaxon=_player("bridge_klaxon")
 	mining.max_polyphony=4
 	spell.max_polyphony=4
-	for name in ["laser","laser_hit","explosion"]:
+	for name in ["laser","laser_hit","explosion","decloak"]:
 		battle[name]=_player(name)
 		battle[name].max_polyphony=8
 	if not testing: load_preferences()
@@ -271,7 +271,7 @@ func play_spell(id: String) -> bool:
 
 func play_battle(id: String,friendly: bool=false) -> void:
 	if not battle.has(id) or effects_level<=0: return
-	battle[id].pitch_scale=(1.06 if id=="laser" and friendly else 0.93 if id=="laser" else 1.0)/4.0
+	battle[id].pitch_scale=1.0 if id=="decloak" else (1.06 if id=="laser" and friendly else 0.93 if id=="laser" else 1.0)/4.0
 	battle[id].play()
 
 func preferences_path() -> String:

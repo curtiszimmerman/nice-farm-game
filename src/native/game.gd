@@ -23,7 +23,7 @@ const BRIEFING=[
 	["Captain","Keeping that cloak running is our main priority until rescue arrives. Outside of that, the basics: food and water, and our local commlink repeater so we can stay in contact."],
 	["Chief Vale","Three copper bars would get our local repeater talking again. Raw ore won't do; we'll need it refined. The last scan showed a deposit southeast of a settlement below us. A couple of kilometers, give or take. If there's a smith in that settlement, perhaps they can help. With the scanners gone, I can't tell you any more than that."],
 	["Captain","What have we got for food?"],
-	["Chief Vale","Six emergency rations stowed by the bunks. One a day for each of us doesn't leave much breathing room. We'll need fresh water and something local to eat. And if you find a kitchen, I'd dearly love a meal that doesn't come out of a foil packet. Leave me something in the locker while I'm working, would you?"],
+	["Chief Vale","Six emergency rations stowed by the bunks. One a day for each of us doesn't leave much breathing room. We'll need fresh water, too, since we've only got enough here to get us through a couple of weeks. And something local to eat. And if you find a kitchen, I'd dearly love a meal that doesn't come out of a foil packet. Leave me something in the locker while I'm working, would you?"],
 	["Captain","We'll find water, food, and the supplies you need. Keep the cloak stable, Vale. We'll start by seeing who's down the mountain."]]
 
 var state = State.new()

@@ -15,6 +15,8 @@ var battle_clock=0.0
 var battle_started=false
 var shot_times: Array=[]
 var finished=false
+var reveal_played=false
+var window_glare: Texture2D
 var shake_remaining=0.0
 var impact_rng=RandomNumberGenerator.new()
 var view: Control
@@ -93,6 +95,9 @@ func _process(dt: float) -> void:
 	if caption_step<CAPTION_TIMES.size()-1: elapsed=minf(elapsed+dt,CAPTION_TIMES[caption_step+1]-0.001)
 	else: elapsed+=dt
 	game.sound.set_bridge_ambience(scene_at(elapsed)=="bridge",elapsed>=21 and elapsed<24)
+	if elapsed>=3 and not reveal_played:
+		reveal_played=true
+		game.sound.play_battle("decloak")
 	if battle_at(elapsed).enemy_fire:
 		var previous=battle_clock if battle_started else -0.001
 		battle_started=true
@@ -148,7 +153,8 @@ func paint(c: CanvasItem) -> void:
 		var center=Vector2(650+sin(animation_time*0.7)*25,340+sin(animation_time)*12)
 		ship(c,center,2.2)
 		if elapsed>=3 and elapsed<18:
-			ship(c,Vector2(160,170),1.25,true)
+			var reveal=enemy_reveal()
+			Art.sprite(c,"ship_enemy",Vector2(40,110)+reveal.offset,Vector2(240,120),Color(1,1,1,reveal.alpha))
 			paint_shots(c,center,Vector2(160,170))
 		if elapsed>=18 and elapsed<20: Art.sprite(c,"explosion"+str(clampi(int((elapsed-18)*3),0,5)),Vector2(64,74),Vector2(192,192))
 		if elapsed>=18:
@@ -213,6 +219,11 @@ func bridge_offset() -> Vector2:
 	var strength=shake_remaining/0.28
 	return Vector2(roundf(sin(age*83+1)*4*strength),roundf(sin(age*109+2)*3*strength))
 
+func enemy_reveal() -> Dictionary:
+	var age=elapsed-3
+	var strength=1-smoothstep(0,0.65,age)
+	return {"alpha":smoothstep(0,0.4,age),"offset":Vector2(sin(age*83+1)*14,sin(age*107+2)*9)*strength}
+
 func bridge_planet_rect() -> Rect2:
 	var planet: Rect2=bridge_composition().planet
 	if elapsed>=21 and elapsed<24:
@@ -234,7 +245,8 @@ func paint_pixels(c: CanvasItem) -> void:
 		var enemy=Vector2(170,170)
 		var battle=battle_at(elapsed)
 		if battle.enemy_fire:
-			Art.sprite(c,"ship_enemy",enemy-Vector2(96,48))
+			var reveal=enemy_reveal()
+			Art.sprite(c,"ship_enemy",enemy-Vector2(96,48)+reveal.offset,Vector2.ZERO,Color(1,1,1,reveal.alpha))
 		paint_shots(c,center,enemy)
 		if battle.destroyed and elapsed<20:
 			Art.sprite(c,"explosion"+str(clampi(int((elapsed-18)*3),0,5)),enemy-Vector2(96,96),Vector2(192,192))
@@ -256,6 +268,7 @@ func paint_bridge_details(c: CanvasItem) -> void:
 	# The window glass in the bridge sprite is opaque, so we paint the planet over it but only inside
 	# the glass. The frame and sill then cover its edges and it looks like it's outside the ship.
 	Art.sprite_within(c,"planet",bridge_planet_rect(),bridge.window)
+	c.draw_texture_rect(bridge_glare_texture(),bridge.window,false)
 	# The chair covers the small figure painted into the original bridge sprite.
 	c.draw_rect(Rect2(560,307,160,222),Color("344955"))
 	c.draw_rect(Rect2(572,315,136,184),Color("607986"))
@@ -275,6 +288,19 @@ func paint_bridge_details(c: CanvasItem) -> void:
 		var frame=int(animation_time*14)
 		for point in bridge_spark_positions(frame):
 			Art.sprite(c,"spark"+str(frame%6),point,Vector2(28,28))
+
+func bridge_glare_texture() -> Texture2D:
+	if window_glare==null:
+		var pane=Art.source_within("bridge",Rect2(0,0,1280,620),bridge_composition().window)
+		var bitmap=Art.pixels.get_region(Rect2i(pane))
+		bitmap.convert(Image.FORMAT_RGBA8)
+		for y in range(bitmap.get_height()):
+			for x in range(bitmap.get_width()):
+				var pixel=bitmap.get_pixel(x,y)
+				pixel.a=0.35 if pixel.r+pixel.g+pixel.b>0.75 else 0.0
+				bitmap.set_pixel(x,y,pixel)
+		window_glare=ImageTexture.create_from_image(bitmap)
+	return window_glare
 
 func bridge_composition() -> Dictionary:
 	return {"window":Rect2(912,120,216,128),"planet":Rect2(968,150,192,192),"captain":Rect2(565,220,150,300),"left_console":Rect2(188,322,235,157),"right_console":Rect2(849,322,235,157),"left_display":Rect2(206,341,198,58),"right_display":Rect2(865,341,202,58)}
