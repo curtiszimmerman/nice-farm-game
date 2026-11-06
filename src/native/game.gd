@@ -1020,7 +1020,7 @@ func rest_options() -> void:
 	if current_room=="home" and not state.met_mayor:
 		for task in ["bed","guest_bed"]:
 			if not state.house_tasks[task]: tidy_farmhouse(task); return
-	if clock_held(): toast("Wait until the opening welcome is finished before resting."); return
+	if clock_held(): toast("Now is not the time for sleep!"); return
 	if current_room not in ["home","ship"]:
 		toast("This bed belongs to someone else. Rest in your own farmhouse bed.")
 		return
@@ -1565,7 +1565,7 @@ func mayor() -> void:
 						for id in ["mayor","assistant"]: outdoors.story_destinations.erase(id)
 					save_visit()
 					toast("A home in Briar Glen. The rest can wait.",7.0)
-					burst(state.player_position,"e7cf8e",30)]])]])]])
+					]])]])]])
 
 func place_welcome_party() -> void:
 	if current_room!="home": return

@@ -19,7 +19,7 @@ func run() -> void:
 		game.world.refresh()
 		var rear=game.world.get_children().filter(func(n):return n is Interior.Wall and n.position.y<=object.item.bounds.position.y*32+32 and n.position.x>=object.position.x and n.position.x<object.position.x+object.item.bounds.size.x*32)
 		check(not rear.is_empty() and rear.all(func(wall):return wall.z_index<=object.z_index),kind+" remains above the rear bulkhead when the captain stands beside it")
-		check(object.z_index<game.world.player.z_index,kind+" still renders below the captain at its side")
+		check(object.z_index==game.world.player.z_index and game.world.player.position.y>object.position.y,kind+" still renders below the captain at its side")
 	await game.sound.shutdown()
 	game.queue_free()
 	await process_frame

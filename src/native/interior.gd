@@ -371,6 +371,7 @@ func refresh() -> void:
 	player.data.bed_height=bed_height()
 	player.z_index=2 if player.data.sleeping else OBJECT_Z
 	player.queue_redraw()
+	var sort_y=state.player_position.round().y
 	night_tint.color=Color("b3c9d0") if is_starship() else Color("d5c4ae") if state.minute<360 or state.minute>1200 else Color.WHITE
 	for child in moving_layer.get_children():
 		if child is Prop and child.kind=="effects": child.queue_redraw()
@@ -386,11 +387,11 @@ func refresh() -> void:
 			var width=32.0 if child is Wall else child.item.bounds.size.x*32.0
 			var height=64.0 if child is Wall else child.item.bounds.size.y*32.0+30
 			var bounds=Rect2(child.position-Vector2(0,height),Vector2(width,height))
-			child.z_index=OBJECT_Z-1 if player_beside(bounds,child.position.y) else OBJECT_Z
-			if child is Wall and state.player_position.y>=child.position.y: child.z_index=OBJECT_Z-1
+			if player_beside(bounds,child.position.y): sort_y=maxf(sort_y,child.position.y+1)
 			var covers=player_behind(bounds,child.position.y)
 			if child is Wall: covers=covers and wall_can_fade(child) and floor_cells.get(Grid.world_to_cell(state.player_position),"") in ["hall","back_hall","doorway"]
 			child.modulate.a=0.3 if covers and not player.data.sleeping else 1.0
+	set_player_depth(sort_y)
 
 func wire_ends() -> Array:
 	return [Vector2(70,76),Vector2(82,72),Vector2(94,78),Vector2(198,76),Vector2(210,72)] if building.id=="ship_bridge" else [Vector2(120,248),Vector2(132,250),Vector2(144,246),Vector2(184,248),Vector2(196,250)]

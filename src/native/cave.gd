@@ -362,11 +362,13 @@ func refresh() -> void:
 		queue_redraw()
 	player.position=state.player_position.round()
 	player.queue_redraw()
+	var sort_y=state.player_position.round().y
 	for child in get_children():
 		if child is CaveObject and child.info.kind not in ["rat","spider"]:
-			child.z_index=OBJECT_Z-1 if player_beside(Rect2(child.position-Vector2(16,40),Vector2(32,40)),child.position.y) else OBJECT_Z
+			if player_beside(Rect2(child.position-Vector2(16,40),Vector2(32,40)),child.position.y): sort_y=maxf(sort_y,child.position.y+1)
 	for child in moving_layer.get_children():
 		if child is Prop and child.kind=="effects": child.queue_redraw()
+	set_player_depth(sort_y)
 
 func collect_chrysalis() -> bool:
 	if state.cave_chrysalis_taken or not state.can_carry("cave_moth_chrysalis"): return false

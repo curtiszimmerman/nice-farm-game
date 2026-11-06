@@ -157,7 +157,7 @@ class Prop extends Node2D:
 		elif kind == "chest": Art.sprite(self,"chest",Vector2(-16,-40))
 		elif kind == "beehive": Art.sprite(self,"beehive" if Art.catalog.has("beehive") else "chest",Vector2(-16,-48),Vector2(32,48))
 		elif kind == "person": owner_world.paint_person(self, data, sin(owner_world.elapsed*10.0) if data.get("walking",false) else 0.0, data.get("direction","down"))
-		elif kind == "player":
+		elif kind == "player_visual":
 			owner_world.paint_person(self, data, sin(owner_world.elapsed * 14.0) if owner_world.moving else 0.0, owner_world.facing)
 			preload("res://tool_motion.gd").draw(owner_world,self)
 		elif kind == "crops": owner_world.paint_crops(self)
@@ -731,6 +731,13 @@ func _prop(kind: String, pos: Vector2, data: Dictionary) -> Prop:
 	p.data = data
 	p.position = pos
 	p.z_index=OBJECT_Z
+	if kind=="player":
+		var avatar=Prop.new()
+		avatar.name="Avatar"
+		avatar.kind="player_visual"
+		avatar.owner_world=self
+		avatar.data=data
+		p.add_child(avatar)
 	(scenery_layer if kind in ["tree","building","bush","stump","bench","crucible","chest","beehive"] else moving_layer).add_child(p)
 	return p
 
@@ -763,10 +770,11 @@ func refresh() -> void:
 		crops.queue_redraw()
 	player.position = state.player_position.round()
 	player.queue_redraw()
+	var sort_y=state.player_position.round().y
 	for child in scenery_layer.get_children()+moving_layer.get_children():
 		if child is Prop and not child.data.get("falling",false):
 			var bounds=prop_visual_bounds(child)
-			if bounds.has_area(): child.z_index=OBJECT_Z-1 if player_beside(bounds,child.position.y) else OBJECT_Z
+			if bounds.has_area() and player_beside(bounds,child.position.y): sort_y=maxf(sort_y,child.position.y+1)
 		if child is Prop:
 			if child.data.get("falling",false):
 				var progress=clampf((elapsed-child.data.fall_started)/0.6,0,1)
@@ -787,6 +795,15 @@ func refresh() -> void:
 			elif child.kind in ["tree","building"] and not child.data.get("falling",false):
 				var hidden=prop_hides_player(child)
 				child.modulate.a=move_toward(child.modulate.a,0.22,0.14) if hidden else 1.0
+	set_player_depth(sort_y)
+
+func set_player_depth(sort_y: float) -> void:
+	var feet=state.player_position.round()
+	# The child cancels the sorting offset so the artwork stays at the captain's real feet.
+	player.position=Vector2(feet.x,feet.y if player.data.get("sleeping",false) else sort_y)
+	var avatar=player.get_node("Avatar")
+	avatar.position=feet-player.position
+	avatar.queue_redraw()
 
 func player_behind(bounds: Rect2,baseline: float) -> bool:
 	var feet=state.player_position
