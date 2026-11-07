@@ -646,7 +646,14 @@ def main():
     # The surf and the ship's water dispenser are drawn once, in the 16-pixel pack, and doubled here.
     make_sprites16.shore_wash()
     make_sprites16.furniture("water_dispenser", 1, 1)
-    additions.update({name: image for name, (image, _) in make_sprites16.ASSETS.items() if name.startswith(("shore_wash_", "furniture_water_dispenser_"))})
+    # So are the newer house walls and the wall lanterns.
+    new_walls = ("timber", "brick", "clapboard", "fieldstone")
+    for variant in new_walls:
+        for kind in make_sprites16.WALL_PARTS: make_sprites16.building_tile(make_sprites16.tile(variant + "_" + kind), variant, kind)
+    make_sprites16.wall_lanterns()
+    make_sprites16.item_icon("glass_jars")
+    doubled = ("shore_wash_", "furniture_water_dispenser_", "wall_lantern_", "item_glass_jars") + tuple(f"tile_{variant}_" for variant in new_walls)
+    additions.update({name: image for name, (image, _) in make_sprites16.ASSETS.items() if name.startswith(doubled)})
     write_font(ROOT / "src/native/art/ui", SmallPixels)
     for name, small in additions.items():
         if name.startswith("tile_mill_sails"): name = name.removeprefix("tile_")

@@ -5,8 +5,10 @@ const Grid=preload("res://grid.gd")
 var world: Node2D
 var signature=""
 
-static func house_lamp_position(building: Dictionary,column: int) -> Vector2:
-	return Vector2(building.x+column*32+16,building.y+building.h-51)
+# The flame at the middle of each wall lantern's glass, in world coordinates.
+static func house_lamp_positions(building: Dictionary) -> Array:
+	var anchor=Vector2(building.x,building.y+building.h)
+	return Art.facade(building).get("lanterns",[]).map(func(lantern):return anchor+lantern.rect.position+Art.LANTERN_GLASS.get_center())
 
 func _ready() -> void:
 	var unshaded=CanvasItemMaterial.new()
@@ -44,10 +46,7 @@ func _draw() -> void:
 			Art.sprite(self,"lamp_halo",foot-Vector2(70,24),Vector2(140,70))
 			Art.sprite(self,"particle",foot+Vector2(-4,-66),Vector2(8,11),Color("ffe1a1"))
 		for building in world.buildings:
-			var door_x=int(building.tiles.x/2)
-			for x in [door_x-1,door_x+1]:
-				if x<0 or x>=building.tiles.x: continue
-				var lamp=house_lamp_position(building,x)
+			for lamp in house_lamp_positions(building):
 				Art.sprite(self,"lamp_halo",lamp-Vector2(54,20),Vector2(108,62),Color(1,0.9,0.68,0.78))
 				Art.sprite(self,"particle",lamp-Vector2(3,4),Vector2(6,8),Color(1,0.82,0.5,0.8))
 	for building in world.buildings:
@@ -59,11 +58,10 @@ func _draw() -> void:
 			elif building.kind=="observatory":
 				for x in [34,146]: Art.sprite(self,"window_warm",anchor+Vector2(x,-56),Vector2(22,30))
 			elif building.kind!="lighthouse":
-				for x in [1,columns-2]:
-					if x==int(columns/2): continue
+				for x in Art.facade(building).get("windows",[]):
 					Art.sprite(self,"window_warm",anchor+Vector2(x*32,-64),Vector2(32,32))
 		if not smoking(building): continue
-		var rows=5 if building.kind=="windmill" else 4 if building.kind=="tower" else maxi(2,building.tiles.y-2)
+		var rows=Art.wall_rows(building)
 		var chimney=anchor+Vector2(maxi(1,columns-2)*32+16,(-rows-3)*32)
 		for i in range(3):
 			var age=fposmod(world.elapsed+i*0.65,2.0)/2.0

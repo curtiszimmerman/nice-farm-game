@@ -213486,5 +213486,285 @@
       40,
       72
     ]
+  },
+  "tile_timber_wall": {
+    "rect": [
+      1591,
+      7952,
+      32,
+      32
+    ]
+  },
+  "tile_timber_left": {
+    "rect": [
+      1625,
+      7952,
+      32,
+      32
+    ]
+  },
+  "tile_timber_right": {
+    "rect": [
+      1659,
+      7952,
+      32,
+      32
+    ]
+  },
+  "tile_timber_foundation": {
+    "rect": [
+      1693,
+      7952,
+      32,
+      32
+    ]
+  },
+  "tile_timber_window": {
+    "rect": [
+      1727,
+      7952,
+      32,
+      32
+    ]
+  },
+  "tile_timber_door": {
+    "rect": [
+      1761,
+      7952,
+      32,
+      32
+    ]
+  },
+  "tile_timber_door_top": {
+    "rect": [
+      1795,
+      7952,
+      32,
+      32
+    ]
+  },
+  "tile_timber_door_bottom": {
+    "rect": [
+      1829,
+      7952,
+      32,
+      32
+    ]
+  },
+  "tile_brick_wall": {
+    "rect": [
+      1863,
+      7952,
+      32,
+      32
+    ]
+  },
+  "tile_brick_left": {
+    "rect": [
+      1897,
+      7952,
+      32,
+      32
+    ]
+  },
+  "tile_brick_right": {
+    "rect": [
+      1931,
+      7952,
+      32,
+      32
+    ]
+  },
+  "tile_brick_foundation": {
+    "rect": [
+      1965,
+      7952,
+      32,
+      32
+    ]
+  },
+  "tile_brick_window": {
+    "rect": [
+      1999,
+      7952,
+      32,
+      32
+    ]
+  },
+  "tile_brick_door": {
+    "rect": [
+      2033,
+      7952,
+      32,
+      32
+    ]
+  },
+  "tile_brick_door_top": {
+    "rect": [
+      2067,
+      7952,
+      32,
+      32
+    ]
+  },
+  "tile_brick_door_bottom": {
+    "rect": [
+      2101,
+      7952,
+      32,
+      32
+    ]
+  },
+  "tile_clapboard_wall": {
+    "rect": [
+      2135,
+      7952,
+      32,
+      32
+    ]
+  },
+  "tile_clapboard_left": {
+    "rect": [
+      2169,
+      7952,
+      32,
+      32
+    ]
+  },
+  "tile_clapboard_right": {
+    "rect": [
+      2203,
+      7952,
+      32,
+      32
+    ]
+  },
+  "tile_clapboard_foundation": {
+    "rect": [
+      2237,
+      7952,
+      32,
+      32
+    ]
+  },
+  "tile_clapboard_window": {
+    "rect": [
+      2271,
+      7952,
+      32,
+      32
+    ]
+  },
+  "tile_clapboard_door": {
+    "rect": [
+      2305,
+      7952,
+      32,
+      32
+    ]
+  },
+  "tile_clapboard_door_top": {
+    "rect": [
+      2339,
+      7952,
+      32,
+      32
+    ]
+  },
+  "tile_clapboard_door_bottom": {
+    "rect": [
+      2373,
+      7952,
+      32,
+      32
+    ]
+  },
+  "tile_fieldstone_wall": {
+    "rect": [
+      2407,
+      7952,
+      32,
+      32
+    ]
+  },
+  "tile_fieldstone_left": {
+    "rect": [
+      2441,
+      7952,
+      32,
+      32
+    ]
+  },
+  "tile_fieldstone_right": {
+    "rect": [
+      2475,
+      7952,
+      32,
+      32
+    ]
+  },
+  "tile_fieldstone_foundation": {
+    "rect": [
+      2509,
+      7952,
+      32,
+      32
+    ]
+  },
+  "tile_fieldstone_window": {
+    "rect": [
+      2543,
+      7952,
+      32,
+      32
+    ]
+  },
+  "tile_fieldstone_door": {
+    "rect": [
+      2577,
+      7952,
+      32,
+      32
+    ]
+  },
+  "tile_fieldstone_door_top": {
+    "rect": [
+      2611,
+      7952,
+      32,
+      32
+    ]
+  },
+  "tile_fieldstone_door_bottom": {
+    "rect": [
+      2645,
+      7952,
+      32,
+      32
+    ]
+  },
+  "wall_lantern_iron": {
+    "rect": [
+      2679,
+      7952,
+      10,
+      18
+    ]
+  },
+  "wall_lantern_brass": {
+    "rect": [
+      2691,
+      7952,
+      10,
+      18
+    ]
+  },
+  "wall_lantern_copper": {
+    "rect": [
+      2703,
+      7952,
+      10,
+      18
+    ]
   }
 }

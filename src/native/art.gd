@@ -184,6 +184,29 @@ static func flowerbed_columns(b: Dictionary) -> Array:
 	if b.kind=="hall": return [1]
 	return [1,int(b.w/32)-2]
 
+# Each home's wall and wall lanterns, so the cottages around town don't all look alike. Roofs follow the wall.
+const FACADES={"mayor":["fieldstone","brass"],"tavi":["clapboard","iron"],"assistant":["brick","iron"],"finch":["timber","brass"],"radio":["stone","copper"],"mill_home":["log","iron"],"widow":["brick","brass"],"herbalist":["timber","copper"]}
+# A wall lantern is narrow enough to hang in the gap between a door frame and the window beside it.
+# Its glass is where the flame glows at night.
+const LANTERN_SIZE=Vector2(10,18)
+const LANTERN_GLASS=Rect2(2,4,6,10)
+
+# Where a building's windows and wall lanterns go, relative to the bottom-left of its base.
+# Lanterns hang on either edge of the door, so they never cover the glass of the windows beside it.
+# Buildings drawn from a single picture have no facade.
+static func facade(b: Dictionary) -> Dictionary:
+	if b.kind in ["mill_shed","observatory","lighthouse"] or (b.kind=="temple" and catalog.has("building_temple")): return {}
+	var columns=int(b.w/32)
+	var door=int(columns/2)
+	var windows=[]
+	for x in [1,columns-2]:
+		if x!=door and x not in windows: windows.append(x)
+	var kind=FACADES.get(b.get("id",""),["","iron"])[1]
+	var lanterns=[]
+	for edge in [door,door+1]:
+		lanterns.append({"sprite":"wall_lantern_"+kind,"rect":Rect2(edge*32-LANTERN_SIZE.x/2,-60,LANTERN_SIZE.x,LANTERN_SIZE.y)})
+	return {"wall":wall_style(b),"roof":roof_style(b),"lantern":kind,"door":door,"windows":windows,"lanterns":lanterns}
+
 static func wall_rows(b: Dictionary) -> int:
 	if b.kind=="windmill": return 5
 	if b.kind=="tower": return 4
@@ -225,14 +248,15 @@ static func building(c: CanvasItem,b: Dictionary) -> void:
 		return
 	var columns=int(b.w/32)
 	var rows=wall_rows(b)
-	var variant=wall_style(b)
-	var door=int(columns/2)
+	var front=facade(b)
+	var variant=front.wall
+	var door=front.door
 	for y in range(rows):
 		for x in range(columns):
 			var component="foundation" if y==rows-1 else "wall"
 			if x==0: component="left"
 			if x==columns-1: component="right"
-			if y==rows-2 and x in [1,columns-2] and x!=door: component="window"
+			if y==rows-2 and x in front.windows: component="window"
 			if x==door and y==rows-2: component="door_top"
 			if x==door and y==rows-1: component="door_bottom"
 			if b.kind=="tower" and x==door and y==1: component="window"
@@ -254,8 +278,7 @@ static func building(c: CanvasItem,b: Dictionary) -> void:
 	if b.kind=="store": sprite(c,"sign_general_store" if catalog.has("sign_general_store") else "general_store_sign",Vector2(columns*16-56,-(rows+1)*32+8),Vector2(112,24))
 	for x in flowerbed_columns(b):
 		if x!=door: sprite(c,seasonal("tile_flowerbed0",b.get("season","spring")),Grid.origin(Vector2i(x,0)))
-	for x in [door-1,door+1]:
-		if x>=0 and x<columns: tile(c,"light",Vector2i(x,-2))
+	for lantern in front.lanterns: sprite(c,lantern.sprite,lantern.rect.position,lantern.rect.size)
 	if b.kind=="hall":
 		preload("res://town_sign_art.gd").draw(c,"hall",door*32+16)
 	if b.kind in ["smithy","bakery"] and catalog.has("sign_smith" if b.kind=="smithy" else "sign_baker"):
@@ -273,10 +296,11 @@ static func building(c: CanvasItem,b: Dictionary) -> void:
 		preload("res://town_sign_art.gd").draw(c,"tavern",door*32+16)
 
 static func wall_style(b: Dictionary) -> String:
+	if FACADES.has(b.get("id","")): return FACADES[b.id][0]
 	return "log" if b.kind in ["cabin","reed_farm"] else "stone" if b.kind in ["tower","hall","smithy"] else "shop" if b.kind in ["store","bakery","tavern"] else "plaster"
 
 static func roof_style(b: Dictionary) -> String:
-	return {"log":"thatch","stone":"slate","shop":"clay","plaster":"shingle"}[wall_style(b)]
+	return {"log":"thatch","stone":"slate","shop":"clay","plaster":"shingle","timber":"thatch","brick":"clay","clapboard":"shingle","fieldstone":"slate"}[wall_style(b)]
 
 static func roof_part(style: String,part: String) -> String:
 	var id="tile_%s_%s" % [style,part]

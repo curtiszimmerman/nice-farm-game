@@ -450,6 +450,12 @@ PLASTER = ["5e4a3c", "8d7559", "b8a07c", "d6c39b", "e9dcb6", "f6eed2"]
 LOGS = ["3a2318", "5b3622", "7d4f2e", "9d6a3d", "bd8a52", "d9ab70"]
 SHOP = ["23383a", "33544f", "467266", "5f907c", "86b096", "b8d3b0"]
 FENCE = ["3d2a1f", "64452e", "8c6440", "b08552", "cfa76c", "e8c88e"]
+TIMBER = ["2e1e16", "4a3324", "6b4a32", "d9cba8", "e8dcc0", "f4ecd6"]
+BRICK = ["4e2620", "7e3a2e", "9a4a3a", "b05a44", "c97a5e", "b8a890"]
+CLAPBOARD = ["34485a", "4f6b7a", "6f8ea0", "8eaabb", "b4cad4", "e6e2d6"]
+FIELDSTONE = ["3e3832", "5a5248", "7a6e60", "8a7f70", "a09484", "c4b6a0"]
+# Each wall has its own front door paint.
+DOOR_PAINT = {"shop": "9a5a3c", "timber": "7a4a2a", "brick": "3f5a4a", "clapboard": "8a3a3a", "fieldstone": "5a4632"}
 
 
 def wall_material(p, variant):
@@ -492,6 +498,39 @@ def wall_material(p, variant):
                 if 0 <= x + 1 < 16:
                     p.dot(x + 1, y0, STONE[5])
                 x += w
+    elif variant == "timber":
+        # Half-timbering: limewashed panels framed by dark oak beams, with a brace across each panel.
+        p.box(0, 0, 16, 16, TIMBER[4])
+        for y in range(16):
+            for x in range(16):
+                if vnoise(x / 3, y / 3, 41) > 0.74 and dither(x, y) < 0.5: p.dot(x, y, TIMBER[5])
+        p.box(0, 0, 2, 16, TIMBER[1]); p.vline(1, 0, 15, TIMBER[2])
+        p.box(0, 0, 16, 2, TIMBER[1]); p.hline(0, 15, 1, TIMBER[2])
+        p.line(3, 14, 14, 3, TIMBER[1]); p.line(4, 14, 14, 4, TIMBER[2])
+    elif variant == "brick":
+        p.box(0, 0, 16, 16, BRICK[5])
+        for row, y0 in enumerate(range(0, 16, 4)):
+            for x0 in range(-4 if row % 2 else 0, 16, 8):
+                tone = BRICK[1 + int(hash01(x0, y0, 42) * 3)]
+                for yy in range(y0, y0 + 3):
+                    for xx in range(x0, x0 + 7):
+                        if 0 <= xx < 16: p.dot(xx, yy, tone)
+                if 0 <= x0 + 1 < 16: p.hline(max(0, x0 + 1), min(15, x0 + 5), y0, BRICK[4])
+    elif variant == "clapboard":
+        # Painted lap siding: each board catches light along its top edge and shades the one below.
+        for y0 in range(0, 16, 4):
+            p.box(0, y0, 16, 4, CLAPBOARD[2])
+            p.hline(0, 15, y0, CLAPBOARD[3]); p.hline(0, 15, y0 + 3, CLAPBOARD[1])
+            for x in range(16):
+                if hash01(x, y0, 43) > 0.88: p.dot(x, y0 + 1, CLAPBOARD[3])
+    elif variant == "fieldstone":
+        p.box(0, 0, 16, 16, FIELDSTONE[1])
+        for cx, cy, rx, ry in [(3, 2, 3, 2), (10, 2, 4, 2), (6, 7, 4, 2), (14, 7, 2, 2), (1, 8, 2, 2), (3, 12, 3, 2), (11, 12, 4, 2)]:
+            tone = FIELDSTONE[2 + int(hash01(cx, cy, 44) * 3)]
+            for yy in range(cy - ry, cy + ry + 1):
+                for xx in range(cx - rx, cx + rx + 1):
+                    if 0 <= xx < 16 and 0 <= yy < 16 and ((xx - cx) / (rx + 0.5)) ** 2 + ((yy - cy) / (ry + 0.5)) ** 2 <= 1:
+                        p.dot(xx, yy, FIELDSTONE[5] if yy == cy - ry else tone)
     else:
         p.box(0, 0, 16, 16, SHOP[3])
         for y0 in range(0, 16, 3):
@@ -503,7 +542,74 @@ def wall_material(p, variant):
 
 
 def trim_colors(variant):
-    return {"plaster": (WOOD[1], WOOD[3]), "log": (LOGS[0], LOGS[2]), "stone": (STONE[0], STONE[2]), "shop": ("d7cba6", "efe6c6")}[variant]
+    return {"plaster": (WOOD[1], WOOD[3]), "log": (LOGS[0], LOGS[2]), "stone": (STONE[0], STONE[2]), "shop": ("d7cba6", "efe6c6"),
+            "timber": (TIMBER[0], TIMBER[2]), "brick": (BRICK[0], BRICK[5]), "clapboard": (CLAPBOARD[0], CLAPBOARD[5]),
+            "fieldstone": (FIELDSTONE[0], FIELDSTONE[5])}[variant]
+
+
+def glass(p, x0, y0, x1, y1):
+    p.box(x0, y0, x1 - x0 + 1, y1 - y0 + 1, WATER[1])
+    for y in range(y0, y1 + 1):
+        for x in range(x0, x1 + 1):
+            if x - x0 + y - y0 < 4: p.dot(x, y, WATER[2])
+    p.dot(x0 + 1, y0 + 1, WATER[4])
+
+
+def window(p, variant, dark, light):
+    # Every window keeps to columns 3-12 of its tile; the wall lanterns hang just outside that.
+    if variant == "timber":
+        # Leaded diamond panes in a heavy oak frame.
+        p.box(3, 2, 10, 11, TIMBER[0])
+        glass(p, 4, 3, 11, 11)
+        for y in range(3, 12):
+            for x in range(4, 12):
+                if (x + y) % 4 == 0 or (x - y) % 4 == 0: p.dot(x, y, TIMBER[1])
+        p.box(3, 12, 10, 2, TIMBER[2]); p.hline(3, 12, 12, TIMBER[3])
+    elif variant == "brick":
+        # An arched window under a pale stone lintel, with a matching sill.
+        for x0, x1, y in [(6, 9, 2), (5, 10, 3)]: p.hline(x0, x1, y, BRICK[5])
+        p.box(4, 4, 8, 8, BRICK[5])
+        glass(p, 5, 4, 10, 11)
+        p.hline(6, 9, 3, WATER[1]); p.vline(7, 4, 11, BRICK[5]); p.hline(5, 10, 8, BRICK[5])
+        p.box(3, 12, 10, 2, "e6dcc8"); p.hline(3, 12, 13, BRICK[0])
+    elif variant == "clapboard":
+        # Green shutters folded back on either side of a four-pane window.
+        for x in (3, 11):
+            p.box(x, 2, 2, 10, "3f6a4a")
+            for y in range(3, 11, 2): p.hline(x, x + 1, y, "2e5038")
+        p.box(5, 2, 6, 10, CLAPBOARD[5])
+        glass(p, 6, 3, 9, 10)
+        p.vline(7, 3, 10, CLAPBOARD[5]); p.hline(6, 9, 6, CLAPBOARD[5])
+        p.box(3, 12, 10, 1, CLAPBOARD[5]); p.hline(3, 12, 13, CLAPBOARD[0])
+    elif variant == "fieldstone":
+        # A small deep-set window under a long stone lintel, with a flower box below.
+        p.box(3, 2, 10, 2, FIELDSTONE[5]); p.hline(3, 12, 3, FIELDSTONE[2])
+        p.box(4, 4, 8, 7, FIELDSTONE[0])
+        glass(p, 5, 5, 10, 10)
+        p.vline(7, 5, 10, FIELDSTONE[0])
+        p.box(3, 11, 10, 3, WOOD[2]); p.hline(3, 12, 11, WOOD[4])
+        for x in (4, 6, 8, 10, 12):
+            p.dot(x, 10, LEAF_OAK[3]); p.dot(x, 11, ["e0717a", "f2c96a", "d98ad0"][x % 3])
+    else:
+        p.box(3, 2, 10, 11, dark)
+        p.box(4, 3, 8, 9, light)
+        glass(p, 5, 4, 10, 10)
+        p.vline(7, 4, 10, light); p.hline(5, 10, 7, light)
+        p.box(3, 12, 10, 2, light); p.hline(3, 12, 12, shade(light, 1.2)); p.hline(3, 12, 13, dark)
+        for x in (4, 7, 10):
+            p.dot(x, 11, LEAF_OAK[3]); p.dot(x + 1, 11, ["e0717a", "f2c96a", "d98ad0"][x % 3])
+
+
+def wall_lanterns():
+    # Narrow wall lanterns that hang on the edge of a door frame. Each is five pixels wide; the glass
+    # is the middle three columns, rows two to six.
+    for kind, frame, hi in [("iron", METAL[0], METAL[2]), ("brass", "7a5a24", "d4b250"), ("copper", "5e2c1a", "c87a4a")]:
+        p = add("wall_lantern_" + kind, Pixels(5, 9))
+        p.hline(1, 3, 0, frame)
+        p.hline(0, 4, 1, hi)
+        p.vline(0, 2, 6, frame); p.vline(4, 2, 6, frame)
+        p.box(1, 2, 3, 5, "f5d98c"); p.vline(2, 3, 5, "fff3c4")
+        p.hline(0, 4, 7, hi); p.hline(1, 3, 8, frame)
 
 
 def building_tile(p, variant, kind):
@@ -542,21 +648,9 @@ def building_tile(p, variant, kind):
             if hash01(x, 15, 22) > 0.6:
                 p.dot(x, 14, GRASS[3]); p.dot(x, 15, GRASS[2])
     if kind == "window":
-        p.box(2, 2, 12, 11, dark)
-        p.box(3, 3, 10, 9, light)
-        p.box(4, 4, 8, 7, WATER[1])
-        for y in range(4, 11):
-            for x in range(4, 12):
-                if x + y < 12: p.dot(x, y, WATER[2])
-        p.line(5, 5, 6, 4, WATER[4]); p.dot(5, 6, WATER[3])
-        p.vline(7, 4, 10, light); p.hline(4, 11, 7, light)
-        p.vline(8, 4, 10, shade(light, -1.2))
-        p.box(1, 12, 14, 2, light); p.hline(1, 14, 12, shade(light, 1.2)); p.hline(1, 14, 13, dark)
-        for x in (2, 5, 9, 12):
-            p.dot(x, 11, LEAF_OAK[3]); p.dot(x + 1, 11, ["e0717a", "f2c96a", "f3ead0", "d98ad0"][x % 4])
-        p.hline(2, 13, 14, shade(rgba(p.get(2, 15)), -1.2))
+        window(p, variant, dark, light)
     if kind in ("door", "door_top", "door_bottom"):
-        door = WOOD[3] if variant != "shop" else "9a5a3c"
+        door = DOOR_PAINT.get(variant, WOOD[3])
         top = 1 if kind == "door" else 0
         p.box(2, top, 12, 16 - top, dark)
         if kind in ("door", "door_top"):
@@ -832,10 +926,15 @@ def small_fixtures():
     p.dot(6, 4, "ffffff")
 
 
+WALL_VARIANTS = ("plaster", "log", "stone", "shop", "timber", "brick", "clapboard", "fieldstone")
+WALL_PARTS = ("wall", "left", "right", "foundation", "window", "door", "door_top", "door_bottom")
+
+
 def buildings():
-    for variant in ("plaster", "log", "stone", "shop"):
-        for kind in ("wall", "left", "right", "foundation", "window", "door", "door_top", "door_bottom"):
+    for variant in WALL_VARIANTS:
+        for kind in WALL_PARTS:
             building_tile(tile(variant + "_" + kind), variant, kind)
+    wall_lanterns()
     for style in ROOF_STYLES:
         for kind in ROOF_PARTS:
             roof_tile(tile(roof_sprite_name(style, kind)), kind, style)
@@ -2099,6 +2198,12 @@ def item_icon(name):
         handle(p, 1, 11, 7, 3)
         p.polygon([(6, 2), (9, 0), (11, 2), (11, 6), (8, 7), (7, 4)], METAL[3])
         p.vline(11, 2, 6, METAL[5]); p.dot(7, 3, WOOD[1])
+    elif name == "glass_jars":
+        # An empty preserving jar: clear glass with a pale shine, under a tin lid.
+        p.box(3, 1, 6, 2, METAL[3]); p.hline(3, 8, 1, METAL[4])
+        p.box(2, 3, 8, 8, "9cc4c4"); p.box(3, 4, 6, 6, "c8e2dc")
+        p.vline(2, 3, 10, "5e8a8c"); p.vline(9, 3, 10, "5e8a8c"); p.hline(2, 9, 10, "5e8a8c")
+        p.vline(4, 4, 8, "ffffff")
     elif name == "wood":
         for x, y in [(1, 4), (4, 7), (2, 10)]:
             p.box(x, y - 1, 7, 2, WOOD[3]); p.hline(x, x + 6, y - 1, WOOD[5]); p.dot(x, y, WOOD[2])
