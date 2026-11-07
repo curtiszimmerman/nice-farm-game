@@ -20,10 +20,10 @@ const BRIEFING=[
 	["Chief Vale","There's something else. That attack ship had time to send a signal before we finished it. I doubt it was saying goodbye. Someone will come looking."],
 	["Captain","Then we'll get what you need. First order of business: the cloak."],
 	["Chief Vale","Already on it. I'm bringing the emergency gravitic power sink online. As long as this planet keeps its gravity well, the cloak should hold. Rather counting on that. It leaves us precious little power for anything else."],
-	["Captain","Keeping that cloak running is our main priority until rescue arrives. Outside of that, the basics: food and water, and our local commlink repeater so we can stay in contact."],
-	["Chief Vale","Three copper bars would get our local repeater talking again. Raw ore won't do; we'll need it refined. The last scan showed a deposit southeast of a settlement below us. A couple of kilometers, give or take. If there's a smith in that settlement, perhaps they can help. With the scanners gone, I can't tell you any more than that."],
+	["Captain","Keeping that cloak running is our main priority until rescue arrives. After that, food and water. Can we get the replicator working?"],
+	["Chief Vale","It took less damage than most of the ship. Two copper bars should let me replace the damaged components and wiring. Raw ore won't do; we'll need it refined. The last scan showed a deposit southeast of a settlement below us. A couple of kilometers, give or take. If there's a smith in that settlement, perhaps they can help. With the scanners gone, I can't tell you any more than that."],
 	["Captain","What have we got for food?"],
-	["Chief Vale","Fourteen emergency rations in the locker by the bunks, and the water dispenser beside it still works. That's the two of us fed for a week or so, and not much longer. Once repairs come along I can get the water reclaimer going again, but until then this is all we have. So the sooner you're growing something, or find a kitchen, the better. I'd dearly love a meal that doesn't come out of a foil packet. Leave me something in the locker while I'm working, would you? And come back for food and water. Don't go hungry out there."],
+	["Chief Vale","Fourteen emergency rations in the locker by the bunks, and the water dispenser beside it still works. That's the two of us fed for a week or so, and not much longer. Once the replicator's repaired, I can keep us supplied with rations and drinking water. Until then, this is all we have. I'd dearly love a meal that doesn't come out of a foil packet. Leave me something in the locker while I'm working, would you? And come back for food and water. Don't go hungry out there."],
 	["Captain","We'll find water, food, and the supplies you need. Keep the cloak stable, Vale. We'll start by seeing who's down the mountain."]]
 
 var state = State.new()
@@ -158,8 +158,11 @@ func drink_from_dispenser() -> void:
 	if not state.needs.hardcore:
 		toast("Cool, filtered water. It tastes faintly of the ship.")
 		return
+	if state.needs.hydration()>=1:
+		toast("You're not thirsty. Leave the water for when you need it.")
+		return
 	if state.ship_water<1:
-		toast("The dispenser is dry. Vale says it won't refill until the water reclaimer is repaired.")
+		toast("The dispenser is dry. Vale can replenish it once the replicator is repaired.")
 		return
 	state.ship_water-=1
 	state.needs.drink()
@@ -1315,18 +1318,18 @@ func talk(id: String) -> void:
 		"vale":
 			if not state.briefing_complete: show_briefing(); return
 			var choices=vale_checkin_choices()
-			if not state.delivered and state.copper_bars>=3:
-				choices.push_front(["Hand over three copper bars.",func():
-					state.deliver_repeater_copper()
+			if not state.delivered and state.copper_bars>=2:
+				choices.push_front(["Hand over two copper bars.",func():
+					if not state.deliver_replicator_copper(): return
 					state.change_friendship("vale",25)
 					save_visit()
 					burst(state.player_position,"a3d4d0")
-					dialog("Chief Vale","THE REPEATER","This looks great! I'll need a day or so with my tools to manufacture the components and wiring needed to repair the repeater so our communicators will function properly. Check back in a little while. And Captain? Thanks for bringing me dinner. I'll try to earn it.",[["No problem, Chief!",close_window]],false)])
-			if state.replicator_briefed:
+					dialog("Chief Vale","THE REPLICATOR","This looks great! The replicator came through with only minor damage. I'll need a day or so to replace the components and wiring, then we can stop worrying about our last ration. Check back in a little while, Captain.",[["No problem, Chief!",close_window]],false)])
+			if state.repeater_briefed:
 				choices.append(["How are things holding up otherwise?",func(): dialog("Chief Vale","CHIEF ENGINEER","The cloak is holding steady, and as the gravitic sink stabilizes, we're slowly getting a more stable power supply. That means we can look forward to repairing and bringing online other systems, as long as things keep going the way they have been. Sensors are still down, obviously, but I haven't detected any active scans from above, or any signals that aren't from the locals.",[["Anything else I can help with?",func(): talk("vale")]])])
 			else:
 				choices.append(["How long do we have?",func(): dialog("Chief Vale","CHIEF ENGINEER","As long as the cloak holds, we have room to breathe. No signals. No active scans. I'll keep the lights off. You keep us fed.")])
-			var body="How are things, Captain? Still kind of a mess around here." if state.replicator_briefed else "There you are, Captain. I've got news on the repeater." if state.repeater_working() else "Still at the bench with those copper bars, Captain. The repeater parts need a little longer." if state.delivered else "The cloak's behaving. Wish I could say the same for the engines. Three copper bars should get our crew link back. That deposit on the last scan was southeast of the settlement, but the ore will need refining. Might be worth asking whether anyone down there works metal. I'm rather in the dark up here with the scanners dead. Any luck finding supper? Leave me a cooked meal in the locker if you can. I'll try not to get engine grease on it."
+			var body="How are things, Captain? Still kind of a mess around here." if state.repeater_briefed else "There you are, Captain. I've got news on the replicator." if state.replicator_working() else "Still at the bench with those copper bars, Captain. The replicator parts need a little longer." if state.delivered else "The cloak's behaving. Wish I could say the same for the engines. The replicator only needs two copper bars for replacement components and wiring. That deposit on the last scan was southeast of the settlement, but the ore will need refining. Might be worth asking whether anyone down there works metal. I'm rather in the dark up here with the scanners dead. Leave me a cooked meal in the locker if you can. I'll try not to get engine grease on it."
 			dialog("Chief Vale","CHIEF ENGINEER · SHIPBOARD CONVERSATION",body,choices)
 
 func buy_ingredient(id: String) -> void:
@@ -1426,20 +1429,19 @@ func smith_shop() -> void:
 func vale_checkin_choices() -> Array:
 	return [["What's the status on repairs?",vale_status]]
 
-# Vale's repair news moves on from the repeater to the replicator as the work progresses.
+# Food and water come first; the crew link is the next repair.
 func vale_status() -> void:
 	var back=[["Anything else I can help with?",func(): talk("vale")]]
-	if state.replicator_briefed:
-		dialog("Chief Vale","REPAIR STATUS","I'm going to need those supplies to get the replicator going again: Two vacuum tubes, five copper bars, and a quartz crystal of exceptional quality. Bring me those, and I'll get a steady supply of food and water going.",back)
-	elif state.repeater_working():
-		toast("Crew link restored. One small connection home.",6.0)
-		dialog("Chief Vale","REPAIR STATUS","Give your commlink a try. Hear that? Much better than guessing what one another's thinking! The cloak's holding fine, too.",[["Much better, Chief. Next we need to get the replicator up, for food and water.",func():
-			dialog("Chief Vale","THE REPLICATOR","My thoughts exactly, Captain. That's gonna be a bit more difficult, but while I was getting the repeater working, I was able to pick up on localized radio transmissions and get some idea of what we're dealing with here on this planet. That's a very lucky thing for us, Captain, because I need vacuum tubes. Two of them. If you bring me those tubes, five copper bars, and a quartz crystal of exceptional quality, I can get the replicator working with our tiny trickle charge from the gravitic power supply to provide us with food and water.",[["Then that's the plan, Chief. Nice work.",func():
-				state.replicator_briefed=true
+	if state.repeater_briefed:
+		dialog("Chief Vale","REPAIR STATUS","The replicator's keeping us supplied. Next is the local commlink repeater: two vacuum tubes, five copper bars, and a quartz crystal of exceptional quality. With those, I can get our communicators talking to each other again.",back)
+	elif state.replicator_working():
+		dialog("Chief Vale","REPAIR STATUS","Try the dispenser, Captain. The replicator's working again. I'll keep the locker stocked with rations and the tank topped up each day. Food and water are taken care of.",[["Good work, Chief. Let's get our local commlink working next.",func():
+			dialog("Chief Vale","THE REPEATER","That one took a harder hit. I'll need two vacuum tubes, five copper bars, and a quartz crystal of exceptional quality to rebuild the local commlink repeater. I've heard local radio transmissions through the receiver, so there may be someone down there who works with valves. With the scanners still down, I can't say who. It won't let us call for rescue, but at least we'll be able to stay in touch with each other.",[["Then that's the plan, Chief. Nice work.",func():
+				state.repeater_briefed=true
 				save_visit()
 				close_window()]],false)]],false)
 	elif state.delivered:
-		dialog("Chief Vale","REPAIR STATUS","Not yet, Captain. I'm still making the components and wiring for the repeater. Give me the rest of the day.",back)
+		dialog("Chief Vale","REPAIR STATUS","Not yet, Captain. I'm still replacing the replicator's components and wiring. Give me the rest of the day.",back)
 	else:
 		dialog("Chief Vale","REPAIR STATUS","The cloak is steady. Everything else still needs parts and patience. I'm keeping the power sink stable and making a list of what can be repaired first. Ask me again whenever you like; I'll tell you when something changes.",back)
 
@@ -1758,9 +1760,12 @@ func item_options(id: String) -> void:
 
 func journal() -> void:
 	var visit="Speak with Moss behind the farmhouse to arrange the visit."
+	var repair="Find Chief Vale on the ship's lower deck."
+	if state.chat_days.has("vale"): repair="Food and water · bring Vale two copper bars for the replicator. Dain teaches a crucible blueprint for ten star bulbs; build it with stone and smelt the cave ore. Keep food in the ship locker until the replicator is working."
+	if state.repeater_briefed: repair="Local commlink repeater · bring Vale two vacuum tubes, five copper bars, and a quartz crystal of exceptional quality. The working replicator now supplies the ship with rations and water."
 	if state.invited:
 		visit="The mayor's welcome is complete." if state.met_mayor else "Wait inside the farmhouse and finish every cover and bulb. Moss brings Alder and Neral after the house is ready. The welcome sequence holds the clock."
-	panel("Captain's field notes","FIRST LANDING","%s Shelter · speak with Moss behind the farmhouse.\n\n%s %s\n\n%s Make the house a home · remove the furniture covers and replace both broken light bulbs. Spares are in the kitchen cabinet.\n\n%s Provide for ourselves · harvest a moon turnip; Tavi buys produce.\n\n%s Crew communications · bring Vale three copper bars. Dain teaches a crucible blueprint for ten star bulbs; build it with stone and smelt the cave ore. Keep food in the ship locker." % ["✓" if state.invited else "○","✓" if state.met_mayor else "○",visit,"✓" if state.house_tasks.values().all(func(done): return done) else "○","✓" if state.harvested>0 else "○","✓" if state.delivered else "○"])
+	panel("Captain's field notes","FIRST LANDING","%s Shelter · speak with Moss behind the farmhouse.\n\n%s %s\n\n%s Make the house a home · remove the furniture covers and replace both broken light bulbs. Spares are in the kitchen cabinet.\n\n%s Provide for ourselves · harvest a moon turnip; Tavi buys produce.\n\n○ %s" % ["✓" if state.invited else "○","✓" if state.met_mayor else "○",visit,"✓" if state.house_tasks.values().all(func(done): return done) else "○","✓" if state.harvested>0 else "○",repair])
 	ui.modal.get_child(1).position.y=55
 
 func map_notes() -> void:
@@ -1952,7 +1957,7 @@ func reset_confirmation() -> void:
 		["Keep this visit",settings]])
 
 func save_path() -> String:
-	return ProjectSettings.globalize_path("res://").path_join("../../internal/first-landing.json").simplify_path()
+	return ProjectSettings.globalize_path("res://").path_join("../../internal/first-landing-replicator.json").simplify_path()
 
 func save_visit() -> bool:
 	if testing or saving_disabled: return false

@@ -75,7 +75,7 @@ func run() -> void:
 	game.state.player_position=game.world.villagers.vale.position+Vector2(0,15)
 	game.interact()
 	game.ui.modal_box.get_child(3).pressed.emit()
-	check(game.state.delivered and game.state.copper_bars==0,"crew repair consumes copper bars and completes objective")
+	check(game.state.delivered and game.state.copper_bars==1,"the replicator repair consumes exactly two copper bars")
 	game.leave_building()
 	game.select_quick_slot(0)
 	game.state.player_position=game.world.site_position("pond")

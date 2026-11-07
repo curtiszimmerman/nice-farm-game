@@ -173,10 +173,10 @@ var crucibles: Array=[]
 var invited = false
 var met_mayor = false
 var delivered = false
-# Vale needs a day with the copper bars before the repeater works. This is the game minute it's ready, or -1 before the bars arrive.
-const REPEATER_WORK_MINUTES=1440.0
-var repeater_ready_at = -1.0
-var replicator_briefed = false
+# Vale needs a day to replace the replicator's damaged wiring and components.
+const REPLICATOR_WORK_MINUTES=1440.0
+var replicator_ready_at = -1.0
+var repeater_briefed = false
 var pause_mode = "all"
 var player_position = Grid.center(Vector2i(7,12))
 var plots: Array = []
@@ -197,13 +197,27 @@ func _init() -> void:
 func total() -> float:
 	return (day - 1) * 1440.0 + minute
 
-func deliver_repeater_copper() -> void:
-	copper_bars-=3
+func deliver_replicator_copper() -> bool:
+	if delivered or copper_bars<2: return false
+	copper_bars-=2
 	delivered=true
-	repeater_ready_at=total()+REPEATER_WORK_MINUTES
+	replicator_ready_at=total()+REPLICATOR_WORK_MINUTES
+	return true
 
-func repeater_working() -> bool:
-	return delivered and total()>=repeater_ready_at
+func replicator_working() -> bool:
+	return delivered and total()>=replicator_ready_at
+
+func refill_ship_supplies() -> void:
+	if not replicator_working(): return
+	ship_water=SHIP_WATER
+	for stack in ship_storage:
+		if stack.get("id","")=="rations":
+			stack.count=maxi(14,int(stack.count))
+			return
+	for stack in ship_storage:
+		if stack.is_empty():
+			stack.merge({"id":"rations","count":14})
+			return
 
 func weather_name(on_day: int=0) -> String:
 	return weather_override if weather_override!="" else preload("res://weather.gd").for_day(world_seed,day if on_day==0 else on_day)
@@ -381,6 +395,7 @@ func advance(minutes: float, window_open = false,sleeping: bool=false) -> void:
 	if window_open and pause_mode == "clock":
 		restore_mana(minutes*0.12)
 		return
+	var replicator_was_working=replicator_working()
 	var recoverable=needs.advance(minutes,self)
 	mana=minf(MAX_MANA,mana+recoverable*0.12)
 	advance_statuses(minutes,sleeping)
@@ -426,17 +441,19 @@ func advance(minutes: float, window_open = false,sleeping: bool=false) -> void:
 				plot.watered=true
 				plot.water_day=day
 	for meal_day in range(previous_day+1,day+1):
-		if take_crew_meal(): crew_fed_day=meal_day
+		if delivered and (meal_day-1)*1440>=replicator_ready_at: refill_ship_supplies()
+		if take_crew_meal((meal_day-1)*1440.0): crew_fed_day=meal_day
 		else: crew_hungry_days+=1
+	if not replicator_was_working and replicator_working(): refill_ship_supplies()
 
-func take_crew_meal() -> bool:
+func take_crew_meal(at_time: float=-1) -> bool:
 	for food in Items.PREPARED_FOOD:
 		for stack in ship_storage:
 			if stack.get("id","")!=food or stack.get("count",0)<1: continue
 			stack.count-=1
 			if stack.count==0: stack.clear()
 			return true
-	return false
+	return delivered and (total() if at_time<0 else at_time)>=replicator_ready_at
 
 func ripe(index: int) -> bool:
 	return index >= 0 and index < plots.size() and plots[index].planted >= 0.0 and plots[index].growth >= crop_minutes(plots[index].crop)
@@ -883,7 +900,7 @@ func to_dict() -> Dictionary:
 	clear_empty_slots()
 	var supplies={}
 	for id in EXTRA_ITEMS: supplies[id]=get(id)
-	return {"version":19,"requests":requests.to_dict(),"needs":needs.to_dict(),"crew_food_delivered":crew_food_delivered,"town":preload("res://town_progress.gd").snapshot(self),"inventory_order":inventory_order.duplicate(),"woodcutter_axe_given":woodcutter_axe_given,"cave_pickaxe_taken":cave_pickaxe_taken,"cave_intro_seen":cave_intro_seen,"auxiliary_selection":auxiliary_selection,"world_seed":world_seed,"inventory_selection":inventory_selection,"firewood_requested":firewood_requested,"firewood_given":firewood_given,"felled_trees":felled_trees.duplicate(),"day": day, "minute": minute, "money": money,"magic_learned":magic_learned,
+	return {"version":20,"requests":requests.to_dict(),"needs":needs.to_dict(),"crew_food_delivered":crew_food_delivered,"town":preload("res://town_progress.gd").snapshot(self),"inventory_order":inventory_order.duplicate(),"woodcutter_axe_given":woodcutter_axe_given,"cave_pickaxe_taken":cave_pickaxe_taken,"cave_intro_seen":cave_intro_seen,"auxiliary_selection":auxiliary_selection,"world_seed":world_seed,"inventory_selection":inventory_selection,"firewood_requested":firewood_requested,"firewood_given":firewood_given,"felled_trees":felled_trees.duplicate(),"day": day, "minute": minute, "money": money,"magic_learned":magic_learned,
 		"forage_harvests":forage_harvests.duplicate(),"ladder_requested":ladder_requested,"ladder_taken":ladder_taken,"ladder_returned":ladder_returned,
 		"awake_minutes":awake_minutes,"sleep_minutes":sleep_minutes,"status_effects":status_effects.duplicate(true),
 		"crucible_known":crucible_known,"crucibles":crucibles.duplicate(true),
@@ -897,12 +914,12 @@ func to_dict() -> Dictionary:
 		"location":location,"outdoor_x":outdoor_position.x,"outdoor_y":outdoor_position.y,
 		"seeds": seeds, "turnips": turnips, "fish": fish, "copper": copper,
 		"harvested": harvested, "mana": mana, "energy": energy,
-		"invited": invited, "met_mayor": met_mayor, "delivered": delivered, "repeater_ready_at": repeater_ready_at, "replicator_briefed": replicator_briefed,
+		"invited": invited, "met_mayor": met_mayor, "delivered": delivered, "replicator_ready_at": replicator_ready_at, "repeater_briefed": repeater_briefed,
 		"pause_mode": pause_mode, "x": player_position.x, "y": player_position.y,
 		"plots": plots.duplicate(true)}
 
 func restore(data: Variant) -> bool:
-	if not data is Dictionary or data.get("version") != 19:
+	if not data is Dictionary or data.get("version") != 20:
 		return false
 	if not requests.valid(data.get("requests")): return false
 	if not needs.valid(data.get("needs")) or not data.get("crew_food_delivered") is bool: return false
@@ -944,7 +961,7 @@ func restore(data: Variant) -> bool:
 	if not data.get("quest_order") is Array: return false
 	if data.get("weather_override") not in ["","sunny","partly_cloudy","rainy"]: return false
 	var quests=[]
-	var allowed_quests=["crew_supplies","restore_farmhouse","first_harvest","meet_wizard","keeper_firewood","bells_ladder","axe_repayment","bram_sword"]
+	var allowed_quests=["find_vale","crew_supplies","repeater","restore_farmhouse","first_harvest","meet_wizard","keeper_firewood","bells_ladder","axe_repayment","bram_sword"]
 	for job in data.requests.jobs: allowed_quests.append(requests.quest_id(job))
 	for id in data.quest_order:
 		if not id is String or id not in allowed_quests or id in quests: return false
@@ -1035,10 +1052,10 @@ func restore(data: Variant) -> bool:
 	if not Grid.contains(Grid.world_to_cell(Vector2(data.outdoor_x,data.outdoor_y))): return false
 	if not Grid.contains(Grid.world_to_cell(Vector2(data.x,data.y))):
 		return false
-	for field in ["invited", "met_mayor", "delivered", "replicator_briefed"]:
+	for field in ["invited", "met_mayor", "delivered", "repeater_briefed"]:
 		if not data.get(field) is bool:
 			return false
-	if not _number(data.get("repeater_ready_at")) or data.repeater_ready_at<-1: return false
+	if not _number(data.get("replicator_ready_at")) or data.replicator_ready_at<-1: return false
 	if not data.get("pause_mode") in ["none", "clock", "all"]:
 		return false
 	if not data.get("plots") is Array or data.plots.size()>1500:
@@ -1060,9 +1077,9 @@ func restore(data: Variant) -> bool:
 		if not _number(p.get("water_day")) or p.water_day<0 or p.water_day>data.day or p.water_day!=floor(p.water_day): return false
 	for field in ["day", "money", "seeds", "turnips", "fish", "copper", "harvested","star_seeds","star_bulbs","rusty_sword","hoe","watering_can","sickle","invitation_day"]:
 		set(field, int(data[field]))
-	for field in ["minute", "mana", "energy", "invited", "met_mayor", "delivered", "replicator_briefed", "pause_mode","health","equipped","selected_seed","location"]:
+	for field in ["minute", "mana", "energy", "invited", "met_mayor", "delivered", "repeater_briefed", "pause_mode","health","equipped","selected_seed","location"]:
 		set(field, data[field])
-	repeater_ready_at=float(data.repeater_ready_at)
+	replicator_ready_at=float(data.replicator_ready_at)
 	player_position = Vector2(data.x, data.y)
 	needs.restore(data.needs)
 	requests.restore(data.requests)

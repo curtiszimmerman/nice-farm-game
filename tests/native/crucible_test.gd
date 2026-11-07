@@ -61,11 +61,11 @@ func run() -> void:
 	game.talk("vale")
 	check(game.ui.modal_box.get_child(2).text.to_lower().contains("copper bars"),"Vale asks for refined bars rather than raw ore")
 	game.ui.modal_box.get_child(3).pressed.emit()
-	check(not game.state.delivered and game.state.copper==3,"raw ore cannot satisfy the crew-link repair")
+	check(not game.state.delivered and game.state.copper==3,"raw ore cannot satisfy the replicator repair")
 	game.state.copper_bars=3
 	game.talk("vale")
 	game.ui.modal_box.get_child(3).pressed.emit()
-	check(game.state.delivered and game.state.copper==3 and game.state.copper_bars==0,"Vale accepts three bars and leaves raw ore alone")
+	check(game.state.delivered and game.state.copper==3 and game.state.copper_bars==1,"Vale accepts exactly two bars and leaves raw ore alone")
 	await game.sound.shutdown()
 	game.queue_free()
 	await process_frame
