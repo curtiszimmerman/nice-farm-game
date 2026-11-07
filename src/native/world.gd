@@ -181,7 +181,7 @@ class Prop extends Node2D:
 		elif kind == "logs": Art.sprite(self,"item_wood",Vector2(-14,-24),Vector2(28,28))
 		elif kind == "bench": Art.stone_sprite(self,"bench",Vector2(0,-48),owner_world.state)
 		elif kind == "fountain": Art.stone_sprite(self,"fountain"+str(int(owner_world.elapsed*6)%4),Vector2(0,-80),owner_world.state)
-		elif kind == "mill_sails": Art.sprite(self,"mill_sails"+str(int(owner_world.elapsed*2)%4),Vector2(-48,-48))
+		elif kind == "mill_sails": Art.sprite(self,"mill_sails"+str(int(owner_world.elapsed*2)%4),-Art.sprite_size("mill_sails0")/2)
 		elif kind == "bulletin_board": Art.sprite(self,"bulletin_board",Vector2(-16,-96))
 		elif kind == "lamp":
 			if owner_world.SQUARE.has_point(Grid.world_to_cell(position)): Art.stone_sprite(self,"lamp",Vector2(-16,-86),owner_world.state)
@@ -276,7 +276,7 @@ func _ready() -> void:
 	for cell in Neighbors.BENCHES: _prop("bench",Grid.origin(cell+Vector2i.DOWN),{})
 	for b in buildings:
 		if b.kind=="windmill":
-			var sails=_prop("mill_sails",Vector2(b.x+b.w/2,b.y+b.h-112),{"frame":-1})
+			var sails=_prop("mill_sails",Vector2(b.x+b.w/2,b.y+b.h-Art.MILL_HUB_HEIGHT),{"frame":-1})
 			sails.z_index=3
 
 func _claim(footprint: Rect2i,kind: String) -> void:

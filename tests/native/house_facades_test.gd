@@ -1,5 +1,6 @@
 extends SceneTree
 const Game=preload("res://game.gd")
+const World=preload("res://world.gd")
 var failed=false
 func check(ok: bool,label: String) -> void:
 	if ok: print("PASS: "+label)
@@ -57,6 +58,16 @@ func run() -> void:
 	var walls={}
 	for id in homes: walls[Art.facade(game.outdoors.buildings.filter(func(b):return b.id==id)[0]).wall]=true
 	check(walls.size()==homes.size() and not walls.has("plaster"),"each of those homes has its own wall instead of the shared plaster (%s)" % str(walls.keys()))
+	# The windmill is a tower mill drawn as one picture, and its sails turn on the cap.
+	var mill=game.outdoors.buildings.filter(func(b):return b.id=="windmill")[0]
+	check(Art.catalog.has("building_windmill") and Art.facade(mill).is_empty(),"the windmill is drawn as a tower mill, without house windows or lanterns")
+	var sails=game.outdoors.moving_layer.get_children().filter(func(n):return n is World.Prop and n.kind=="mill_sails")[0]
+	var picture=Art.region("building_windmill")
+	var height=Art.building_height(mill)
+	var top_left=Vector2(mill.x,mill.y+mill.h-height)
+	var hub=(sails.position-top_left)*picture.size/Vector2(mill.w,height)
+	var cap=Art.pixels.get_pixel(int(picture.position.x+hub.x),int(picture.position.y+hub.y))
+	check(cap.a>0.5 and cap.r<0.5,"the sails' hub sits on the mill's dark cap (%s)" % hub)
 	await game.sound.shutdown()
 	game.queue_free()
 	await process_frame

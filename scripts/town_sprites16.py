@@ -226,22 +226,71 @@ def mill_wall(P):
     return p
 
 
+SAILS = 88
+
+
 def sails(P, frame):
-    p = P(48, 48)
+    # Four long lattice sails, a quarter turn apart, so four frames of a sixteenth turn loop seamlessly.
+    p = P(SAILS, SAILS)
+    c = SAILS / 2
     base = frame * math.pi / 8 + 0.3
-    for y in range(48):
-        for x in range(48):
-            dx, dy = x + 0.5 - 24, y + 0.5 - 24
+    for y in range(SAILS):
+        for x in range(SAILS):
+            dx, dy = x + 0.5 - c, y + 0.5 - c
             for arm in range(4):
                 a = base + arm * math.pi / 2
                 al = dx * math.cos(a) + dy * math.sin(a)
                 pe = -dx * math.sin(a) + dy * math.cos(a)
-                if 2 <= al <= 23 and abs(pe) < 0.85:
+                if 2 <= al <= c - 1 and abs(pe) < 0.9:
                     p.dot(x, y, WOOD[2] if pe < 0 else WOOD[1]); break
-                if 6 <= al <= 22 and 1 <= pe <= 7:
-                    lattice = al % 3.2 < 0.9 or pe > 6.2
-                    p.dot(x, y, WOOD[3] if lattice else mix("efe4c8", "b9ab8c", (pe - 1) / 7)); break
-    p.oval(23.5, 23.5, 2.6, 2.6, WOOD[0]); p.oval(23.5, 23.5, 1.5, 1.5, WOOD[3]); p.dot(23, 23, IRON[4])
+                if 8 <= al <= c - 2 and 1 <= pe <= 9:
+                    lattice = al % 3.4 < 0.9 or pe > 8.2 or 4.6 < pe < 5.4
+                    p.dot(x, y, WOOD[3] if lattice else mix("efe4c8", "b9ab8c", (pe - 1) / 9)); break
+    p.oval(c - 0.5, c - 0.5, 3.2, 3.2, WOOD[0]); p.oval(c - 0.5, c - 0.5, 2, 2, WOOD[3]); p.dot(int(c) - 1, int(c) - 1, IRON[4])
+    return p
+
+
+def tower_mill(P):
+    # A whitewashed tower mill: brick plinth, tapering body lit from the left, a wooden reefing stage
+    # halfway up, and a tarred boat-shaped cap carrying the windshaft. The sails are drawn separately.
+    p = P(80, 120)
+    top, bottom = 38, 104
+    lime = ["8a8272", "a89f8c", "c8bfa8", "e2dac4", "f2ecdc"]
+    for y in range(top, bottom):
+        half = 15 + (y - top) / (bottom - top) * 13
+        x0, x1 = round(40 - half), round(40 + half)
+        for x in range(x0, x1):
+            t = (x - x0) / max(1, x1 - x0)
+            col = lime[4] if t < 0.18 else lime[3] if t < 0.62 else lime[2] if t < 0.84 else lime[1]
+            if (y - top) % 6 == 0 and hash((x, y)) % 5 == 0: col = shade(col, -0.4)
+            p.dot(x, y, col)
+        p.dot(x0, y, lime[0]); p.dot(x1 - 1, y, lime[0])
+    # Brick plinth with a stone coping.
+    for y in range(bottom, 120):
+        for x in range(9, 71):
+            p.dot(x, y, ROOF[2] if (x + (4 if (y // 3) % 2 else 0)) % 8 else ROOF[1])
+        if y % 3 == 0: p.hline(9, 70, y, ROOF[0])
+    p.box(8, bottom - 1, 64, 2, STONE[4]); p.hline(8, 71, bottom - 1, STONE[5])
+    # Arched door and two small windows.
+    p.box(35, 94, 10, 26, WOOD[0]); p.box(36, 95, 8, 25, WOOD[2])
+    for x in (38, 41): p.vline(x, 95, 119, WOOD[1])
+    p.hline(37, 42, 93, WOOD[0]); p.hline(38, 41, 92, WOOD[0]); p.dot(42, 108, "f2d27a")
+    for wy in (50, 68):
+        p.box(37, wy, 6, 7, lime[0]); p.box(38, wy + 1, 4, 5, WATER[1]); p.dot(38, wy + 1, WATER[4]); p.vline(39, wy + 1, wy + 5, lime[0])
+    # The reefing stage, with posts and a rail, wider than the tower and below the sweep of the sails.
+    p.box(7, 82, 66, 3, WOOD[3]); p.hline(7, 72, 82, WOOD[4]); p.hline(7, 72, 84, WOOD[1])
+    p.hline(7, 72, 76, WOOD[2])
+    for x in range(8, 73, 6): p.vline(x, 76, 81, WOOD[1])
+    for x0 in (11, 68): p.line(x0, 85, 40 + (x0 - 40) // 2, 92, WOOD[1])
+    # Boat cap with shingle lines and a finial.
+    for y in range(18, top + 1):
+        for x in range(16, 64):
+            if ((x - 40) / 24.5) ** 2 + ((y - top) / 20.0) ** 2 <= 1:
+                col = "6e5a48" if x < 30 else "4a3a30" if x < 52 else "34281f"
+                if (y - 18) % 4 == 0: col = shade(col, -0.6)
+                p.dot(x, y, col)
+    p.hline(15, 64, top, WOOD[0]); p.hline(15, 64, top + 1, WOOD[1])
+    p.vline(40, 13, 18, IRON[2]); p.oval(40, 13, 1.5, 1.5, "c9a24a")
     return p
 
 
@@ -672,6 +721,7 @@ def sprites(P):
         out[f"tile_lantern_{part}"] = lantern(P, i); out[f"tile_cap_{part}"] = cap(P, i)
     for kind in ("smithy", "bakery", "tavern"): out[f"tile_{kind}_sign"] = sign(P, kind)
     out["tile_windmill_wall"] = mill_wall(P)
+    out["building_windmill"] = tower_mill(P)
     for i in range(4): out[f"tile_mill_sails{i}"] = sails(P, i)
     for i in range(2):
         out[f"tile_paving{i}"] = paving(P, i); out[f"tile_flowerbed{i}"] = flowerbed(P, i)

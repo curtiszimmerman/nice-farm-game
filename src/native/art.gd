@@ -195,7 +195,7 @@ const LANTERN_GLASS=Rect2(2,4,6,10)
 # Lanterns hang on either edge of the door, so they never cover the glass of the windows beside it.
 # Buildings drawn from a single picture have no facade.
 static func facade(b: Dictionary) -> Dictionary:
-	if b.kind in ["mill_shed","observatory","lighthouse"] or (b.kind=="temple" and catalog.has("building_temple")): return {}
+	if b.kind in ["mill_shed","observatory","lighthouse"] or (b.kind=="temple" and catalog.has("building_temple")) or (b.kind=="windmill" and catalog.has("building_windmill")): return {}
 	var columns=int(b.w/32)
 	var door=int(columns/2)
 	var windows=[]
@@ -221,10 +221,15 @@ static func building_height(b: Dictionary) -> int:
 	return (wall_rows(b)+2)*32
 
 const TEMPLE_HEIGHT=224
+# The tower mill's windshaft is on its cap, 90 of the picture's 120 pixels up, drawn at twice that size.
+const MILL_HUB_HEIGHT=180
 
 static func building(c: CanvasItem,b: Dictionary) -> void:
 	if b.kind=="temple" and catalog.has("building_temple"):
 		sprite(c,"building_temple",Vector2(0,-TEMPLE_HEIGHT),Vector2(224,TEMPLE_HEIGHT))
+		return
+	if b.kind=="windmill" and catalog.has("building_windmill"):
+		sprite(c,"building_windmill",Vector2(0,-building_height(b)),Vector2(b.w,building_height(b)))
 		return
 	if b.kind=="mill_shed":
 		for y in range(3):
