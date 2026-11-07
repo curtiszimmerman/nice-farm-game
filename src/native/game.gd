@@ -23,7 +23,7 @@ const BRIEFING=[
 	["Captain","Keeping that cloak running is our main priority until rescue arrives. Outside of that, the basics: food and water, and our local commlink repeater so we can stay in contact."],
 	["Chief Vale","Three copper bars would get our local repeater talking again. Raw ore won't do; we'll need it refined. The last scan showed a deposit southeast of a settlement below us. A couple of kilometers, give or take. If there's a smith in that settlement, perhaps they can help. With the scanners gone, I can't tell you any more than that."],
 	["Captain","What have we got for food?"],
-	["Chief Vale","Six emergency rations stowed by the bunks. One a day for each of us doesn't leave much breathing room. We'll need fresh water, too, since we've only got enough here to get us through a couple of weeks. And something local to eat. And if you find a kitchen, I'd dearly love a meal that doesn't come out of a foil packet. Leave me something in the locker while I'm working, would you?"],
+	["Chief Vale","Fourteen emergency rations in the locker by the bunks, and the water dispenser beside it still works. That's the two of us fed for a week or so, and not much longer. Once repairs come along I can get the water reclaimer going again, but until then this is all we have. So the sooner you're growing something, or find a kitchen, the better. I'd dearly love a meal that doesn't come out of a foil packet. Leave me something in the locker while I'm working, would you? And come back for food and water. Don't go hungry out there."],
 	["Captain","We'll find water, food, and the supplies you need. Keep the cloak stable, Vale. We'll start by seeing who's down the mountain."]]
 
 var state = State.new()
@@ -115,7 +115,8 @@ func update_weather_sound(dt: float) -> void:
 	sound.update_weather(state.weather_name(),world==outdoors,dt,lightning,snow)
 
 func choose_journey_mode() -> void:
-	panel("Before we begin","YOUR JOURNEY","Choose how you want to live here. Hardcore adds hunger and thirst: drink before three days pass, and eat before three weeks. Going without blocks energy and mana recovery and costs health. You can change this in Settings.",[["A gentler journey",func(): start_journey(false)],["Hardcore · food and water matter",func(): start_journey(true)]])
+	# Food and water keep the captain going back to the ship, where the only reliable food is until the farm is running.
+	panel("Before we begin","FOOD AND WATER","Food and water mode is enabled by default, but you can disable this in the settings menu.",[["Continue",func(): start_journey(true)]])
 
 func show_title_backdrop() -> void:
 	if title_backdrop_active: return
@@ -151,6 +152,18 @@ func start_journey(hardcore: bool) -> void:
 func drink_freshwater() -> void:
 	state.needs.drink()
 	toast("A long, cool drink. Hydration restored.")
+	save_visit()
+
+func drink_from_dispenser() -> void:
+	if not state.needs.hardcore:
+		toast("Cool, filtered water. It tastes faintly of the ship.")
+		return
+	if state.ship_water<1:
+		toast("The dispenser is dry. Vale says it won't refill until the water reclaimer is repaired.")
+		return
+	state.ship_water-=1
+	state.needs.drink()
+	toast("A long drink from the ship's supply. Hydration restored. %d left in the tank." % state.ship_water)
 	save_visit()
 
 func begin() -> void:
@@ -909,6 +922,7 @@ func interact() -> void:
 			"drink_pond","drink_fountain":
 				if state.needs.hardcore: drink_freshwater()
 				else: toast("Fresh water, cool and clean.")
+			"water_dispenser": drink_from_dispenser()
 			"sign": dialog("The farmhouse crossroads","BRIAR GLEN","East: Briar Glen, general store and smithy. West: the old farmhouse and the coastal path. South: the mill pond and woodland cabins. For the copper cave, take the southeast road from town.",[ ["Okay.",func(): pass] ])
 			"radio":
 				if current_room=="home" and not state.met_mayor and not state.house_tasks.radio: tidy_farmhouse("radio")
@@ -1738,7 +1752,7 @@ func quit_menu() -> void:
 func preferences() -> void:
 	var selected = state.pause_mode
 	var choices = [
-		[("✓ " if state.needs.hardcore else "")+"Hardcore · hunger and thirst",func(): state.needs.hardcore=not state.needs.hardcore; save_visit(); preferences()],
+		[("✓ " if state.needs.hardcore else "")+"Food and water · hunger and thirst",func(): state.needs.hardcore=not state.needs.hardcore; save_visit(); preferences()],
 		[("✓ " if selected=="none" else "")+"Time continues",func(): state.pause_mode="none"; preferences()],
 		[("✓ " if selected=="clock" else "")+"Stop calendar · simulation continues",func(): state.pause_mode="clock"; preferences()],
 		[("✓ " if selected=="all" else "")+"Pause entire world · single-player default",func(): state.pause_mode="all"; preferences()],

@@ -4,7 +4,7 @@ const NEIGHBORS=[
 	[Vector2i.UP,1],[Vector2i.RIGHT,2],[Vector2i.DOWN,4],[Vector2i.LEFT,8],
 	[Vector2i(1,-1),16],[Vector2i(1,1),32],[Vector2i(-1,1),64],[Vector2i(-1,-1),128]
 ]
-const MATERIALS=["dirt","pond","ocean","cliff","soil","tilled","cave"]
+const MATERIALS=["dirt","pond","ocean","cliff","soil","tilled","cave","sand"]
 
 static func rect_cells(bounds: Rect2i) -> Dictionary:
 	var cells={}

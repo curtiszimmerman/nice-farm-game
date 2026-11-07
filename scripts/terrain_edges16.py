@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Connected eight-neighbour terrain borders for the rustic16 pack.
 
-Seven materials (dirt, pond, ocean, cliff, soil, tilled, cave) are painted as
+Eight materials (dirt, pond, ocean, cliff, soil, tilled, cave, sand) are painted as
 8x8 quarter pieces. Each quarter is drawn in global 16x16 tile coordinates, so a
 fill quarter is an exact crop of a seamless tile and edge quarters continue the
 same texture. Shapes, per quarter:
@@ -25,7 +25,7 @@ import time.
 import math
 from functools import lru_cache
 
-MATERIALS = ("dirt", "pond", "ocean", "cliff", "soil", "tilled", "cave")
+MATERIALS = ("dirt", "pond", "ocean", "cliff", "soil", "tilled", "cave", "sand")
 SEASONS = ("spring", "summer", "autumn", "winter")
 WEATHERS = ("sunny", "partly_cloudy", "rainy")
 VARIANTS = (0, 1, 2, 3)
@@ -243,6 +243,7 @@ GEOMETRY = {
     "soil": Geometry(5, _sides(1, 1, 1, 1), _sides(2, 2, 2, 2), _sides(1.0, 1.0, 1.0, 1.0), {"N": 2.5, "S": 2.5}),
     "cave": Geometry(6, _sides(1, 1, 6, 1), _sides(2, 2, 2, 2), _sides(1.2, 1.0, 0.0, 1.0), {"N": 2.5, "S": 1.5}, face=6),
 }
+GEOMETRY["sand"] = Geometry(7, _sides(1, 1, 1, 1), _sides(2, 2, 2, 2), _sides(1.8, 1.8, 1.8, 1.8), {"N": 3.5, "S": 3.5})
 GEOMETRY["tilled"] = GEOMETRY["soil"]
 STRATA = {"cliff": (4101, 4102), "cave": (6101, 6102)}
 FOAM_SEEDS = {"N": 901, "E": 902, "S": 903, "W": 904}
@@ -289,10 +290,23 @@ def _pal_pond(season, weather):
     return p
 
 
+BEACH_SAND = {"spring": "c6ad86", "summer": "d0b78c", "autumn": "b9a07a", "winter": "aca69a"}
+
+
+def _pal_sand(season, weather):
+    sand = BEACH_SAND[season]
+    p = dict(core=rgba(sand), hi=shade(sand, 0.7), lo=shade(sand, -0.6), rim=mix(sand, GRASS[2], 0.35),
+             shell=rgba("efe6d6"), shell_dk=rgba("c9b9a2"), puddle=mix(sand, "5a6a74", 0.45))
+    if weather == "rainy":
+        _keys(p, ("core", "hi", "lo", "rim"), lambda v: shade(v, -0.9))
+    p["stone"] = (rgba(STONE[4]), rgba(STONE[3]), rgba(STONE[2]))
+    return p
+
+
 def _pal_ocean(season, weather):
     water = {"spring": ("1e4e6e", "265f7e", "32748e", "5c9eb0"), "summer": ("1c5272", "24668a", "2e7d98", "60aabc"),
              "autumn": ("1f4866", "285876", "336c86", "5a92a4"), "winter": ("223e56", "2b4e66", "386078", "688ea0")}[season]
-    sand = {"spring": "c6ad86", "summer": "d0b78c", "autumn": "b9a07a", "winter": "aca69a"}[season]
+    sand = BEACH_SAND[season]
     deep, mid, light, crest = (rgba(x) for x in water)
     p = dict(deep=deep, mid=mid, light=light, crest=crest, deepmid=mix(deep, mid, 0.45),
              shallow=mix(light, "86b4a6", 0.35), foam=rgba("d4e6e0"), foam_dk=rgba("a6c6c6"),
@@ -353,7 +367,7 @@ def _pal_soil(season, weather):
 
 
 _PALETTE_BUILDERS = {"dirt": _pal_dirt, "pond": _pal_pond, "ocean": _pal_ocean, "cliff": _pal_cliff,
-                     "soil": _pal_soil, "tilled": _pal_soil, "cave": _pal_cave}
+                     "soil": _pal_soil, "tilled": _pal_soil, "cave": _pal_cave, "sand": _pal_sand}
 
 
 def _palette(material, season, weather):
@@ -560,6 +574,39 @@ def _deco_dirt(Q):
             for x, y in pts:
                 Q.put(x, y, p["puddle"])
             Q.put(3, 4, p["glint"])
+
+
+# ---------------------------------------------------------------- sand
+
+def _paint_sand(c, gx, gy, geo):
+    zone, d = geo[0], geo[1]
+    p = c.pal
+    if zone == "out":
+        return None
+    n = hash01(gx, gy, 571 + c.variant * 7)
+    if zone == "in":
+        # Sand is drawn tile after tile along the beach, so only sparse single-pixel grains vary it.
+        # Any larger pattern would repeat every tile and show the grid.
+        return p["hi"] if n > 0.93 else p["lo"] if n < 0.05 else p["core"]
+    # The outer pixel blends into the grass, so the beach fades into the meadow instead of stopping on a line.
+    col = p["rim"] if d < 1 else p["lo"] if d < 1.6 and zone in ("N", "W") else p["core"]
+    if c.season == "winter" and d < 1 and hash01(gx, gy, 573) > 0.6:
+        col = mix(col, "c8d0d4", 0.45)
+    return col
+
+
+def _deco_sand(Q):
+    c, p = Q.c, Q.c.pal
+    rg = Q.rng(1)
+    if c.variant in (1, 2):
+        lx, ly = rg.int(1, 5), rg.int(1, 5)
+        if Q.all_zone([(lx, ly), (lx + 1, ly)], IN):
+            Q.put(lx, ly, p["shell"]); Q.put(lx + 1, ly, p["shell_dk"])
+    if c.variant == 3:
+        Q.pebble(rg.int(1, 5), rg.int(1, 5), False, p["stone"], p["lo"])
+    Q.edge_tufts(Q.rng(2), p["tuft"], 0.7)
+    if c.season in ("autumn", "winter"):
+        Q.debris(Q.rng(3), puddle=p["puddle"])
 
 
 # ---------------------------------------------------------------- pond
@@ -1064,6 +1111,7 @@ PAINTERS = {
     "soil": (_paint_soil, lambda Q: _deco_soil(Q, False)),
     "tilled": (_paint_tilled, lambda Q: _deco_soil(Q, True)),
     "cave": (_paint_cave, _deco_cave),
+    "sand": (_paint_sand, _deco_sand),
 }
 
 

@@ -24,7 +24,7 @@ class TerrainEdges(unittest.TestCase):
                                         for q in art.QUADRANTS for shape in art.SHAPES)
         expected.update(("plant_overlay_sprout", "plant_overlay_turnip", "plant_overlay_bulb"))
         self.assertEqual(set(self.sprites), expected)
-        self.assertEqual(len(self.sprites), 22515)
+        self.assertEqual(len(self.sprites), 25731)
         for name, image in self.sprites.items():
             expected_size = 8 if name.startswith("border_quarter_") else 16
             self.assertEqual((image.w, image.h), (expected_size, expected_size), name)

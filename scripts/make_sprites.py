@@ -635,6 +635,18 @@ def main():
     from border_surfaces16 import sprites as border_surfaces
     from terrain_edges16 import sprites as terrain_edges
     additions = dict(sprites(SmallPixels), **calendar_sprites(SmallPixels), **observatory_sprites(SmallPixels), **harvest_sprites(SmallPixels), **border_surfaces(SmallPixels), **terrain_edges(SmallPixels))
+    # Item icons from the newer 16-pixel modules are doubled too, so both packs agree on every icon's size.
+    from journey_sprites16 import sprites as journey_sprites
+    from town_additions16 import sprites as town_additions
+    from farm_additions16 import sprites as farm_sprites
+    for module_sprites in (journey_sprites, town_additions, farm_sprites):
+        additions.update({name: image for name, image in module_sprites(SmallPixels).items() if name.startswith("item_")})
+    import make_sprites16
+    additions["item_silver_bars"] = make_sprites16.silver_bar(additions["item_copper_bars"], SmallPixels)
+    # The surf and the ship's water dispenser are drawn once, in the 16-pixel pack, and doubled here.
+    make_sprites16.shore_wash()
+    make_sprites16.furniture("water_dispenser", 1, 1)
+    additions.update({name: image for name, (image, _) in make_sprites16.ASSETS.items() if name.startswith(("shore_wash_", "furniture_water_dispenser_"))})
     write_font(ROOT / "src/native/art/ui", SmallPixels)
     for name, small in additions.items():
         if name.startswith("tile_mill_sails"): name = name.removeprefix("tile_")

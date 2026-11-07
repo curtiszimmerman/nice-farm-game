@@ -1413,6 +1413,16 @@ def drop_sheet(w, h, lift):
     contact_shadow(c, 1, width + 2, base + 2, 2, 100)
 
 
+def water_dispenser(p, x0, w, yb):
+    # The ship's water dispenser: a metal cabinet with a tap, and a clear blue bottle upside down on top.
+    slab(p, x0, 14, w, 4, METAL, False)
+    face(p, x0, 18, w, yb - 17, METAL)
+    p.box(x0 + 4, 20, 8, 4, METAL[0]); p.box(x0 + 7, 20, 2, 2, METAL[5]); p.dot(x0 + 7, 23, "8fd0f0")
+    p.box(x0 + 3, 3, 10, 11, "3f6f94"); p.box(x0 + 4, 4, 8, 9, "6fa9d2"); p.box(x0 + 5, 7, 6, 5, "9ccbe8")
+    p.vline(x0 + 5, 4, 11, "dff3ff"); p.hline(x0 + 4, x0 + 11, 8, "4f86ae")
+    p.box(x0 + 6, 13, 4, 2, "2f5675")
+
+
 def furniture(kind, w, h):
     W, D = w * 16, h * 16
     p = add(f"furniture_{kind}_{w}x{h}", Pixels(W + 4, D + 20))
@@ -1461,6 +1471,8 @@ def furniture(kind, w, h):
         telescope(p, x0, yb)
     elif kind == "plant":
         pot_plant(p, x0 + 8, yb + 1, True)
+    elif kind == "water_dispenser":
+        water_dispenser(p, x0, W, yb)
     finish(p, x0, x0 + W - 1, yb - 1)
     lift = {"radio": 15, "sofa": 8, "bed": 4}.get(kind)
     if lift is not None and f"cover_{w}x{h}" not in ASSETS:
@@ -1998,11 +2010,43 @@ def bridge(p):
     p.box(78, 62, 4, 6, METAL[1])
 
 
+def silver_bar(copper_bar, canvas):
+    # The silver ingot is the copper bar in cool greys.
+    silver = canvas(copper_bar.w, copper_bar.h)
+    for yy in range(copper_bar.h):
+        for xx in range(copper_bar.w):
+            red, green, blue, alpha = copper_bar.get(xx, yy)
+            value = (red + green + blue) // 3
+            silver.dot(xx, yy, (value, min(255, value + 5), min(255, value + 12), alpha))
+    return silver
+
+
+def shore_wash():
+    # Surf running up the beach, in eight frames. Each frame spans two cells: the last cell of sea, whose
+    # shore band ends at about x=12, and the first cell of sand. The crest runs up the sand for five frames,
+    # then the backwash drains away and leaves a dark wet sheen where the water reached.
+    reach = [12, 15, 19, 23, 25, 22, 18, 14]
+    for frame in range(8):
+        p = add(f"shore_wash_{frame}", Pixels(32, 16))
+        for y in range(16):
+            wobble = round(math.sin(y * 0.7 + frame * 0.9) * 1.2 + math.sin(y * 1.9) * 0.6)
+            edge = reach[frame] + wobble
+            if frame <= 4:
+                for x in range(11, edge - 1): p.dot(x, y, "86c2c866")
+                p.dot(edge - 1, y, "dcefeacc"); p.dot(edge, y, "f4fbf6ee")
+                if (y + frame) % 3 == 0: p.dot(edge - 2, y, "f4fbf699")
+            else:
+                for x in range(edge + 1, 25 + wobble): p.dot(x, y, "4a3c2c" + ["44", "33", "22"][frame - 5])
+                for x in range(11, edge): p.dot(x, y, "86c2c855")
+                p.dot(edge, y, "dcefea88")
+
+
 def effects_and_ships():
     planet(add("planet", Pixels(96, 96)))
     p = add("particle", Pixels(2, 2)); p.box(0, 0, 2, 2, "ffffff")
     p = add("firefly", Pixels(4, 4)); p.box(0, 0, 4, 4, "f6d87a55"); p.box(1, 1, 2, 2, "fff0b6"); p.dot(1, 1, "ffffff")
     p = add("ripple", Pixels(8, 2)); p.hline(1, 6, 0, "c8e6dc99"); p.hline(0, 1, 1, "c8e6dc44"); p.hline(6, 7, 1, "c8e6dc44")
+    shore_wash()
     p = add("cable", Pixels(16, 32))
     for y in range(32):
         x = 6 + round(math.sin(y * 0.2) * 2)
@@ -2201,7 +2245,7 @@ def item_names():
     return names
 
 
-FURNITURE_KINDS = {"rug", "bed", "sofa", "table", "chair", "desk", "counter", "bookshelf", "stock", "cabinet", "crates", "tools", "seed_tray", "kitchen", "bath", "sink", "toilet", "reactor", "machine", "console", "radio", "art", "telescope", "plant"}
+FURNITURE_KINDS = {"water_dispenser", "rug", "bed", "sofa", "table", "chair", "desk", "counter", "bookshelf", "stock", "cabinet", "crates", "tools", "seed_tray", "kitchen", "bath", "sink", "toilet", "reactor", "machine", "console", "radio", "art", "telescope", "plant"}
 EXTRA_IDS = [f"tile_fence_mask{i}" for i in range(16)] + ["tile_gate_h_open", "tile_gate_v_open", "crop_sprout_wet", "crop_turnip_wet", "crop_bulb_wet"]
 
 
@@ -2267,14 +2311,7 @@ def main():
     additions.update(journey_sprites(Pixels))
     from farm_additions16 import sprites as farm_sprites
     additions.update(farm_sprites(Pixels))
-    copper_bar = additions["item_copper_bars"]
-    silver_bar = Pixels(copper_bar.w, copper_bar.h)
-    for yy in range(copper_bar.h):
-        for xx in range(copper_bar.w):
-            red, green, blue, alpha = copper_bar.get(xx, yy)
-            value = (red + green + blue) // 3
-            silver_bar.dot(xx, yy, (value, min(255, value + 5), min(255, value + 12), alpha))
-    additions["item_silver_bars"] = silver_bar
+    additions["item_silver_bars"] = silver_bar(additions["item_copper_bars"], Pixels)
     write_font(ROOT / "src/native/art/ui", Pixels)
     for name, image in additions.items():
         if name.startswith("tile_mill_sails"): name = name.removeprefix("tile_")

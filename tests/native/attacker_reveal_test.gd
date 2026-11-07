@@ -34,7 +34,7 @@ func run() -> void:
 				clear=clear or alpha==0
 				reflection=reflection or (alpha>0 and alpha<0.5)
 		check(clear and reflection,"the glare layer preserves transparent glass and translucent reflections")
-	check(Game.BRIEFING.any(func(line):return "we've only got enough here to get us through a couple of weeks" in line[1]),"Vale explains the limited fresh water supply")
+	check(Game.BRIEFING.any(func(line):return "water dispenser" in line[1] and "this is all we have" in line[1]),"Vale explains the limited food and water aboard")
 	await game.sound.shutdown()
 	game.queue_free()
 	await process_frame

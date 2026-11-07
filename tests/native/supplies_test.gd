@@ -56,11 +56,11 @@ func _initialize() -> void:
 	s.consume("health_elixir")
 	check(s.health==75,"health elixirs restore twenty-five health")
 	var crew=State.new()
-	crew.advance(1440*6)
-	check(crew.ship_storage[0].is_empty() and crew.crew_fed_day==7,"six rations feed Vale across six daily boundaries")
+	crew.advance(1440*14)
+	check(crew.ship_storage[0].is_empty() and crew.crew_fed_day==15,"fourteen rations feed Vale across fourteen daily boundaries")
 	crew.ship_storage[1]={"id":"fish_stew","count":1}
 	crew.advance(1440)
-	check(crew.ship_storage[1].is_empty() and crew.crew_fed_day==8,"Vale eats a cooked meal when rations run out")
+	check(crew.ship_storage[1].is_empty() and crew.crew_fed_day==16,"Vale eats a cooked meal when rations run out")
 	crew.advance(1440)
 	check(crew.crew_hungry_days==1,"a missing daily meal is recorded without inventing a punishment")
 	crew.fish_sticks=2

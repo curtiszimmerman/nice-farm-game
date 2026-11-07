@@ -88,7 +88,7 @@ func _ready() -> void:
 		if site[0]=="ladder":
 			if not state.ladder_taken: add_site("ladder",site[1],"Collect Mrs. Bell's ladder")
 			continue
-		add_site(site[0],site[1],{"bed":"Rest in the bedroom","radio":"Listen to the radio","shop":"Browse Tavi's provisions","cabinet":"Open kitchen cabinet","stove":"Cook at the stove","ship_storage":"Open crew supply locker","diagnostics":"Inspect damaged machinery","uncover_sofa":"Remove sofa cover","uncover_guest_bed":"Remove guest bed cover","living_light":"Replace living-room lamp bulb","bathroom_light":"Replace bedroom lamp bulb","private_door":"Rafe's private quarters"}[site[0]])
+		add_site(site[0],site[1],{"bed":"Rest in the bedroom","radio":"Listen to the radio","shop":"Browse Tavi's provisions","cabinet":"Open kitchen cabinet","stove":"Cook at the stove","ship_storage":"Open crew supply locker","water_dispenser":"Drink from the water dispenser","diagnostics":"Inspect damaged machinery","uncover_sofa":"Remove sofa cover","uncover_guest_bed":"Remove guest bed cover","living_light":"Replace living-room lamp bulb","bathroom_light":"Replace bedroom lamp bulb","private_door":"Rafe's private quarters"}[site[0]])
 	crops=Node2D.new()
 	add_child(crops)
 	player=_prop("player",state.player_position,{"coat":"6f9793","hair":"5c5045","skin":"d0a981","id":"player"})
@@ -350,7 +350,7 @@ func activation_cells(site: Dictionary) -> Array:
 	if site.id=="ship_stairs" or (site.id=="exit" and building.id=="ship_bridge"): return [stair_bounds().position,stair_bounds().position+Vector2i.RIGHT]
 	if site.id=="exit": return [layout.exit,layout.exit+Vector2i.DOWN]
 	if site.id=="private_door": return layout.private_doors
-	var kind={"bed":"bed","uncover_guest_bed":"bed","uncover_sofa":"sofa","radio":"radio","stove":"kitchen","cabinet":"cabinet","shop":"counter","ship_storage":"cabinet","diagnostics":"machine","living_light":"floor_lamp","bathroom_light":"floor_lamp"}.get(site.id,"")
+	var kind={"bed":"bed","uncover_guest_bed":"bed","uncover_sofa":"sofa","radio":"radio","stove":"kitchen","cabinet":"cabinet","shop":"counter","ship_storage":"cabinet","water_dispenser":"water_dispenser","diagnostics":"machine","living_light":"floor_lamp","bathroom_light":"floor_lamp"}.get(site.id,"")
 	var cells=[]
 	for item in furnishings:
 		if item.kind!=kind: continue

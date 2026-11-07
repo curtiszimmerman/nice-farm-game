@@ -31,7 +31,7 @@ func run() -> void:
 	game.ui.chest_slots[0].pressed.emit()
 	game.ui.quantity_control.value=2
 	game.ui.modal_box.get_child(4).pressed.emit()
-	check(game.state.rations==2 and game.state.ship_storage[0].count==4,"native quantity chooser transfers the requested amount")
+	check(game.state.rations==2 and game.state.ship_storage[0].count==12,"native quantity chooser transfers the requested amount")
 	game.close_window()
 	game.enter_building("ship")
 	check(game.current_room=="ship" and not game.world.blocked(game.state.player_position),"the cloaked ship has an enterable interior")

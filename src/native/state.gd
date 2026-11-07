@@ -91,6 +91,9 @@ var fish_sticks=0
 var fish_stew=0
 var health_elixir=0
 var rations=0
+# Drinks left in the ship's water dispenser. Like the rations, it's meant to tide the crew over until they live off the land.
+const SHIP_WATER=14
+var ship_water=SHIP_WATER
 var crew_fed_day=1
 var crew_food_delivered=false
 var crew_hungry_days=0
@@ -184,7 +187,7 @@ func _init() -> void:
 	while chest.size()<18: chest.append({})
 	for i in range(12):
 		cabinet.append({})
-		ship_storage.append({"id":"rations","count":6} if i==0 else {})
+		ship_storage.append({"id":"rations","count":14} if i==0 else {})
 	cabinet[0]={"id":"light_bulbs","count":2}
 
 func total() -> float:
@@ -876,7 +879,7 @@ func to_dict() -> Dictionary:
 		"cave_seed":cave_seed,"cave_broken":cave_broken.duplicate(),"cave_defeated":cave_defeated.duplicate(),"cave_chrysalis_taken":cave_chrysalis_taken,"sparkfire_picked_day":sparkfire_picked_day,"cave_barrel":cave_barrel.duplicate(true),
 		"ship_departed":ship_departed,"welcome_phase":welcome_phase,"welcome_elapsed":welcome_elapsed,
 		"intro_complete":intro_complete,"briefing_complete":briefing_complete,"mayor_due":mayor_due,"house_tasks":house_tasks.duplicate(),
-		"supplies":supplies,"cabinet":cabinet.duplicate(true),"ship_storage":ship_storage.duplicate(true),"water":water,"quick_slots":quick_slots.duplicate(),"selected_slot":selected_slot,"crew_fed_day":crew_fed_day,"crew_hungry_days":crew_hungry_days,"purchased_utensils":purchased_utensils.duplicate(),
+		"supplies":supplies,"cabinet":cabinet.duplicate(true),"ship_storage":ship_storage.duplicate(true),"water":water,"ship_water":ship_water,"quick_slots":quick_slots.duplicate(),"selected_slot":selected_slot,"crew_fed_day":crew_fed_day,"crew_hungry_days":crew_hungry_days,"purchased_utensils":purchased_utensils.duplicate(),
 		"hoe":hoe,"watering_can":watering_can,"sickle":sickle,"chest":chest.duplicate(true),"invitation_day":invitation_day,"abandoned_day":abandoned_day.duplicate(),
 		"health":health,"star_seeds":star_seeds,"star_bulbs":star_bulbs,"rusty_sword":rusty_sword,"equipped":equipped,"selected_seed":selected_seed,
 		"location":location,"outdoor_x":outdoor_position.x,"outdoor_y":outdoor_position.y,
@@ -973,9 +976,9 @@ func restore(data: Variant) -> bool:
 		if id not in ["pot","pan"]: return false
 	for id in EXTRA_ITEMS:
 		if not _number(data.supplies.get(id)) or data.supplies[id]<0 or data.supplies[id]!=floor(data.supplies[id]): return false
-	for field in ["water","selected_slot","crew_fed_day","crew_hungry_days"]:
+	for field in ["water","ship_water","selected_slot","crew_fed_day","crew_hungry_days"]:
 		if not _number(data.get(field)) or data[field]<0 or data[field]!=floor(data[field]): return false
-	if data.water>20 or data.selected_slot>8 or data.crew_fed_day<1: return false
+	if data.water>20 or data.ship_water>SHIP_WATER or data.selected_slot>8 or data.crew_fed_day<1: return false
 	if not data.get("quick_slots") is Array or data.quick_slots.size()!=8: return false
 	for id in data.quick_slots:
 		if id!="" and not Skills.CATALOG.has(id) and not Items.CATALOG.has(id): return false
@@ -1056,7 +1059,7 @@ func restore(data: Variant) -> bool:
 	chest=data.chest.duplicate(true)
 	abandoned_day=data.abandoned_day.duplicate()
 	for id in EXTRA_ITEMS: set(id,int(data.supplies[id]))
-	for field in ["water","selected_slot","crew_fed_day","crew_hungry_days"]: set(field,int(data[field]))
+	for field in ["water","ship_water","selected_slot","crew_fed_day","crew_hungry_days"]: set(field,int(data[field]))
 	quick_slots=data.quick_slots.duplicate()
 	inventory_selection=data.inventory_selection
 	inventory_order=data.inventory_order.duplicate()
