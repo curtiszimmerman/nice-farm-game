@@ -508,6 +508,12 @@ func _input(event: InputEvent) -> void:
 		control_settings()
 		get_viewport().set_input_as_handled()
 		return
+	# A hover tooltip closes itself on Escape and swallows the key, so a window open underneath
+	# has to close here, before the GUI sees the key.
+	if started and window_open and not world_paused and opening==null and controls.matches(event,"menu"):
+		close_window()
+		get_viewport().set_input_as_handled()
+		return
 	if started and not window_open and opening==null and not world_paused and controls.matches(event,"inventory_row"):
 		state.cycle_inventory_row()
 		ui.update()
@@ -691,7 +697,7 @@ func dialog(title: String,role: String,text: String,choices: Array = [],allow_ex
 					dialog(title,"A LITTLE HELP","That's everything. Thank you! Here are the crowns I promised. You've saved me a trip.")
 				else: toast("Bring the full amount before the weekly notice-board refresh."),int(state.get(terms[1]))>=terms[2]])
 		var item=state.active_item()
-		if state.Items.CATALOG.has(item) and item not in state.Items.ESSENTIAL_TOOLS and int(state.get(item))>0 and int(state.gift_weeks.get(person,-1))!=int((state.day-1)/7):
+		if state.Items.giftable(item) and int(state.get(item))>0 and int(state.gift_weeks.get(person,-1))!=int((state.day-1)/7):
 			choices=choices.duplicate()
 			choices.append(["Give "+state.Items.CATALOG[item].name,func():
 				var preference=state.gift_preference(person,item)
@@ -840,7 +846,8 @@ func interact() -> void:
 		save_visit()
 		toast("Three logs picked up.")
 	elif nearest.type=="forage":
-		toast("Gathered "+nearest.item+"." if outdoors.harvest_forage(nearest.item,nearest.cell) else "Make room in your satchel.")
+		if outdoors.harvest_forage(nearest.item,nearest.cell): toast("Gathered "+nearest.item+".")
+		else: toast(outdoors.forage_problem(nearest.item,nearest.cell))
 		save_visit()
 	elif nearest.type=="person": talk(nearest.id)
 	else:
@@ -1310,14 +1317,16 @@ func talk(id: String) -> void:
 			var choices=vale_checkin_choices()
 			if not state.delivered and state.copper_bars>=3:
 				choices.push_front(["Hand over three copper bars.",func():
-					state.copper_bars-=3
-					state.delivered=true
+					state.deliver_repeater_copper()
 					state.change_friendship("vale",25)
 					save_visit()
 					burst(state.player_position,"a3d4d0")
-					toast("Crew link restored. One small connection home.",6.0)])
-			choices.append(["How long do we have?",func(): dialog("Chief Vale","CHIEF ENGINEER","As long as the cloak holds, we have room to breathe. No signals. No active scans. I'll keep the lights off. You keep us fed.")])
-			var body="Give your commlink a try. Hear that? Much better than shouting down a mountain. The cloak's holding, too. "+("Thanks for seeing to supper. I'll try to earn it before the day's out." if state.crew_fed_day==state.day else "I meant to stop for breakfast, but the locker was empty. If you find something to cook, save me a helping?") if state.delivered else "The cloak's behaving. Wish I could say the same for the engines. Three copper bars should get our crew link back. That deposit on the last scan was southeast of the settlement, but the ore will need refining. Might be worth asking whether anyone down there works metal. I'm rather in the dark up here with the scanners dead. Any luck finding supper? Leave me a cooked meal in the locker if you can. I'll try not to get engine grease on it."
+					dialog("Chief Vale","THE REPEATER","This looks great! I'll need a day or so with my tools to manufacture the components and wiring needed to repair the repeater so our communicators will function properly. Check back in a little while. And Captain? Thanks for bringing me dinner. I'll try to earn it.",[["No problem, Chief!",close_window]],false)])
+			if state.replicator_briefed:
+				choices.append(["How are things holding up otherwise?",func(): dialog("Chief Vale","CHIEF ENGINEER","The cloak is holding steady, and as the gravitic sink stabilizes, we're slowly getting a more stable power supply. That means we can look forward to repairing and bringing online other systems, as long as things keep going the way they have been. Sensors are still down, obviously, but I haven't detected any active scans from above, or any signals that aren't from the locals.",[["Anything else I can help with?",func(): talk("vale")]])])
+			else:
+				choices.append(["How long do we have?",func(): dialog("Chief Vale","CHIEF ENGINEER","As long as the cloak holds, we have room to breathe. No signals. No active scans. I'll keep the lights off. You keep us fed.")])
+			var body="How are things, Captain? Still kind of a mess around here." if state.replicator_briefed else "There you are, Captain. I've got news on the repeater." if state.repeater_working() else "Still at the bench with those copper bars, Captain. The repeater parts need a little longer." if state.delivered else "The cloak's behaving. Wish I could say the same for the engines. Three copper bars should get our crew link back. That deposit on the last scan was southeast of the settlement, but the ore will need refining. Might be worth asking whether anyone down there works metal. I'm rather in the dark up here with the scanners dead. Any luck finding supper? Leave me a cooked meal in the locker if you can. I'll try not to get engine grease on it."
 			dialog("Chief Vale","CHIEF ENGINEER · SHIPBOARD CONVERSATION",body,choices)
 
 func buy_ingredient(id: String) -> void:
@@ -1415,7 +1424,24 @@ func smith_shop() -> void:
 	shop_menu("Dain's Smithy","FORGED GOODS","A few refined metals, if you've coin to spare. And a plain blade, kept sharp enough. More steelwork is possible once you have the right materials.",offers)
 
 func vale_checkin_choices() -> Array:
-	return [["What's the status on repairs?",func(): dialog("Chief Vale","REPAIR STATUS","The cloak is steady. Everything else still needs parts and patience. I'm keeping the power sink stable and making a list of what can be repaired first. Ask me again whenever you like; I'll tell you when something changes.",[["Anything else I can help with?",func(): talk("vale")]])]]
+	return [["What's the status on repairs?",vale_status]]
+
+# Vale's repair news moves on from the repeater to the replicator as the work progresses.
+func vale_status() -> void:
+	var back=[["Anything else I can help with?",func(): talk("vale")]]
+	if state.replicator_briefed:
+		dialog("Chief Vale","REPAIR STATUS","I'm going to need those supplies to get the replicator going again: Two vacuum tubes, five copper bars, and a quartz crystal of exceptional quality. Bring me those, and I'll get a steady supply of food and water going.",back)
+	elif state.repeater_working():
+		toast("Crew link restored. One small connection home.",6.0)
+		dialog("Chief Vale","REPAIR STATUS","Give your commlink a try. Hear that? Much better than guessing what one another's thinking! The cloak's holding fine, too.",[["Much better, Chief. Next we need to get the replicator up, for food and water.",func():
+			dialog("Chief Vale","THE REPLICATOR","My thoughts exactly, Captain. That's gonna be a bit more difficult, but while I was getting the repeater working, I was able to pick up on localized radio transmissions and get some idea of what we're dealing with here on this planet. That's a very lucky thing for us, Captain, because I need vacuum tubes. Two of them. If you bring me those tubes, five copper bars, and a quartz crystal of exceptional quality, I can get the replicator working with our tiny trickle charge from the gravitic power supply to provide us with food and water.",[["Then that's the plan, Chief. Nice work.",func():
+				state.replicator_briefed=true
+				save_visit()
+				close_window()]],false)]],false)
+	elif state.delivered:
+		dialog("Chief Vale","REPAIR STATUS","Not yet, Captain. I'm still making the components and wiring for the repeater. Give me the rest of the day.",back)
+	else:
+		dialog("Chief Vale","REPAIR STATUS","The cloak is steady. Everything else still needs parts and patience. I'm keeping the power sink stable and making a list of what can be repaired first. Ask me again whenever you like; I'll tell you when something changes.",back)
 
 func baking_supplies() -> void:
 	var choices=[]
@@ -1708,7 +1734,12 @@ func inventory_stacks() -> Array:
 	return state.inventory_cells().filter(func(stack):return not stack.is_empty())
 
 func use_inventory_item(id: String) -> void:
-	if state.consume(id): toast("%s %s." % [ui.Items.CATALOG[id].name,"drunk" if id=="health_elixir" else "eaten"])
+	if state.consume(id):
+		var text="%s %s." % [ui.Items.CATALOG[id].name,"drunk" if id=="health_elixir" else "eaten"]
+		# Deprivation blocks energy recovery, which is easy to miss when health still goes up.
+		if state.needs.thirsty(): text+=" Your thirst keeps it from restoring any energy. Find water."
+		elif state.needs.starving(): text+=" You're still starving, so it can't restore your energy. Only a proper meal will."
+		toast(text)
 	else: toast("Nothing to restore." if ui.Items.FOOD.has(id) else "Keep this for crafting.")
 	save_visit()
 	inventory()

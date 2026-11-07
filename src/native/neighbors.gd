@@ -51,7 +51,7 @@ const ROUTES=[
 const NAMES={"observatory":"Saeren's observatory","widow":"Widow Marsh's Curios","herbalist":"Sorrel's Apothecary","mining_shack":"the abandoned mining shack","reed_farm":"Reed family farm","windmill":"Bell's windmill","mill_home":"Bell family home","smithy":"Dain's smithy","tavern":"The Wayward Wren","bakery":"Corin's bakery","woodcutter":"Rowan's cabin"}
 const STORIES={
 	"priest":"Brother Aven|The bees don't care whether a hymn's in tune. I find that comforting. I keep the garden here, and a light for anyone who needs somewhere quiet. Before I came to Briar Glen I tended the roadside shrines. These days a shorter walk suits me, though I still keep a kettle ready for travelers.",
-	"astronomer":"Saeren|You came from the stars. No, don't look so alarmed. I was at the eyepiece when your light crossed the sky. It turned against the fall, twice. Stones don't do that. I don't pretend to understand what carried you, but I've spent fifty years learning the difference between what I see and what I expect to see. Your secret is safe in this room.",
+	"astronomer":"Saeren|You came from the stars. No, don't look so alarmed. I was at the eyepiece when your light crossed the sky. It turned against a natural fall, twice. Stones don't do that. Even cats aren't so lucky, though they sure are nimble. I don't pretend to understand what carried you here, but I've spent fifty years learning the difference between what I see and what I expect to see. Your secret is safe in this room.",
 	"woodcutter":"Rowan|My mother taught me these woods. I'd like somebody else's daughter to know them too.",
 	"farmer_mother":"Elin Reed|Jory, Pip and I came here after a flood took our old farm. We saved a few cuttings from the orchard, and Corin kept them warm behind his bakery while we found our feet. They're growing well now. Starting over was hard, but people here made room for us. I hope you're finding the same welcome. If you need advice about your garden, you're always welcome to ask.",
 	"farmer_father":"Jory Reed|Elin and I run the farm east of town. A flood took our old place, so we moved here with Pip and started again. Moss helped us clear these fields. We grow vegetables for Corin's bakery now, and a little grain for Tomas to mill. It's good soil. We're doing all right.",
@@ -100,11 +100,11 @@ static func talk(game: Node2D,id: String) -> bool:
 	if id in ["miller","miller_wife"] and working:
 		choices.append(["What have you got for sale?",func(): game.shop_menu("The Bells' Mill","FRESHLY MILLED","A sack of flour, ground here from the Reeds' grain. We mill a fresh supply each morning.",[["flour","Sack of flour",5,"flour",func(): return game.state.purchase("flour")]])])
 	if id=="astronomer" and working and game.state.star_origin_reply=="":
-		choices.append(["You're right. Our ship fell on the mountain.",func():
+		choices.append(["You're right. Our starship was shot out of the sky, and we crashed on the mountain. Have you seen any other stars that move like ours?",func():
 			game.state.record_star_origin(true)
 			game.save_visit()
-			game.dialog("Saeren","A CONFIDENCE KEPT","I thought as much. Your clothes, the way you speak... you hardly blend in. I won't tell anyone, and I'd advise you to be careful too. People can be superstitious about what they don't understand. I won't pretend to know how your machines work. Still, perhaps I can help more than you'd think. If you need my services, you know where to find me.")])
-		choices.append(["We were traveling on foot. You must have seen something else.",func():
+			game.dialog("Saeren","A CONFIDENCE KEPT","I thought as much. Your clothes, the way you speak... you hardly blend in. And no, I haven't seen any other stars like yours, but I suppose I'll keep a keener eye open. I won't tell anyone, and I'd advise you to be careful too. People can be superstitious about what they don't understand. I won't pretend to know how your machines work. Still, perhaps I can help more than you'd think. If you need my services, you know where to find me.")])
+		choices.append(["Uhm. Well, we were traveling on foot. You must have seen something else. (lie)",func():
 			game.state.record_star_origin(false)
 			game.save_visit()
 			game.dialog("Saeren","AN OBSERVER'S PATIENCE","Saeren squints, then slowly shakes his head. 'I don't believe you. Lying to me is a mistake. I know more about this universe than you think, and one day you may need my help. Go now. I have observations to make.'")])

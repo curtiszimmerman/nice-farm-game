@@ -173,6 +173,10 @@ var crucibles: Array=[]
 var invited = false
 var met_mayor = false
 var delivered = false
+# Vale needs a day with the copper bars before the repeater works. This is the game minute it's ready, or -1 before the bars arrive.
+const REPEATER_WORK_MINUTES=1440.0
+var repeater_ready_at = -1.0
+var replicator_briefed = false
 var pause_mode = "all"
 var player_position = Grid.center(Vector2i(7,12))
 var plots: Array = []
@@ -192,6 +196,14 @@ func _init() -> void:
 
 func total() -> float:
 	return (day - 1) * 1440.0 + minute
+
+func deliver_repeater_copper() -> void:
+	copper_bars-=3
+	delivered=true
+	repeater_ready_at=total()+REPEATER_WORK_MINUTES
+
+func repeater_working() -> bool:
+	return delivered and total()>=repeater_ready_at
 
 func weather_name(on_day: int=0) -> String:
 	return weather_override if weather_override!="" else preload("res://weather.gd").for_day(world_seed,day if on_day==0 else on_day)
@@ -772,14 +784,14 @@ func gift_preference(id: String,item: String) -> int:
 	if id=="farmer_son" and item=="glass_jars": return 5
 	if id=="veteran" and item=="turnips": return 5
 	if item in ["coal","stones"]: return 1 if id in ["smith","miller"] else -1
-	if item in ["cave_moth_chrysalis","golden_sparkfire_bloom","star_bulbs"]: return 5 if id in ["iona","astronomer"] else -5 if id=="assistant" else 0
+	if item in ["golden_sparkfire_bloom","star_bulbs"]: return 5 if id in ["iona","astronomer"] else -5 if id=="assistant" else 0
 	if item in ["fish_stew","fish_sticks","bread","berry_cobbler"]: return 5 if id in ["vale","keeper","veteran","barkeep"] else 1
 	if item in ["berries","apples","turnips"]: return 5 if id in ["moss","farmer_mother","baker"] else 1
 	return 0
 
 func give_gift(id: String,item: String) -> bool:
-	if item in Items.ESSENTIAL_TOOLS: return false
-	if not preload("res://villager_schedule.gd").ROUTINES.has(id) or not Items.CATALOG.has(item) or int(get(item))<1: return false
+	if not Items.giftable(item): return false
+	if not preload("res://villager_schedule.gd").ROUTINES.has(id) or int(get(item))<1: return false
 	var week=int((day-1)/7)
 	if int(gift_weeks.get(id,-1))==week: return false
 	set(item,int(get(item))-1)
@@ -885,7 +897,7 @@ func to_dict() -> Dictionary:
 		"location":location,"outdoor_x":outdoor_position.x,"outdoor_y":outdoor_position.y,
 		"seeds": seeds, "turnips": turnips, "fish": fish, "copper": copper,
 		"harvested": harvested, "mana": mana, "energy": energy,
-		"invited": invited, "met_mayor": met_mayor, "delivered": delivered,
+		"invited": invited, "met_mayor": met_mayor, "delivered": delivered, "repeater_ready_at": repeater_ready_at, "replicator_briefed": replicator_briefed,
 		"pause_mode": pause_mode, "x": player_position.x, "y": player_position.y,
 		"plots": plots.duplicate(true)}
 
@@ -1023,9 +1035,10 @@ func restore(data: Variant) -> bool:
 	if not Grid.contains(Grid.world_to_cell(Vector2(data.outdoor_x,data.outdoor_y))): return false
 	if not Grid.contains(Grid.world_to_cell(Vector2(data.x,data.y))):
 		return false
-	for field in ["invited", "met_mayor", "delivered"]:
+	for field in ["invited", "met_mayor", "delivered", "replicator_briefed"]:
 		if not data.get(field) is bool:
 			return false
+	if not _number(data.get("repeater_ready_at")) or data.repeater_ready_at<-1: return false
 	if not data.get("pause_mode") in ["none", "clock", "all"]:
 		return false
 	if not data.get("plots") is Array or data.plots.size()>1500:
@@ -1047,8 +1060,9 @@ func restore(data: Variant) -> bool:
 		if not _number(p.get("water_day")) or p.water_day<0 or p.water_day>data.day or p.water_day!=floor(p.water_day): return false
 	for field in ["day", "money", "seeds", "turnips", "fish", "copper", "harvested","star_seeds","star_bulbs","rusty_sword","hoe","watering_can","sickle","invitation_day"]:
 		set(field, int(data[field]))
-	for field in ["minute", "mana", "energy", "invited", "met_mayor", "delivered", "pause_mode","health","equipped","selected_seed","location"]:
+	for field in ["minute", "mana", "energy", "invited", "met_mayor", "delivered", "replicator_briefed", "pause_mode","health","equipped","selected_seed","location"]:
 		set(field, data[field])
+	repeater_ready_at=float(data.repeater_ready_at)
 	player_position = Vector2(data.x, data.y)
 	needs.restore(data.needs)
 	requests.restore(data.requests)

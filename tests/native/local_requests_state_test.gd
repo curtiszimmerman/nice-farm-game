@@ -10,6 +10,11 @@ func _initialize() -> void:
 		s=State.new()
 		s.set(tool,1)
 		check(not s.give_gift("moss",tool) and s.get(tool)==1,"essential equipment cannot be gifted: "+tool)
+	# There is only ever one of these in a game, so nobody is offered them as a gift.
+	for unique in ["cave_moth_chrysalis","ladder"]:
+		s=State.new()
+		s.set(unique,1)
+		check(not s.Items.giftable(unique) and not s.give_gift("iona",unique) and s.get(unique)==1,"one-of-a-kind items are never given away: "+unique)
 	s=State.new()
 	check(s.accept_tool("axe"),"Rowan can lend the starting axe")
 	var loan=State.new()

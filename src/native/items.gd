@@ -2,6 +2,12 @@ extends RefCounted
 
 const Art=preload("res://art.gd")
 const ESSENTIAL_TOOLS=["hoe","watering_can","sickle","axe","pickaxe","fishing_pole","rusty_sword","pot","pan"]
+# Items there is only ever one of in a game.
+const UNIQUE_ITEMS=["cave_moth_chrysalis","ladder"]
+
+# Whether an item may be offered as a gift. Nobody is ever offered equipment the captain needs or a one-of-a-kind find.
+static func giftable(id: String) -> bool:
+	return CATALOG.has(id) and id not in ESSENTIAL_TOOLS and id not in UNIQUE_ITEMS
 const PREPARED_FOOD=["rations","fish_sticks","fish_stew","bread","berry_preserves","berry_cobbler"]
 
 const FOOD={"berry_preserves":{"health":4,"energy":15,"mana":0},"berry_cobbler":{"health":12,"energy":35,"mana":0},"bread":{"health":0,"energy":20,"mana":0},"lantern_ray":{"health":10,"energy":16,"mana":0},"turnips":{"health":8,"energy":12,"mana":0},"fish":{"health":5,"energy":8,"mana":0},"star_bulbs":{"health":0,"energy":0,"mana":15},"health_elixir":{"health":25,"energy":0,"mana":0},"fish_sticks":{"health":12,"energy":20,"mana":0},"fish_stew":{"health":20,"energy":30,"mana":15},"rations":{"health":0,"energy":15,"mana":0},"moon_pike":{"health":7,"energy":10,"mana":0},"sea_sprat":{"health":4,"energy":6,"mana":0},"blue_mackerel":{"health":5,"energy":8,"mana":0},"storm_eel":{"health":8,"energy":12,"mana":0},"rain_glassfish":{"health":5,"energy":8,"mana":0},"storm_shiner":{"health":6,"energy":9,"mana":0}}

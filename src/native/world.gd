@@ -676,10 +676,22 @@ func refresh_forage() -> void:
 				node.data.fruit_ready=ready
 				node.queue_redraw()
 
+const FORAGE_ENERGY=0.4
+
+# Why gathering here would fail right now, worded for the player; empty when it would succeed.
+func forage_problem(item: String,cell: Vector2i) -> String:
+	if not Foraging.ready(state,item,cell): return "There's nothing ready to gather here yet."
+	if not state.can_carry(item): return "Make room in your satchel."
+	if state.energy<state.energy_cost(FORAGE_ENERGY):
+		if state.needs.thirsty(): return "Your thirst has left you too weak to gather anything. Find water first; food won't restore your strength until you do."
+		if state.needs.starving(): return "You're starving and too weak to gather anything. A proper meal will put the strength back."
+		return "You're too exhausted to gather anything. Eat something or get some rest."
+	return ""
+
 func harvest_forage(item: String,cell: Vector2i) -> bool:
 	if not forage_nodes.has(item) or not forage_nodes[item].has(cell): return false
 	if not is_instance_valid(forage_nodes[item][cell]) or not Foraging.ready(state,item,cell) or not state.can_carry(item): return false
-	if not state.spend_energy(0.4): return false
+	if not state.spend_energy(FORAGE_ENERGY): return false
 	state.set(item,int(state.get(item))+1)
 	state.forage_harvests[Foraging.key(item,cell)]=state.total()
 	refresh_forage()
