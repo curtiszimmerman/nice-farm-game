@@ -1005,7 +1005,7 @@ func restore(data: Variant) -> bool:
 		if quantity>0: occupied+=1
 	if occupied>INVENTORY_SLOTS: return false
 	if occupied+data.inventory_order.filter(func(id):return Skills.CATALOG.has(id)).size()>INVENTORY_SLOTS: return false
-	if not data.get("location") in ["","home","moss","finch","mayor","tavi","iona","radio","store","hall","veteran","assistant","ship","ship_bridge","cave","keeper","reed_farm","windmill","mill_home","mill_shed","smithy","tavern","bakery","woodcutter","observatory","temple","priest","priest_outhouse"]: return false
+	if not data.get("location") in ["","home","moss","finch","mayor","tavi","iona","radio","store","hall","veteran","assistant","ship","ship_bridge","cave","keeper","reed_farm","windmill","mill_home","mill_shed","smithy","tavern","bakery","woodcutter","observatory","temple","priest","priest_outhouse","widow","herbalist","mining_shack"]: return false
 	if not data.get("chest") is Array or data.chest.size()!=18 or not data.get("abandoned_day") is Dictionary: return false
 	for stack in data.chest:
 		if not stack is Dictionary: return false

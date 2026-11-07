@@ -20,6 +20,9 @@ static func for_building(id: String) -> Dictionary:
 		"radio": plan=_club()
 		"store": plan=_public_building(false)
 		"keeper": plan=_lighthouse()
+		"widow": plan=_curio_shop()
+		"herbalist": plan=_apothecary()
+		"mining_shack": plan=_mining_shack()
 		_: plan=_council()
 	return plan
 
@@ -168,6 +171,43 @@ static func _open_house(h: int,guest: bool) -> Dictionary:
 		"doors":[["bedroom","hall",Vector2i(6,3)],["bathroom","hall",Vector2i(8,2)],["hall","living",Vector2i(7,6)]],
 		"entry":Vector2i(6,h-2),"exit":Vector2i(6,h-1),"furniture":furniture,
 		"sites":[["bed",Vector2i(3,2)],["radio",Vector2i(2,7)]],"work":[Vector2i(7,7),Vector2i(9,9),Vector2i(5,10)]}
+
+# Widow Marsh lives behind her shop: customers come in to the front room, and her own rooms are past the hall.
+static func _curio_shop() -> Dictionary:
+	return {"size":Vector2i(15,12),"areas":[["bedroom",Rect2i(1,1,4,4)],
+		["hall",Rect2i(6,1,1,4)],["bathroom",Rect2i(8,1,2,4)],["kitchen",Rect2i(11,1,3,4)],["shop",Rect2i(1,6,13,5)]],
+		"doors":[["bedroom","hall",Vector2i(5,3)],["bathroom","hall",Vector2i(7,2)],["hall","shop",Vector2i(6,5)],["kitchen","shop",Vector2i(12,5)]],
+		"entry":Vector2i(7,10),"exit":Vector2i(7,11),"furniture":[
+		["bed",Rect2i(1,1,2,2)],["bookshelf",Rect2i(3,1,2,1)],
+		["toilet",Rect2i(8,1,1,1)],["sink",Rect2i(9,1,1,1)],["bath",Rect2i(9,3,1,2)],
+		["kitchen",Rect2i(11,1,3,1)],["table",Rect2i(12,3,1,1)],["chair",Rect2i(13,3,1,1)],
+		["stock",Rect2i(1,6,3,1)],["crates",Rect2i(1,9,2,2)],["cabinet",Rect2i(8,6,2,1)],
+		["counter",Rect2i(9,8,4,1)],["bookshelf",Rect2i(13,7,1,2)],["plant",Rect2i(13,10,1,1)],
+		["rug",Rect2i(5,7,3,3)],["art",Rect2i(2,0,2,1)]],
+		"sites":[["bed",Vector2i(3,2)]],
+		"work":[Vector2i(10,7),Vector2i(4,8),Vector2i(12,2)]}
+
+# Sorrel works in the front room, among drying herbs and her brewing table, and sleeps in the back.
+static func _apothecary() -> Dictionary:
+	return {"size":Vector2i(13,12),"areas":[["bedroom",Rect2i(1,1,4,3)],
+		["hall",Rect2i(6,1,1,3)],["bathroom",Rect2i(8,1,4,3)],["shop",Rect2i(1,5,11,6)]],
+		"doors":[["bedroom","hall",Vector2i(5,2)],["bathroom","hall",Vector2i(7,2)],["hall","shop",Vector2i(6,4)]],
+		"entry":Vector2i(6,10),"exit":Vector2i(6,11),"furniture":[
+		["bed",Rect2i(1,1,2,2)],["bookshelf",Rect2i(3,1,1,1)],
+		["toilet",Rect2i(8,1,1,1)],["sink",Rect2i(9,1,1,1)],["bath",Rect2i(11,1,1,2)],
+		["seed_tray",Rect2i(1,5,2,1)],["stock",Rect2i(9,5,3,1)],["bookshelf",Rect2i(1,7,1,2)],
+		["table",Rect2i(4,7,3,1)],["counter",Rect2i(7,8,4,1)],
+		["plant",Rect2i(1,10,1,1)],["plant",Rect2i(11,10,1,1)],["art",Rect2i(2,0,1,1)]],
+		"sites":[["bed",Vector2i(3,2)]],
+		"work":[Vector2i(9,7),Vector2i(5,8),Vector2i(2,6)]}
+
+# Nobody has lived in the old miners' shack for years. It's one dusty room with what they left behind.
+static func _mining_shack() -> Dictionary:
+	return {"size":Vector2i(9,8),"areas":[["shack",Rect2i(1,1,7,6)]],
+		"doors":[],"entry":Vector2i(4,6),"exit":Vector2i(4,7),"furniture":[
+		["bed",Rect2i(1,1,1,2)],["crates",Rect2i(5,1,2,2)],["table",Rect2i(3,3,2,1)],
+		["chair",Rect2i(5,3,1,1)],["barrels",Rect2i(6,5,2,1)],["tools",Rect2i(1,5,2,1)]],
+		"sites":[],"work":[Vector2i(4,4)]}
 
 static func _cabin() -> Dictionary:
 	return {"size":Vector2i(11,11),"areas":[["bedroom",Rect2i(1,1,3,3)],

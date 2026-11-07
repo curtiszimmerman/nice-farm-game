@@ -26,7 +26,10 @@ const BUILDINGS=[
 	{"cell":Vector2i(70,46),"tiles":Vector2i(6,5),"roof":"686879","kind":"smithy"},
 	{"cell":Vector2i(64,35),"tiles":Vector2i(7,5),"roof":"965d51","kind":"tavern"},
 	{"cell":Vector2i(66,53),"tiles":Vector2i(6,4),"roof":"b68a58","kind":"bakery"},
-	{"cell":Vector2i(27,75),"tiles":Vector2i(4,4),"roof":"78644d","kind":"cabin","resident":"woodcutter"}
+	{"cell":Vector2i(27,75),"tiles":Vector2i(4,4),"roof":"78644d","kind":"cabin","resident":"woodcutter"},
+	{"cell":Vector2i(51,48),"tiles":Vector2i(5,3),"roof":"7a5a6e","kind":"cottage","resident":"widow"},
+	{"cell":Vector2i(66,59),"tiles":Vector2i(5,3),"roof":"6f7f4f","kind":"cottage","resident":"herbalist"},
+	{"cell":Vector2i(102,70),"tiles":Vector2i(4,3),"roof":"6a5c4c","kind":"cabin","resident":"mining_shack"}
 ]
 const FIELDS=[Rect2i(99,50,5,6),Rect2i(106,50,5,6)]
 const HIVES=[Vector2i(48,64),Vector2i(50,64)]
@@ -44,7 +47,7 @@ const ROUTES=[
 	[Vector2i(90,30),Vector2i(94,30),Vector2i(94,33),Vector2i(99,33),Vector2i(99,31)],
 	[Vector2i(85,39),Vector2i(97,39),Vector2i(97,48),Vector2i(103,48),Vector2i(103,47)]
 ]
-const NAMES={"observatory":"Saeren's observatory","reed_farm":"Reed family farm","windmill":"Bell's windmill","mill_home":"Bell family home","smithy":"Dain's smithy","tavern":"The Wayward Wren","bakery":"Corin's bakery","woodcutter":"Rowan's cabin"}
+const NAMES={"observatory":"Saeren's observatory","widow":"Widow Marsh's Curios","herbalist":"Sorrel's Apothecary","mining_shack":"the abandoned mining shack","reed_farm":"Reed family farm","windmill":"Bell's windmill","mill_home":"Bell family home","smithy":"Dain's smithy","tavern":"The Wayward Wren","bakery":"Corin's bakery","woodcutter":"Rowan's cabin"}
 const STORIES={
 	"priest":"Brother Aven|The bees don't care whether a hymn's in tune. I find that comforting. I keep the garden here, and a light for anyone who needs somewhere quiet. Before I came to Briar Glen I tended the roadside shrines. These days a shorter walk suits me, though I still keep a kettle ready for travelers.",
 	"astronomer":"Saeren|You came from the stars. No, don't look so alarmed. I was at the eyepiece when your light crossed the sky. It turned against the fall, twice. Stones don't do that. I don't pretend to understand what carried you, but I've spent fifty years learning the difference between what I see and what I expect to see. Your secret is safe in this room.",

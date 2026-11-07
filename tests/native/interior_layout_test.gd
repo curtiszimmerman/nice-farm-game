@@ -47,7 +47,7 @@ func run() -> void:
 			if "bathroom" in [door[0],door[1]]:
 				bath_doors+=1
 				if "kitchen" in [door[0],door[1]]: private_baths=false
-		if bath_doors!=(0 if b.id in ["mill_shed","priest","priest_outhouse"] else 1): private_baths=false
+		if bath_doors!=(0 if b.id in ["mill_shed","priest","priest_outhouse","mining_shack"] else 1): private_baths=false
 		for cell in room.floor_cells:
 			if room.floor_cells[cell]=="bathroom": room.solid_cells[cell]="closed bathroom"
 		for site in room.sites:

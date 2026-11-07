@@ -29,13 +29,19 @@ func run() -> void:
 	game.interact()
 	check(game.world==outside and outside.visible,"the interior exit returns to the same outdoor world")
 	var reached=true
+	var saved_inside=true
 	for b in outside.buildings:
 		game.state.day=2
 		game.state.minute=780
 		game.enter_building(b.id)
 		if game.world.blocked(game.state.player_position): reached=false
+		var inside=game.State.new()
+		if not inside.restore(game.state.to_dict()) or inside.location!=b.id:
+			saved_inside=false
+			print("A save made inside ",b.id," does not load")
 		game.leave_building()
 	check(reached,"every building has an enterable interior")
+	check(saved_inside,"a save made inside any building loads back into it")
 	var routes_clear=true
 	for room in game.rooms.values():
 		for site in room.sites:
