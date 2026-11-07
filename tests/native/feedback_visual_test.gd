@@ -11,6 +11,11 @@ func run() -> void:
 	game.state.minute=840
 	game.state.player_position=game.Grid.center(Vector2i(63,49))
 	await capture("square")
+	var normal_zoom=game.camera.zoom
+	game.camera.zoom=Vector2(0.62,0.62)
+	game.state.player_position=game.Grid.center(Vector2i(38,53))
+	await capture("farm-town-road")
+	game.camera.zoom=normal_zoom
 	game.state.player_position=game.Grid.center(Vector2i(48,62))
 	await capture("temple")
 	game.state.player_position=game.Grid.center(Vector2i(54,47))

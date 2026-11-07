@@ -153,10 +153,7 @@ func generate() -> void:
 		deposits.append(cell)
 		if not floor_connected_without(deposits): deposits.pop_back(); continue
 		if deposits.size()>=amount: break
-	var resource_order=[]
-	var copper_count=maxi(6,roundi(deposits.size()*0.1))
-	var coal_count=maxi(3,roundi(deposits.size()*0.05))
-	for i in range(deposits.size()): resource_order.append("copper" if i<copper_count else "coal" if i<copper_count+coal_count else "stones")
+	var resource_order=resource_types(deposits.size())
 	for i in range(resource_order.size()-1,0,-1):
 		var other=rng.randi_range(0,i)
 		var resource=resource_order[i]
@@ -169,6 +166,13 @@ func generate() -> void:
 		info.node=object(info)
 		rocks[id]=info
 		solid_cells[info.cell]="rock"
+
+func resource_types(amount: int) -> Array:
+	var resources=[]
+	var copper_count=maxi(6,roundi(amount*0.1))
+	var coal_count=maxi(3,roundi(amount*0.05))
+	for i in range(amount): resources.append("copper" if i<copper_count else "coal" if i<copper_count+coal_count else "stones")
+	return resources
 
 func floor_connected_without(rocks_on_floor: Array) -> bool:
 	var blocked_cells={}

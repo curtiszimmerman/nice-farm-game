@@ -6,18 +6,19 @@ func check(ok: bool,label: String) -> void:
 	else: failed=true; push_error("FAIL: "+label)
 func _initialize() -> void:
 	var s=State.new()
-	preload("fixture.gd").garden(s)
 	check(s.INVENTORY_SLOTS==16,"satchel has two rows of eight")
 	s.money=1000
 	check(s.buy_utensil("pot"),"one pot can be purchased")
 	check(not s.buy_utensil("pot"),"a second pot is unavailable this season")
 	s.day=29
 	check(s.buy_utensil("pot") and s.pot==2,"new season restocks cookware without deleting the owned pot")
-	s.money=1000000
 	for id in s.Shop.CATALOG:
+		s=State.new()
+		s.money=1000000
 		var initial=s.stock(id)
 		for i in range(initial): check(s.purchase(id),"available seasonal stock can be bought: "+id)
 		check(s.stock(id)==0 and not s.purchase(id),"sold-out stock cannot be bought: "+id)
+	preload("fixture.gd").garden(s)
 	s.awake_minutes=4320
 	check(is_equal_approx(s.energy_cost(5),20) and is_equal_approx(s.energy_recovery(20),5),"three sleepless days quadruple costs and quarter recovery")
 	s.plots[0].watered=true

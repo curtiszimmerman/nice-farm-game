@@ -6,14 +6,16 @@ func check(ok: bool,label: String) -> void:
 	if ok: print("PASS: "+label)
 	else: failed=true; push_error("FAIL: "+label)
 func _initialize() -> void:
+	var allocator=Cave.new()
+	for count in [60,100,200]:
+		var resources=allocator.resource_types(count)
+		check(abs(float(resources.count("copper"))/count-0.1)<0.02 and abs(float(resources.count("coal"))/count-0.05)<0.02 and resources.size()==count,"larger resource populations retain the ten-percent copper and five-percent coal balance: %d"%count)
+	allocator.free()
 	var bounded=true
 	var connected=true
-	var ratios=true
+	var supplies=true
 	var sizes={}
 	var smallest=100000
-	var copper_total=0
-	var coal_total=0
-	var rock_total=0
 	var spider_guarded=true
 	var entrance_clear=true
 	for seed_value in range(24):
@@ -45,10 +47,10 @@ func _initialize() -> void:
 				reached[next]=true
 				queue.append(next)
 		connected=connected and reached.size()==cave.floor_cells.size()
-		for rock in cave.rocks.values():
-			if rock.resource=="copper": copper_total+=1
-			if rock.resource=="coal": coal_total+=1
-		rock_total+=cave.rocks.size()
+		var copper=cave.rocks.values().filter(func(rock):return rock.resource=="copper").size()
+		var coal=cave.rocks.values().filter(func(rock):return rock.resource=="coal").size()
+		var stone=cave.rocks.size()-copper-coal
+		supplies=supplies and copper>=5 and coal>=2 and stone>=10 and stone>copper+coal and cave.rocks.size()<cave.floor_cells.size()*0.12
 		cave.free()
 	for seed_value in range(96):
 		var bottom=Cave.new()
@@ -62,6 +64,5 @@ func _initialize() -> void:
 	check(connected,"every generated chamber and exit connects to the entrance across many seeds")
 	check(spider_guarded,"the spider guards the final chamber on every generated bottom level")
 	check(entrance_clear,"rats leave the entrance tools and barrel clear for a new explorer")
-	ratios=abs(float(copper_total)/rock_total-0.1)<0.03 and abs(float(coal_total)/rock_total-0.05)<0.02
-	check(ratios and smallest>300,"varied levels retain connected walkable floors and the stone/copper/coal proportions")
+	check(supplies and smallest>300,"each sparse level provides stone for a crucible and ore/fuel for at least one bar, with stone most common")
 	quit(1 if failed else 0)

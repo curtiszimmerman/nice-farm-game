@@ -3,6 +3,8 @@ extends RefCounted
 const Grid=preload("res://grid.gd")
 const HUB=Vector2i(63,47)
 const TOWN=Rect2i(48,31,41,38)
+const TEMPLE_FORECOURT=Rect2i(42,63,13,1)
+const TEMPLE_WEST_PATH=Rect2i(23,62,20,1)
 
 static func yards(world: Node2D) -> void:
 	for building in world.buildings:
@@ -54,7 +56,7 @@ static func residential_garden(world: Node2D,building: Dictionary) -> void:
 				for dy in range(dimensions.y):
 					for dx in range(dimensions.x):
 						var cell=rectangle.position+Vector2i(dx,dy)
-						if (cell.y==52 and cell.x<=48) or (cell.y==58 and cell.x>=45 and cell.x<=63): clear=false
+						if (cell.y==52 and cell.x<=63) or TEMPLE_FORECOURT.has_point(cell) or TEMPLE_WEST_PATH.has_point(cell): clear=false
 						if world.blocked(Grid.center(cell)) or world.yard_gates.has(cell) or world.schedule_cells.has(cell) or world.road_cells.has(cell) or world.paved_cells.has(cell) or world.SQUARE.has_point(cell) or building_door_approach(world,cell) or coastal_path_contains(cell) or cell.distance_to(door)<=1.5 or (cell.x in [door.x,gate.x] and cell.y>=door.y): clear=false
 						# Iona's tower has no fence, so people walk right past its base. Keep the garden out of those side lanes.
 						if building.kind=="tower" and cell.x in [building.cell.x-1,building.cell.x+building.tiles.x] and cell.y>=building.cell.y and cell.y<building.cell.y+building.tiles.y: clear=false
@@ -197,14 +199,14 @@ static func build(world: Node2D) -> void:
 			world.paved_cells.erase(cell)
 			world.trail_cells[cell]=true
 			world.dirt_cells[cell]=true
-		append_road_segment(world,cell,cell+Vector2i.RIGHT,14.0 if x<51 else 6.0,road_edges)
+		if x<54: append_road_segment(world,cell,cell+Vector2i.RIGHT,14.0 if x<51 else 6.0,road_edges)
 	for x in range(23,43):
 		var cell=Vector2i(x,62)
 		if world.blocked(Grid.center(cell)): continue
 		world.road_cells[cell]=true
 		world.trail_cells[cell]=true
 		world.dirt_cells[cell]=true
-		append_road_segment(world,cell,cell+Vector2i.RIGHT,6.0,road_edges)
+		if x<42: append_road_segment(world,cell,cell+Vector2i.RIGHT,6.0,road_edges)
 	# A narrow woodland path reaches Rowan's and continues to Bram's cabin through both yard gates.
 	var woodland_path=[Vector2i(23,67),Vector2i(23,86),Vector2i(29,86),Vector2i(29,83),Vector2i(29,86),Vector2i(42,86),Vector2i(42,82)]
 	for index in range(woodland_path.size()-1):

@@ -27,3 +27,5 @@ Current requested pass, November 2026. Check items only after implementation and
 The temple moved four tiles south and three west so its facade stays clear of Finch's house. Its western gate joins the Moss-side road, while the farmhouse road continues straight into the expanded square. The fountain remains in its original world position.
 
 Cave rock density falls from 17% to 9% of floor cells, with three-tile clear areas around entrances, exits and stairs. All remaining floor cells must stay connected. Existing minimums of six copper deposits and three coal deposits per level remain, so smaller floors have a higher ore share than the usual 10% copper / 5% coal target.
+
+Verification: `scripts/check.sh` passes with clean output. Additional native captures cover the square, farmhouse road, temple, both signs, lanterns, summer fireflies, expanded Crew Log and shopping balance. Multi-seed checks cover cave access and garden placement around temple gates; resource-allocation checks retain coverage of the nominal copper/coal proportions.
