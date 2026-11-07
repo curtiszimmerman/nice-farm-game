@@ -19,6 +19,9 @@ static func explore(game: Node2D,meet_moss: bool=false) -> void:
 		game.ui.modal_box.get_child(3).pressed.emit()
 	game.leave_building()
 	game.state.welcome_phase="complete"
+	# Test worlds get a random seed, and villagers stay indoors on rainy days, so pin the weather.
+	# Tests about weather set their own.
+	game.state.weather_override="sunny"
 	game.state.player_position=game.Grid.center(game.Grid.SPAWN_CELL)
 	if meet_moss:
 		game.state.invite_mayor()

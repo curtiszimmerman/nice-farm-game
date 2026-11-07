@@ -647,6 +647,10 @@ func stop_for(id: String) -> Dictionary:
 			var cell: Vector2i=garden_work[home]
 			if not blocked(Grid.center(cell)) and not (id=="astronomer" and posmod(state.day-1,7)==0): stop={"cell":cell,"room":"","sleeping":false}
 	if id=="vale": stop.room="ship"
+	# Nobody stands about outdoors in the rain: anyone due outside stays home instead. Story events below still take precedence.
+	if state.weather_name()=="rainy" and stop.get("room","")=="":
+		var shelter=Schedule.home_stop(id)
+		stop={"cell":shelter.cell,"room":shelter.room,"sleeping":false}
 	if id=="moss" and not state.invited: stop={"cell":MOSS_ENCOUNTER_CELL,"sleeping":false,"room":""}
 	var visit=state.mayor_visit_start()
 	if visit>=0 and state.total()>=visit+240: visit+=1440
