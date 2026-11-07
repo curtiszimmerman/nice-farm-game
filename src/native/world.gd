@@ -641,7 +641,7 @@ func scatter_cells(amount: int,spacing: int,rng: RandomNumberGenerator,require_r
 func stop_for(id: String) -> Dictionary:
 	var stop=Schedule.stop(id,state.minute,state.day)
 	var home=Schedule.home_stop(id).room
-	if posmod(state.day-1,7)==posmod(people.find(people.filter(func(p):return p.id==id)[0])+1,7) and state.minute>=840 and state.minute<960 and id not in ["vale","smith","baker","barkeep","keeper"]:
+	if posmod(state.day-1,7)==posmod(people.find(people.filter(func(p):return p.id==id)[0])+1,7) and state.minute>=840 and state.minute<960 and id not in ["vale","smith","baker","barkeep","keeper","widow","herbalist"]:
 		var homes=buildings.filter(func(b):return b.id==home)
 		if not homes.is_empty() and garden_work.has(home):
 			var cell: Vector2i=garden_work[home]

@@ -12,7 +12,8 @@ func run() -> void:
 	game.set_process(false)
 	preload("fixture.gd").explore(game,true)
 	game.state.money=1000
-	for id in preload("res://crop_art.gd").SEEDS:
+	# Tavi sells the ordinary seeds; Widow Marsh's exotic ones are only in her curio shop.
+	for id in preload("res://crop_art.gd").SEEDS.keys().filter(func(seed):return game.state.Shop.CATALOG.has(seed)):
 		game.tavi_shop()
 		var label=game.state.Items.CATALOG[id].name.to_lower()
 		var button=game.ui.modal_box.find_children("*","Button",true,false).filter(func(b):return b.text.to_lower().contains(label))

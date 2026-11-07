@@ -24,7 +24,7 @@ func run() -> void:
 	check(Art.plant_overlay("turnips",true)=="plant_overlay_turnip" and Art.plant_overlay("star_bulbs",true)=="plant_overlay_bulb","turnips and star bulbs keep their original field sprites")
 	var unique={}
 	for id in plants.slice(4): unique[id]=true
-	check(unique.size()==8,"each new crop looks different while growing and when ripe")
+	check(unique.size()==(State.CROPS.size()-2)*2,"each new crop looks different while growing and when ripe")
 	var styles={}
 	for b in preload("res://world.gd").BUILDINGS+preload("res://neighbors.gd").BUILDINGS: styles[Art.roof_style(b)]=true
 	check(styles.size()>=4,"the town uses at least four roof styles: %s" % [styles.keys()])

@@ -1373,7 +1373,7 @@ func shop_menu(title: String,role: String,text: String,offers: Array,scroll_posi
 		var action: Callable=offer[4]
 		var selected_offer=offer
 		var count=state.stock(stock_id)
-		var delivery="tomorrow" if state.Shop.daily(stock_id) else "next season"
+		var delivery=state.Shop.restock(stock_id)
 		var status="Out of stock · delivery "+delivery if count==0 else "%s crowns · %d available" % [crowns(price),count]
 		var can_buy=count>0 and state.money>=price
 		choices.append([label+" · "+status,func():
@@ -1403,7 +1403,7 @@ func shop_quantity(title: String,role: String,text: String,offers: Array,offer: 
 	amount.step=1
 	amount.value=1
 	ui.quantity_control=amount
-	var bundle=int(state.Shop.CATALOG[offer[3]].count)
+	var bundle=state.Shop.bundle(offer[3])
 	panel("How much would you like to buy?","BUY QUANTITY","%s. Each purchase contains %d. Up to %d purchases available; %d crowns each." % [offer[1],bundle,maximum,price],[
 		["Buy selected quantity",func():
 			var bought=0
@@ -1443,6 +1443,13 @@ func tavi_shop() -> void:
 		if seed_id in ["seeds","star_seeds"] or state.season_name() not in state.CROPS[crop].seasons: continue
 		offers.append([seed_id,"Five "+state.Items.CATALOG[seed_id].name.to_lower(),10,seed_id,func(): return state.purchase(seed_id)])
 	shop_menu("Tavi's Grocery","SEASONAL STOCK","Here's what's on the shelves today. Seed packets, cookware, and baking supplies arrive with the seasonal cart. Pots and pans work from your kitchen cabinet or satchel.",offers)
+
+func curio_shop() -> void:
+	var offers=[]
+	for id in state.curio_offers():
+		var curio=id
+		offers.append([curio,state.Items.CATALOG[curio].name,state.Shop.CURIOS[curio].price,curio,func(): return state.buy_curio(curio)])
+	shop_menu("Widow Marsh's Curios","WHAT THE ROAD BROUGHT","Seeds from Veyr and the coast towns, and whatever Edwin's old friends have sent along this week. It changes every week, so if something catches your eye, don't wait.",offers)
 
 func smith_shop() -> void:
 	var offers=[["rusty_sword","Rusty sword",1000,"rusty_sword",func(): return state.buy_sword()]]

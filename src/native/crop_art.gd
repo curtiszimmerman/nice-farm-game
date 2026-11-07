@@ -1,7 +1,7 @@
 extends RefCounted
 
-const SEEDS={"green_onion_seeds":"green_onions","tomato_seeds":"tomatoes","cucumber_seeds":"cucumbers","gladain_seeds":"gladain"}
-const COLORS={"green_onions":"e0dfb0","tomatoes":"df6547","cucumbers":"689446","gladain":"d7b45b"}
+const SEEDS={"green_onion_seeds":"green_onions","tomato_seeds":"tomatoes","cucumber_seeds":"cucumbers","gladain_seeds":"gladain","veyr_pepper_seeds":"veyr_peppers","moonmelon_seeds":"moonmelons","frostkale_seeds":"frostkale"}
+const COLORS={"green_onions":"e0dfb0","tomatoes":"df6547","cucumbers":"689446","gladain":"d7b45b","veyr_peppers":"c8302a","moonmelons":"b8d0a8","frostkale":"5f8a8e"}
 static var textures={}
 
 static func icon(id: String) -> Texture2D:
@@ -26,6 +26,13 @@ static func icon(id: String) -> Texture2D:
 					body=pow((x-8)/3.2,2)+pow((y-8)/6.0,2)<1
 				"gladain":
 					body=pow((x-8)/5.5,2)+pow((y-9)/4.2,2)<1
+				"veyr_peppers":
+					body=pow((x-8)/2.4,2)+pow((y-9)/5.0,2)<1
+					if y in [3,4] and x in [7,8]: color=Color("598448")
+				"moonmelons":
+					body=Vector2(x-8,y-9).length()<6
+				"frostkale":
+					body=pow((x-8)/5.0,2)+pow((y-8)/5.0,2)<1 and (x+y)%3!=0
 			if body:
 				color=Color(COLORS[crop]).darkened(0.22 if x>8 else 0)
 				if (x*3+y*5)%17==0: color=color.darkened(0.2)

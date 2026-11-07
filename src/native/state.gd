@@ -130,13 +130,25 @@ var green_onions=0
 var tomatoes=0
 var cucumbers=0
 var gladain=0
-const CROPS={"turnips":{"seed":"seeds","days":3,"regrow":0,"seasons":["spring","summer","autumn","winter"]},"star_bulbs":{"seed":"star_seeds","days":3,"regrow":0,"seasons":["spring","summer","autumn","winter"]},"green_onions":{"seed":"green_onion_seeds","days":6,"regrow":0,"seasons":["spring"]},"tomatoes":{"seed":"tomato_seeds","days":6,"regrow":3,"seasons":["spring","summer"]},"cucumbers":{"seed":"cucumber_seeds","days":4,"regrow":4,"seasons":["spring","summer"]},"gladain":{"seed":"gladain_seeds","days":14,"regrow":0,"seasons":["spring"]}}
+var veyr_pepper_seeds=0
+var veyr_peppers=0
+var moonmelon_seeds=0
+var moonmelons=0
+var frostkale_seeds=0
+var frostkale=0
+var veyr_silk_scarf=0
+var brass_spyglass=0
+var music_box=0
+# The week Widow Marsh's stock was last counted, and how many of each curio sold that week.
+var curio_week=-1
+var curio_bought: Dictionary={}
+const CROPS={"turnips":{"seed":"seeds","days":3,"regrow":0,"seasons":["spring","summer","autumn","winter"]},"star_bulbs":{"seed":"star_seeds","days":3,"regrow":0,"seasons":["spring","summer","autumn","winter"]},"green_onions":{"seed":"green_onion_seeds","days":6,"regrow":0,"seasons":["spring"]},"tomatoes":{"seed":"tomato_seeds","days":6,"regrow":3,"seasons":["spring","summer"]},"cucumbers":{"seed":"cucumber_seeds","days":4,"regrow":4,"seasons":["spring","summer"]},"gladain":{"seed":"gladain_seeds","days":14,"regrow":0,"seasons":["spring"]},"veyr_peppers":{"seed":"veyr_pepper_seeds","days":7,"regrow":3,"seasons":["summer","autumn"]},"moonmelons":{"seed":"moonmelon_seeds","days":12,"regrow":0,"seasons":["spring","summer"]},"frostkale":{"seed":"frostkale_seeds","days":5,"regrow":0,"seasons":["autumn","winter"]}}
 var mayor_due=-1.0
 var house_tasks={"sofa":false,"bed":false,"guest_bed":false,"radio":false,"living_light":false,"bathroom_light":false}
 const INVENTORY_SLOTS=16
-const EXTRA_ITEMS=["pot","pan","fish_sticks","fish_stew","health_elixir","rations","light_bulbs","moon_pike","sea_sprat","blue_mackerel","storm_eel","rain_glassfish","storm_shiner","pickaxe","stones","cave_moth_chrysalis","golden_sparkfire_bloom","lantern_ray","axe","wood","bread","copper_bars","berries","apples","ladder","fishing_pole","coal","silver_bars","winter_sparkbloom","berry_preserves","berry_cobbler","flour","sugar","butter","green_onion_seeds","tomato_seeds","cucumber_seeds","gladain_seeds","green_onions","tomatoes","cucumbers","gladain","glass_jars"]
+const EXTRA_ITEMS=["pot","pan","fish_sticks","fish_stew","health_elixir","rations","light_bulbs","moon_pike","sea_sprat","blue_mackerel","storm_eel","rain_glassfish","storm_shiner","pickaxe","stones","cave_moth_chrysalis","golden_sparkfire_bloom","lantern_ray","axe","wood","bread","copper_bars","berries","apples","ladder","fishing_pole","coal","silver_bars","winter_sparkbloom","berry_preserves","berry_cobbler","flour","sugar","butter","green_onion_seeds","tomato_seeds","cucumber_seeds","gladain_seeds","green_onions","tomatoes","cucumbers","gladain","glass_jars","veyr_pepper_seeds","veyr_peppers","moonmelon_seeds","moonmelons","frostkale_seeds","frostkale","veyr_silk_scarf","brass_spyglass","music_box"]
 const CROP_MINUTES=4320.0
-const CROP_PRICES={"green_onions":16,"tomatoes":14,"cucumbers":12,"gladain":40}
+const CROP_PRICES={"green_onions":16,"tomatoes":14,"cucumbers":12,"gladain":40,"veyr_peppers":30,"moonmelons":90,"frostkale":24}
 
 static func crop_minutes(crop: String) -> float:
 	return CROPS[crop].days*1440.0
@@ -760,6 +772,7 @@ func buy_utensil(id: String) -> bool:
 	return id in ["pot","pan"] and purchase(id)
 
 func stock(id: String) -> int:
+	if Shop.CURIOS.has(id): return curio_remaining(id)
 	var season=int((day-1)/28.0)
 	if shop_season!=season:
 		shop_season=season
@@ -775,6 +788,35 @@ func purchase_drink(id: String) -> bool:
 	needs.without_food=maxf(0,needs.without_food-180)
 	restore_energy(Shop.DRINKS[id].energy)
 	status_effects.drunk={"remaining":60.0}
+	return true
+
+# Two seeds that grow this season and one trinket, picked afresh each week.
+func curio_offers() -> Array:
+	var week=int((day-1)/7)
+	var rng=RandomNumberGenerator.new()
+	rng.seed=hash([world_seed,week,"curios"])
+	var seeds=Shop.CURIOS.keys().filter(func(id):return id not in Shop.TRINKETS and season_name() in CROPS[crop_for_seed(id)].seasons)
+	for i in range(seeds.size()-1,0,-1):
+		var j=rng.randi_range(0,i)
+		var swap=seeds[i]
+		seeds[i]=seeds[j]
+		seeds[j]=swap
+	return seeds.slice(0,2)+[Shop.TRINKETS[rng.randi_range(0,Shop.TRINKETS.size()-1)]]
+
+func curio_remaining(id: String) -> int:
+	var week=int((day-1)/7)
+	if curio_week!=week:
+		curio_week=week
+		curio_bought={}
+	return int(Shop.CURIOS[id].stock)-int(curio_bought.get(id,0))
+
+func buy_curio(id: String) -> bool:
+	if id not in curio_offers() or curio_remaining(id)<=0: return false
+	var offer=Shop.CURIOS[id]
+	if money<offer.price or not can_carry(id): return false
+	money-=offer.price
+	set(id,int(get(id))+offer.count)
+	curio_bought[id]=int(curio_bought.get(id,0))+1
 	return true
 
 func purchase(id: String) -> bool:
@@ -801,6 +843,8 @@ func gift_preference(id: String,item: String) -> int:
 	if id=="farmer_son" and item=="glass_jars": return 5
 	if id=="veteran" and item=="turnips": return 5
 	if item in ["coal","stones"]: return 1 if id in ["smith","miller"] else -1
+	var treasured={"veyr_silk_scarf":["miller_wife","farmer_mother","iona"],"brass_spyglass":["astronomer","finch","miller_daughter"],"music_box":["barkeep","priest","farmer_son"]}
+	if treasured.has(item): return 5 if id in treasured[item] else 1
 	if item in ["golden_sparkfire_bloom","star_bulbs"]: return 5 if id in ["iona","astronomer"] else -5 if id=="assistant" else 0
 	if item in ["fish_stew","fish_sticks","bread","berry_cobbler"]: return 5 if id in ["vale","keeper","veteran","barkeep"] else 1
 	if item in ["berries","apples","turnips"]: return 5 if id in ["moss","farmer_mother","baker"] else 1
@@ -908,7 +952,7 @@ func to_dict() -> Dictionary:
 		"cave_seed":cave_seed,"cave_broken":cave_broken.duplicate(),"cave_defeated":cave_defeated.duplicate(),"cave_chrysalis_taken":cave_chrysalis_taken,"sparkfire_picked_day":sparkfire_picked_day,"cave_barrel":cave_barrel.duplicate(true),
 		"ship_departed":ship_departed,"welcome_phase":welcome_phase,"welcome_elapsed":welcome_elapsed,
 		"intro_complete":intro_complete,"briefing_complete":briefing_complete,"mayor_due":mayor_due,"house_tasks":house_tasks.duplicate(),
-		"supplies":supplies,"cabinet":cabinet.duplicate(true),"ship_storage":ship_storage.duplicate(true),"water":water,"ship_water":ship_water,"quick_slots":quick_slots.duplicate(),"selected_slot":selected_slot,"crew_fed_day":crew_fed_day,"crew_hungry_days":crew_hungry_days,"purchased_utensils":purchased_utensils.duplicate(),
+		"supplies":supplies,"cabinet":cabinet.duplicate(true),"ship_storage":ship_storage.duplicate(true),"water":water,"ship_water":ship_water,"curio_week":curio_week,"curio_bought":curio_bought.duplicate(),"quick_slots":quick_slots.duplicate(),"selected_slot":selected_slot,"crew_fed_day":crew_fed_day,"crew_hungry_days":crew_hungry_days,"purchased_utensils":purchased_utensils.duplicate(),
 		"hoe":hoe,"watering_can":watering_can,"sickle":sickle,"chest":chest.duplicate(true),"invitation_day":invitation_day,"abandoned_day":abandoned_day.duplicate(),
 		"health":health,"star_seeds":star_seeds,"star_bulbs":star_bulbs,"rusty_sword":rusty_sword,"equipped":equipped,"selected_seed":selected_seed,
 		"location":location,"outdoor_x":outdoor_position.x,"outdoor_y":outdoor_position.y,
@@ -1007,6 +1051,9 @@ func restore(data: Variant) -> bool:
 		if not _number(data.supplies.get(id)) or data.supplies[id]<0 or data.supplies[id]!=floor(data.supplies[id]): return false
 	for field in ["water","ship_water","selected_slot","crew_fed_day","crew_hungry_days"]:
 		if not _number(data.get(field)) or data[field]<0 or data[field]!=floor(data[field]): return false
+	if not _number(data.get("curio_week")) or data.curio_week<-1 or data.curio_week!=floor(data.curio_week) or not data.get("curio_bought") is Dictionary: return false
+	for id in data.curio_bought:
+		if not Shop.CURIOS.has(id) or not _number(data.curio_bought[id]) or data.curio_bought[id]<0: return false
 	if data.water>20 or data.ship_water>SHIP_WATER or data.selected_slot>8 or data.crew_fed_day<1: return false
 	if not data.get("quick_slots") is Array or data.quick_slots.size()!=8: return false
 	for id in data.quick_slots:
@@ -1090,7 +1137,9 @@ func restore(data: Variant) -> bool:
 	chest=data.chest.duplicate(true)
 	abandoned_day=data.abandoned_day.duplicate()
 	for id in EXTRA_ITEMS: set(id,int(data.supplies[id]))
-	for field in ["water","ship_water","selected_slot","crew_fed_day","crew_hungry_days"]: set(field,int(data[field]))
+	for field in ["water","ship_water","selected_slot","crew_fed_day","crew_hungry_days","curio_week"]: set(field,int(data[field]))
+	curio_bought={}
+	for id in data.curio_bought: curio_bought[id]=int(data.curio_bought[id])
 	quick_slots=data.quick_slots.duplicate()
 	inventory_selection=data.inventory_selection
 	inventory_order=data.inventory_order.duplicate()

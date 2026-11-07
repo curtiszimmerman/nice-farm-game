@@ -17,7 +17,7 @@ func run() -> void:
 	var world=game.outdoors
 	for index in range(world.people.size()):
 		var id=world.people[index].id
-		if id in ["vale","smith","baker","barkeep","keeper"]: continue
+		if id in ["vale","smith","baker","barkeep","keeper","widow","herbalist"]: continue
 		game.state.day=posmod(index+1,7)+1
 		game.state.minute=900
 		var stop=world.stop_for(id)
