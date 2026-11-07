@@ -62,7 +62,7 @@ func run() -> void:
 	game.state.player_position=tree.position+Vector2(0,30)
 	for i in range(10): world.refresh()
 	check(tree.modulate.a==1.0,"a tree becomes opaque again when the avatar is in front")
-	game.state.player_position=Vector2(house.data.x+house.data.w*0.5,house.data.y-8)
+	game.state.player_position=Vector2(house.data.x+house.data.w*0.5,house.data.y+8)
 	for i in range(10): world.refresh()
 	check(house.modulate.a<0.4,"a house fades when its roof hides the avatar")
 	game.state.player_position=Vector2(900,700)

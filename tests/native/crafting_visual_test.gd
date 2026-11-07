@@ -55,6 +55,9 @@ func run() -> void:
 	game.enter_building("smithy")
 	game.talk("smith")
 	preload("fixture.gd").greet(game)
+	# Dain only offers the blueprint once you've asked him how to refine copper.
+	game.ui.modal_box.get_children().filter(func(node):return node is Button and node.text.begins_with("How can I refine"))[0].pressed.emit()
+	game.talk("smith")
 	await capture("blueprint-offer")
 	game.ui.modal_box.get_children().filter(func(node):return node is Button and node.text.begins_with("Learn crucible"))[0].pressed.emit()
 	assert(game.state.crucible_known and game.state.star_bulbs==0,"Dain's actual trade teaches the blueprint for ten star bulbs")

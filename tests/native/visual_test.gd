@@ -282,7 +282,7 @@ func run() -> void:
 	game.enter_building("store")
 	game.leave_building()
 	await capture("store-exit")
-	for point in [["east-farm",Vector2i(104,48)],["east-fields",Vector2i(104,53)],["windmill",Vector2i(90,30)],["mill-family-home",Vector2i(99,32)],["smithy",Vector2i(79,49)],["tavern",Vector2i(69,39)],["bakery",Vector2i(75,66)]]:
+	for point in [["east-farm",Vector2i(104,48)],["east-fields",Vector2i(104,53)],["windmill",Vector2i(90,30)],["mill-family-home",Vector2i(99,32)],["smithy",Vector2i(73,52)],["tavern",Vector2i(67,41)],["bakery",Vector2i(69,58)]]:
 		game.state.player_position=game.Grid.center(point[1])
 		await capture(point[0])
 	game.state.player_position=game.world.Grid.center(game.world.MOSS_FIELDS.position+Vector2i(3,2))

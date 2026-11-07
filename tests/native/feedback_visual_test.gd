@@ -20,7 +20,7 @@ func run() -> void:
 	await capture("temple")
 	game.state.player_position=game.Grid.center(Vector2i(54,47))
 	await capture("hall-sign")
-	game.state.player_position=game.Grid.center(Vector2i(69,38))
+	game.state.player_position=game.Grid.center(Vector2i(67,41))
 	await capture("tavern-sign")
 	game.state.minute=1200
 	game.state.player_position=game.Grid.center(Vector2i(13,52))

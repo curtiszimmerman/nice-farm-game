@@ -28,12 +28,13 @@ const BUILDINGS=[
 	{"cell":Vector2i(66,53),"tiles":Vector2i(6,4),"roof":"b68a58","kind":"bakery"},
 	{"cell":Vector2i(27,75),"tiles":Vector2i(4,4),"roof":"78644d","kind":"cabin","resident":"woodcutter"},
 	{"cell":Vector2i(51,48),"tiles":Vector2i(5,3),"roof":"7a5a6e","kind":"cottage","resident":"widow"},
-	{"cell":Vector2i(66,59),"tiles":Vector2i(5,3),"roof":"6f7f4f","kind":"cottage","resident":"herbalist"},
+	{"cell":Vector2i(66,61),"tiles":Vector2i(5,3),"roof":"6f7f4f","kind":"cottage","resident":"herbalist"},
 	{"cell":Vector2i(102,70),"tiles":Vector2i(4,3),"roof":"6a5c4c","kind":"cabin","resident":"mining_shack"}
 ]
 const FIELDS=[Rect2i(99,50,5,6),Rect2i(106,50,5,6)]
-const HIVES=[Vector2i(48,64),Vector2i(50,64)]
-const TEMPLE_GARDEN=[Vector2i(48,67),Vector2i(49,67),Vector2i(50,67),Vector2i(48,68),Vector2i(49,68),Vector2i(50,68)]
+# Two rows of beds south of the temple forecourt with a walk between them, and the hives on the quiet east side.
+const HIVES=[Vector2i(52,66),Vector2i(52,68)]
+const TEMPLE_GARDEN=[Vector2i(46,66),Vector2i(47,66),Vector2i(48,66),Vector2i(49,66),Vector2i(50,66),Vector2i(46,68),Vector2i(47,68),Vector2i(48,68),Vector2i(49,68),Vector2i(50,68)]
 const BENCHES=[Vector2i(59,45),Vector2i(65,45),Vector2i(59,49),Vector2i(65,49)]
 const FLOWERS=[Vector2i(59,43),Vector2i(60,43),Vector2i(65,43),Vector2i(66,43),Vector2i(59,51),Vector2i(60,51),Vector2i(65,51),Vector2i(66,51),Vector2i(58,44),Vector2i(58,45),Vector2i(58,46),Vector2i(58,49),Vector2i(58,50),Vector2i(67,44),Vector2i(67,45),Vector2i(67,46),Vector2i(67,49),Vector2i(67,50)]
 const ROUTES=[

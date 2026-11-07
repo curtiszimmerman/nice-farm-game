@@ -419,7 +419,7 @@ func _build_layout() -> void:
 		var name={"home":"farmhouse","hall":"town hall","assistant":"Neral's House","keeper":"Oren's lighthouse","finch":"Finch's House","mayor":"Mayor Alder's House","tavi":"Tavi's House","moss":"Moss's House","veteran":"Bram's Cabin","iona":"Iona's Tower"}.get(b.id,Neighbors.NAMES.get(b.id,b.id.capitalize()))
 		sites.append({"id":"door_"+b.id,"cell":door_cell,"x":door_pos.x,"y":door_pos.y,"door":b.id,"label":"Enter "+name})
 		reserved_cells[door_cell]=true
-		for x in ([1] if b.kind=="store" else [1,b.tiles.x-2]):
+		for x in Art.flowerbed_columns(b):
 			if x!=int(b.tiles.x/2) and b.kind not in ["tower","lighthouse","windmill"]:
 				_claim(Rect2i(b.cell+Vector2i(x,b.tiles.y),Vector2i.ONE),"flowerbed")
 	for item in SITES:
@@ -484,8 +484,9 @@ func _build_layout() -> void:
 		for y in range(field.position.y-1,field.end.y+1):
 			for x in range(field.position.x-1,field.end.x+1): reserved_cells[Vector2i(x,y)]=true
 	TownPaths.temple_fence(self)
-	TownPaths.yards(self)
+	# Routes go down first, so the fences and gardens that follow can keep off them.
 	TownPaths.build(self)
+	TownPaths.yards(self)
 	var approach=FARMHOUSE_APPROACH
 	for i in range(approach.size()-1): add_road_segment(approach[i],approach[i+1],7.0)
 	for path in Coast.PATHS:
@@ -832,8 +833,8 @@ func prop_visual_bounds(prop: Prop) -> Rect2:
 			var scale_factor=prop.data.size
 			return Rect2(prop.position+Vector2(-34,-92)*scale_factor,Vector2(68,94)*scale_factor)
 	elif prop.kind=="building":
-		var height=prop.data.get("visual_height",prop.data.h)
-		return Rect2(prop.position+Vector2(0,-height-80),Vector2(prop.data.w,height+80))
+		var height=Art.building_height(prop.data)
+		return Rect2(prop.position+Vector2(0,-height),Vector2(prop.data.w,height))
 	if PROP_SPRITE_OFFSETS.has(prop.kind):
 		var sprite="bush"+str(prop.data.variant) if prop.kind=="bush" else "fountain0" if prop.kind=="fountain" else prop.kind
 		return Rect2(prop.position+PROP_SPRITE_OFFSETS[prop.kind],Art.sprite_size(sprite))

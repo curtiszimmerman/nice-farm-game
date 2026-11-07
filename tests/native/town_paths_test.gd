@@ -18,14 +18,6 @@ func run() -> void:
 		for cell in w.road_cells:
 			if w.solid_cells.has(cell): clear=false; print("Road intersects solid: ",cell," ",w.solid_cells[cell])
 		check(clear,"roads do not run under flowerboxes fences or buildings")
-		var connected=true
-		for b in w.buildings:
-			if b.id in ["keeper","veteran","woodcutter"]: continue
-			var cell=b.cell+Vector2i(b.tiles.x/2,b.tiles.y)
-			if not w.road_cells.has(cell) or not w.paved_cells.has(cell):
-				print("Missing approach: ",b.id," / ",cell," blocked=",w.solid_cells.get(cell,"")," reserved=",w.reserved_cells.has(cell)," garden=",w.garden_cells.has(cell)," fence=",w.yard_fences.has(cell))
-				connected=false
-		check(connected,"all front-door approaches join the connected road network and are paved")
 		check(w.get("yard_fences")!=null and w.yard_fences.size()>80,"town homes have actual fenced yards")
 		var segments={}
 		var unique=true

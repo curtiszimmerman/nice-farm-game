@@ -40,9 +40,9 @@ func run() -> void:
 		game.leave_building()
 	game.state.player_position=game.Grid.center(Vector2i(72,47))
 	await capture("store-sign")
-	game.state.player_position=game.Grid.center(Vector2i(79,50))
+	game.state.player_position=game.Grid.center(Vector2i(73,52))
 	await capture("smith-sign")
-	game.state.player_position=game.Grid.center(Vector2i(75,67))
+	game.state.player_position=game.Grid.center(Vector2i(69,58))
 	await capture("baker-sign")
 	game.state.minute=1200
 	game.outdoors.update_villagers(0,true)

@@ -177,9 +177,31 @@ static func person(c: CanvasItem,p: Dictionary,step: float,direction: String) ->
 		sprite(c,"actor_%s_sleep0" % id,Vector2(-16,-float(p.get("bed_height",64))+4))
 	else: sprite(c,"actor_%s_%s%d" % [id,direction,frame],Vector2(-16,-60))
 
+# Flowerbeds sit in the row in front of a building, beside its door. Widow Marsh's front fence and Smithy Row
+# both run along that row, and the town hall's walk to the square leaves by its east side, so those get fewer.
+static func flowerbed_columns(b: Dictionary) -> Array:
+	if b.id in ["widow","store"]: return []
+	if b.kind=="hall": return [1]
+	return [1,int(b.w/32)-2]
+
+static func wall_rows(b: Dictionary) -> int:
+	if b.kind=="windmill": return 5
+	if b.kind=="tower": return 4
+	return maxi(2,int(b.h/32)-2)
+
+# How far a building's artwork reaches above its base, so it only fades when someone is really behind it.
+# The chimney is left out: it's narrow, and counting it would fade a house for anyone walking past its back fence.
+static func building_height(b: Dictionary) -> int:
+	if b.has("visual_height"): return b.visual_height
+	if b.kind=="temple" and catalog.has("building_temple"): return TEMPLE_HEIGHT
+	if b.kind=="mill_shed": return 96
+	return (wall_rows(b)+2)*32
+
+const TEMPLE_HEIGHT=224
+
 static func building(c: CanvasItem,b: Dictionary) -> void:
 	if b.kind=="temple" and catalog.has("building_temple"):
-		sprite(c,"building_temple",Vector2(0,-224),Vector2(224,224))
+		sprite(c,"building_temple",Vector2(0,-TEMPLE_HEIGHT),Vector2(224,TEMPLE_HEIGHT))
 		return
 	if b.kind=="mill_shed":
 		for y in range(3):
@@ -202,9 +224,7 @@ static func building(c: CanvasItem,b: Dictionary) -> void:
 			tile(c,"cap_"+["left","center","right"][x],Vector2i(x,-8))
 		return
 	var columns=int(b.w/32)
-	var rows=maxi(2,int(b.h/32)-2)
-	if b.kind=="windmill": rows=5
-	if b.kind=="tower": rows=4
+	var rows=wall_rows(b)
 	var variant=wall_style(b)
 	var door=int(columns/2)
 	for y in range(rows):
@@ -232,7 +252,7 @@ static func building(c: CanvasItem,b: Dictionary) -> void:
 			if catalog.has(cover): sprite(c,cover,at)
 	if b.id!="priest_outhouse": tile(c,"chimney",Vector2i(maxi(1,columns-2),-rows-3))
 	if b.kind=="store": sprite(c,"sign_general_store" if catalog.has("sign_general_store") else "general_store_sign",Vector2(columns*16-56,-(rows+1)*32+8),Vector2(112,24))
-	for x in ([1] if b.kind=="store" else [1,columns-2]):
+	for x in flowerbed_columns(b):
 		if x!=door: sprite(c,seasonal("tile_flowerbed0",b.get("season","spring")),Grid.origin(Vector2i(x,0)))
 	for x in [door-1,door+1]:
 		if x>=0 and x<columns: tile(c,"light",Vector2i(x,-2))

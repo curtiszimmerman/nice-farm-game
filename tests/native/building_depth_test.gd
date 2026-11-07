@@ -33,22 +33,28 @@ func run() -> void:
 				else: open=open and world.solid_cells.get(cell,"")!="building" and world.reserved_cells.has(cell)
 		check(solid,"%s blocks the bottom two rows of its footprint" % b.id)
 		check(open,"%s leaves the rows above its base walkable and free of scenery" % b.id)
-	# The tavern touches the mayor's house on its left, so the captain goes around its right side instead.
-	for pair in [["hall","left"],["tavern","right"],["smithy","left"]]:
+	# Fences and neighbours close off some sides, so the captain takes the shortest walk to the open one.
+	# The tavern touches the mayor's house, and the smith's fence faces the square.
+	for pair in [["hall","left"],["tavern","right"],["smithy","right"],["finch","left"],["tavi","left"]]:
 		var id=pair[0]
 		var b=world.buildings.filter(func(item):return item.id==id)[0]
 		var prop=world.scenery_layer.get_children().filter(func(n):return n is World.Prop and n.kind=="building" and n.data.id==id)[0]
-		var front=b.cell.y+b.tiles.y
 		var door=b.cell+Vector2i(int(b.tiles.x/2),b.tiles.y)
 		game.state.player_position=Grid.center(door)
 		var edge=b.cell.x if pair[1]=="left" else b.cell.x+b.tiles.x-1
-		var outward=-1 if pair[1]=="left" else 1
-		var side=Vector2i(edge+outward,front)
-		var behind=Vector2i(edge,front-3)
-		# The flowerbeds beside the door fill the front row, so the captain steps out one row before going around.
-		var walked=walk(game,door+Vector2i.DOWN) and walk(game,side+Vector2i.DOWN) and walk(game,side+Vector2i(0,-3)) and walk(game,behind)
+		var behind=Vector2i(edge,b.cell.y+b.tiles.y-3)
+		var route=world._route(door,behind)
+		var walked=not route.is_empty()
+		for point in route:
+			if walked: walked=walk(game,Grid.world_to_cell(point))
 		check(walked,"the captain walks from %s's door around the side and behind it" % id)
 		check(world.prop_hides_player(prop),"%s fades while the captain stands behind it" % id)
+	# The bakery's back wall is two rows from the square, so walking the square must not fade it.
+	var bakery=world.scenery_layer.get_children().filter(func(n):return n is World.Prop and n.kind=="building" and n.data.id=="bakery")[0]
+	game.state.player_position=Grid.center(Vector2i(67,51))
+	check(not world.prop_hides_player(bakery),"walking along the south edge of the square leaves the bakery solid")
+	game.state.player_position=Grid.center(Vector2i(68,54))
+	check(world.prop_hides_player(bakery),"standing in the bakery's back yard fades it")
 	await game.sound.shutdown()
 	game.queue_free()
 	await process_frame
