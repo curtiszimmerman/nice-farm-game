@@ -408,7 +408,12 @@ func _build_layout() -> void:
 		b.w=bounds.size.x
 		b.h=bounds.size.y
 		buildings.append(b)
-		_claim(Rect2i(b.cell,b.tiles),"building")
+		# Only the bottom two rows of a building are solid, so the captain can walk behind it while the art fades.
+		# The rows above stay reserved so no tree or bush grows hidden behind the walls.
+		var depth=mini(2,b.tiles.y)
+		_claim(Rect2i(b.cell+Vector2i(0,b.tiles.y-depth),Vector2i(b.tiles.x,depth)),"building")
+		for y in range(b.cell.y,b.cell.y+b.tiles.y-depth):
+			for x in range(b.cell.x,b.cell.x+b.tiles.x): reserved_cells[Vector2i(x,y)]=true
 		var door_cell=b.cell+Vector2i(int(b.tiles.x/2),b.tiles.y)
 		var door_pos=Grid.center(door_cell)
 		var name={"home":"farmhouse","hall":"town hall","assistant":"Neral's House","keeper":"Oren's lighthouse","finch":"Finch's House","mayor":"Mayor Alder's House","tavi":"Tavi's House","moss":"Moss's House","veteran":"Bram's Cabin","iona":"Iona's Tower"}.get(b.id,Neighbors.NAMES.get(b.id,b.id.capitalize()))

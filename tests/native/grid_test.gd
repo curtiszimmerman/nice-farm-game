@@ -34,10 +34,10 @@ func run() -> void:
 	for b in world.buildings:
 		var expected=Grid.rect(b.cell,b.tiles)
 		if Rect2(b.x,b.y,b.w,b.h)!=expected: footprints=false
-		for y in range(b.cell.y,b.cell.y+b.tiles.y):
+		for y in range(b.cell.y+maxi(0,b.tiles.y-2),b.cell.y+b.tiles.y):
 			for x in range(b.cell.x,b.cell.x+b.tiles.x):
 				if not world.blocked(Grid.center(Vector2i(x,y))): footprints=false
-	check(footprints,"buildings render and collide using the same whole-tile footprints")
+	check(footprints,"buildings render on whole tiles and their bottom two rows collide")
 	var tree_cells={}
 	var tree_alignment=true
 	for tree in world.trees:
