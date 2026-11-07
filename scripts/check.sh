@@ -28,6 +28,9 @@ run_native() {
     fi
 }
 run_native --headless --script "../../tests/native/welcome_polish_test.gd"
+for test_file in dialogue_feedback_test feedback_systems_test landscape_feedback_test npc_push_chain_test shop_wallet_test; do
+    run_native --headless --script "../../tests/native/$test_file.gd"
+done
 run_native --headless --script "../../tests/native/ship_bridge_test.gd"
 run_native --headless --script "../../tests/native/bridge_ambience_test.gd"
 run_native --headless --script "../../tests/native/attacker_reveal_test.gd"

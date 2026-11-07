@@ -131,6 +131,7 @@ func generate() -> void:
 	# Resource rocks cluster in wider floor areas while leaving a connected route through each level.
 	var candidates=[]
 	for cell in floor_cells:
+		if cell.distance_to(layout.entry)<=3 or cell.distance_to(layout.exit)<=3 or cell.distance_to(chambers.back().get_center())<=3: continue
 		if cell in [Vector2i(3,4),Vector2i(4,4),Vector2i(3,5),Vector2i(4,5),layout.entry,layout.exit,layout.exit+Vector2i.UP,layout.exit+Vector2i.LEFT,layout.exit+Vector2i.UP+Vector2i.LEFT,chambers.back().position+Vector2i.ONE] or occupied.has(cell): continue
 		if chambers.any(func(room):return room.get_center()==cell): continue
 		var neighbors=0
@@ -147,7 +148,7 @@ func generate() -> void:
 		weights[cell]=nearest_cluster*0.45+rng.randf_range(0,6)
 	candidates.sort_custom(func(a,b):return weights[a]<weights[b])
 	var deposits=[]
-	var amount=mini(candidates.size(),roundi(floor_cells.size()*0.17))
+	var amount=mini(candidates.size(),roundi(floor_cells.size()*0.09))
 	for cell in candidates:
 		deposits.append(cell)
 		if not floor_connected_without(deposits): deposits.pop_back(); continue

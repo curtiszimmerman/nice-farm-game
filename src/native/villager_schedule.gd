@@ -2,7 +2,7 @@ extends RefCounted
 
 # Each stop gives the departure time, destination tile, and whether it is bedtime.
 const ROUTINES = {
-	"priest":[[0,45,57,true,"priest"],[360,45,57,false,"priest"],[420,53,57,false,"temple"],[720,58,55,false],[780,53,57,false,"temple"],[1260,45,57,false,"priest"],[1320,45,57,true,"priest"]],
+	"priest":[[0,42,61,true,"priest"],[360,42,61,false,"priest"],[420,50,61,false,"temple"],[720,48,65,false],[780,50,61,false,"temple"],[1260,42,61,false,"priest"],[1320,42,61,true,"priest"]],
 	"astronomer":[[0,31,14,false,"observatory"],[420,31,14,true,"observatory"],[840,31,14,false,"observatory"],[1020,35,16,false],[1080,31,14,false,"observatory"]],
 	"moss":[[0,26,58,true],[360,26,58,false,"moss"],[420,25,59,false],[720,26,58,false,"moss"],[810,31,61,false],[1080,26,58,false,"moss"],[1320,26,58,true]],
 	"tavi":[[0,84,54,true],[390,84,54,false,"tavi"],[435,60,46,false],[480,72,45,false,"store"],[750,63,47,false],[780,72,45,false,"store"],[1200,60,48,false],[1245,63,45,false],[1290,84,54,false,"tavi"],[1320,84,54,true]],
@@ -64,7 +64,7 @@ static func stop(id: String,minute: float,day: int=1) -> Dictionary:
 	if id in ["tavi","smith","baker"] and minute>=hours[1] and minute<1140 and not (id=="tavi" and minute>=750 and minute<780):
 		stop={"cell":home_stop(id).cell if id!="tavi" else Vector2i(72,45),"room":{"tavi":"store","smith":"smithy","baker":"bakery"}[id],"sleeping":false}
 	if posmod(day-1,7)==6 and minute>=600 and minute<720 and (id in COMMUNION or id=="priest"):
-		return {"cell":Vector2i(53,57),"room":"temple","sleeping":false}
+		return {"cell":Vector2i(50,61),"room":"temple","sleeping":false}
 	if id=="priest": return stop
 	if minute<1140 and stop.room=="tavern":
 		stop=home_stop(id)

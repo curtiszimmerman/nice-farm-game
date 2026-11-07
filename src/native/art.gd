@@ -237,10 +237,7 @@ static func building(c: CanvasItem,b: Dictionary) -> void:
 	for x in [door-1,door+1]:
 		if x>=0 and x<columns: tile(c,"light",Vector2i(x,-2))
 	if b.kind=="hall":
-		var hall_sign=Vector2(door*32-38,-88)
-		c.draw_rect(Rect2(hall_sign,Vector2(76,21)),Color("394947"))
-		c.draw_rect(Rect2(hall_sign+Vector2(2,2),Vector2(72,17)),Color("758779"))
-		c.draw_string(preload("res://pixel_ui.gd").font(),hall_sign+Vector2(8,15),"TOWN HALL",HORIZONTAL_ALIGNMENT_LEFT,-1,10,Color("f1e7c9"))
+		preload("res://town_sign_art.gd").draw(c,"hall",door*32+16)
 	if b.kind in ["smithy","bakery"] and catalog.has("sign_smith" if b.kind=="smithy" else "sign_baker"):
 		sprite(c,"sign_smith" if b.kind=="smithy" else "sign_baker",Vector2(door*32-16,-88),Vector2(64,32))
 	elif b.kind in ["smithy","bakery"]: tile(c,b.kind+"_sign",Vector2i(maxi(0,door-1),-2))
@@ -253,13 +250,7 @@ static func building(c: CanvasItem,b: Dictionary) -> void:
 		c.draw_line(Vector2(-62,-125),Vector2(-73,-4),Color("7d918b"),1)
 		c.draw_line(Vector2(2,-125),Vector2(13,-4),Color("7d918b"),1)
 	if b.kind=="tavern":
-		var font=preload("res://pixel_ui.gd").font()
-		var pos=Vector2(door*32-45,-88)
-		c.draw_rect(Rect2(pos,Vector2(90,19)),Color("473b32"))
-		c.draw_rect(Rect2(pos+Vector2(2,2),Vector2(86,15)),Color("725943"))
-		c.draw_string(font,pos+Vector2(5,8),"WAYWARD",HORIZONTAL_ALIGNMENT_LEFT,-1,6,Color("f1e7c9"))
-		c.draw_string(font,pos+Vector2(5,16),"WREN",HORIZONTAL_ALIGNMENT_LEFT,-1,6,Color("f1e7c9"))
-		c.draw_string(font,pos+Vector2(39,15),"TAVERN",HORIZONTAL_ALIGNMENT_LEFT,-1,11,Color("f1e7c9"))
+		preload("res://town_sign_art.gd").draw(c,"tavern",door*32+16)
 
 static func wall_style(b: Dictionary) -> String:
 	return "log" if b.kind in ["cabin","reed_farm"] else "stone" if b.kind in ["tower","hall","smithy"] else "shop" if b.kind in ["store","bakery","tavern"] else "plaster"

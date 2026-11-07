@@ -15,6 +15,8 @@ func run() -> void:
 	game.enter_building("smithy")
 	game.talk("smith")
 	preload("fixture.gd").greet(game)
+	game.ui.modal_box.get_children().filter(func(node):return node is Button and node.text=="How can I refine copper ore?")[0].pressed.emit()
+	game.talk("smith")
 	check(game.ui.modal_box.get_children().any(func(node):return node is Button and node.text.contains("10 star bulbs")),"Dain offers the blueprint in exchange for ten star bulbs")
 	game.close_window()
 	game.leave_building()

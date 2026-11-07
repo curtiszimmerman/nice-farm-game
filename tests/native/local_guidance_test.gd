@@ -50,6 +50,7 @@ func run() -> void:
 	check(game.state.axe==1 and game.state.requests.axe_due>game.state.total(),"accepting Rowan's terms starts the axe agreement")
 	game.close_window()
 	game.talk("veteran")
+	buttons()[0].pressed.emit()
 	choose("waiting for them to grow")
 	check("Iona" in body() and "night owl" in body() and "astronomer" in body(),"Bram hints at growth magic, Iona's hours and Saeren")
 	game.close_window()

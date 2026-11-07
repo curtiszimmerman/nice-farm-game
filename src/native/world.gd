@@ -10,8 +10,9 @@ const Bodies=preload("res://npc_bodies.gd")
 const Neighbors=preload("res://neighbors.gd")
 const TownPaths=preload("res://town_paths.gd")
 const Borders=preload("res://terrain_borders.gd")
-const SQUARE = Rect2i(59,44,8,7)
-const BOARD_CELL=Vector2i(63,43)
+const SQUARE = Rect2i(58,43,10,9)
+const FOUNTAIN_CELL=Vector2i(62,48)
+const BOARD_CELL=Vector2i(63,42)
 const SIZE = Grid.WORLD_SIZE
 const FARM_CELL = Vector2i(9,48)
 const OUTCROP_CELLS = Rect2i(90,69,9,5)
@@ -30,7 +31,7 @@ const FARMHOUSE_APPROACH=[Vector2i(13,29),Vector2i(13,32),Vector2i(15,32),Vector
 const POND_CELL = Vector2i(17,67)
 const JETTY_CELLS = Rect2i(19,67,4,1)
 const CART_CELLS = Rect2i(76,40,3,1)
-const LAMP_CELLS = [Vector2i(59,44),Vector2i(66,44),Vector2i(59,50),Vector2i(66,50),Vector2i(20,42)]
+const LAMP_CELLS = [Vector2i(58,43),Vector2i(67,43),Vector2i(58,51),Vector2i(67,51),Vector2i(20,42)]
 const PEOPLE = [
 	{"id":"moss","name":"Moss","role":"YOUR NEIGHBOR","cell":MOSS_ENCOUNTER_CELL,"coat":"a7834d","hair":"d6cb9c","skin":"d4a776","hat":true},
 	{"id":"tavi","name":"Tavi","role":"TRAVELING MERCHANT","cell":Vector2i(64,46),"coat":"aa7262","hair":"bd996b","skin":"c0a070","cat":true},
@@ -244,7 +245,7 @@ func _ready() -> void:
 	refresh_forage()
 	for b in buildings: _prop("building",Vector2(b.x,b.y+b.h),b)
 	_prop("chest",site_position("chest"),{})
-	for cell in [Vector2i(58,56),Vector2i(60,56)]: _prop("beehive",Grid.center(cell),{})
+	for cell in Neighbors.HIVES: _prop("beehive",Grid.center(cell),{})
 	for index in range(state.crucibles.size()): add_crucible(index)
 	for p in people: villagers[p.id]=_prop("person",Vector2(p.x,p.y),p)
 	crops = _prop("crops",Vector2.ZERO,{})
@@ -269,7 +270,7 @@ func _ready() -> void:
 		var p=Grid.center(cell)
 		sites.append({"id":"sparkfire","cell":cell,"x":p.x,"y":p.y,"label":"Gather dawn flower"})
 		_prop("sparkfire",p,{"bloom":false})
-	_prop("fountain",Grid.origin(SQUARE.position+Vector2i(3,5)),{"frame":-1})
+	_prop("fountain",Grid.origin(FOUNTAIN_CELL+Vector2i.DOWN),{"frame":-1})
 	var board=_prop("bulletin_board",Grid.origin(BOARD_CELL+Vector2i.DOWN),{})
 	for cell in LAMP_CELLS: _prop("lamp",Grid.center(cell),{})
 	for cell in Neighbors.BENCHES: _prop("bench",Grid.origin(cell+Vector2i.DOWN),{})
@@ -429,13 +430,13 @@ func _build_layout() -> void:
 	_claim(CART_CELLS,"cart")
 	_claim(Rect2i(8,10,7,4),"ship hull")
 	_claim(Rect2i(Vector2i(17,51),Vector2i.ONE),"chest")
-	for cell in [Vector2i(58,56),Vector2i(60,56)]: _claim(Rect2i(cell,Vector2i.ONE),"beehive")
-	for cell in [Vector2i(58,53),Vector2i(59,53),Vector2i(60,53),Vector2i(58,54),Vector2i(59,54),Vector2i(60,54)]:
+	for cell in Neighbors.HIVES: _claim(Rect2i(cell,Vector2i.ONE),"beehive")
+	for cell in Neighbors.TEMPLE_GARDEN:
 		garden_cells[cell]=true
 		_claim(Rect2i(cell,Vector2i.ONE),"flowerbed")
 	for cell in LAMP_CELLS: _claim(Rect2i(cell,Vector2i.ONE),"lamp")
 	_claim(Rect2i(Grid.world_to_cell(site_position("sign")),Vector2i.ONE),"sign")
-	_claim(Rect2i(SQUARE.position+Vector2i(3,4),Vector2i(2,1)),"fountain")
+	_claim(Rect2i(FOUNTAIN_CELL,Vector2i(2,1)),"fountain")
 	_claim(Rect2i(BOARD_CELL,Vector2i(2,1)),"bulletin board")
 	var board_position=Grid.center(BOARD_CELL+Vector2i.ONE)
 	sites.append({"id":"bulletin_board","cell":BOARD_CELL+Vector2i.ONE,"x":board_position.x,"y":board_position.y,"label":"Read local postings"})
@@ -477,8 +478,8 @@ func _build_layout() -> void:
 	for field in DECORATIVE_FIELDS+Neighbors.FIELDS:
 		for y in range(field.position.y-1,field.end.y+1):
 			for x in range(field.position.x-1,field.end.x+1): reserved_cells[Vector2i(x,y)]=true
-	TownPaths.yards(self)
 	TownPaths.temple_fence(self)
+	TownPaths.yards(self)
 	TownPaths.build(self)
 	var approach=FARMHOUSE_APPROACH
 	for i in range(approach.size()-1): add_road_segment(approach[i],approach[i+1],7.0)
@@ -697,6 +698,10 @@ func update_villagers(dt: float,snap: bool=false) -> void:
 				break
 		occupied_stops[stop.cell]=true
 		var actor: Node2D=villagers[id]
+		# Family members leave through the same door, waiting inside until its landing is clear.
+		if not snap and not actor.visible and villagers.values().any(func(other):return other!=actor and other.visible and other.position.distance_to(actor.position)<Bodies.RADIUS):
+			actor.data.walking=false
+			continue
 		var previous=actor.position
 		var target=Grid.center(stop.cell)
 		if snap:
@@ -933,7 +938,10 @@ func find_nearest() -> Dictionary:
 		var d = state.player_position.distance_to(plot_position(i))
 		if d<distance:
 			var p = state.plots[i]
-			var label = "Water this plot" if state.active_item()=="watering_can" else "Harvest moon turnip" if state.ripe(i) else "Till the soil" if not p.tilled else "Plant moon turnip" if p.planted<0 else "Water moon turnip" if not p.watered else "Growing · water daily"
+			var seed_crop=state.crop_for_seed(state.active_item())
+			var crop_name=state.Items.CATALOG[p.crop].name.to_lower()
+			var plant="Plant "+state.Items.CATALOG[seed_crop].name.to_lower() if seed_crop!="" else "Choose a seed to plant"
+			var label = "Water this plot" if state.active_item()=="watering_can" else "Harvest "+crop_name if state.ripe(i) else "Till the soil" if not p.tilled else plant if p.planted<0 else "Water "+crop_name if not p.watered else "Growing · water daily"
 			best = {"type":"plot","index":i,"label":label}
 			distance = d
 	for p in people:
@@ -1131,7 +1139,7 @@ func _draw() -> void:
 				var yy=int(i/2)*10+2
 				r(self,p.x+xx,p.y+yy,13,8,"afb198" if (i+x+y)%3 else "c0bfa4")
 				r(self,p.x+xx+1,p.y+yy,10,1,"cbcab0")
-	var fountain=Grid.origin(SQUARE.position+Vector2i(3,3))
+	var fountain=Grid.origin(FOUNTAIN_CELL-Vector2i.DOWN)
 	oval(self,fountain.x+32,fountain.y+34,32,25,"747f7d")
 	oval(self,fountain.x+32,fountain.y+29,27,19,"709fa9")
 	r(self,fountain.x+27,fountain.y+2,10,30,"c9cbb1")

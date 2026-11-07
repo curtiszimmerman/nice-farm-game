@@ -115,6 +115,10 @@ var message_panel: PanelContainer
 var vitality: Label
 var attunement: Label
 var purse: Label
+var shop_wallet: PanelContainer
+var wallet_amount: Label
+var wallet_balance=-1
+var wallet_pulse=0.0
 var energy_bar: ProgressBar
 var mana_bar: ProgressBar
 var health_bar: ProgressBar
@@ -183,6 +187,7 @@ func _ready() -> void:
 	objective.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	next_task = _label("",Vector2(14,175),11,GOLD,false,log_panel)
 	quest_scroll=ScrollContainer.new()
+	quest_scroll.horizontal_scroll_mode=ScrollContainer.SCROLL_MODE_DISABLED
 	quest_scroll.position=Vector2(12,50)
 	quest_scroll.size=Vector2(256,214)
 	log_panel.add_child(quest_scroll)
@@ -465,10 +470,53 @@ func show_title() -> void:
 
 func close_modal() -> void:
 	dialogue_open=false
+	if is_instance_valid(shop_wallet): shop_wallet.hide()
 	if not hud_nodes.is_empty(): update_hud()
 	if is_instance_valid(modal): modal.queue_free()
 	modal = null
 	modal_box = null
+
+func show_shop_wallet() -> void:
+	if shop_wallet==null:
+		shop_wallet=PanelContainer.new()
+		shop_wallet.position=Vector2(1024,405)
+		shop_wallet.custom_minimum_size=Vector2(220,80)
+		shop_wallet.mouse_filter=Control.MOUSE_FILTER_IGNORE
+		var border=style(Color("172d2cfb"),GOLD)
+		border.content_margin_left=16
+		border.content_margin_right=16
+		border.content_margin_top=12
+		border.content_margin_bottom=12
+		shop_wallet.add_theme_stylebox_override("panel",border)
+		var column=VBoxContainer.new()
+		column.add_theme_constant_override("separation",8)
+		shop_wallet.add_child(column)
+		var heading=Label.new()
+		heading.text="GOLD CROWNS"
+		heading.add_theme_font_size_override("font_size",16)
+		heading.add_theme_color_override("font_color",GOLD)
+		heading.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
+		column.add_child(heading)
+		wallet_amount=Label.new()
+		wallet_amount.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
+		wallet_amount.add_theme_font_size_override("font_size",24)
+		column.add_child(wallet_amount)
+		root.add_child(shop_wallet)
+	root.move_child(shop_wallet,-1)
+	shop_wallet.show()
+	update_shop_wallet(0)
+
+func update_shop_wallet(dt: float) -> void:
+	if not is_instance_valid(shop_wallet) or not shop_wallet.visible: return
+	if wallet_balance!=game.state.money:
+		if wallet_balance>=0: wallet_pulse=0.45
+		wallet_balance=game.state.money
+		wallet_amount.text=game.crowns(wallet_balance)
+	wallet_pulse=maxf(0,wallet_pulse-dt)
+	var pulse=sin(wallet_pulse/0.45*PI)
+	wallet_amount.pivot_offset=wallet_amount.size*0.5
+	wallet_amount.scale=Vector2.ONE*(1+0.18*pulse)
+	wallet_amount.modulate=Color.WHITE.lerp(Color("ffcf18"),pulse)
 
 func open_modal(title: String,eyebrow: String,body: String,choices: Array,wide = false,speaker_id: String="") -> void:
 	close_modal()
@@ -844,6 +892,7 @@ func add_character_stats() -> void:
 		stats.add_child(label)
 	var scroll=ScrollContainer.new()
 	scroll.custom_minimum_size=Vector2(730,420)
+	scroll.horizontal_scroll_mode=ScrollContainer.SCROLL_MODE_DISABLED
 	row.add_child(scroll)
 	character_quests=VBoxContainer.new()
 	character_quests.size_flags_horizontal=Control.SIZE_EXPAND_FILL
@@ -1026,7 +1075,11 @@ func quest_lines() -> Array:
 	if s.welcome_phase=="complete": lines.append({"id":"meet_wizard","title":"Gentler magic","description":"Visit Iona at the northern tower after noon to learn local magic.","tasks":[{"text":"Learn Wildgrowth from Iona","done":s.magic_learned}]})
 	if s.firewood_requested: lines.append({"id":"keeper_firewood","title":"A warm western light","description":"Oren needs firewood for his lighthouse stove. Ask the forest woodcutter about an axe.","tasks":[{"text":"Bring Oren six firewood","done":s.firewood_given}]})
 	if s.woodcutter_axe_given:
-		lines.append({"id":"axe_repayment","title":"Timber for a promise","description":"Rowan gave you an axe in exchange for ten logs within one week, seven days. The deadline was missed; she is disappointed, but you can still bring the timber." if s.requests.axe_failed else "Rowan gave you an axe in exchange for ten logs within one week, seven days. Due on day %d at %02d:%02d. The axe stays yours."%[int(s.requests.axe_due/1440)+1,int(fmod(s.requests.axe_due,1440)/60),int(fmod(s.requests.axe_due,60))],"tasks":[{"text":"Bring Rowan ten logs","done":s.requests.axe_paid}]})
+		var days_left=maxi(0,ceili((s.requests.axe_due-s.total())/1440.0))
+		var promise="Rowan gave you an axe in exchange for ten logs within %d %s." % [days_left,"day" if days_left==1 else "days"]
+		if s.requests.axe_paid: promise="Rowan gave you an axe in exchange for ten logs. You kept your promise."
+		elif s.requests.axe_failed: promise="The ten logs you promised Rowan are overdue. She is disappointed, but you can still bring the timber."
+		lines.append({"id":"axe_repayment","title":"Timber for a promise","description":promise,"tasks":[{"text":"Bring Rowan ten logs","done":s.requests.axe_paid}]})
 	if s.requests.bram_requested:
 		lines.append({"id":"bram_sword","title":"Supper for an old soldier","description":"Bram would appreciate three moon turnips for supper. If you need a sword, he'll give you his old one in return. Iona may know a trick to help the turnips grow faster.","tasks":[{"text":"Bring Bram three moon turnips","done":s.requests.bram_traded}]})
 	s.requests.refresh(s)
@@ -1061,6 +1114,8 @@ func render_quest_list(container: VBoxContainer,lines: Array,opened: Dictionary,
 		header.text=("▾ " if opened.get(quest.id,false) else "▸ ")+quest.title
 		header.set_meta("quest_id",quest.id)
 		header.alignment=HORIZONTAL_ALIGNMENT_LEFT
+		header.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
+		header.size_flags_horizontal=Control.SIZE_EXPAND_FILL
 		header.add_theme_font_size_override("font_size",20)
 		_button_style(header)
 		if quest.complete or quest.get("inactive",false): header.modulate=Color("7b837d")
@@ -1070,10 +1125,14 @@ func render_quest_list(container: VBoxContainer,lines: Array,opened: Dictionary,
 		var content=VBoxContainer.new()
 		if quest.complete or quest.get("inactive",false): content.modulate=Color("7b837d")
 		content.add_theme_constant_override("separation",14)
-		container.add_child(content)
+		var inset=MarginContainer.new()
+		for edge in ["left","right"]: inset.add_theme_constant_override("margin_"+edge,12)
+		for edge in ["top","bottom"]: inset.add_theme_constant_override("margin_"+edge,8)
+		container.add_child(inset)
+		inset.add_child(content)
 		var description=Label.new()
 		description.text=quest.description
-		description.custom_minimum_size.x=width
+		description.custom_minimum_size.x=width-24
 		description.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
 		description.add_theme_font_size_override("font_size",20)
 		description.add_theme_color_override("font_color",MUTED)
@@ -1081,7 +1140,7 @@ func render_quest_list(container: VBoxContainer,lines: Array,opened: Dictionary,
 		for task in quest.tasks:
 			var row=Label.new()
 			row.text=("✓ " if task.done else "○ ")+task.text
-			row.custom_minimum_size.x=width
+			row.custom_minimum_size.x=width-24
 			row.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
 			row.add_theme_font_size_override("font_size",20)
 			row.add_theme_color_override("font_color",GOLD if task.done else CREAM)
@@ -1138,6 +1197,7 @@ func update_statuses() -> void:
 
 func _process(dt: float) -> void:
 	if game==null or quick_tray==null: return
+	update_shop_wallet(dt)
 	update_hud()
 	if is_instance_valid(modal) and modal_box!=null:
 		var panel=modal.get_child(1)

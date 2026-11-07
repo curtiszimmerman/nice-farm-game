@@ -38,6 +38,7 @@ func run() -> void:
 	game.state.requests.bram_requested=false
 	game.state.chat_days.bram_referral_smith=game.state.day
 	game.talk("veteran")
+	choices(game)[0].pressed.emit()
 	check(game.state.requests.bram_requested and game.ui.modal_box.get_child(2).text.contains("copper caverns"),"Dain's referral leads directly to Bram's protection offer")
 	game.close_window()
 	game.state.rusty_sword=1

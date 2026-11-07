@@ -5,6 +5,9 @@ const Grid=preload("res://grid.gd")
 var world: Node2D
 var signature=""
 
+static func house_lamp_position(building: Dictionary,column: int) -> Vector2:
+	return Vector2(building.x+column*32+16,building.y+building.h-51)
+
 func _ready() -> void:
 	var unshaded=CanvasItemMaterial.new()
 	unshaded.light_mode=CanvasItemMaterial.LIGHT_MODE_UNSHADED
@@ -34,6 +37,7 @@ func refresh() -> void:
 
 func _draw() -> void:
 	if world==null: return
+	preload("res://outdoor_motion.gd").draw_fireflies(world,self)
 	if night():
 		for cell in world.LAMP_CELLS:
 			var foot=Grid.center(cell)
@@ -43,7 +47,7 @@ func _draw() -> void:
 			var door_x=int(building.tiles.x/2)
 			for x in [door_x-1,door_x+1]:
 				if x<0 or x>=building.tiles.x: continue
-				var lamp=Vector2(building.x+x*32+16,building.y+building.h-64)
+				var lamp=house_lamp_position(building,x)
 				Art.sprite(self,"lamp_halo",lamp-Vector2(54,20),Vector2(108,62),Color(1,0.9,0.68,0.78))
 				Art.sprite(self,"particle",lamp-Vector2(3,4),Vector2(6,8),Color(1,0.82,0.5,0.8))
 	for building in world.buildings:

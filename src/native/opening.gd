@@ -226,9 +226,10 @@ func enemy_reveal() -> Dictionary:
 
 func bridge_planet_rect() -> Rect2:
 	var planet: Rect2=bridge_composition().planet
+	var drift=Vector2.ZERO
 	if elapsed>=21 and elapsed<24:
-		var drift=Vector2(sin(animation_time*5)*1.5,sin(animation_time*7+1))
-		planet.position+=drift-bridge_offset()
+		drift=Vector2(sin(animation_time*5)*1.5,sin(animation_time*7+1))
+	planet.position+=drift-bridge_offset()
 	return planet
 
 func paint_pixels(c: CanvasItem) -> void:

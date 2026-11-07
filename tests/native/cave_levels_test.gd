@@ -20,7 +20,7 @@ func run() -> void:
 	var resources={"copper":0,"coal":0,"stones":0}
 	for rock in first.rocks.values(): resources[rock.resource]+=1
 	var total=float(first.rocks.size())
-	check(abs(resources.copper/total-0.1)<0.02 and abs(resources.coal/total-0.05)<0.02,"deposit population is about ten percent copper and five percent coal")
+	check(resources.copper>=6 and resources.coal>=3 and resources.stones>resources.copper+resources.coal and total<first.floor_cells.size()*0.12,"sparser deposits retain early smelting supplies with ordinary stone most common")
 	game.change_cave_level(1)
 	check(game.state.cave_level==1 and game.world!=first,"stairs enter a distinct second floor")
 	check(game.Grid.world_to_cell(game.state.player_position)==game.world.layout.entry and not game.world.solid_cells.has(game.world.layout.entry),"descending places the captain on the clear arrival stairwell")

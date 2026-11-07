@@ -17,6 +17,9 @@ func run() -> void:
 		var moss=game.world.buildings.filter(func(b):return b.id=="moss")[0]
 		var smith=game.world.buildings.filter(func(b):return b.id=="smithy")[0]
 		game.state.minute=1260
+		var light=effects.house_lamp_position(moss,1)
+		var enclosure=Rect2(Vector2(moss.x+32+10,moss.y+moss.h-58),Vector2(12,14))
+		check(enclosure.encloses(Rect2(light-Vector2(3,4),Vector2(6,8))),"the exterior flame stays inside its lantern's glass enclosure")
 		check(effects.house_lit(moss),"home windows glow after sunset before their resident sleeps")
 		game.state.minute=1400
 		check(not effects.house_lit(moss),"home windows go dark after their resident sleeps")

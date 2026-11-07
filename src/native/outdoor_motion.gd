@@ -8,6 +8,19 @@ static func flash_alpha(age: float) -> float:
 	if age<0 or age>=0.5: return 0
 	return clampf(age/0.07,0,1)*pow(1.0-age/0.5,1.2)
 
+static func firefly_night(state: RefCounted) -> bool:
+	return state.season_name()=="summer" and state.minute>=1140 and state.minute<1440
+
+static func draw_fireflies(world: Node2D,canvas: CanvasItem) -> void:
+	if world.ambient.is_empty() or not firefly_night(world.state): return
+	for mote in world.ambient.fireflies:
+		var phase=world.elapsed*mote.speed+mote.phase
+		var alpha=pow(maxf(0,sin(phase)),2)*0.85
+		if alpha<0.03: continue
+		var at=mote.position+Vector2(sin(phase*0.7)*10,cos(phase*1.3)*7)
+		world.Art.sprite(canvas,"particle",at-Vector2(3,3),Vector2(6,6),Color(0.8,1,0.36,alpha*0.35))
+		canvas.draw_rect(Rect2(at.round(),Vector2(2,2)),Color(0.95,1,0.58,alpha))
+
 static func setup(world: Node2D) -> void:
 	if not world.ambient.is_empty(): return
 	var rng=RandomNumberGenerator.new()
@@ -19,7 +32,13 @@ static func setup(world: Node2D) -> void:
 	for i in range(3): birds.append({"position":world.state.player_position+Vector2(rng.randf_range(-500,500),rng.randf_range(-300,250)),"speed":rng.randf_range(135,195),"phase":rng.randf_range(0,TAU),"wait":0.0})
 	var leaves=[]
 	for i in range(14): leaves.append({"position":world.state.player_position+Vector2(rng.randf_range(-500,500),rng.randf_range(-300,300)),"phase":rng.randf_range(0,TAU),"size":rng.randi_range(3,6),"color":[Color("b97d48"),Color("c79a50"),Color("935f42")][rng.randi_range(0,2)]})
-	world.ambient={"rng":rng,"water":water,"birds":birds,"leaves":leaves,"night":-100,"flashes":[],"last":world.elapsed}
+	var fireflies=[]
+	for tree in world.trees:
+		if world.TownPaths.TOWN.has_point(tree.cell) or world.buildings.any(func(building):return Rect2i(building.cell,building.tiles).grow(3).has_point(tree.cell)): continue
+		if rng.randf()>0.14: continue
+		for i in range(rng.randi_range(2,4)):
+			fireflies.append({"position":tree.pos+Vector2(rng.randf_range(-46,46),rng.randf_range(-30,30)),"phase":rng.randf_range(0,TAU),"speed":rng.randf_range(0.35,0.7)})
+	world.ambient={"rng":rng,"water":water,"birds":birds,"leaves":leaves,"fireflies":fireflies,"night":-100,"flashes":[],"last":world.elapsed}
 
 static func update(world: Node2D) -> void:
 	setup(world)
@@ -56,7 +75,7 @@ static func draw(world: Node2D,canvas: CanvasItem) -> void:
 	if world.ambient.is_empty(): return
 	world.Coast.draw_beach_waves(world,canvas)
 	if world.Art.catalog.has_all(["bee0","bee1"]) and world.state.minute>=360 and world.state.minute<1140 and world.state.season_name()!="winter":
-		for hive in [Vector2i(58,56),Vector2i(60,56)]:
+		for hive in world.Neighbors.HIVES:
 			for i in range(3):
 				var time=world.elapsed*(0.8+i*0.17)+i*2
 				var p=Grid.center(hive)+Vector2(sin(time)*30,cos(time*1.7)*12-25)

@@ -1,5 +1,7 @@
 # Sprite inventory for town-life expansion
 
+Town signs: `src/native/town_sign_art.gd` provides cached 72×12 bitmap plaques for the Wayward Wren (warm wood, wren motif) and Town Hall (green paint, civic crest). Both use the shared pixel font and sit below the roofline, clear of windows, doors and lanterns. Existing atlas artwork is unchanged. Summer fireflies reuse the particle sprite with small luminous cores.
+
 Glass jars use a small cached inventory bitmap from `items.gd`. Southern beach terrain reuses the current pack's grass texture with a sand palette; surf uses the existing ripple sprite. Northern coastal cliffs use the current pack's connected cliff tiles. No atlas sprites were replaced for this pass.
 
 Seasonal crop sprites: `src/native/crop_art.gd` supplies eight 16×16 bitmap icons (green onion, tomato, cucumber and gladain produce plus their seed packets). Mature crops reuse their produce sprite in the field; immature plants use the existing sprout. These are generated and cached locally without changing atlas artwork. Existing moon turnip and star bulb sprites remain in their packs.

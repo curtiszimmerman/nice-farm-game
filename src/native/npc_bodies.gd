@@ -21,18 +21,29 @@ static func player_step(world: Node2D,delta: Vector2,holds: Dictionary) -> bool:
 		var actor: Node2D=world.villagers[id]
 		if not actor.visible or actor.data.get("sleeping",false): continue
 		if target.distance_to(actor.position)>=RADIUS: continue
-		if holds.has(id): return false
-		var direction=(actor.position-target).normalized()
-		if direction.is_zero_approx(): direction=delta.normalized()
-		var displaced=target+direction*RADIUS
-		if world.blocked(displaced): return false
-		for other in world.villagers.values():
-			if other!=actor and other.visible and displaced.distance_to(other.position)<RADIUS: return false
-		pushes[id]=displaced
+		if not push_actor(world,id,target,delta,holds,pushes,[]): return false
 	for id in pushes:
 		world.villagers[id].position=pushes[id]
 		world.routes.erase(id)
 	world.state.player_position=target
+	return true
+
+static func push_actor(world: Node2D,id: String,origin: Vector2,motion: Vector2,holds: Dictionary,pushes: Dictionary,chain: Array) -> bool:
+	if holds.has(id) or chain.has(id): return false
+	var actor: Node2D=world.villagers[id]
+	var current: Vector2=pushes.get(id,actor.position)
+	var direction=(current-origin).normalized()
+	if direction.is_zero_approx(): direction=motion.normalized()
+	var displaced=origin+direction*(RADIUS+0.01)
+	if world.blocked(displaced): return false
+	pushes[id]=displaced
+	var next_chain=chain+[id]
+	for other_id in world.villagers:
+		var other: Node2D=world.villagers[other_id]
+		if other_id==id or not other.visible or other.data.get("sleeping",false): continue
+		var other_position: Vector2=pushes.get(other_id,other.position)
+		if displaced.distance_to(other_position)>=RADIUS: continue
+		if not push_actor(world,other_id,displaced,direction,holds,pushes,next_chain): return false
 	return true
 
 static func step(world: Node2D,actor: Node2D,target: Vector2,distance: float) -> Vector2:

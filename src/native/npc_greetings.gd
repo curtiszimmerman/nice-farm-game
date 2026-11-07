@@ -17,10 +17,10 @@ const LINES={
 	"farmer_son":"I'm Pip. I collect seeds that look odd. Some grow into nothing special, but you never know until you plant them. Mum says I have to label the pots this time. Do you know any plants we don't have here?",
 	"smith":"Dain Rusk. Stay clear of the hot end of the forge. Cold-looking iron can still take the skin off your fingers. I'll put the hammer down if you've got a question; I'd rather hear it properly than have you shout over the anvil.",
 	"miller":"Tomas Bell. The mill never quite goes quiet, even when I do. After enough years, you can tell good flour from the sound of the stones. You're welcome to look around. Just keep your sleeves away from the gears.",
-	"miller_wife":"Mara Bell. If a wheel squeaks, I'll hear it before Tomas does. If you've met my daughter, you know she has the same ears for radio static. Between the two of them, there's always something humming. Have you found everything you need for the house?",
+	"miller_wife":"Mara Bell. If a wheel squeaks, I'll hear it before Tomas does. If you've met my daughter, Nessa, you know she has the same ears for radio static. Between the two of them, there's always something humming. Have you found everything you need for the house?",
 	"miller_daughter":"Nessa Bell. Finch says I'm learning quickly, though my mother says I should remember to come home for supper. It's easy to lose track when a signal's just about to come clear. Have you ever built a receiver? Even a little one?",
 	"barkeep":"Rafe Fen. I run the Wayward Wren. Take a seat when you come by; the regulars don't own them, whatever they tell you. You'll know half the town after an evening there. The other half will hear about you before breakfast.",
-	"baker":"Corin Hale. If you're wondering about the flour on my sleeve, there's more on the other one. I bake before most of the town wakes, so forgive a yawn. A new neighbor's worth staying awake for. How are you finding the place?",
+	"baker":"Corin Hale. Baker. If you're wondering about the flour on my sleeve, there's more on the other one. I wake and bake before the sun's up, so forgive my yawning, but a new neighbor's worth staying awake for. How are you finding the place?",
 	"woodcutter":"Rowan. Watch where you step; I leave the young trees standing. That crooked sapling will be useful shade one day, if nobody flattens it first. I can talk while I sharpen this edge. What brings you into the woods?"
 }
 

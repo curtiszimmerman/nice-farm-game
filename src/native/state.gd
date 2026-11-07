@@ -142,7 +142,7 @@ static func crop_for_seed(seed_id: String) -> String:
 	for crop in CROPS:
 		if CROPS[crop].seed==seed_id: return crop
 	return ""
-const RECIPES={"fish_sticks":{"utensil":"pan","ingredients":{"fish":1}},"fish_stew":{"utensil":"pot","ingredients":{"turnips":1,"star_bulbs":1,"fish":1}},"berry_preserves":{"utensil":"pot","ingredients":{"berries":2,"sugar":1}},"berry_cobbler":{"utensil":"pan","ingredients":{"berry_preserves":1,"flour":1,"sugar":1,"butter":1}}}
+const RECIPES={"fish_sticks":{"utensil":"pan","ingredients":{"fish":1}},"fish_stew":{"utensil":"pot","ingredients":{"turnips":1,"star_bulbs":1,"fish":1}},"berry_preserves":{"utensil":"pot","ingredients":{"berries":2,"sugar":1,"glass_jars":1}},"berry_cobbler":{"utensil":"pan","ingredients":{"berry_preserves":1,"flour":1,"sugar":1,"butter":1}}}
 var invitation_day=1
 var abandoned_day: Dictionary={}
 var equipped = ""

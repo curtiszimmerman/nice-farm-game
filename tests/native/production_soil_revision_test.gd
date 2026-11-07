@@ -9,6 +9,7 @@ func _initialize() -> void:
 	s.pot=1
 	s.berries=200
 	s.sugar=100
+	s.glass_jars=100
 	var cooked=0
 	while s.cook("berry_preserves"): cooked+=1
 	check(cooked==100 and s.berry_preserves==100 and s.berries==0 and s.sugar==0,"preserves production is limited only by available ingredients")

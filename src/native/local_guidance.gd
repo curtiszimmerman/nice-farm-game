@@ -65,16 +65,17 @@ static func rowan(game: Node2D) -> void:
 
 static func bram(game: Node2D) -> void:
 	var referred=game.state.requests.copper_advice or game.state.chat_days.has("bram_referral_smith")
-	if not game.state.requests.bram_requested and not game.state.requests.bram_traded:
-		if referred: sword_terms(game)
-		else: game.dialog("Bram","A CABIN IN THE SOUTH WOODS","I like it here. A warm fire, room for a little garden. After years in the army, peaceful suits me. And this place is peaceful, mostly.",[["Mostly? Is there danger in these lands I should keep in mind?",func(): sword_terms(game)]],false)
+	if not game.state.chat_days.has("bram_welcome") and not game.state.requests.bram_requested and not game.state.requests.bram_traded:
+		game.state.chat_days.bram_welcome=game.state.day
+		game.save_visit()
+		game.dialog("Bram","A CABIN IN THE SOUTH WOODS","Come in. Mind the boots by the door. Aldermere's army had me for a good many years; these days a quiet fire and something decent for dinner suit me fine. This place is peaceful, mostly.",[["Moss thought you might have something to protect me in the mines." if referred else "Mostly? Is there danger in these lands I should keep in mind?",func(): sword_terms(game)]],false)
 		return
 	var choices=[]
 	if not game.state.requests.bram_traded:
 		choices.append(["You wanted three moon turnips for supper?" if game.state.has_sword() else "You mentioned a sword I could take into the mines?",func(): sword_terms(game)])
 	choices.append(["What should we know about Veyr?",func(): game.dialog("Bram","RETIRED ARMY","Don't let a uniform do your thinking for you. I learned that rather late. A family in Veyr hid me in their cellar for three nights. No reason to help an Aldermere soldier, and they did it anyway. I still think about them.")])
 	choices.append(["Take care, Bram.",func(): pass])
-	game.dialog("Bram","A CABIN IN THE SOUTH WOODS","Come in. Mind the boots by the door. Aldermere's army had me for a good many years; these days a quiet fire and something decent for dinner suit me fine.",choices)
+	game.dialog("Bram","A CABIN IN THE SOUTH WOODS","Good to see you again. Come warm yourself by the fire. How are you finding the place?",choices)
 
 static func sword_terms(game: Node2D) -> void:
 	game.state.requests.bram_requested=true

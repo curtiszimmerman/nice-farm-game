@@ -30,7 +30,7 @@ func run() -> void:
 		for cell in bench_cells:
 			mirrored=mirrored and bench_cells.has(Vector2i(w.SQUARE.position.x+w.SQUARE.end.x-cell.x-2,cell.y))
 		check(mirrored,"benches form matching pairs on both sides of the square")
-		check(w.solid_cells.get(w.SQUARE.position+Vector2i(3,4))=="fountain" and not w.blocked(w.Grid.center(w.SQUARE.position+Vector2i(3,3))),"the centered fountain leaves its upper artwork walkable")
+		check(w.solid_cells.get(w.FOUNTAIN_CELL)=="fountain" and not w.blocked(w.Grid.center(w.FOUNTAIN_CELL+Vector2i.UP)),"the centered fountain leaves its upper artwork walkable")
 	await game.sound.shutdown()
 	game.queue_free()
 	await process_frame

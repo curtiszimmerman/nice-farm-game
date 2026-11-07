@@ -11,6 +11,7 @@ func _initialize() -> void:
 	s.cabinet[3]={"id":"sugar","count":2}
 	s.cabinet[4]={"id":"flour","count":1}
 	s.cabinet[5]={"id":"butter","count":1}
+	s.cabinet[6]={"id":"glass_jars","count":1}
 	check(s.cook("berry_preserves") and s.berry_preserves==1,"preserves use berries and sugar stored in the cabinet")
 	check(s.cook("berry_cobbler") and s.berry_cobbler==1 and s.berry_preserves==0,"cobbler combines preserves with flour, sugar and butter")
 	s.needs.hardcore=true

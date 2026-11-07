@@ -16,11 +16,11 @@ func run() -> void:
 	game.talk("smith")
 	preload("fixture.gd").greet(game)
 	for node in game.ui.modal_box.get_children():
-		if node is Button and node.text=="How could I refine copper ore?": node.pressed.emit(); break
+		if node is Button and node.text=="How can I refine copper ore?": node.pressed.emit(); break
 	check(game.ui.quest_lines()[0].tasks[0].text=="Build a stone crucible","asking about refining reveals crucible construction without its material cost")
 	game.close_window()
 	game.state.assign_active("primary","")
-	var cell=game.outdoors.SQUARE.position+Vector2i(3,5)
+	var cell=game.outdoors.FOUNTAIN_CELL+Vector2i.DOWN
 	game.state.player_position=game.Grid.center(cell)
 	game.outdoors.facing="up"
 	check(game.outdoors.find_nearest().get("id","")=="drink_fountain","the fountain basin can be activated from its southern edge")

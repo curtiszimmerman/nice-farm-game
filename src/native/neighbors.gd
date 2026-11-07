@@ -1,7 +1,7 @@
 extends RefCounted
 
 const PEOPLE=[
-	{"id":"priest","name":"Brother Aven","role":"KEEPER OF THE TEMPLE GARDEN","cell":Vector2i(53,57),"coat":"c4c2a3","hair":"49372d","skin":"75523d"},
+	{"id":"priest","name":"Brother Aven","role":"KEEPER OF THE TEMPLE GARDEN","cell":Vector2i(50,61),"coat":"c4c2a3","hair":"49372d","skin":"75523d"},
 	{"id":"astronomer","name":"Saeren","role":"MASTER OBSERVER","cell":Vector2i(31,14),"coat":"586b9b","hair":"d0cdc4","skin":"b3927d"},
 	{"id":"farmer_mother","name":"Elin Reed","role":"ORCHARD GRAFTER","cell":Vector2i(103,47),"coat":"a88558","hair":"41332d","skin":"a77b59"},
 	{"id":"farmer_father","name":"Jory Reed","role":"EAST FARMER","cell":Vector2i(104,47),"coat":"71855b","hair":"775439","skin":"c59a76"},
@@ -15,9 +15,9 @@ const PEOPLE=[
 	{"id":"woodcutter","name":"Rowan","role":"FOREST WOODCUTTER","cell":Vector2i(29,79),"coat":"59764d","hair":"8d4e36","skin":"b98b67"}
 ]
 const BUILDINGS=[
-	{"cell":Vector2i(50,52),"tiles":Vector2i(7,5),"roof":"667e78","kind":"temple"},
-	{"cell":Vector2i(43,54),"tiles":Vector2i(4,3),"roof":"7c8270","kind":"cottage","resident":"priest"},
-	{"cell":Vector2i(41,62),"tiles":Vector2i(2,2),"roof":"7c8270","kind":"cabin","resident":"priest_outhouse"},
+	{"cell":Vector2i(47,56),"tiles":Vector2i(7,5),"roof":"667e78","kind":"temple"},
+	{"cell":Vector2i(40,58),"tiles":Vector2i(4,3),"roof":"7c8270","kind":"cottage","resident":"priest"},
+	{"cell":Vector2i(38,68),"tiles":Vector2i(2,2),"roof":"7c8270","kind":"cabin","resident":"priest_outhouse"},
 	{"cell":Vector2i(28,10),"tiles":Vector2i(6,4),"roof":"65808c","kind":"observatory","visual_height":224},
 	{"cell":Vector2i(100,42),"tiles":Vector2i(7,5),"roof":"9d6c4b","kind":"reed_farm"},
 	{"cell":Vector2i(88,24),"tiles":Vector2i(5,5),"roof":"827058","kind":"windmill","visual_height":240},
@@ -29,8 +29,10 @@ const BUILDINGS=[
 	{"cell":Vector2i(27,75),"tiles":Vector2i(4,4),"roof":"78644d","kind":"cabin","resident":"woodcutter"}
 ]
 const FIELDS=[Rect2i(99,50,5,6),Rect2i(106,50,5,6)]
-const BENCHES=[Vector2i(60,45),Vector2i(64,45),Vector2i(60,49),Vector2i(64,49)]
-const FLOWERS=[Vector2i(60,44),Vector2i(61,44),Vector2i(64,44),Vector2i(65,44),Vector2i(60,50),Vector2i(61,50),Vector2i(64,50),Vector2i(65,50),Vector2i(59,45),Vector2i(59,46),Vector2i(59,49),Vector2i(66,45),Vector2i(66,46),Vector2i(66,49)]
+const HIVES=[Vector2i(48,64),Vector2i(50,64)]
+const TEMPLE_GARDEN=[Vector2i(48,67),Vector2i(49,67),Vector2i(50,67),Vector2i(48,68),Vector2i(49,68),Vector2i(50,68)]
+const BENCHES=[Vector2i(59,45),Vector2i(65,45),Vector2i(59,49),Vector2i(65,49)]
+const FLOWERS=[Vector2i(59,43),Vector2i(60,43),Vector2i(65,43),Vector2i(66,43),Vector2i(59,51),Vector2i(60,51),Vector2i(65,51),Vector2i(66,51),Vector2i(58,44),Vector2i(58,45),Vector2i(58,46),Vector2i(58,49),Vector2i(58,50),Vector2i(67,44),Vector2i(67,45),Vector2i(67,46),Vector2i(67,49),Vector2i(67,50)]
 const ROUTES=[
 	[Vector2i(53,46),Vector2i(53,57)],
 	[Vector2i(53,57),Vector2i(45,57)],
@@ -54,21 +56,21 @@ const STORIES={
 	"miller":"Tomas Bell|Mara rebuilt the gearing after the old mill seized. I put the kettle on, which I maintain was essential work. Rafe and I used to race sacks down this hill as boys. Now he keeps a tavern, I grind the grain, and Corin tells us both when we've been talking too long. Some things improve with age.",
 	"miller_wife":"Mara Bell|Hear that? A little knock every fourth turn. Nothing dangerous, but I'll find it. I learned millwrighting on a river barge. Tomas wrote to ask about a replacement cog and kept writing after I sent it. Eventually I came to see whether the mill was really as charming as he claimed.",
 	"miller_daughter":"Nessa Bell|The mill's got a rhythm, once you've listened long enough. So does a radio signal. Finch is helping me build a receiver from a cracked valve and an old clock case. I'd like Mum to hear the river weather reports she grew up with. Afternoons are best, before the club gets noisy.",
-	"barkeep":"Rafe Fen|Welcome to the Wayward Wren. Tomas and I meant to see the whole world when we were young. He got as far as the mill; I got as far as this bar. Plenty of the world comes through here, though. Corin brings the morning bread and stays to hear who's arrived. Save him a chair and he'll introduce you to half the valley.",
+	"barkeep":"Rafe Fen|Welcome to the Wayward Wren. Tomas and I wanted to see the whole world when we were young. He got as far as the mill, and I got as far as this bar. Plenty of the world comes through here, though. Corin the baker brings the morning's bread and stays for a while to hear from the townsfolk. Save him a chair and he'll introduce you to half the valley.",
 	"baker":"Corin Hale|You're just in time. Well, I say that to everyone, but there's usually something warm. Tomas brings the flour, the Reeds bring whatever's plentiful, Moss brings opinions about the weather, and Rafe brings my baskets back eventually. I've been baking all my life. I could barely see over the counter when I shaped my first loaf. People will tell you their whole lives while waiting for one. Pull up a stool."
 }
 const WORKPLACES={"astronomer":"observatory","smith":"smithy","miller":"windmill","miller_wife":"windmill","miller_daughter":"radio","barkeep":"tavern","baker":"bakery"}
 const OFF_DUTY={
 	"astronomer":"A little air before the night's work. You see those pale streaks above the ridge? Most people call them clouds. Through the telescope they're quite another thing. Come up to the observatory sometime. There are matters best discussed away from the square.",
 	"farmer_mother":"Lovely to have a moment away from the fields. Pip has been trying to persuade me that three seed jars count as suitable supper-table decoration. You can guess how that's going.",
-	"farmer_father":"Elin's got the orchard in hand, so I can spare a little time for town. Corin's promised to save us a loaf. You'd think after all these years I'd know when to arrive before he sells out.",
+	"farmer_father":"My sweet Elin's got the orchard in hand, so I can spare a little time for town, and Corin's promised to save us a loaf or two. You'd think after all these years I'd know when to arrive before he sells out.",
 	"farmer_son":"Nessa lets me listen to faraway stations at the radio club. I keep wondering what grows on the other side of the sea. Imagine coming home with seeds nobody here has ever seen!",
 	"smith":"No hammering for a little while. My shoulders have earned a walk.",
 	"miller":"Rafe still owes me a rematch at draughts. He says the last board was uneven. Funny how it only tilts when he's losing.",
-	"miller_wife":"I used to spend all my spare hours watching the river from the barge. Now a quiet walk and a visit to the bakery suit me nicely. Tomas says I can hear a bad gear from here. He's not entirely wrong.",
+	"miller_wife":"I'm good with mechanisms. After enough time, I get to know them well enough to hear when something's not quite right. My husband Tomas appreciates that.",
 	"miller_daughter":"No receiver under my arm for once. Finch says a good radio operator occasionally has to talk to people in the same room. I'm practising.",
 	"barkeep":"Corin claims I'm his best customer. I suspect he tells everyone that. Tomas and I used to spend our pocket money here before either of us had the sense to save any. Still not sure we've learned.",
-	"baker":"A whole stretch of time when nobody needs me to check an oven. Feels odd, doesn't it? Rafe has a stool waiting, and Tomas will have some story about the mill. Come along if you've nothing pressing."
+	"baker":"A whole stretch of time when nobody needs me to check an oven. Feels odd, doesn't it? Rafe has a stool waiting for me at the bar, and Tomas is good for a story or two about the mill. Come along if you've nothing pressing."
 }
 
 static func talk(game: Node2D,id: String) -> bool:

@@ -24,7 +24,7 @@ func run() -> void:
 				var target=game.outdoors.find_nearest()
 				check(target.get("door")==site.door or target.get("type")=="person","walking onto a doorway retains its real activation: "+site.id)
 	var board=game.outdoors.sites.filter(func(site):return site.id=="bulletin_board")[0]
-	check(Vector2i(63,43) in game.outdoors.activation_cells(board) and Vector2i(64,43) in game.outdoors.activation_cells(board),"both northern bulletin-board squares offer the postings")
+	check(game.outdoors.BOARD_CELL in game.outdoors.activation_cells(board) and game.outdoors.BOARD_CELL+Vector2i.RIGHT in game.outdoors.activation_cells(board),"both northern bulletin-board squares offer the postings")
 	for x in range(10,13): check(game.outdoors.blocked(game.Grid.center(Vector2i(x,12))),"the ship hull blocks walking through its center")
 	for cell in [Vector2i(8,11),Vector2i(14,11),Vector2i(11,10)]: check(game.outdoors.blocked(game.Grid.center(cell)),"the visible outer hull blocks walking too")
 	for x in range(10,13):

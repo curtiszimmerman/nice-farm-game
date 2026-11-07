@@ -92,7 +92,7 @@ func _player(track: String) -> AudioStreamPlayer:
 func mix_for(minute: float,environment: String,season: String,cave_weight = 0.0) -> Dictionary:
 	if environment=="wreck": return {"birds":0.0,"crickets":0.0,"drips":0.0,"wreck":1.0}
 	if environment in ["ship","indoors"]: return {"birds":0.0,"crickets":0.0,"drips":0.0,"wreck":0.0}
-	if environment in ["cave","mine"]: return {"birds":0.0,"crickets":0.0,"drips":1.0,"wreck":0.0}
+	if environment in ["cave","mine"]: return {"birds":0.0,"crickets":0.0,"drips":0.0,"wreck":0.0}
 	var day=daylight(minute)
 	var bird_season={"spring":1.0,"summer":0.85,"autumn":0.25,"winter":0.25}.get(season,1.0)
 	var insect_season={"spring":0.55,"summer":1.0,"autumn":0.65,"winter":0.0}.get(season,0.55)

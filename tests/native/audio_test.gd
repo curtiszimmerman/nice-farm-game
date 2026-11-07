@@ -37,7 +37,7 @@ func run() -> void:
 	check(sound.mix_for(720.0,"farm","winter").birds<day.birds,"winter birds are quieter than spring birds")
 	var cave_day=sound.mix_for(720.0,"cave","spring")
 	var cave_night=sound.mix_for(60.0,"mine","winter")
-	check(cave_day==cave_night and cave_day.drips==1.0 and cave_day.birds==0.0 and cave_day.crickets==0.0,"cave and mine drips ignore daylight and exclude outdoor wildlife")
+	check(cave_day==cave_night and cave_day.drips==0.0 and cave_day.birds==0.0 and cave_day.crickets==0.0,"cave and mine ambience leaves room for their music and excludes outdoor wildlife")
 	check(sound.mix_for(60,"indoors","summer").crickets==0 and sound.mix_for(720,"indoors","spring").birds==0,"house walls exclude outdoor wildlife ambience")
 	var entrance=sound.mix_for(720.0,"farm","spring",0.5)
 	check(entrance.drips>0 and entrance.birds>0 and entrance.birds<day.birds,"a mine entrance blends nearby drips with outdoor sound")

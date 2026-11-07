@@ -55,7 +55,7 @@ static func residential_garden(world: Node2D,building: Dictionary) -> void:
 					for dx in range(dimensions.x):
 						var cell=rectangle.position+Vector2i(dx,dy)
 						if (cell.y==52 and cell.x<=48) or (cell.y==58 and cell.x>=45 and cell.x<=63): clear=false
-						if world.blocked(Grid.center(cell)) or world.schedule_cells.has(cell) or world.road_cells.has(cell) or world.paved_cells.has(cell) or world.SQUARE.has_point(cell) or building_door_approach(world,cell) or coastal_path_contains(cell) or cell.distance_to(door)<=1.5 or (cell.x in [door.x,gate.x] and cell.y>=door.y): clear=false
+						if world.blocked(Grid.center(cell)) or world.yard_gates.has(cell) or world.schedule_cells.has(cell) or world.road_cells.has(cell) or world.paved_cells.has(cell) or world.SQUARE.has_point(cell) or building_door_approach(world,cell) or coastal_path_contains(cell) or cell.distance_to(door)<=1.5 or (cell.x in [door.x,gate.x] and cell.y>=door.y): clear=false
 						# Iona's tower has no fence, so people walk right past its base. Keep the garden out of those side lanes.
 						if building.kind=="tower" and cell.x in [building.cell.x-1,building.cell.x+building.tiles.x] and cell.y>=building.cell.y and cell.y<building.cell.y+building.tiles.y: clear=false
 				if clear: candidates.append(rectangle)
@@ -123,10 +123,10 @@ static func road_blocked(world: Node2D,cell: Vector2i) -> bool:
 		if field.has_point(cell): return true
 	return false
 
-const TEMPLE_GATES=[Vector2i(53,50),Vector2i(62,58),Vector2i(39,52),Vector2i(46,66),Vector2i(53,57)]
+const TEMPLE_GATES=[Vector2i(50,54),Vector2i(54,63),Vector2i(36,62),Vector2i(45,72)]
 
 static func temple_fence(world: Node2D) -> void:
-	var corners=[Vector2i(39,50),Vector2i(58,50),Vector2i(58,52),Vector2i(62,52),Vector2i(62,59),Vector2i(53,59),Vector2i(53,66),Vector2i(39,66)]
+	var corners=[Vector2i(36,54),Vector2i(54,54),Vector2i(54,72),Vector2i(36,72)]
 	for index in range(corners.size()):
 		var cell: Vector2i=corners[index]
 		var end: Vector2i=corners[(index+1)%corners.size()]
@@ -146,6 +146,19 @@ static func build(world: Node2D) -> void:
 	var road_edges={}
 	var parents={HUB:HUB}
 	var frontier=[HUB]
+	# Grow connecting streets from the farmhouse road instead of adding a second approach later.
+	var previous=HUB
+	for point in world._route(HUB,Vector2i(63,52)):
+		var cell=Grid.world_to_cell(point)
+		if cell==previous: continue
+		parents[cell]=previous
+		frontier.append(cell)
+		previous=cell
+	for x in range(62,-1,-1):
+		var cell=Vector2i(x,52)
+		if road_blocked(world,cell): break
+		parents[cell]=cell+Vector2i.RIGHT
+		frontier.append(cell)
 	var cursor=0
 	while cursor<frontier.size():
 		var cell: Vector2i=frontier[cursor]
@@ -161,7 +174,7 @@ static func build(world: Node2D) -> void:
 		if b.id in ["home","keeper","veteran","woodcutter"]: continue
 		doors.append(b.cell+Vector2i(int(b.tiles.x/2),b.tiles.y))
 		if b.id in ["temple","priest"]: temple_doors.append(doors.back())
-	doors.append_array(TEMPLE_GATES)
+	doors.append_array(TEMPLE_GATES.filter(func(cell):return cell!=Vector2i(36,62)))
 	doors.append(world.Grid.world_to_cell(world.site_position("ore")))
 	doors.append(Vector2i(23,67))
 	for door in doors:
@@ -176,15 +189,22 @@ static func build(world: Node2D) -> void:
 		for i in range(path.size()-1):
 			append_road_segment(world,path[i],path[i+1],14.0,road_edges)
 	# The temple's paved forecourt continues as a narrow dirt walk between the hives and garden beds.
-	for x in range(45,64):
-		var cell=Vector2i(x,58)
+	for x in range(42,55):
+		var cell=Vector2i(x,63)
 		world.road_cells[cell]=true
-		if x<58: world.paved_cells[cell]=true
+		if x<51: world.paved_cells[cell]=true
 		else:
 			world.paved_cells.erase(cell)
 			world.trail_cells[cell]=true
 			world.dirt_cells[cell]=true
-		append_road_segment(world,cell,cell+Vector2i.RIGHT,14.0 if x<58 else 6.0,road_edges)
+		append_road_segment(world,cell,cell+Vector2i.RIGHT,14.0 if x<51 else 6.0,road_edges)
+	for x in range(23,43):
+		var cell=Vector2i(x,62)
+		if world.blocked(Grid.center(cell)): continue
+		world.road_cells[cell]=true
+		world.trail_cells[cell]=true
+		world.dirt_cells[cell]=true
+		append_road_segment(world,cell,cell+Vector2i.RIGHT,6.0,road_edges)
 	# A narrow woodland path reaches Rowan's and continues to Bram's cabin through both yard gates.
 	var woodland_path=[Vector2i(23,67),Vector2i(23,86),Vector2i(29,86),Vector2i(29,83),Vector2i(29,86),Vector2i(42,86),Vector2i(42,82)]
 	for index in range(woodland_path.size()-1):
@@ -203,7 +223,7 @@ static func build(world: Node2D) -> void:
 		for x in range(world.SQUARE.position.x-1,world.SQUARE.end.x+1):
 			var cell=Vector2i(x,y)
 			if not world.solid_cells.has(cell): world.paved_cells[cell]=true
-	for x in range(0,49):
+	for x in range(0,64):
 		var cell=Vector2i(x,52)
 		if world.solid_cells.has(cell): continue
 		world.road_cells[cell]=true

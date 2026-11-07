@@ -235,7 +235,7 @@ func _process(dt: float) -> void:
 			if resting<=0.0:
 				state.player_position=rest_return_position
 				save_visit()
-				toast("A little rest. A new angle on the same day.")
+				toast("You wake from your rest.")
 		state.advance(minutes,window_open,sleeping)
 		for damage in state.damage_events: world.combat_text("-%d" % int(damage),state.player_position,Color("c895ed"))
 		state.damage_events.clear()
@@ -710,7 +710,7 @@ func neutral_reply(text: String) -> String:
 	if ["danger","protect yourself","army kit"].any(func(word):return text.to_lower().contains(word)): return "Thanks for the warning."
 	if "thank" in text.to_lower(): return "You're welcome."
 	if "?" in text: return "I'll keep that in mind."
-	return ["Sounds good.","I see.","That's useful to know.","I'll keep that in mind."][posmod(hash(text)+state.day,4)]
+	return ["Sounds good.","I see.","Thanks. Goodbye.","I'll keep that in mind."][posmod(hash(text)+state.day,4)]
 
 func panel(title: String,eyebrow: String,text: String,choices: Array = []) -> void:
 	if welcome_control_locked(): return
@@ -1224,7 +1224,7 @@ func talk(id: String) -> void:
 		"smith":
 			var at_work=shopkeeper_at_work("smith","smithy")
 			var choices=[
-				["How could I refine copper ore?",func():
+				["How can I refine copper ore?",func():
 					state.chat_days.smith_refining=state.day
 					save_visit()
 					dialog("Dain Rusk","REFINING COPPER","A stone crucible will do for copper. I can teach you to build one, in exchange for ten star bulbs. Bring them by the forge when you're ready.")],
@@ -1232,8 +1232,10 @@ func talk(id: String) -> void:
 				["Tell me about your work.",func(): dialog("Dain Rusk","IRON & HONEST WEAR",preload("res://neighbors.gd").STORIES.smith.split("|",true,1)[1]+" A sound handle, a balanced head, an edge that holds. Bring your tools to the forge and we'll talk about what they need.")],
 				["See you around.",func(): pass]]
 			if at_work:
-				choices.push_front(["What have you got for sale?",smith_shop])
-				if not state.crucible_known: choices.push_front(["Learn crucible blueprint · 10 star bulbs",learn_crucible,state.star_bulbs>=10])
+				if state.chat_days.has("smith_refining"):
+					choices.push_front(["What have you got for sale?",smith_shop])
+					if not state.crucible_known: choices.insert(1,["Learn crucible blueprint · 10 star bulbs",learn_crucible,state.star_bulbs>=10])
+				else: choices.insert(1,["What have you got for sale?",smith_shop])
 			dialog("Dain Rusk","BLACKSMITH","Mind the hot scale. I can tell a lot about a tool by the wear on its edge. Bring yours by when you're ready to talk about better steel." if at_work else "Good to stretch my shoulders after a day at the forge. If you're thinking about upgrading your tools, come see me at the smithy.",choices)
 		"woodcutter":
 			preload("res://local_guidance.gd").rowan(self)
@@ -1288,7 +1290,7 @@ func talk(id: String) -> void:
 					["Hearthmend · one Golden Sparkfire Bloom",func(): learn_local_spell("hearthmend"),state.golden_sparkfire_bloom>=1],
 					["Emberthread · one Cave Moth Chrysalis + 10 logs",func(): learn_local_spell("emberthread"),state.cave_moth_chrysalis>=1 and state.wood>=10]])
 				dialog("Iona","MAGIC OF BRIAR GLEN","You'll find our deities gentler than the ones near the Veyr border. Mostly they want things to grow. I can show you Wildgrowth, if you like. "+spell_effort_description(15,State.MAX_MANA)+" There's no fee for the lesson. Water a seed first, then give it a little encouragement. Once you're ready for something more adventurous, bring me a Cave Moth Chrysalis from deep underground, or a Golden Sparkfire Bloom. Mind you, that flower only opens while the sun is rising. Walk past at noon and you'd never give it a second glance.",lessons)
-		"finch": dialog("Finch","RADIO CLUB SECRETARY","Come in, come in. Mind that cable. Last week we picked up a dance band from Veyr, clear as anything. Governments can argue all they like; the air doesn't stop at a checkpoint." if current_room=="radio" else "Good to give my eyes a rest from the wiring. Nessa's coming along nicely with that receiver. Her mother will have river weather reports in the kitchen before long.",[["What's on the air today?",radio],["I'll come back sometime.",func(): pass]])
+		"finch": dialog("Finch","RADIO CLUB SECRETARY",("Nice to see you! Gives my eyes a rest from looking at all the wiring." if current_room!="" else "Good to get outside and give my brain a rest from the schematics!")+" We're making some progress on our projects. Nessa's such good help, and she's eager to learn. Her mother will have the river weather reports in her kitchen in no time.",[["What's on the air today?",func(): dialog("Finch","OVER THE AIRWAVES","River weather in the morning, market news at noon, and music most evenings. There's a dance band in Veyr we can hear when the air is clear. We're working on something more ambitious at the club: a link with another radio club over there. A proper conversation, rather than listening through the static. Nessa's been helping with the receiver.")],["I'll come back sometime.",func(): pass]])
 		"vale":
 			if not state.briefing_complete: show_briefing(); return
 			var choices=vale_checkin_choices()
@@ -1334,6 +1336,7 @@ func shop_menu(title: String,role: String,text: String,offers: Array,scroll_posi
 			shop_menu(title,role,text,offers,previous_scroll),can_buy,item,true,func(): shop_quantity(title,role,text,offers,selected_offer,ui.modal_scroll.scroll_vertical)])
 	choices.append(["Thanks, I'm all set.",func(): pass])
 	panel(title,role,text,choices)
+	ui.show_shop_wallet()
 	ui.modal_scroll.set_deferred("scroll_vertical",scroll_position)
 
 func shop_quantity(title: String,role: String,text: String,offers: Array,offer: Array,scroll_position: int) -> void:
@@ -1361,6 +1364,7 @@ func shop_quantity(title: String,role: String,text: String,offers: Array,offer: 
 			shop_menu(title,role,text,offers,scroll_position)],
 		["Cancel",func(): shop_menu(title,role,text,offers,scroll_position)]])
 	ui.modal_box.add_child(amount)
+	ui.show_shop_wallet()
 	ui.modal_box.move_child(amount,3)
 	var buy_button=ui.modal_box.get_children().filter(func(child):return child is Button)[0]
 	amount.value_changed.connect(func(value): buy_button.text="Buy %d · %d crowns" % [int(value)*bundle,int(value)*price])
@@ -1397,7 +1401,7 @@ func smith_shop() -> void:
 	shop_menu("Dain's Smithy","FORGED GOODS","A few refined metals, if you've coin to spare. And a plain blade, kept sharp enough. More steelwork is possible once you have the right materials.",offers)
 
 func vale_checkin_choices() -> Array:
-	return [["What's the status on repairs?",func(): dialog("Chief Vale","REPAIR STATUS","The cloak is steady. Everything else still needs parts and patience. I'm keeping the power sink stable and making a list of what can be repaired first. Ask me again whenever you like; I'll tell you when something changes.")]]
+	return [["What's the status on repairs?",func(): dialog("Chief Vale","REPAIR STATUS","The cloak is steady. Everything else still needs parts and patience. I'm keeping the power sink stable and making a list of what can be repaired first. Ask me again whenever you like; I'll tell you when something changes.",[["Anything else I can help with?",func(): talk("vale")]])]]
 
 func baking_supplies() -> void:
 	var choices=[]
@@ -1446,7 +1450,7 @@ func local_magic_lore() -> void:
 	dialog("Iona","MAGIC OF BRIAR GLEN","Here, Thessil's growing things answer more readily than they do near the border. Wildgrowth lends a watered seed a little of that strength. "+spell_effort_description(15,State.MAX_MANA)+" I can teach you for free.",[["Teach me Wildgrowth" if not state.magic_learned else "Practice Wildgrowth",func():
 		state.magic_learned=true
 		save_visit()
-		dialog("Iona","WILDGROWTH","There you are. Water a seed first, then give it a little encouragement. You can assign Wildgrowth under Actions, in Spells and skills.",[["I've got it.",func():
+		dialog("Iona","WILDGROWTH","There you are. Water a seed first, then give it a little encouragement.",[["I've got it.",func():
 			state.chat_days["wildgrowth_lore"]=state.day
 			save_visit()
 			talk("iona")]])]])
@@ -1495,7 +1499,7 @@ func tool_directions() -> void:
 		["Where can I get an axe?",func(): dialog("Tavi","ROWAN'S CABIN","Rowan, the woodcutter, lives in the southern woods, west of Bram's cabin. Follow the faint woodland path. Ask her about a spare axe.")],
 		["Where can I get a sword?",func(): dialog("Tavi","BRAM'S CABIN","Bram served in Aldermere's army. His log cabin's down south, away from the town roads. He may be willing to trade an old blade for something for supper.")],
 		["What about better tools?",func(): dialog("Tavi","DAIN'S SMITHY","Dain Rusk keeps the smithy east of the square. Go see him when you're thinking about upgrading your tools. He knows good steel, and he won't talk you into something you don't need.")],
-		["Back to shopping",func(): talk("tavi")]])
+		["Back to shopping" if shopkeeper_at_work("tavi","store") else "Thanks. Goodbye.",func(): talk("tavi") if shopkeeper_at_work("tavi","store") else end_conversation()]])
 
 func bulletin_board() -> void:
 	state.requests.refresh(state)

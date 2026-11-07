@@ -230,10 +230,12 @@ func update_villagers(dt: float,snap: bool=false) -> void:
 			actor.data.sleeping=false
 			if step_out_of_bed(actor,dt): continue
 			if walk_actor(id,layout.exit,dt):
+				var landing=outdoors.exit_position(building)
+				if outdoors.villagers.values().any(func(other):return other!=outside and other.visible and other.position.distance_to(landing)<Bodies.RADIUS): continue
 				actor.visible=false
 				outside.data.room=""
 				outside.data.sleeping=false
-				outside.position=outdoors.exit_position(building)
+				outside.position=landing
 				outside.visible=true
 				outdoors.indoor_departures.erase(id)
 			continue
