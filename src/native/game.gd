@@ -1436,7 +1436,7 @@ func vale_status() -> void:
 		dialog("Chief Vale","REPAIR STATUS","The replicator's keeping us supplied. Next is the local commlink repeater: two vacuum tubes, five copper bars, and a quartz crystal of exceptional quality. With those, I can get our communicators talking to each other again.",back)
 	elif state.replicator_working():
 		dialog("Chief Vale","REPAIR STATUS","Try the dispenser, Captain. The replicator's working again. I'll keep the locker stocked with rations and the tank topped up each day. Food and water are taken care of.",[["Good work, Chief. Let's get our local commlink working next.",func():
-			dialog("Chief Vale","THE REPEATER","That one took a harder hit. I'll need two vacuum tubes, five copper bars, and a quartz crystal of exceptional quality to rebuild the local commlink repeater. I've heard local radio transmissions through the receiver, so there may be someone down there who works with valves. With the scanners still down, I can't say who. It won't let us call for rescue, but at least we'll be able to stay in touch with each other.",[["Then that's the plan, Chief. Nice work.",func():
+			dialog("Chief Vale","THE REPEATER","That one took a harder hit. I'll need two vacuum tubes, five copper bars, and a quartz crystal of exceptional quality to rebuild the local commlink repeater. Those tubes may be the awkward part. If anyone in the settlement works with radios, perhaps they can point us in the right direction. With the scanners still down, I can't tell you who to ask. It won't let us call for rescue, but at least we'll be able to stay in touch with each other.",[["Then that's the plan, Chief. Nice work.",func():
 				state.repeater_briefed=true
 				save_visit()
 				close_window()]],false)]],false)

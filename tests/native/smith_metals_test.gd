@@ -37,7 +37,7 @@ func run() -> void:
 	game.smith_shop()
 	var buttons=game.ui.modal_box.find_children("*","Button",true,false)
 	check(buttons.any(func(b):return "Copper bar" in b.text and "550" in b.text) and buttons.any(func(b):return "Silver ingot" in b.text and "1,800" in b.text),"Dain's real shop lists the metals and their prices")
-	check(game.ui.quest_lines()[0].title=="A quiet local signal","the Crew Log uses the local signal title")
+	check(game.ui.quest_lines()[0].title=="Food and water for the long haul","the first copper bars are needed for food and water")
 	game.state.money=5000
 	game.smith_shop()
 	game.ui.modal_box.find_children("*","Button",true,false).filter(func(b):return b.text.begins_with("Copper bar"))[0].pressed.emit()
