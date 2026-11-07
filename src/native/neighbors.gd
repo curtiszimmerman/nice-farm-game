@@ -101,6 +101,10 @@ static func talk(game: Node2D,id: String) -> bool:
 				var selected=drink
 				offers.append(["health_elixir",game.state.Shop.DRINKS[drink].name,game.state.Shop.CATALOG[drink].price,drink,func(): return game.state.purchase_drink(selected)])
 			game.shop_menu("The Wayward Wren","A DRINK AT THE BAR","These are served here, ready to drink. Wrenlight is warm apple cordial, a splash of mead, and toasted spice. Rafe first mixed it for the mill crew after a winter wheel repair; they said it put the light back in their fingers, and the name stuck.",offers)])
+	if id=="herbalist" and working:
+		choices.append(["What remedies do you have?",func(): game.remedy_shop()])
+		choices.append(["I've brought things from the woods · %d crowns" % game.state.forage_sale_value(),func(): game.sell_forage(),game.state.forage_sale_value()>0])
+		choices.append(["Could I use your brewing table?",func(): game.brewing()])
 	if id=="widow" and working:
 		choices.append(["What's in this week?",func(): game.curio_shop()])
 	if id=="smith" and working:

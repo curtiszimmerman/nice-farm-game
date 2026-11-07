@@ -158,7 +158,45 @@ def items(Pixels):
     p.box(5, 7, 2, 2, "d4b250"); p.vline(10, 6, 8, "a9adaa"); p.dot(11, 6, "a9adaa")
     out["item_music_box"] = p
 
+    # Sorrel's forage and remedies.
+    p = Pixels(12, 12)
+    for cx, cy, r in ((4, 6, 2.6), (8, 5, 2.2), (6, 8, 1.8)):
+        p.vline(cx, cy, cy + 3, "e8dcc0")
+        p.oval(cx, cy, r, r * 0.7, "8a5a34"); p.dot(int(cx - 1), int(cy - 1), "c08a5a")
+    out["item_mushrooms"] = p
+
+    p = Pixels(12, 12)
+    for x, y, col in ((3, 4, "e0717a"), (6, 2, "f2c96a"), (8, 5, "8a7ad0"), (5, 6, "f3ead0")):
+        p.vline(x, y + 1, 10, LEAF[2])
+        for dx, dy in ((0, -1), (1, 0), (0, 1), (-1, 0)): p.dot(x + dx, y + dy, col)
+        p.dot(x, y, "f6e3a0")
+    out["item_wildflowers"] = p
+
+    for name, liquid, hi in (("stamina_tonic", "a83a4a", "e07a80"), ("clarity_draught", "4a6aa8", "8ab0e0"), ("antidote", "4a8a4a", "9ad08a")):
+        p = Pixels(12, 12)
+        p.box(5, 1, 2, 2, "8a6a3a")
+        p.box(3, 3, 6, 8, "c8dcd8"); p.box(4, 5, 4, 5, liquid); p.vline(4, 5, 9, hi)
+        p.hline(3, 8, 3, "e8f0ec"); p.box(4, 6, 4, 2, "efe4c8")
+        out["item_" + name] = p
+
     for icon in out.values(): icon.outline(k=-3.0)
+    return out
+
+
+def forage(Pixels):
+    # Patches drawn on the ground where they can be gathered.
+    out = {}
+    p = Pixels(16, 16)
+    for cx, cy, r in ((5, 10, 2.8), (10, 9, 2.4), (8, 12, 1.8), (12, 12, 1.4)):
+        p.vline(cx, cy, cy + 3, "e8dcc0"); p.vline(cx + 1, cy + 1, cy + 3, "c8bca0")
+        p.oval(cx, cy, r, r * 0.7, "8a5a34"); p.dot(int(cx - 1), int(cy - 1), "c08a5a"); p.dot(int(cx + 1), int(cy), "5e3a20")
+    out["forage_mushrooms"] = p
+    p = Pixels(16, 16)
+    for x, y, col in ((3, 8, "e0717a"), (7, 6, "f2c96a"), (11, 8, "8a7ad0"), (5, 11, "f3ead0"), (10, 12, "e0717a"), (13, 11, "f2c96a")):
+        p.vline(x, y + 1, 15, LEAF[2]); p.dot(x + 1, y + 3, LEAF[3])
+        for dx, dy in ((0, -1), (1, 0), (0, 1), (-1, 0)): p.dot(x + dx, y + dy, col)
+        p.dot(x, y, "f6e3a0")
+    out["forage_wildflowers"] = p
     return out
 
 
@@ -254,4 +292,4 @@ def plants(Pixels):
 
 
 def sprites(Pixels):
-    return dict(items(Pixels), **plants(Pixels))
+    return dict(items(Pixels), **plants(Pixels), **forage(Pixels))

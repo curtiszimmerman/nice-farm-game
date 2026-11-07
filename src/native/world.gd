@@ -118,7 +118,7 @@ var trees: Array = []
 var bushes: Array=[]
 var bush_nodes: Dictionary={}
 var tree_population: Array=[]
-var forage_nodes={"berries":{},"apples":{}}
+var forage_nodes={"berries":{},"apples":{},"mushrooms":{},"wildflowers":{}}
 const Foraging=preload("res://foraging.gd")
 var terrain: ImageTexture
 var west_terrain: ImageTexture
@@ -178,6 +178,8 @@ class Prop extends Node2D:
 			Art.sprite(self,Art.seasonal("bush"+str(data.variant),data.get("season","spring")),Vector2(-32,-42))
 			if data.get("fruit_ready",false): Art.sprite(self,"berry_cluster",Vector2(-24,-36),Vector2(48,32))
 		elif kind == "stump": Art.sprite(self,"stump",Vector2(-16,-16))
+		elif kind == "forage_patch":
+			if data.fruit_ready: Art.sprite(self,"forage_"+data.item,Vector2(-16,-24))
 		elif kind == "logs": Art.sprite(self,"item_wood",Vector2(-14,-24),Vector2(28,28))
 		elif kind == "bench": Art.stone_sprite(self,"bench",Vector2(0,-48),owner_world.state)
 		elif kind == "fountain": Art.stone_sprite(self,"fountain"+str(int(owner_world.elapsed*6)%4),Vector2(0,-80),owner_world.state)
@@ -242,6 +244,7 @@ func _ready() -> void:
 	for cell in Foraging.choose(oaks,state.world_seed+392):
 		for tree in trees:
 			if tree.cell==cell: forage_nodes.apples[cell]=tree.node
+	plant_ground_forage(reachable)
 	refresh_forage()
 	for b in buildings: _prop("building",Vector2(b.x,b.y+b.h),b)
 	_prop("chest",site_position("chest"),{})
@@ -356,7 +359,7 @@ func rebuild_visit(new_state: RefCounted) -> void:
 	ambient.clear()
 	bush_nodes.clear()
 	tree_population.clear()
-	forage_nodes={"berries":{},"apples":{}}
+	forage_nodes={"berries":{},"apples":{},"mushrooms":{},"wildflowers":{}}
 	for child in get_children(): child.free()
 	for field in [people,villagers,routes,buildings,sites,road_segments,road_segment_keys,road_cells,path_cells,trail_cells,dirt_cells,cliff_cells,farm_cells,paved_cells,yard_fences,yard_gates,garden_cells,garden_cells_by_home,garden_work,water_cells,mountain_cells,solid_cells,reserved_cells,schedule_cells,fence_cells,gate_cells,trees,bushes,particles,story_destinations,conversation_holds,indoor_departures,tree_damage]: field.clear()
 	scenery_layer=null
@@ -687,6 +690,22 @@ func forage_problem(item: String,cell: Vector2i) -> String:
 		if state.needs.starving(): return "You're starving and too weak to gather anything. A proper meal will put the strength back."
 		return "You're too exhausted to gather anything. Eat something or get some rest."
 	return ""
+
+# Mushrooms come up at the foot of trees, and wildflowers in open meadow away from roads and buildings.
+func plant_ground_forage(reachable: Dictionary) -> void:
+	var rng=RandomNumberGenerator.new()
+	rng.seed=state.world_seed+517
+	var shaded=[]
+	for tree in trees:
+		var cell: Vector2i=tree.cell+Vector2i.DOWN
+		if solid_cells.has(cell) or reserved_cells.has(cell) or path_cells.has(cell) or not reachable.has(cell): continue
+		shaded.append(cell)
+	for cell in Foraging.choose(shaded,state.world_seed+393).slice(0,24): add_ground_forage("mushrooms",cell)
+	for cell in scatter_cells(28,4,rng,true): add_ground_forage("wildflowers",cell)
+
+func add_ground_forage(item: String,cell: Vector2i) -> void:
+	reserved_cells[cell]=true
+	forage_nodes[item][cell]=_prop("forage_patch",Grid.center(cell),{"item":item,"fruit_ready":false})
 
 func harvest_forage(item: String,cell: Vector2i) -> bool:
 	if not forage_nodes.has(item) or not forage_nodes[item].has(cell): return false

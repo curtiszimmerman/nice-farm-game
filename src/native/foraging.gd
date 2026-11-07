@@ -24,6 +24,8 @@ static func key(item: String,cell: Vector2i) -> String:
 static func ready(state: RefCounted,item: String,cell: Vector2i) -> bool:
 	if item=="berries" and state.season_name() not in ["spring","summer"]: return false
 	if item=="apples" and state.season_name()!="autumn": return false
+	if item=="mushrooms" and state.season_name() not in ["spring","autumn"]: return false
+	if item=="wildflowers" and state.season_name() not in ["spring","summer"]: return false
 	return state.total()-state.forage_harvests.get(key(item,cell),-10080)>=10080
 
 static func choose(cells: Array,seed_value: int) -> Array:

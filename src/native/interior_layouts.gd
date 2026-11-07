@@ -198,8 +198,8 @@ static func _apothecary() -> Dictionary:
 		["seed_tray",Rect2i(1,5,2,1)],["stock",Rect2i(9,5,3,1)],["bookshelf",Rect2i(1,7,1,2)],
 		["table",Rect2i(4,7,3,1)],["counter",Rect2i(7,8,4,1)],
 		["plant",Rect2i(1,10,1,1)],["plant",Rect2i(11,10,1,1)],["art",Rect2i(2,0,1,1)]],
-		"sites":[["bed",Vector2i(3,2)]],
-		"work":[Vector2i(9,7),Vector2i(5,8),Vector2i(2,6)]}
+		"sites":[["bed",Vector2i(3,2)],["brewing_table",Vector2i(5,8)]],
+		"work":[Vector2i(9,7),Vector2i(2,9),Vector2i(2,6)]}
 
 # Nobody has lived in the old miners' shack for years. It's one dusty room with what they left behind.
 static func _mining_shack() -> Dictionary:

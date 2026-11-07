@@ -653,6 +653,7 @@ def main():
     make_sprites16.wall_lanterns()
     make_sprites16.item_icon("glass_jars")
     doubled = ("shore_wash_", "furniture_water_dispenser_", "wall_lantern_", "item_glass_jars") + tuple(f"tile_{variant}_" for variant in new_walls)
+    additions.update({name: image for name, image in farm_sprites(SmallPixels).items() if name.startswith("forage_")})
     additions.update({name: image for name, (image, _) in make_sprites16.ASSETS.items() if name.startswith(doubled)})
     write_font(ROOT / "src/native/art/ui", SmallPixels)
     for name, small in additions.items():

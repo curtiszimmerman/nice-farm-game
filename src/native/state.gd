@@ -139,6 +139,11 @@ var frostkale=0
 var veyr_silk_scarf=0
 var brass_spyglass=0
 var music_box=0
+var mushrooms=0
+var wildflowers=0
+var stamina_tonic=0
+var clarity_draught=0
+var antidote=0
 # The week Widow Marsh's stock was last counted, and how many of each curio sold that week.
 var curio_week=-1
 var curio_bought: Dictionary={}
@@ -146,7 +151,7 @@ const CROPS={"turnips":{"seed":"seeds","days":3,"regrow":0,"seasons":["spring","
 var mayor_due=-1.0
 var house_tasks={"sofa":false,"bed":false,"guest_bed":false,"radio":false,"living_light":false,"bathroom_light":false}
 const INVENTORY_SLOTS=16
-const EXTRA_ITEMS=["pot","pan","fish_sticks","fish_stew","health_elixir","rations","light_bulbs","moon_pike","sea_sprat","blue_mackerel","storm_eel","rain_glassfish","storm_shiner","pickaxe","stones","cave_moth_chrysalis","golden_sparkfire_bloom","lantern_ray","axe","wood","bread","copper_bars","berries","apples","ladder","fishing_pole","coal","silver_bars","winter_sparkbloom","berry_preserves","berry_cobbler","flour","sugar","butter","green_onion_seeds","tomato_seeds","cucumber_seeds","gladain_seeds","green_onions","tomatoes","cucumbers","gladain","glass_jars","veyr_pepper_seeds","veyr_peppers","moonmelon_seeds","moonmelons","frostkale_seeds","frostkale","veyr_silk_scarf","brass_spyglass","music_box"]
+const EXTRA_ITEMS=["pot","pan","fish_sticks","fish_stew","health_elixir","rations","light_bulbs","moon_pike","sea_sprat","blue_mackerel","storm_eel","rain_glassfish","storm_shiner","pickaxe","stones","cave_moth_chrysalis","golden_sparkfire_bloom","lantern_ray","axe","wood","bread","copper_bars","berries","apples","ladder","fishing_pole","coal","silver_bars","winter_sparkbloom","berry_preserves","berry_cobbler","flour","sugar","butter","green_onion_seeds","tomato_seeds","cucumber_seeds","gladain_seeds","green_onions","tomatoes","cucumbers","gladain","glass_jars","veyr_pepper_seeds","veyr_peppers","moonmelon_seeds","moonmelons","frostkale_seeds","frostkale","veyr_silk_scarf","brass_spyglass","music_box","mushrooms","wildflowers","stamina_tonic","clarity_draught","antidote"]
 const CROP_MINUTES=4320.0
 const CROP_PRICES={"green_onions":16,"tomatoes":14,"cucumbers":12,"gladain":40,"veyr_peppers":30,"moonmelons":90,"frostkale":24}
 
@@ -636,6 +641,18 @@ func sell() -> bool:
 	clear_empty_slots()
 	return true
 
+func forage_sale_value() -> int:
+	var total=0
+	for id in Shop.FORAGE_PRICES: total+=int(get(id))*Shop.FORAGE_PRICES[id]
+	return total
+
+func sell_forage() -> int:
+	var earned=forage_sale_value()
+	money+=earned
+	for id in Shop.FORAGE_PRICES: set(id,0)
+	clear_empty_slots()
+	return earned
+
 func sale_value() -> int:
 	var earned=turnips*8+star_bulbs*12
 	for crop in CROP_PRICES: earned+=int(get(crop))*CROP_PRICES[crop]
@@ -659,6 +676,12 @@ func mine(resource: String="copper") -> bool:
 
 func consume(id: String) -> bool:
 	if not Items.FOOD.has(id) or int(get(id))<=0: return false
+	if id=="antidote" and status_effects.has("poison"):
+		status_effects.erase("poison")
+		antidote-=1
+		health=minf(100,health+Items.FOOD.antidote.health)
+		clear_empty_slots()
+		return true
 	var food=Items.FOOD[id]
 	var restores_need=needs.hardcore and (needs.without_water>0 if id=="health_elixir" else id in Items.PREPARED_FOOD and needs.without_food>0)
 	if not restores_need and (health>=100 or food.health==0) and (energy>=100 or food.energy==0) and (mana>=MAX_MANA or food.mana==0): return false
@@ -888,20 +911,28 @@ func cook(id: String) -> bool:
 	if not RECIPES.has(id): return false
 	var recipe=RECIPES[id]
 	if ingredient_count(recipe.utensil)<1: return false
-	for ingredient in recipe.ingredients:
-		if ingredient_count(ingredient)<recipe.ingredients[ingredient]: return false
+	return make(id,recipe.ingredients)
+
+func brew(id: String) -> bool:
+	return Shop.BREWS.has(id) and make(id,Shop.BREWS[id])
+
+# Turns ingredients from the satchel and the kitchen cabinet into one of something, if they're all there
+# and the result still fits in the satchel.
+func make(id: String,ingredients: Dictionary) -> bool:
+	for ingredient in ingredients:
+		if ingredient_count(ingredient)<ingredients[ingredient]: return false
 	var slots=carried_slots()+(1 if int(get(id))==0 else 0)
 	var used={}
-	for ingredient in recipe.ingredients:
-		var remaining=int(recipe.ingredients[ingredient])
+	for ingredient in ingredients:
+		var remaining=int(ingredients[ingredient])
 		for candidate in ingredient_ids(ingredient):
 			var amount=mini(remaining,int(get(candidate)))
 			used[candidate]=amount
 			remaining-=amount
 			if amount>0 and amount==int(get(candidate)): slots-=1
 	if slots>INVENTORY_SLOTS: return false
-	for ingredient in recipe.ingredients:
-		var remaining=int(recipe.ingredients[ingredient])
+	for ingredient in ingredients:
+		var remaining=int(ingredients[ingredient])
 		for candidate in ingredient_ids(ingredient):
 			var carried=int(used.get(candidate,0))
 			set(candidate,int(get(candidate))-carried)

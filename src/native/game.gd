@@ -958,6 +958,7 @@ func interact() -> void:
 				if state.needs.hardcore: drink_freshwater()
 				else: toast("Fresh water, cool and clean.")
 			"water_dispenser": drink_from_dispenser()
+			"brewing_table": brewing()
 			"sign": dialog("The farmhouse crossroads","BRIAR GLEN","East: Briar Glen, general store and smithy. West: the old farmhouse and the coastal path. South: the mill pond and woodland cabins. For the copper cave, take the southeast road from town.",[ ["Okay.",func(): pass] ])
 			"radio":
 				if current_room=="home" and not state.met_mayor and not state.house_tasks.radio: tidy_farmhouse("radio")
@@ -1444,6 +1445,36 @@ func tavi_shop() -> void:
 		offers.append([seed_id,"Five "+state.Items.CATALOG[seed_id].name.to_lower(),10,seed_id,func(): return state.purchase(seed_id)])
 	shop_menu("Tavi's Grocery","SEASONAL STOCK","Here's what's on the shelves today. Seed packets, cookware, and baking supplies arrive with the seasonal cart. Pots and pans work from your kitchen cabinet or satchel.",offers)
 
+func remedy_shop() -> void:
+	var offers=[]
+	for id in ["stamina_tonic","clarity_draught","antidote"]:
+		var remedy=id
+		offers.append([remedy,state.Items.CATALOG[remedy].name,state.Shop.CATALOG[remedy].price,remedy,func(): return state.purchase(remedy)])
+	shop_menu("Sorrel's Apothecary","REMEDIES","Made this week, labelled in my own hand. Read the label. Then read it again.",offers)
+
+func sell_forage() -> void:
+	var earned=state.sell_forage()
+	save_visit()
+	toast("Sorrel counts out %d crowns for your finds." % earned)
+	talk("herbalist")
+
+func brewing() -> void:
+	if current_room!="herbalist":
+		toast("Sorrel's brewing table is in her apothecary.")
+		return
+	var choices=[]
+	for id in state.Shop.BREWS:
+		var recipe=state.Shop.BREWS[id]
+		var brew=id
+		var details=[]
+		for ingredient in recipe: details.append("%d %s" % [recipe[ingredient],state.Items.CATALOG[ingredient].name.to_lower()])
+		choices.append(["Brew %s · %s" % [state.Items.CATALOG[brew].name,", ".join(details)],func():
+			toast("Brewed %s." % state.Items.CATALOG[brew].name if state.brew(brew) else "Missing ingredients, or no room in your satchel.")
+			save_visit()
+			brewing(),recipe.keys().all(func(ingredient):return state.ingredient_count(ingredient)>=recipe[ingredient])])
+	choices.append(["Done brewing",func(): pass])
+	panel("Sorrel's brewing table","BREWING","Sorrel's jars, scales and a little burner. Every brew goes into a glass jar from Tavi's.",choices)
+
 func curio_shop() -> void:
 	var offers=[]
 	for id in state.curio_offers():
@@ -1769,7 +1800,7 @@ func inventory_stacks() -> Array:
 
 func use_inventory_item(id: String) -> void:
 	if state.consume(id):
-		var text="%s %s." % [ui.Items.CATALOG[id].name,"drunk" if id=="health_elixir" else "eaten"]
+		var text="%s %s." % [ui.Items.CATALOG[id].name,"drunk" if ui.Items.CATALOG[id].action=="Drink" else "eaten"]
 		# Deprivation blocks energy recovery, which is easy to miss when health still goes up.
 		if state.needs.thirsty(): text+=" Your thirst keeps it from restoring any energy. Find water."
 		elif state.needs.starving(): text+=" You're still starving, so it can't restore your energy. Only a proper meal will."
@@ -1781,7 +1812,7 @@ func use_inventory_item(id: String) -> void:
 func item_options(id: String) -> void:
 	var choices=[]
 	if ui.Items.FOOD.has(id):
-		choices.append(["Drink" if id=="health_elixir" else "Eat",func(): use_inventory_item(id)])
+		choices.append(["Drink" if ui.Items.CATALOG[id].action=="Drink" else "Eat",func(): use_inventory_item(id)])
 	for i in range(8):
 		var index=i
 		choices.append(["Save to quick slot %d" % (i+1),func(): state.assign_slot(index,id); select_quick_slot(state.selected_slot); save_visit(); inventory()])
