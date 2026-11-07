@@ -33,15 +33,19 @@ func run() -> void:
 				else: open=open and world.solid_cells.get(cell,"")!="building" and world.reserved_cells.has(cell)
 		check(solid,"%s blocks the bottom two rows of its footprint" % b.id)
 		check(open,"%s leaves the rows above its base walkable and free of scenery" % b.id)
-	for id in ["hall","tavern","smithy"]:
+	# The tavern touches the mayor's house on its left, so the captain goes around its right side instead.
+	for pair in [["hall","left"],["tavern","right"],["smithy","left"]]:
+		var id=pair[0]
 		var b=world.buildings.filter(func(item):return item.id==id)[0]
 		var prop=world.scenery_layer.get_children().filter(func(n):return n is World.Prop and n.kind=="building" and n.data.id==id)[0]
 		var front=b.cell.y+b.tiles.y
-		game.state.player_position=Grid.center(b.cell+Vector2i(int(b.tiles.x/2),b.tiles.y))
-		var side=Vector2i(b.cell.x-1,front)
-		var behind=Vector2i(b.cell.x,front-3)
-		# The flowerbeds beside the door fill the front row, so the captain steps out one row before going around.
 		var door=b.cell+Vector2i(int(b.tiles.x/2),b.tiles.y)
+		game.state.player_position=Grid.center(door)
+		var edge=b.cell.x if pair[1]=="left" else b.cell.x+b.tiles.x-1
+		var outward=-1 if pair[1]=="left" else 1
+		var side=Vector2i(edge+outward,front)
+		var behind=Vector2i(edge,front-3)
+		# The flowerbeds beside the door fill the front row, so the captain steps out one row before going around.
 		var walked=walk(game,door+Vector2i.DOWN) and walk(game,side+Vector2i.DOWN) and walk(game,side+Vector2i(0,-3)) and walk(game,behind)
 		check(walked,"the captain walks from %s's door around the side and behind it" % id)
 		check(world.prop_hides_player(prop),"%s fades while the captain stands behind it" % id)

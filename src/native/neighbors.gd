@@ -6,12 +6,12 @@ const PEOPLE=[
 	{"id":"farmer_mother","name":"Elin Reed","role":"ORCHARD GRAFTER","cell":Vector2i(103,47),"coat":"a88558","hair":"41332d","skin":"a77b59"},
 	{"id":"farmer_father","name":"Jory Reed","role":"EAST FARMER","cell":Vector2i(104,47),"coat":"71855b","hair":"775439","skin":"c59a76"},
 	{"id":"farmer_son","name":"Pip Reed","role":"YOUNG SEED COLLECTOR","cell":Vector2i(105,47),"coat":"ad6051","hair":"775439","skin":"b88c67"},
-	{"id":"smith","name":"Dain Rusk","role":"BLACKSMITH","cell":Vector2i(79,48),"coat":"886447","hair":"aaa59b","skin":"79513e"},
+	{"id":"smith","name":"Dain Rusk","role":"BLACKSMITH","cell":Vector2i(73,51),"coat":"886447","hair":"aaa59b","skin":"79513e"},
 	{"id":"miller","name":"Tomas Bell","role":"MILLER","cell":Vector2i(90,29),"coat":"b5a47b","hair":"594536","skin":"c29672"},
 	{"id":"miller_wife","name":"Mara Bell","role":"MRS. BELL · MILLWRIGHT","cell":Vector2i(99,31),"coat":"618398","hair":"a8754d","skin":"d2a17f"},
 	{"id":"miller_daughter","name":"Nessa Bell","role":"RADIO ENTHUSIAST","cell":Vector2i(98,31),"coat":"8f7098","hair":"594536","skin":"bc9479"},
-	{"id":"barkeep","name":"Rafe Fen","role":"KEEPER OF THE WAYWARD WREN","cell":Vector2i(69,38),"coat":"846652","hair":"65503b","skin":"bd8e6c"},
-	{"id":"baker","name":"Corin Hale","role":"BAKER","cell":Vector2i(75,65),"coat":"d8cdb0","hair":"a46843","skin":"d2aa83"},
+	{"id":"barkeep","name":"Rafe Fen","role":"KEEPER OF THE WAYWARD WREN","cell":Vector2i(67,40),"coat":"846652","hair":"65503b","skin":"bd8e6c"},
+	{"id":"baker","name":"Corin Hale","role":"BAKER","cell":Vector2i(69,57),"coat":"d8cdb0","hair":"a46843","skin":"d2aa83"},
 	{"id":"woodcutter","name":"Rowan","role":"FOREST WOODCUTTER","cell":Vector2i(29,79),"coat":"59764d","hair":"8d4e36","skin":"b98b67"}
 ]
 const BUILDINGS=[
@@ -23,9 +23,9 @@ const BUILDINGS=[
 	{"cell":Vector2i(88,24),"tiles":Vector2i(5,5),"roof":"827058","kind":"windmill","visual_height":240},
 	{"cell":Vector2i(96,27),"tiles":Vector2i(6,4),"roof":"8e6659","kind":"mill_home"},
 	{"cell":Vector2i(105,28),"tiles":Vector2i(4,3),"roof":"686879","kind":"mill_shed"},
-	{"cell":Vector2i(76,43),"tiles":Vector2i(6,5),"roof":"686879","kind":"smithy"},
-	{"cell":Vector2i(66,33),"tiles":Vector2i(7,5),"roof":"965d51","kind":"tavern"},
-	{"cell":Vector2i(72,61),"tiles":Vector2i(6,4),"roof":"b68a58","kind":"bakery"},
+	{"cell":Vector2i(70,46),"tiles":Vector2i(6,5),"roof":"686879","kind":"smithy"},
+	{"cell":Vector2i(64,35),"tiles":Vector2i(7,5),"roof":"965d51","kind":"tavern"},
+	{"cell":Vector2i(66,53),"tiles":Vector2i(6,4),"roof":"b68a58","kind":"bakery"},
 	{"cell":Vector2i(27,75),"tiles":Vector2i(4,4),"roof":"78644d","kind":"cabin","resident":"woodcutter"}
 ]
 const FIELDS=[Rect2i(99,50,5,6),Rect2i(106,50,5,6)]

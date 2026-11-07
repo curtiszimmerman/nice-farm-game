@@ -48,13 +48,13 @@ const BUILDINGS = [
 	{"cell":Vector2i(52,34),"tiles":Vector2i(5,4),"roof":"5b8990","kind":"radio"},
 	{"cell":Vector2i(69,41),"tiles":Vector2i(6,4),"roof":"ad7956","kind":"store"},
 	{"cell":Vector2i(50,41),"tiles":Vector2i(7,5),"roof":"818a60","kind":"hall"},
-	{"cell":Vector2i(59,32),"tiles":Vector2i(5,3),"roof":"8c6856","kind":"cottage","resident":"mayor"},
-	{"cell":Vector2i(82,51),"tiles":Vector2i(5,3),"roof":"a87858","kind":"cottage","resident":"tavi"},
-	{"cell":Vector2i(55,60),"tiles":Vector2i(5,3),"roof":"65858b","kind":"cottage","resident":"finch"},
+	{"cell":Vector2i(59,36),"tiles":Vector2i(5,3),"roof":"8c6856","kind":"cottage","resident":"mayor"},
+	{"cell":Vector2i(76,51),"tiles":Vector2i(5,3),"roof":"a87858","kind":"cottage","resident":"tavi"},
+	{"cell":Vector2i(55,55),"tiles":Vector2i(5,3),"roof":"65858b","kind":"cottage","resident":"finch"},
 	{"cell":Vector2i(60,12),"tiles":Vector2i(3,3),"roof":"68658f","kind":"tower","resident":"iona","visual_height":192},
 	{"cell":Vector2i(24,55),"tiles":Vector2i(5,3),"roof":"8c6856","kind":"cottage","resident":"moss"},
 	{"cell":Vector2i(40,76),"tiles":Vector2i(5,4),"roof":"70685a","kind":"cabin","resident":"veteran"},
-	{"cell":Vector2i(84,60),"tiles":Vector2i(4,3),"roof":"6c7885","kind":"cottage","resident":"assistant"},
+	{"cell":Vector2i(78,60),"tiles":Vector2i(4,3),"roof":"6c7885","kind":"cottage","resident":"assistant"},
 	{"cell":Vector2i(-25,48),"tiles":Vector2i(3,3),"roof":"656b75","kind":"lighthouse","resident":"keeper","visual_height":256}
 ]
 const SITES = [
