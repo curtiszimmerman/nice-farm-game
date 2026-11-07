@@ -85,7 +85,7 @@ func _ready() -> void:
 	var saved_position=state.player_position
 	if saved_room=="" and world.blocked(state.player_position): state.player_position=Grid.center(Grid.SPAWN_CELL)
 	camera = Camera2D.new()
-	camera.zoom = Vector2(1.9125,1.9125)
+	camera.zoom = Vector2.ONE*controls.zoom
 	camera.position = state.player_position
 	camera.limit_left = Grid.WORLD_CELLS.position.x*Grid.TILE_SIZE
 	camera.limit_top = 0
@@ -99,6 +99,10 @@ func _ready() -> void:
 	ui = Interface.new()
 	ui.game = self
 	add_child(ui)
+	get_window().min_size=MIN_WINDOW
+	# Tests run headless, where the window has no real size, so they get the screen the HUD was designed on.
+	if testing: get_window().size=Vector2i(ui.DESIGN_SIZE)
+	get_viewport().size_changed.connect(window_resized)
 	if saved_room!="":
 		enter_building(saved_room)
 		if not world.blocked(saved_position): state.player_position=saved_position
@@ -440,12 +444,7 @@ func enter_building(id: String) -> void:
 	resting=0
 	world.update_villagers(0.0,true)
 	world.refresh()
-	var visible_size=get_viewport_rect().size/camera.zoom
-	var margin=(visible_size-world.ROOM_SIZE).max(Vector2.ZERO)*0.5
-	camera.limit_left=floori(-margin.x)
-	camera.limit_top=floori(-margin.y)
-	camera.limit_right=ceili(world.ROOM_SIZE.x+margin.x)
-	camera.limit_bottom=ceili(world.ROOM_SIZE.y+margin.y)
+	fit_room_camera()
 	camera.position=state.player_position
 	toast("%s · E at the front door to leave" % world.room_name(),4)
 	if id=="cave" and state.cave_level==0 and not state.cave_intro_seen:
@@ -536,6 +535,30 @@ func _input(event: InputEvent) -> void:
 		toggle_pause()
 		get_viewport().set_input_as_handled()
 
+# Below this the action bar no longer fits across the bottom of the window.
+const MIN_WINDOW=Vector2i(1120,630)
+
+# Resizing the window changes how much of the world is in view, never how close the camera is.
+func window_resized() -> void:
+	ui.layout_hud()
+	if world!=outdoors: fit_room_camera()
+
+func change_zoom(direction: int) -> void:
+	controls.zoom_step(direction)
+	camera.zoom=Vector2.ONE*controls.zoom
+	if world!=outdoors: fit_room_camera()
+	if not testing: controls.save()
+	toast("Zoom %.1f×" % controls.zoom,1.5)
+
+# Small rooms sit in the middle of the screen instead of in a corner when the view is bigger than they are.
+func fit_room_camera() -> void:
+	var visible_size=get_viewport_rect().size/camera.zoom
+	var margin=(visible_size-world.ROOM_SIZE).max(Vector2.ZERO)*0.5
+	camera.limit_left=floori(-margin.x)
+	camera.limit_top=floori(-margin.y)
+	camera.limit_right=ceili(world.ROOM_SIZE.x+margin.x)
+	camera.limit_bottom=ceili(world.ROOM_SIZE.y+margin.y)
+
 func toggle_pause() -> void:
 	world_paused=not world_paused
 	if world_paused: get_viewport().gui_release_focus()
@@ -563,6 +586,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if world_paused: return
 	if opening!=null: return
 	if welcome_control_locked(): return
+	if event.physical_keycode in [KEY_EQUAL,KEY_KP_ADD]: change_zoom(1); return
+	if event.physical_keycode in [KEY_MINUS,KEY_KP_SUBTRACT]: change_zoom(-1); return
 	for i in range(8):
 		if controls.matches(event,"slot"+str(i+1)): select_quick_slot(i); return
 	if controls.matches(event,"menu"):
@@ -1788,6 +1813,8 @@ func quit_menu() -> void:
 func preferences() -> void:
 	var selected = state.pause_mode
 	var choices = [
+		["Zoom in · now %.1f× · or press =" % controls.zoom,func(): change_zoom(1); preferences(),controls.zoom<controls.ZOOM_LEVELS.back()],
+		["Zoom out · or press -",func(): change_zoom(-1); preferences(),controls.zoom>controls.ZOOM_LEVELS.front()],
 		[("✓ " if state.needs.hardcore else "")+"Food and water · hunger and thirst",func(): state.needs.hardcore=not state.needs.hardcore; save_visit(); preferences()],
 		[("✓ " if selected=="none" else "")+"Time continues",func(): state.pause_mode="none"; preferences()],
 		[("✓ " if selected=="clock" else "")+"Stop calendar · simulation continues",func(): state.pause_mode="clock"; preferences()],

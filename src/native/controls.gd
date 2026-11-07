@@ -5,6 +5,15 @@ const LABELS={"inventory_row":"Next inventory row","up":"Walk up","down":"Walk d
 const PATH="res://../../internal/controls.cfg"
 var keys=DEFAULTS.duplicate()
 var show_target=true
+# The window's size only decides how much of the world is in view; how close the camera is
+# is this setting, stepped through these levels from Settings or the zoom keys.
+const ZOOM_LEVELS=[1.0,1.25,1.5,1.9125,2.25,2.75,3.25]
+const DEFAULT_ZOOM=1.9125
+var zoom=DEFAULT_ZOOM
+
+func zoom_step(direction: int) -> void:
+	var index=ZOOM_LEVELS.find(zoom)
+	zoom=ZOOM_LEVELS[clampi(index+direction,0,ZOOM_LEVELS.size()-1)]
 
 func _init() -> void:
 	reset()
@@ -30,6 +39,7 @@ func rebind(action: String,key: int) -> void:
 func save(path: String=PATH) -> Error:
 	var file=ConfigFile.new()
 	file.set_value("display","show_target",show_target)
+	file.set_value("display","zoom",zoom)
 	for action in keys: file.set_value("keyboard",action,keys[action])
 	return file.save(path)
 
@@ -44,3 +54,5 @@ func load_keys(path: String=PATH) -> void:
 	keys=loaded
 	var display=file.get_value("display","show_target",true)
 	if display is bool: show_target=display
+	var saved_zoom=file.get_value("display","zoom",DEFAULT_ZOOM)
+	if saved_zoom is float and saved_zoom in ZOOM_LEVELS: zoom=saved_zoom

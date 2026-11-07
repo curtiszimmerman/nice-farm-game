@@ -337,7 +337,31 @@ func _ready() -> void:
 	nourishment_bar=_bar(energy_bar.position,energy_bar.size,Color("c4b16c"),needs_panel)
 	for child in root.get_children():
 		if child!=pause_shield and child!=title_screen: hud_nodes.append(child)
+	for node in [calendar_ring,season_word,date,calendar_details.get_parent()]: pin(node,"right")
+	for node in [message_panel,pause_badge]: pin(node,"center")
+	for node in [action_meter,action_label,hint_panel]: pin(node,"center","bottom")
+	layout_hud()
 	update_hud()
+
+# The HUD was drawn for a 1280x720 screen. A pinned piece remembers where it sat on that screen and which
+# edges it belongs to, so it follows those edges when the window is resized. Unpinned pieces stay top-left.
+const DESIGN_SIZE=Vector2(1280,720)
+var hud_anchors={}
+
+func pin(node: Control,horizontal: String,vertical: String="top") -> void:
+	hud_anchors[node]=[node.position,horizontal,vertical]
+	follow_edges(node)
+
+func follow_edges(node: Control) -> void:
+	var shift=get_viewport().get_visible_rect().size-DESIGN_SIZE
+	var anchor=hud_anchors[node]
+	node.position=anchor[0]+Vector2({"left":0.0,"center":shift.x/2,"right":shift.x}[anchor[1]],{"top":0.0,"middle":shift.y/2,"bottom":shift.y}[anchor[2]])
+
+func layout_hud() -> void:
+	for node in hud_anchors:
+		if is_instance_valid(node): follow_edges(node)
+	controls_hint.size.x=get_viewport().get_visible_rect().size.x
+	layout_survival_hud()
 
 func update_hud() -> void:
 	layout_survival_hud()
@@ -480,6 +504,7 @@ func show_shop_wallet() -> void:
 	if shop_wallet==null:
 		shop_wallet=PanelContainer.new()
 		shop_wallet.position=Vector2(1024,405)
+		pin(shop_wallet,"center","middle")
 		shop_wallet.custom_minimum_size=Vector2(220,80)
 		shop_wallet.mouse_filter=Control.MOUSE_FILTER_IGNORE
 		var border=style(Color("172d2cfb"),GOLD)
@@ -1296,7 +1321,7 @@ func update() -> void:
 	hint_panel.visible=not hint.text.is_empty()
 	var hint_width=hint.get_theme_font("font").get_string_size(hint.text,HORIZONTAL_ALIGNMENT_LEFT,-1,14).x+24
 	hint_panel.size=Vector2(minf(740,hint_width),0)
-	hint_panel.position.x=(1280-hint_panel.size.x)/2
+	hint_panel.position.x=(get_viewport().get_visible_rect().size.x-hint_panel.size.x)/2
 	action_meter.visible = game.activity=="fishing"
 	action_label.text = ""
 	if game.activity=="fishing":
