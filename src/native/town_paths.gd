@@ -135,8 +135,10 @@ static func residential_garden(world: Node2D,building: Dictionary) -> void:
 					for dx in range(dimensions.x):
 						var cell=rectangle.position+Vector2i(dx,dy)
 						if world.blocked(Grid.center(cell)) or world.yard_gates.has(cell) or world.schedule_cells.has(cell) or world.road_cells.has(cell) or world.paved_cells.has(cell) or world.SQUARE.has_point(cell) or building_door_approach(world,cell) or coastal_path_contains(cell) or cell.distance_to(door)<=1.5 or (cell.x in [door.x,gate.x] and cell.y>=door.y): clear=false
-						# A garden behind a house's walls would be hidden by its roof.
-						if world.buildings.any(func(other):return Rect2i(other.cell,other.tiles).has_point(cell)): clear=false
+						# A garden behind a house's walls would be hidden by its roof, and one in its front yard
+						# would crowd the family's only way to the gate.
+						if inside_building(world,cell): clear=false
+						if cell.y>=door.y and cell.x>=building.cell.x-1 and cell.x<=building.cell.x+building.tiles.x: clear=false
 						# Iona's tower has no fence, so people walk right past its base. Keep the garden out of those side lanes.
 						if building.kind=="tower" and cell.x in [building.cell.x-1,building.cell.x+building.tiles.x] and cell.y>=building.cell.y and cell.y<building.cell.y+building.tiles.y: clear=false
 				if clear: candidates.append(rectangle)
@@ -158,7 +160,7 @@ static func residential_garden(world: Node2D,building: Dictionary) -> void:
 	for cell in planted:
 		for step in [Vector2i.DOWN,Vector2i.LEFT,Vector2i.RIGHT,Vector2i.UP]:
 			var work=cell+step
-			if work.distance_to(building.cell)<12 and not world.blocked(Grid.center(work)) and not world._route(Grid.SPAWN_CELL,work).is_empty(): work_options.append(work)
+			if work.distance_to(building.cell)<12 and not world.blocked(Grid.center(work)) and not inside_building(world,work) and not world._route(Grid.SPAWN_CELL,work).is_empty(): work_options.append(work)
 	if not work_options.is_empty():
 		work_options.sort_custom(func(a,b):return a.distance_squared_to(origin)<b.distance_squared_to(origin))
 		world.garden_work[building.id]=work_options[0]
@@ -173,7 +175,7 @@ static func refresh_garden_work(world: Node2D) -> void:
 		for garden_cell in world.garden_cells_by_home[home]:
 			for step in [Vector2i.DOWN,Vector2i.LEFT,Vector2i.RIGHT,Vector2i.UP]:
 				var cell: Vector2i=garden_cell+step
-				if cell.distance_to(building[0].cell)>=12 or world.blocked(Grid.center(cell)): continue
+				if cell.distance_to(building[0].cell)>=12 or world.blocked(Grid.center(cell)) or inside_building(world,cell): continue
 				if world._route(Grid.SPAWN_CELL,cell).is_empty(): continue
 				if not options.has(cell): options.append(cell)
 		if options.is_empty():
@@ -182,6 +184,10 @@ static func refresh_garden_work(world: Node2D) -> void:
 		options.sort_custom(func(a,b):return a.distance_squared_to(world.garden_cells_by_home[home][0])<b.distance_squared_to(world.garden_cells_by_home[home][0]))
 		world.garden_work[home]=options[0]
 		world.reserved_cells[options[0]]=true
+
+# True for any cell under a building's artwork, including the rows people can walk through behind its walls.
+static func inside_building(world: Node2D,cell: Vector2i) -> bool:
+	return world.buildings.any(func(building):return Rect2i(building.cell,building.tiles).has_point(cell))
 
 static func coastal_path_contains(cell: Vector2i) -> bool:
 	for path in preload("res://coast.gd").PATHS:
