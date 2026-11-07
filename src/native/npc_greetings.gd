@@ -1,6 +1,8 @@
 extends RefCounted
 
 const LINES={
+	"widow":"Celandine Marsh. Widow Marsh, most of the town says, and I've stopped correcting them. If it's odd, old, or came a long way, I probably have one. Come in and look; looking's free.",
+	"herbalist":"Sorrel Ashby, herbalist. Don't eat anything you find in the woods until you've shown it to me. I mean that kindly, but I do mean it.",
 	"vale":"Captain. I'm glad you're on your feet. The ship took a beating, but she's still keeping us hidden. I've stopped counting the warning lights. Give me a moment and I'll show you what survived.",
 	"moss":"Well, you're a long way from the road. I'm Moss. That flash up on the mountain had me worried. Set the hens off something fierce, too. Are you all right?",
 	"mayor":"I'm Alder. Moss told me you needed shelter. A roof and a chance to catch your breath seem a reasonable place to start. Let's see what we can do for you.",
@@ -25,6 +27,8 @@ const LINES={
 }
 
 const REPLIES={
+	"widow":"Thank you. I'll be sure to look around.",
+	"herbalist":"I'll show you first. Promise.",
 	"vale":"Show me what we've got left.",
 	"moss":"We're all right, thank you. We're travelers looking for somewhere to stay.",
 	"mayor":"Thank you. We'd be grateful for a place to stay.",

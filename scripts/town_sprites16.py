@@ -532,6 +532,8 @@ PEOPLE = {
     "miller_daughter": ("6e4a8a", "3a2a2a", "d8a882", "3e3a4a", "d8c8a0", ("pony",)),
     "barkeep": ("8a3a34", "2a2224", "d09c7a", "2e2a30", "ece2cc", ("stripes", "moustache")),
     "baker": ("c9b89a", "b8452e", "e6b896", "6a5a4a", "f4efe4", ("rolled", "apron:f1ebde", "toque")),
+    "widow": ("6a4e6e", "cfc8c0", "d8b090", "4a3e4a", "e0d4c0", ("long", "skirt", "scarf")),
+    "herbalist": ("5e7a4a", "8a4a2a", "e0b48c", "4e4a3a", "d8c890", ("braid", "skirt", "apron:7a6a4a")),
 }
 
 

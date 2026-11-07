@@ -12,6 +12,8 @@ const PEOPLE=[
 	{"id":"miller_daughter","name":"Nessa Bell","role":"RADIO ENTHUSIAST","cell":Vector2i(98,31),"coat":"8f7098","hair":"594536","skin":"bc9479"},
 	{"id":"barkeep","name":"Rafe Fen","role":"KEEPER OF THE WAYWARD WREN","cell":Vector2i(67,40),"coat":"846652","hair":"65503b","skin":"bd8e6c"},
 	{"id":"baker","name":"Corin Hale","role":"BAKER","cell":Vector2i(69,57),"coat":"d8cdb0","hair":"a46843","skin":"d2aa83"},
+	{"id":"widow","name":"Celandine Marsh","role":"WIDOW MARSH · CURIOS","cell":Vector2i(53,51),"coat":"6a4e6e","hair":"cfc8c0","skin":"d8b090"},
+	{"id":"herbalist","name":"Sorrel Ashby","role":"HERBALIST","cell":Vector2i(68,64),"coat":"5e7a4a","hair":"8a4a2a","skin":"e0b48c"},
 	{"id":"woodcutter","name":"Rowan","role":"FOREST WOODCUTTER","cell":Vector2i(29,79),"coat":"59764d","hair":"8d4e36","skin":"b98b67"}
 ]
 const BUILDINGS=[
@@ -50,6 +52,8 @@ const ROUTES=[
 ]
 const NAMES={"observatory":"Saeren's observatory","widow":"Widow Marsh's Curios","herbalist":"Sorrel's Apothecary","mining_shack":"the abandoned mining shack","reed_farm":"Reed family farm","windmill":"Bell's windmill","mill_home":"Bell family home","smithy":"Dain's smithy","tavern":"The Wayward Wren","bakery":"Corin's bakery","woodcutter":"Rowan's cabin"}
 const STORIES={
+	"widow":"Celandine Marsh|Mind the umbrella stand; it's older than the town hall. My Edwin traded all over: Veyr silks, glass from the coast towns, seeds nobody here had heard of. He went out with a caravan to the eastern passes some winters ago and didn't come back. I kept the shop. Half the traders on the roads were his friends, and they still send me odd things with a note. My friends in Veyr write more often than my own sister does.",
+	"herbalist":"Sorrel Ashby|I grew up at the edge of the woods south of here, and my grandmother taught me which mushrooms feed you and which ones introduce you to the Veil. I came to Briar Glen to be useful rather than clever. Bring me what you find out there: flowers, berries, mushrooms. I'll pay fairly, and if you want to learn, I'll show you how a few of them become something better in a jar.",
 	"priest":"Brother Aven|The bees don't care whether a hymn's in tune. I find that comforting. I keep the garden here, and a light for anyone who needs somewhere quiet. Before I came to Briar Glen I tended the roadside shrines. These days a shorter walk suits me, though I still keep a kettle ready for travelers.",
 	"astronomer":"Saeren|You came from the stars. No, don't look so alarmed. I was at the eyepiece when your light crossed the sky. It turned against a natural fall, twice. Stones don't do that. Even cats aren't so lucky, though they sure are nimble. I don't pretend to understand what carried you here, but I've spent fifty years learning the difference between what I see and what I expect to see. Your secret is safe in this room.",
 	"woodcutter":"Rowan|My mother taught me these woods. I'd like somebody else's daughter to know them too.",
@@ -63,8 +67,10 @@ const STORIES={
 	"barkeep":"Rafe Fen|Welcome to the Wayward Wren. Tomas and I wanted to see the whole world when we were young. He got as far as the mill, and I got as far as this bar. Plenty of the world comes through here, though. Corin the baker brings the morning's bread and stays for a while to hear from the townsfolk. Save him a chair and he'll introduce you to half the valley.",
 	"baker":"Corin Hale|You're just in time. Well, I say that to everyone, but there's usually something warm. Tomas brings the flour, the Reeds bring whatever's plentiful, Moss brings opinions about the weather, and Rafe brings my baskets back eventually. I've been baking all my life. I could barely see over the counter when I shaped my first loaf. People will tell you their whole lives while waiting for one. Pull up a stool."
 }
-const WORKPLACES={"astronomer":"observatory","smith":"smithy","miller":"windmill","miller_wife":"windmill","miller_daughter":"radio","barkeep":"tavern","baker":"bakery"}
+const WORKPLACES={"widow":"widow","herbalist":"herbalist","astronomer":"observatory","smith":"smithy","miller":"windmill","miller_wife":"windmill","miller_daughter":"radio","barkeep":"tavern","baker":"bakery"}
 const OFF_DUTY={
+	"widow":"Even an old merchant needs a little sun. Edwin used to say the square is the best market in the valley, because everyone in it is willing to talk.",
+	"herbalist":"Early mornings are for gathering, before the dew burns off. Afternoons are for jars and labels. Evenings are for sitting down, which I'm told I don't do often enough.",
 	"astronomer":"A little air before the night's work. You see those pale streaks above the ridge? Most people call them clouds. Through the telescope they're quite another thing. Come up to the observatory sometime. There are matters best discussed away from the square.",
 	"farmer_mother":"Lovely to have a moment away from the fields. Pip has been trying to persuade me that three seed jars count as suitable supper-table decoration. You can guess how that's going.",
 	"farmer_father":"My sweet Elin's got the orchard in hand, so I can spare a little time for town, and Corin's promised to save us a loaf or two. You'd think after all these years I'd know when to arrive before he sells out.",

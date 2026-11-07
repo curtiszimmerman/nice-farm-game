@@ -22,6 +22,8 @@ const ROUTINES = {
 	"miller_daughter":[[0,99,31,true,"mill_home"],[420,99,31,false,"mill_home"],[480,90,29,false,"windmill"],[720,99,31,false,"mill_home"],[810,54,38,false,"radio"],[1080,99,31,false,"mill_home"],[1320,99,31,true,"mill_home"]],
 	"barkeep":[[0,67,40,true,"tavern"],[480,67,40,false,"tavern"],[570,69,57,false,"bakery"],[630,67,40,false,"tavern"],[1380,67,40,true,"tavern"]],
 	"baker":[[0,69,57,true,"bakery"],[300,69,57,false,"bakery"],[720,60,48,false],[780,69,57,false,"bakery"],[1110,67,40,false,"tavern"],[1230,69,57,false,"bakery"],[1320,69,57,true,"bakery"]],
+	"widow":[[0,53,51,true,"widow"],[420,53,51,false,"widow"],[720,60,48,false],[780,53,51,false,"widow"],[1080,63,45,false],[1140,53,51,false,"widow"],[1320,53,51,true,"widow"]],
+	"herbalist":[[0,68,64,true,"herbalist"],[360,68,64,false,"herbalist"],[390,24,72,false],[510,68,64,false,"herbalist"],[750,62,60,false],[810,68,64,false,"herbalist"],[1320,68,64,true,"herbalist"]],
 	"woodcutter":[[0,29,79,true],[390,29,79,false,"woodcutter"],[450,32,82,false],[720,29,79,false,"woodcutter"],[810,25,82,false],[1080,29,79,false,"woodcutter"],[1320,29,79,true]]
 }
 
@@ -35,7 +37,7 @@ static func home_stop(id: String) -> Dictionary:
 
 const SLEEP={"baker":[1320,240],"farmer_father":[1320,360],"farmer_mother":[1320,390],"farmer_son":[1320,420],"moss":[1320,360],"miller":[1350,390],"miller_wife":[1320,390],"miller_daughter":[1350,420],"smith":[1350,390],"finch":[1380,420],"mayor":[1350,420],"assistant":[1380,420],"tavi":[1380,420],"keeper":[1320,390],"veteran":[1320,390],"woodcutter":[1320,360],"astronomer":[1380,420],"vale":[1320,420],"barkeep":[1440,480],"priest":[1320,360]}
 const COMMUNION=["moss","mayor","miller_wife","farmer_mother","keeper","veteran"]
-const TAVERN_DAYS={"baker":[0,2],"moss":[0,2,4,6],"miller":[0,1,2,3,4,6],"miller_wife":[1,4,6],"miller_daughter":[2,5],"smith":[0,1,3,4,5],"finch":[0,2,4,6],"mayor":[1,3,5],"assistant":[3],"tavi":[0,2,4,6],"keeper":[2],"veteran":[1,4],"woodcutter":[0,3,5,6],"farmer_mother":[1,5],"farmer_father":[0,2,4,6],"farmer_son":[5],"astronomer":[1,4,6]}
+const TAVERN_DAYS={"widow":[1],"herbalist":[3,5],"baker":[0,2],"moss":[0,2,4,6],"miller":[0,1,2,3,4,6],"miller_wife":[1,4,6],"miller_daughter":[2,5],"smith":[0,1,3,4,5],"finch":[0,2,4,6],"mayor":[1,3,5],"assistant":[3],"tavi":[0,2,4,6],"keeper":[2],"veteran":[1,4],"woodcutter":[0,3,5,6],"farmer_mother":[1,5],"farmer_father":[0,2,4,6],"farmer_son":[5],"astronomer":[1,4,6]}
 
 static func observations_closed(day: int,minute: float) -> bool:
 	var weekday=posmod(day-1,7)
