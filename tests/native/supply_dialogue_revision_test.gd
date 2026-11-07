@@ -10,8 +10,9 @@ func run() -> void:
 	game.testing=true
 	root.add_child(game)
 	game.set_process(false)
+	preload("fixture.gd").explore(game,true)
 	var s=game.state
-	var crew=game.ui.quest_lines()[0]
+	var crew=game.ui.quest_lines().filter(func(quest):return quest.id=="crew_supplies")[0]
 	check(not crew.tasks.back().done,"initial emergency rations do not complete the player food-deposit task")
 	s.hoe=1
 	s.seeds=1
@@ -22,8 +23,7 @@ func run() -> void:
 	check(s.inventory_order[1]=="axe" and s.inventory_order[5]=="seeds","new items occupy the first empty inventory position")
 	s.fish_sticks=2
 	s.storage_transfer("ship_storage",2,"fish_sticks",2)
-	check(game.ui.quest_lines()[0].tasks.back().done,"depositing prepared food completes the supply milestone")
-	preload("fixture.gd").explore(game,true)
+	check(game.ui.quest_lines().filter(func(quest):return quest.id=="crew_supplies")[0].tasks.back().done,"depositing prepared food completes the supply milestone")
 	s.met_mayor=true
 	game.talk("moss")
 	check(not game.ui.modal_box.get_children().any(func(node):return node is Button and node.text.contains("[Rude]")),"ordinary friendly conversations do not offer a gratuitous insult")
