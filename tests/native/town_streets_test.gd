@@ -81,6 +81,16 @@ func run() -> void:
 	check(widow_yard.keys().all(func(cell):return Rect2i(48,48,8,3).has_point(cell)),"Widow Marsh's yard is fenced on every side")
 	check(world.yard_gates.has(approach(world,"widow")+Vector2i.UP),"Widow Marsh's front gate opens at her door")
 	check(widow_yard.has(Vector2i(48,48)) and widow_yard.has(Vector2i(50,50)),"Widow Marsh keeps a sliver behind her house and a strip of garden to the west")
+	var clear_yards=true
+	for world_seed in [1,6,9,15,16,18,21,23]:
+		game.state.world_seed=world_seed
+		world.rebuild_visit(game.state)
+		var yard=enclosed(world,Vector2i(50,49),200)
+		if not yard.has(Vector2i(48,48)) or not yard.has(Vector2i(50,50)):
+			clear_yards=false
+			print("Blocked widow yard in seed ",world_seed)
+		await process_frame
+	check(clear_yards,"random vegetation never blocks Widow Marsh's small backyard across eight regression layouts")
 	# The temple complex has one forecourt for the temple and the priest's house, entered from South Street.
 	var gates=world.TownPaths.TEMPLE_GATES
 	check(gates.size()==3 and not gates.any(func(cell):return cell.y==54),"the temple keeps its east, west and south gates and loses the north gate")

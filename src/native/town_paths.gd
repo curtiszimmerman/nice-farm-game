@@ -99,6 +99,7 @@ static func town_fences(world: Node2D) -> void:
 	for y in range(WIDOW_YARD.position.y,WIDOW_YARD.end.y):
 		for x in range(WIDOW_YARD.position.x,WIDOW_YARD.end.x):
 			var cell=Vector2i(x,y)
+			world.reserved_cells[cell]=true
 			if x not in [WIDOW_YARD.position.x,WIDOW_YARD.end.x-1] and y not in [WIDOW_YARD.position.y,WIDOW_YARD.end.y-1]: continue
 			if cell==gate:
 				world.yard_gates[cell]="iron"
